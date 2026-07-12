@@ -44,6 +44,37 @@
     </div>
 
     <section
+      v-if="isAvailabilityTab"
+      ref="availabilityActionBlockRef"
+      class="panel availability-action-panel"
+      :class="{ 'availability-action-panel--attention': availabilityActionAttention }"
+      aria-labelledby="availability-action-title"
+    >
+      <div class="availability-action-panel__content">
+        <div>
+          <h2 id="availability-action-title" class="availability-action-panel__title">Додайте вікна для запису</h2>
+          <p class="availability-action-panel__helper">
+            Створіть доступний час одразу на кілька днів або тижнів.
+          </p>
+        </div>
+        <div class="availability-action-panel__actions">
+          <button
+            ref="availabilityPrimaryActionRef"
+            class="btn availability-action-panel__primary"
+            type="button"
+            :disabled="loading || deleteActionLoading"
+            @click="requestFillWeek"
+          >
+            Створити вікна для запису
+          </button>
+          <button class="btn btn--ghost availability-action-panel__secondary" type="button" @click="openCreateForm">
+            Додати одне вікно
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section
       v-if="!isSettingsTab"
       class="panel schedule-toolbar"
       :class="{ 'schedule-toolbar--availability': isAvailabilityTab }"
@@ -80,9 +111,6 @@
           </div>
           <div v-else class="action-group action-group--availability">
             <div class="action-group__buttons">
-              <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
-                Додати вікно
-              </button>
               <RouterLink
                 class="btn btn--ghost btn--sm booking-settings-cta"
                 to="/cabinet/slots?tab=settings"
@@ -90,14 +118,6 @@
               >
                 Запис і запити
               </RouterLink>
-              <button
-                class="btn btn--sm smart-fill-cta"
-                type="button"
-                :disabled="loading || deleteActionLoading"
-                @click="requestFillWeek"
-              >
-                Створити вікна для запису
-              </button>
             </div>
           </div>
         </div>
@@ -259,6 +279,26 @@
 
     <div v-if="!isSettingsTab" class="schedule-workspace">
       <section class="panel calendar-panel" aria-label="Календар">
+        <section
+          v-if="showAvailabilityEmptyState"
+          class="availability-empty-state"
+          aria-labelledby="availability-empty-state-title"
+        >
+          <div>
+            <h2 id="availability-empty-state-title" class="availability-empty-state__title">
+              На цьому тижні ще немає вікон для запису
+            </h2>
+            <p class="availability-empty-state__helper">
+              Створіть кілька вікон за робочим графіком або додайте окремий час вручну.
+            </p>
+          </div>
+          <div class="availability-empty-state__actions">
+            <button class="btn" type="button" :disabled="loading || deleteActionLoading" @click="requestFillWeek">
+              Створити вікна для запису
+            </button>
+          </div>
+        </section>
+
         <div class="calendar-scroll">
           <div class="week-calendar" role="grid" :aria-label="`Календар на тиждень ${weekRangeLabel}`">
             <div class="calendar-time-gutter calendar-header-cell" aria-hidden="true"></div>
@@ -364,8 +404,8 @@
         <div v-if="isCalendarTab && visibleWeekCalendarSessions.length === 0" class="calendar-empty muted">
           На цьому тижні ще немає подій у розкладі.
         </div>
-        <div v-if="isAvailabilityTab && visibleWeekSlots.length === 0" class="calendar-empty muted">
-          На цьому тижні ще немає вікон для запису.
+        <div v-if="availabilityCalendarEmptyMessage" class="calendar-empty muted">
+          {{ availabilityCalendarEmptyMessage }}
         </div>
 
         <div class="mobile-day-schedule">
@@ -1661,6 +1701,11 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const confirmModal = useConfirmModal()
+const availabilityActionBlockRef = ref<HTMLElement | null>(null)
+const availabilityPrimaryActionRef = ref<HTMLButtonElement | null>(null)
+const availabilityActionAttention = ref(false)
+const availabilityFocusHandled = ref(false)
+let availabilityAttentionTimer: number | undefined
 let scheduleLoadRequestId = 0
 
 function scheduleTabFromRoute(): ScheduleTab {
@@ -1687,6 +1732,49 @@ function routeQueryString(value: unknown) {
   const raw = Array.isArray(value) ? value[0] : value
   if (typeof raw !== 'string') return ''
   return raw.trim()
+}
+
+function hasCreateAvailabilityFocusQuery() {
+  return routeQueryString(route.query.focus) === 'create-availability'
+}
+
+function clearCreateAvailabilityFocusQuery() {
+  const nextQuery = { ...route.query }
+  delete nextQuery.focus
+  void router.replace({ path: route.path, query: nextQuery })
+}
+
+function clearAvailabilityAttentionTimer() {
+  if (availabilityAttentionTimer !== undefined) {
+    window.clearTimeout(availabilityAttentionTimer)
+    availabilityAttentionTimer = undefined
+  }
+}
+
+async function focusAvailabilityActionFromQuery() {
+  if (!hasCreateAvailabilityFocusQuery()) {
+    availabilityFocusHandled.value = false
+    return
+  }
+  if (availabilityFocusHandled.value) return
+  if (!isAvailabilityTab.value) return
+  if (loading.value) return
+
+  await nextTick()
+  const actionBlock = availabilityActionBlockRef.value
+  const primaryAction = availabilityPrimaryActionRef.value
+  if (!actionBlock || !primaryAction || primaryAction.disabled) return
+
+  availabilityFocusHandled.value = true
+  actionBlock.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+  primaryAction.focus()
+  availabilityActionAttention.value = true
+  clearAvailabilityAttentionTimer()
+  availabilityAttentionTimer = window.setTimeout(() => {
+    availabilityActionAttention.value = false
+    availabilityAttentionTimer = undefined
+  }, 2200)
+  clearCreateAvailabilityFocusQuery()
 }
 
 function shouldOpenOneOffSessionFromRoute() {
@@ -2497,6 +2585,24 @@ const visibleWeekSlots = computed(() =>
     .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
 )
 
+const weekAvailabilitySlots = computed(() =>
+  slots.value
+    .filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)))
+    .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
+)
+
+const showAvailabilityEmptyState = computed(() =>
+  isAvailabilityTab.value && !loading.value && weekAvailabilitySlots.value.length === 0
+)
+
+const availabilityCalendarEmptyMessage = computed(() => {
+  if (!isAvailabilityTab.value || loading.value || visibleWeekSlots.value.length > 0) return ''
+  if (weekAvailabilitySlots.value.length === 0) return ''
+  if (slotStatusFilter.value !== 'ALL') return 'За обраним фільтром вікон немає.'
+  if (!showPastSlots.value) return 'Усі вікна цього тижня вже минули.'
+  return ''
+})
+
 const unbookedVisibleWeekSlots = computed(() =>
   slots.value
     .filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)))
@@ -2686,6 +2792,13 @@ watch(
   () => [route.path, route.query.tab],
   () => {
     setScheduleTab(scheduleTabFromRoute())
+  }
+)
+
+watch(
+  () => [route.path, route.query.tab, route.query.focus, loading.value, deleteActionLoading.value],
+  () => {
+    void focusAvailabilityActionFromQuery()
   }
 )
 
@@ -4182,9 +4295,11 @@ onMounted(() => {
   void loadSlots()
   void loadPublicBookingSettings()
   openOneOffSessionFromRouteAction()
+  void focusAvailabilityActionFromQuery()
 })
 
 onBeforeUnmount(() => {
+  clearAvailabilityAttentionTimer()
   document.removeEventListener('pointerdown', handleDocumentPointerDown)
   document.removeEventListener('keydown', handleDocumentKeydown)
 })
@@ -4307,6 +4422,123 @@ onBeforeUnmount(() => {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+}
+
+.availability-action-panel {
+  border-color: color-mix(in srgb, var(--pc-primary) 24%, var(--pc-border));
+  background: linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-blue-soft) 48%, #ffffff) 100%);
+}
+
+.availability-action-panel__content,
+.availability-empty-state {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+}
+
+.availability-action-panel__content {
+  width: 100%;
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+.availability-action-panel__title,
+.availability-empty-state__title {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.availability-action-panel__helper,
+.availability-empty-state__helper {
+  margin: 4px 0 0;
+  color: var(--pc-text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.availability-action-panel__actions,
+.availability-empty-state__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.availability-action-panel__primary {
+  min-height: 38px;
+  padding-inline: 16px;
+}
+
+.availability-action-panel__secondary {
+  min-height: 38px;
+}
+
+.availability-action-panel--attention {
+  animation: availability-action-pulse 2.2s ease-out;
+}
+
+.availability-empty-state {
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  border-color: color-mix(in srgb, var(--pc-warning) 30%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-warning-soft) 42%, #ffffff);
+}
+
+@keyframes availability-action-pulse {
+  0%,
+  100% {
+    box-shadow: var(--pc-shadow-soft);
+    border-color: color-mix(in srgb, var(--pc-primary) 24%, var(--pc-border));
+  }
+  35%,
+  70% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-primary) 16%, transparent), var(--pc-shadow-soft);
+    border-color: color-mix(in srgb, var(--pc-primary) 52%, var(--pc-border));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .availability-action-panel--attention {
+    animation: none;
+    border-color: color-mix(in srgb, var(--pc-primary) 52%, var(--pc-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-primary) 12%, transparent), var(--pc-shadow-soft);
+  }
+}
+
+@media (max-width: 900px) {
+  .availability-action-panel__content {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .availability-action-panel__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .availability-empty-state {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .availability-action-panel__actions,
+  .availability-empty-state__actions {
+    width: 100%;
+  }
+
+  .availability-action-panel__actions .btn,
+  .availability-empty-state__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .schedule-toolbar {

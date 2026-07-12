@@ -1,5 +1,6 @@
 ﻿import { fireEvent, render, screen, within } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { waitFor } from '@testing-library/vue'
 import {
   apiDelete,
   apiGet,
@@ -20,6 +21,8 @@ const mockRoute = {
 const mockRouter = {
   replace: vi.fn(),
 }
+
+const scrollIntoViewMock = vi.fn()
 
 const mockToast = {
   success: vi.fn(),
@@ -87,6 +90,16 @@ async function flushAsyncUpdates() {
   await Promise.resolve()
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve
+    reject = promiseReject
+  })
+  return { promise, resolve, reject }
+}
+
 function renderView() {
   return render(SlotsView, {
     global: {
@@ -130,11 +143,24 @@ function getCreateFormControls(container: Element) {
 async function openCreateForm(container: Element) {
   await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
   await flushAsyncUpdates()
-  const addButton = screen.getByRole('button', { name: 'Додати вікно' })
+  const addButton = getAvailabilitySecondaryAction()
   if (!addButton) throw new Error('Add free time button not found')
   await fireEvent.click(addButton)
   await flushAsyncUpdates()
   return getCreateFormControls(container)
+}
+
+function getAvailabilityActionPanel() {
+  const panel = screen.getByRole('region', { name: 'Додайте вікна для запису' })
+  return within(panel)
+}
+
+function getAvailabilityPrimaryAction() {
+  return getAvailabilityActionPanel().getByRole('button', { name: 'Створити вікна для запису' })
+}
+
+function getAvailabilitySecondaryAction() {
+  return getAvailabilityActionPanel().getByRole('button', { name: 'Додати одне вікно' })
 }
 
 function scheduleSession(overrides: Record<string, unknown> = {}) {
@@ -273,6 +299,11 @@ describe('SlotsView', () => {
     mockToast.warning.mockReset()
     mockConfirmModal.openConfirm.mockReset()
     mockRouter.replace.mockReset()
+    scrollIntoViewMock.mockReset()
+    Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewMock,
+    })
   })
 
   afterEach(() => {
@@ -291,7 +322,7 @@ describe('SlotsView', () => {
     expect(mockedGetCabinetSchedule).toHaveBeenCalledWith('2026-03-09', '2026-03-15')
     expect(screen.getByRole('heading', { name: 'Деталі події' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Додати вікно' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати одне вікно' })).not.toBeInTheDocument()
     expect(screen.getAllByText('На цьому тижні ще немає подій у розкладі.').length).toBeGreaterThan(0)
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
   })
@@ -300,12 +331,169 @@ describe('SlotsView', () => {
     mockRoute.query = { tab: 'availability' }
     mockScheduleApi()
 
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
+    expect(getAvailabilitySecondaryAction()).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Додайте вікна для запису' })).toBeInTheDocument()
+    expect(screen.getByText('Створіть доступний час одразу на кілька днів або тижнів.')).toBeInTheDocument()
+    const actionPanel = screen.getByRole('region', { name: 'Додайте вікна для запису' })
+    const toolbar = container.querySelector('.schedule-toolbar')
+    expect(toolbar).toBeInstanceOf(HTMLElement)
+    expect(actionPanel.compareDocumentPosition(toolbar as Element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    expect(scrollIntoViewMock).not.toHaveBeenCalled()
+    expect(mockRouter.replace).not.toHaveBeenCalled()
+    expect(actionPanel).not.toHaveClass('availability-action-panel--attention')
+  })
+
+  it('defers availability deep-link focus until the primary action is enabled', async () => {
+    openAvailabilityRoute({ tab: 'availability', focus: 'create-availability', source: 'dashboard' })
+    const slotsDeferred = createDeferred<unknown[]>()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return slotsDeferred.promise as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedGetCabinetSchedule.mockResolvedValue({ events: [] })
+
     renderView()
     await flushAsyncUpdates()
 
     expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('button', { name: 'Додати вікно' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    const primaryAction = getAvailabilityPrimaryAction()
+    expect(primaryAction).toBeDisabled()
+    expect(scrollIntoViewMock).not.toHaveBeenCalled()
+    expect(document.activeElement).not.toBe(primaryAction)
+    expect(mockRouter.replace).not.toHaveBeenCalled()
+    expect(screen.getByRole('region', { name: 'Додайте вікна для запису' })).not.toHaveClass(
+      'availability-action-panel--attention'
+    )
+
+    slotsDeferred.resolve([])
+    await flushAsyncUpdates()
+
+    expect(primaryAction).not.toBeDisabled()
+    await waitFor(() => {
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+      expect(document.activeElement).toBe(primaryAction)
+    })
+    expect(screen.queryByRole('dialog', { name: 'Створити вікна для запису' })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Додайте вікна для запису' })).toHaveClass(
+      'availability-action-panel--attention'
+    )
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      path: '/cabinet/slots',
+      query: { tab: 'availability', source: 'dashboard' },
+    })
+
+    vi.advanceTimersByTime(2200)
+    await flushAsyncUpdates()
+    expect(screen.getByRole('region', { name: 'Додайте вікна для запису' })).not.toHaveClass(
+      'availability-action-panel--attention'
+    )
+  })
+
+  it('renders empty-week availability guidance inside the calendar column', async () => {
+    openAvailabilityRoute()
+    mockScheduleApi()
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const emptyState = screen.getByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })
+    expect(emptyState).toBeInTheDocument()
+    expect(emptyState.closest('.calendar-panel')).toBeInTheDocument()
+    expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
+    expect(within(emptyState).getByText('Створіть кілька вікон за робочим графіком або додайте окремий час вручну.')).toBeInTheDocument()
+    expect(within(emptyState).getAllByRole('button')).toHaveLength(1)
+    expect(within(emptyState).queryByRole('button', { name: 'Додати одне вікно' })).not.toBeInTheDocument()
+    expect(screen.queryByText('На цьому тижні ще немає вікон для запису.')).not.toBeInTheDocument()
+
+    await fireEvent.click(getAvailabilitySecondaryAction())
+    await flushAsyncUpdates()
+    expect(screen.getByRole('heading', { name: 'Додати вікно для запису' })).toBeInTheDocument()
+
+    await fireEvent.click(within(emptyState).getByRole('button', { name: 'Створити вікна для запису' }))
+    await flushAsyncUpdates()
+    expect(screen.getByRole('dialog', { name: 'Створити вікна для запису' })).toBeInTheDocument()
+  })
+
+  it('does not show empty-week guidance or duplicate primary action when availability has slots', async () => {
+    openAvailabilityRoute()
+    mockScheduleApi([
+      {
+        id: 703,
+        start_at: '2026-03-12T09:00:00Z',
+        end_at: '2026-03-12T09:50:00Z',
+        is_booked: false,
+      },
+    ])
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Створити вікна для запису' })).toHaveLength(1)
+  })
+
+  it('does not show onboarding empty state when status filters hide existing week slots', async () => {
+    openAvailabilityRoute()
+    mockScheduleApi([
+      {
+        id: 704,
+        start_at: '2026-03-12T09:00:00Z',
+        end_at: '2026-03-12T09:50:00Z',
+        is_booked: false,
+      },
+    ])
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Заброньовано' }))
+
+    expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
+    expect(screen.getByText('За обраним фільтром вікон немає.')).toBeInTheDocument()
+    expect(screen.queryByText('На цьому тижні ще немає вікон для запису.')).not.toBeInTheDocument()
+  })
+
+  it('does not show onboarding empty state when available filter hides booked week slots', async () => {
+    openAvailabilityRoute()
+    mockScheduleApi([
+      {
+        id: 705,
+        start_at: '2026-03-12T09:00:00Z',
+        end_at: '2026-03-12T09:50:00Z',
+        is_booked: true,
+      },
+    ])
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Доступно' }))
+
+    expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
+    expect(screen.getByText('За обраним фільтром вікон немає.')).toBeInTheDocument()
+    expect(screen.queryByText('На цьому тижні ще немає вікон для запису.')).not.toBeInTheDocument()
+  })
+
+  it('keeps availability action block and empty-week guidance off calendar and settings tabs', async () => {
+    openCalendarRoute()
+    mockScheduleApi()
+
+    const { unmount } = renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.queryByRole('region', { name: 'Додайте вікна для запису' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
+    unmount()
+
+    openAvailabilityRoute({ tab: 'settings' })
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.queryByRole('region', { name: 'Додайте вікна для запису' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
   })
 
   it('falls back to the nearest future date without showing a noisy toast', async () => {
@@ -528,7 +716,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
     expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('button', { name: 'Додати вікно' })).toBeInTheDocument()
+    expect(getAvailabilitySecondaryAction()).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('tab', { name: 'Календар' }))
     await flushAsyncUpdates()
@@ -544,11 +732,14 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
     expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Закріпити регулярний час' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Додати вікно' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати одне вікно' })).not.toBeInTheDocument()
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
-    expect(screen.getByRole('button', { name: 'Додати вікно' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Створити вікна для запису' })).toBeInTheDocument()
+    expect(getAvailabilitySecondaryAction()).toBeInTheDocument()
+    expect(getAvailabilityPrimaryAction()).toBeInTheDocument()
+    const toolbar = document.querySelector('.schedule-toolbar')
+    expect(toolbar).toBeInTheDocument()
+    expect(within(toolbar as HTMLElement).queryByRole('button', { name: 'Додати одне вікно' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
@@ -2343,7 +2534,9 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 09:00–09:50"]')).not.toBeInTheDocument()
-    expect(screen.getAllByText('На цьому тижні ще немає вікон для запису.').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
+    expect(screen.getByText('Усі вікна цього тижня вже минули.')).toBeInTheDocument()
+    expect(screen.queryByText('На цьому тижні ще немає вікон для запису.')).not.toBeInTheDocument()
   })
 
   it('renders schedule API events without duplicating overlapping booked slots', async () => {
@@ -2559,9 +2752,9 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    const opener = screen.getByRole('button', { name: 'Створити вікна для запису' })
-    expect(opener).toHaveClass('smart-fill-cta')
-    expect(opener.closest('.schedule-toolbar')).toBeInTheDocument()
+    const opener = getAvailabilityPrimaryAction()
+    expect(opener.closest('.availability-action-panel')).toBeInTheDocument()
+    expect(opener.closest('.schedule-toolbar')).not.toBeInTheDocument()
     expect(container.querySelector('.day-list:not(.day-list--mobile)')).not.toBeInTheDocument()
     expect(container.querySelector('.day-list--mobile')).toBeInTheDocument()
     expect(container.querySelectorAll('.week-calendar .calendar-day-header')).toHaveLength(7)
@@ -2655,7 +2848,7 @@ describe('SlotsView', () => {
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–13:50"]')).not.toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вікна для запису' }))
+    await fireEvent.click(getAvailabilityPrimaryAction())
     await flushAsyncUpdates()
     const dialog = screen.getByRole('dialog', { name: 'Створити вікна для запису' })
     await fireEvent.click(within(dialog).getByTestId('fill-weekday-1'))
@@ -2709,7 +2902,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вікна для запису' }))
+    await fireEvent.click(getAvailabilityPrimaryAction())
     await flushAsyncUpdates()
     const dialog = screen.getByRole('dialog', { name: 'Створити вікна для запису' })
 
@@ -2757,7 +2950,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вікна для запису' }))
+    await fireEvent.click(getAvailabilityPrimaryAction())
     await flushAsyncUpdates()
     await fireEvent.click(screen.getByRole('dialog', { name: 'Створити вікна для запису' }).querySelector('button[type="submit"]') as HTMLButtonElement)
     await flushAsyncUpdates()
@@ -2784,7 +2977,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вікна для запису' }))
+    await fireEvent.click(getAvailabilityPrimaryAction())
     await flushAsyncUpdates()
     const dialog = screen.getByRole('dialog', { name: 'Створити вікна для запису' })
     await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити вікна для запису' }))
@@ -2831,7 +3024,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
     await fireEvent.click(screen.getByRole('button', { name: 'Заброньовано' }))
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вікна для запису' }))
+    await fireEvent.click(getAvailabilityPrimaryAction())
     await flushAsyncUpdates()
     await fireEvent.click(screen.getByRole('dialog', { name: 'Створити вікна для запису' }).querySelector('button[type="submit"]') as HTMLButtonElement)
     await flushAsyncUpdates()

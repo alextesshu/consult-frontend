@@ -1408,15 +1408,15 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Вільний час для запису')
+      expect(view.container).toHaveTextContent('Вікна для запису')
       expect(view.container).not.toHaveTextContent('Спосіб першого звернення')
-      expect(view.getByRole('link', { name: /Вільний час для запису/ })).toHaveAttribute(
+      expect(view.getByRole('link', { name: /Вікна для запису/ })).toHaveAttribute(
         'href',
-        '/cabinet/slots?tab=availability'
+        '/cabinet/slots?tab=availability&focus=create-availability'
       )
       expect(view.getByRole('link', { name: 'Налаштувати час' })).toHaveAttribute(
         'href',
-        '/cabinet/slots?tab=availability'
+        '/cabinet/slots?tab=availability&focus=create-availability'
       )
     })
   })

@@ -108,7 +108,7 @@ export const PRIMARY_CTA_CODE_COPY: Record<string, string> = {
 
 export const CTA_TARGET_ROUTE_KEYS: Record<string, string> = {
   CABINET_PROFILE: '/cabinet/profile',
-  CABINET_AVAILABILITY: '/cabinet/slots?tab=availability',
+  CABINET_AVAILABILITY: '/cabinet/slots?tab=availability&focus=create-availability',
   CABINET_PUBLIC_PROFILE: '/cabinet/profile',
   PUBLIC_PROFILE_VIEW: '/public',
 }
@@ -344,12 +344,12 @@ export function buildSpecialistOnboardingViewModel(
       details.publicBookingMode === 'direct_booking' &&
       details.showPublicAvailability === true &&
       details.hasFutureSlots === false
-        ? '/cabinet/slots?tab=availability'
+        ? '/cabinet/slots?tab=availability&focus=create-availability'
         : '/cabinet/slots?tab=settings',
     public_profile: '/cabinet/profile',
     public_link: publicProfilePath || '/public',
     profile_core: '/cabinet/profile',
-    availability: '/cabinet/slots?tab=availability',
+    availability: '/cabinet/slots?tab=availability&focus=create-availability',
     inbound_readiness: '/cabinet/inquiries',
   }
 

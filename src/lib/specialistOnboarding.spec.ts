@@ -28,7 +28,7 @@ describe('specialist onboarding mapping', () => {
     expect(PRIMARY_CTA_CODE_COPY.VIEW_PUBLIC_PROFILE).toBe('Переглянути публічний профіль')
 
     expect(CTA_TARGET_ROUTE_KEYS.CABINET_PROFILE).toBe('/cabinet/profile')
-    expect(CTA_TARGET_ROUTE_KEYS.CABINET_AVAILABILITY).toBe('/cabinet/slots?tab=availability')
+    expect(CTA_TARGET_ROUTE_KEYS.CABINET_AVAILABILITY).toBe('/cabinet/slots?tab=availability&focus=create-availability')
     expect(CTA_TARGET_ROUTE_KEYS.CABINET_PUBLIC_PROFILE).toBe('/cabinet/profile')
     expect(CTA_TARGET_ROUTE_KEYS.PUBLIC_PROFILE_VIEW).toBe('/public')
   })
@@ -97,9 +97,9 @@ describe('specialist onboarding mapping', () => {
     )
 
     expect(vm.status).toBe('needs_completion')
-    expect(vm.primaryCta?.to).toBe('/cabinet/slots?tab=availability')
+    expect(vm.primaryCta?.to).toBe('/cabinet/slots?tab=availability&focus=create-availability')
     expect(vm.steps.find((step) => step.key === 'client_entry_path')?.to).toBe(
-      '/cabinet/slots?tab=availability'
+      '/cabinet/slots?tab=availability&focus=create-availability'
     )
   })
 

@@ -951,7 +951,7 @@ function compactOnboardingStepTitle(step: OnboardingStep) {
   if (step.key === 'description') return 'Короткий опис'
   if (step.key === 'base_price') return 'Базова ціна'
   if (step.key === 'client_entry_path') {
-    return step.to.includes('tab=availability') ? 'Вільний час для запису' : 'Спосіб першого звернення'
+    return step.to.includes('tab=availability') ? 'Вікна для запису' : 'Спосіб першого звернення'
   }
   if (step.key === 'public_profile') return 'Публікація профілю'
   if (step.key === 'public_link') return 'Публічне посилання'
