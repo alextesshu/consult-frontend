@@ -13,8 +13,18 @@ review/staging decision. It is not production-deployed.
 
 KAN-1 staging QA hotfix is complete locally and not deployed:
 - dashboard readiness now renders the canonical six hard profile requirements:
-  public display name, short description, topics/requests, work format, base
+  public display name, short description, specializations (`topics` machine
+  key), work format, base
   price decision, and first-contact path;
+- the `topics` machine key is retained for compatibility, but the factual hard
+  requirement is persisted `specializations`; `Основні запити` is not a hard
+  blocker;
+- the UI label for `topics` is `Спеціалізації`, and missing-item CTA routes to
+  `/cabinet/profile?focus=specializations`;
+- `/cabinet/profile?focus=specializations` scrolls/focuses the
+  specializations field, preserves other query params, and clears only
+  `focus`;
+- booking settings now use a sticky explicit-save bar for unsaved changes;
 - publication, direct-link availability, and search visibility are shown as
   separate publication state, not hard readiness requirements;
 - `Фото та відео` copy now uses `Фото профілю` and `Відеовізитка`;
@@ -22,8 +32,8 @@ KAN-1 staging QA hotfix is complete locally and not deployed:
   `Запис або запит`, routes that item to booking/request settings instead of
   availability creation, and adds state-dependent availability guidance;
 - request-only remains a valid ready state without availability windows;
-- frontend-only change; backend unchanged; no migrations, dependency changes,
-  or deployment script changes.
+- no migrations, dependency changes, or deployment script changes.
+- KAN-1 is not production-closed.
 
 KAN-29 public profile visibility/readiness and availability creation guidance
 is production-deployed, production smoke passed, manual production verification

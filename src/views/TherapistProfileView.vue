@@ -228,7 +228,12 @@
               </select>
               <div class="field-help">Як ви позиціонуєте свою практику на платформі.</div>
             </label>
-            <label class="field">
+            <label
+              class="field"
+              :class="{ 'field--attention': profileFocusAttentionKey === 'specializations' }"
+              data-readiness-key="specializations"
+              data-testid="profile-specializations-field"
+            >
               <span class="field-label">Спеціалізації</span>
               <div class="chip-field">
                 <div class="chip" v-for="(spec, index) in specializationList" :key="`${spec}-${index}`">
@@ -761,7 +766,7 @@
               </div>
             </label>
           </details>
-          <details class="details" data-readiness-key="topics">
+          <details class="details">
             <summary>Основні запити</summary>
             <label class="field">
               <div class="field-head">
@@ -1189,8 +1194,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { onBeforeRouteLeave, useRoute } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { Cropper } from 'vue-advanced-cropper'
 import {
   createProfileDocument,
@@ -1224,6 +1229,7 @@ import { getSpecializationPresets } from '../constants/specializationPresets'
 
 const loading = ref(true)
 const route = useRoute()
+const router = useRouter()
 const profileLoaded = ref(false)
 const saving = ref(false)
 const error = ref('')
@@ -1891,7 +1897,7 @@ const fallbackPublicProfileReadiness: PublicProfileReadiness = {
 const readinessLabelByKey: Record<string, string> = {
   display_name: 'Публічне ім’я',
   about: 'Опис',
-  topics: 'Запити',
+  topics: 'Спеціалізації',
   work_format: 'Формат роботи',
   first_contact: 'Перший контакт',
   price_decision: 'Вартість консультації',
@@ -2118,8 +2124,22 @@ function confirmDisablePublicProfile() {
   showDisablePublicProfileConfirm.value = false
 }
 
-function scrollToFirstMissingProfileSection() {
-  const key = firstMissingProfileReadinessKey.value
+const profileFocusAttentionKey = ref('')
+let profileFocusAttentionTimer: number | undefined
+
+function readinessFocusTargetKey(key: string): string {
+  return key === 'topics' ? 'specializations' : key
+}
+
+function clearProfileFocusAttentionTimer() {
+  if (profileFocusAttentionTimer) {
+    window.clearTimeout(profileFocusAttentionTimer)
+    profileFocusAttentionTimer = undefined
+  }
+}
+
+function focusProfileReadinessTarget(rawKey: string, clearFocusQuery = false) {
+  const key = readinessFocusTargetKey(rawKey)
   const target = key
     ? document.querySelector<HTMLElement>(`[data-readiness-key="${key}"]`)
     : document.querySelector<HTMLElement>('.form--profile-basics')
@@ -2127,11 +2147,28 @@ function scrollToFirstMissingProfileSection() {
   const element = target || fallbackTarget
   if (!element) return
 
-  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+  element.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' })
   const focusTarget = element.matches('input, textarea, select, button')
     ? element
     : element.querySelector<HTMLElement>('input, textarea, select, button, [tabindex]:not([tabindex="-1"])')
   focusTarget?.focus({ preventScroll: true })
+  profileFocusAttentionKey.value = key
+  clearProfileFocusAttentionTimer()
+  profileFocusAttentionTimer = window.setTimeout(() => {
+    profileFocusAttentionKey.value = ''
+    profileFocusAttentionTimer = undefined
+  }, 2200)
+
+  if (clearFocusQuery && route.query.focus) {
+    const nextQuery = { ...route.query }
+    delete nextQuery.focus
+    void router.replace({ query: nextQuery })
+  }
+}
+
+function scrollToFirstMissingProfileSection() {
+  focusProfileReadinessTarget(firstMissingProfileReadinessKey.value)
 }
 
 function onProfilePrimaryAction() {
@@ -2820,8 +2857,19 @@ onMounted(() => {
   loadProfile()
 })
 
+watch(
+  () => [profileLoaded.value, route.query.focus],
+  async ([loaded, focus]) => {
+    if (!loaded || typeof focus !== 'string' || !focus.trim()) return
+    await nextTick()
+    focusProfileReadinessTarget(focus, true)
+  },
+  { immediate: true }
+)
+
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  clearProfileFocusAttentionTimer()
 })
 </script>
 
@@ -3564,6 +3612,12 @@ onBeforeUnmount(() => {
   border-color: color-mix(in srgb, var(--pc-navy-900) 42%, var(--pc-border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-primary-soft) 58%, transparent);
   outline: none;
+}
+
+.field--attention {
+  outline: 3px solid color-mix(in srgb, var(--pc-warning) 24%, transparent);
+  outline-offset: 4px;
+  border-radius: var(--pc-radius-card);
 }
 
 .profile-grid .btn {

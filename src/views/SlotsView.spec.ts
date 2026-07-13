@@ -611,6 +611,26 @@ describe('SlotsView', () => {
     expect(screen.queryByText('Запис на вікна вимкнений у публічному профілі')).not.toBeInTheDocument()
   })
 
+  it('keeps booking settings save disabled until local changes exist', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('button', { name: 'Зберегти зміни' })).toBeDisabled()
+    expect(screen.queryByTestId('settings-sticky-save-bar')).not.toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Спосіб запису'), 'direct_booking')
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-sticky-save-bar')).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('button', { name: 'Зберегти зміни' }).some((button) => !button.hasAttribute('disabled'))
+    ).toBe(true)
+  })
+
   it('keeps public availability control connected to its label and saves the setting', async () => {
     openAvailabilityRoute({ tab: 'settings' })
     mockedFetchSpecialistProfile.mockResolvedValueOnce({
@@ -643,7 +663,8 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByText('Показувати доступні вікна у публічному профілі'))
     expect(availabilityControl).toBeChecked()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти налаштування' }))
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти зміни' }).at(-1)!)
 
     expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -651,6 +672,30 @@ describe('SlotsView', () => {
         show_public_availability: true,
       })
     )
+    await waitFor(() => {
+      expect(screen.queryByTestId('settings-sticky-save-bar')).not.toBeInTheDocument()
+    })
+    expect(mockToast.success).toHaveBeenCalledWith('Зміни збережено')
+  })
+
+  it('keeps booking settings dirty and retryable when save fails', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedUpdateSpecialistProfile.mockRejectedValueOnce(new Error('Save failed'))
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.update(screen.getByLabelText('Спосіб запису'), 'direct_booking')
+    await flushAsyncUpdates()
+    const saveButton = screen.getAllByRole('button', { name: 'Зберегти зміни' }).at(-1)!
+    await fireEvent.click(saveButton)
+
+    expect(await screen.findByText('Save failed')).toBeInTheDocument()
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('button', { name: 'Зберегти зміни' }).some((button) => !button.hasAttribute('disabled'))
+    ).toBe(true)
   })
 
   it('reloads schedule events when availability auto-jump changes the visible week', async () => {

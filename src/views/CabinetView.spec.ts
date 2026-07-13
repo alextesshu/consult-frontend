@@ -1315,7 +1315,7 @@ describe('CabinetView', () => {
         items: [
           { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
           { key: 'description', label: 'Короткий опис', complete: true },
-          { key: 'topics', label: 'Теми й запити', complete: false },
+          { key: 'topics', label: 'Спеціалізації', complete: false },
           { key: 'work_format', label: 'Формат роботи', complete: true },
           { key: 'price_decision', label: 'Базова ціна', complete: true },
           { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
@@ -1336,17 +1336,17 @@ describe('CabinetView', () => {
       expect(view.container).toHaveTextContent('Профіль ще не готовий')
       expect(view.container).toHaveTextContent('Публічне ім’я')
       expect(view.container).toHaveTextContent('Короткий опис')
-      expect(view.container).toHaveTextContent('Теми й запити')
+      expect(view.container).toHaveTextContent('Спеціалізації')
       expect(view.container).toHaveTextContent('Формат роботи')
       expect(view.container).toHaveTextContent('Запис або запит')
       expect(view.container).toHaveTextContent('Базова ціна')
-      expect(view.getByRole('link', { name: /Теми й запити/ })).toHaveTextContent('Потрібно доповнити')
-      expect(view.container).toHaveTextContent('Що залишилось: теми й запити.')
+      expect(view.getByRole('link', { name: /Спеціалізації/ })).toHaveTextContent('Потрібно доповнити')
+      expect(view.container).toHaveTextContent('Що залишилось: спеціалізації.')
       expect(view.container).toHaveTextContent('Публікація стане доступною після заповнення основних даних.')
       expect(view.container).not.toHaveTextContent('Публікація профілю')
       expect(view.container).not.toHaveTextContent('Публічне посилання')
       expect(view.container).not.toHaveTextContent('лише публікація')
-      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+      expect(view.container.querySelector('a[href="/cabinet/profile?focus=specializations"]')).toBeInTheDocument()
       expect(view.container.querySelector('.onboarding-check-item.onboarding-step--pending')).toBeInTheDocument()
       expect(view.container.querySelector('.onboarding-step')).not.toBeInTheDocument()
     })
@@ -1372,7 +1372,7 @@ describe('CabinetView', () => {
         items: [
           { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
           { key: 'description', label: 'Короткий опис', complete: true },
-          { key: 'topics', label: 'Теми й запити', complete: true },
+          { key: 'topics', label: 'Спеціалізації', complete: true },
           { key: 'work_format', label: 'Формат роботи', complete: false },
           { key: 'price_decision', label: 'Базова ціна', complete: true },
           { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
@@ -1445,7 +1445,7 @@ describe('CabinetView', () => {
         items: [
           { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
           { key: 'description', label: 'Короткий опис', complete: true },
-          { key: 'topics', label: 'Теми й запити', complete: true },
+          { key: 'topics', label: 'Спеціалізації', complete: true },
           { key: 'work_format', label: 'Формат роботи', complete: true },
           { key: 'price_decision', label: 'Базова ціна', complete: true },
           { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },

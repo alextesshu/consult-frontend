@@ -22,6 +22,9 @@ const routerMocks = vi.hoisted(() => ({
 const mockRoute = {
   query: {} as Record<string, string>,
 }
+const mockRouter = {
+  replace: vi.fn(),
+}
 
 const PROFILE_SUBTITLE_COPY =
   'Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.'
@@ -34,6 +37,7 @@ vi.mock('vue-router', async () => {
   return {
     ...actual,
     useRoute: () => mockRoute,
+    useRouter: () => mockRouter,
     onBeforeRouteLeave: routerMocks.onBeforeRouteLeave,
   }
 })
@@ -89,7 +93,7 @@ function makeProfile(): SpecialistProfile {
       items: [
         { key: 'display_name', label: 'Публічне ім’я', complete: true },
         { key: 'about', label: 'Опис', complete: true },
-        { key: 'topics', label: 'Запити', complete: true },
+        { key: 'topics', label: 'Спеціалізації', complete: true },
         { key: 'work_format', label: 'Формат роботи', complete: true },
         { key: 'first_contact', label: 'Перший контакт', complete: true },
         { key: 'price_decision', label: 'Вартість консультації', complete: true },
@@ -174,7 +178,7 @@ function makeIncompleteProfile(): SpecialistProfile {
       items: [
         { key: 'display_name', label: 'Публічне ім’я', complete: true },
         { key: 'about', label: 'Опис', complete: true },
-        { key: 'topics', label: 'Запити', complete: false },
+        { key: 'topics', label: 'Спеціалізації', complete: false },
         { key: 'work_format', label: 'Формат роботи', complete: true },
         { key: 'first_contact', label: 'Перший контакт', complete: true },
         { key: 'price_decision', label: 'Вартість консультації', complete: false },
@@ -215,6 +219,7 @@ describe('TherapistProfileView', () => {
     mockRoute.query = {}
     setClipboard()
     vi.restoreAllMocks()
+    mockRouter.replace.mockReset()
     scrollIntoViewSpy.mockReset()
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
@@ -434,7 +439,7 @@ describe('TherapistProfileView', () => {
     expect(within(summary).getByText('Заповніть обов’язкові дані, щоб опублікувати профіль.')).toBeInTheDocument()
     expect(within(summary).getByText('Не вистачає:')).toBeInTheDocument()
     expect(within(summary).queryByText('Фото')).not.toBeInTheDocument()
-    expect(within(summary).getByText('Запити')).toBeInTheDocument()
+    expect(within(summary).getByText('Спеціалізації')).toBeInTheDocument()
     expect(within(summary).getByText('Вартість консультації')).toBeInTheDocument()
 
     const finishProfileButton = within(summary).getByRole('button', { name: 'Завершити профіль' })
@@ -457,6 +462,22 @@ describe('TherapistProfileView', () => {
 
     expect(scrollIntoViewSpy).toHaveBeenCalled()
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+  })
+
+  it('focuses specializations from readiness deep link and preserves other query params', async () => {
+    mockRoute.query = { focus: 'specializations', keep: '1' }
+    mockedFetchSpecialistProfile.mockResolvedValue(makeIncompleteProfile())
+
+    const { container } = renderView()
+
+    const specializationsField = await screen.findByTestId('profile-specializations-field')
+    await waitFor(() => {
+      expect(scrollIntoViewSpy).toHaveBeenCalled()
+      expect(mockRouter.replace).toHaveBeenCalledWith({ query: { keep: '1' } })
+    })
+
+    expect(specializationsField).toHaveClass('field--attention')
+    expect(container.querySelector('[data-readiness-key="topics"]')).not.toBeInTheDocument()
   })
 
   it('renders public_profile_summary field in profile settings', async () => {
@@ -577,7 +598,7 @@ describe('TherapistProfileView', () => {
             total_count: 6,
             missing_items: ['topics'],
             items: [
-              { key: 'topics', label: 'Запити', complete: false },
+              { key: 'topics', label: 'Спеціалізації', complete: false },
             ],
           },
         },
@@ -595,7 +616,7 @@ describe('TherapistProfileView', () => {
     expect(
       await screen.findByText(/Профіль поки не готовий для клієнтів/)
     ).toBeInTheDocument()
-    expect(screen.getByText(/Не вистачає: Запити/)).toBeInTheDocument()
+    expect(screen.getByText(/Не вистачає: Спеціалізації/)).toBeInTheDocument()
   })
 
   it('keeps profile visibility controls near their related sections', async () => {

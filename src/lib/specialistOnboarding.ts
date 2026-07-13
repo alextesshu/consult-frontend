@@ -91,9 +91,9 @@ export const MISSING_ITEM_COPY: Record<string, string> = {
   MISSING_DESCRIPTION: 'короткий опис',
   description: 'короткий опис',
   about: 'короткий опис',
-  MISSING_TOPICS: 'теми й запити',
-  topics: 'теми й запити',
-  request_topics: 'теми й запити',
+  MISSING_TOPICS: 'спеціалізації',
+  topics: 'спеціалізації',
+  request_topics: 'спеціалізації',
   MISSING_WORK_FORMAT: 'формат роботи',
   work_format: 'формат роботи',
   format: 'формат роботи',
@@ -161,12 +161,12 @@ const STEP_META: Array<{
   },
   {
     key: 'topics',
-    title: 'Додайте теми й запити',
-    compactTitle: 'Теми й запити',
-    missingCopy: 'теми й запити',
-    hint: 'Позначте теми, з якими до вас можуть звертатися клієнти.',
-    actionLabel: 'Додати теми',
-    fallbackRoute: '/cabinet/profile',
+    title: 'Додайте спеціалізації',
+    compactTitle: 'Спеціалізації',
+    missingCopy: 'спеціалізації',
+    hint: 'Позначте спеціалізації, з якими до вас можуть звертатися клієнти.',
+    actionLabel: 'Додати спеціалізації',
+    fallbackRoute: '/cabinet/profile?focus=specializations',
   },
   {
     key: 'work_format',
@@ -307,6 +307,23 @@ function normalizeCanonicalItemDone(value: unknown): boolean | null {
   return typeof raw === 'boolean' ? raw : null
 }
 
+function readPersistedSpecializationsConfigured(
+  ...candidates: Array<Record<string, unknown> | null | undefined>
+): boolean | null {
+  for (const candidate of candidates) {
+    if (!candidate) continue
+    if (Array.isArray(candidate.specializations)) {
+      return candidate.specializations.some((item) => String(item || '').trim().length > 0)
+    }
+    if (typeof candidate.specializations === 'string') {
+      return candidate.specializations
+        .split(',')
+        .some((item) => item.trim().length > 0)
+    }
+  }
+  return null
+}
+
 function collectReadinessCandidates(source: Record<string, unknown>): Record<string, unknown>[] {
   const candidates: Record<string, unknown>[] = []
   const readiness =
@@ -360,6 +377,11 @@ function normalizeHardRequirementDone(
       if (stepKey) done[stepKey] = false
     }
 
+    const persistedSpecializationsConfigured = readPersistedSpecializationsConfigured(candidate, source)
+    if (!itemKeys.has('topics') && persistedSpecializationsConfigured !== null) {
+      done.topics = persistedSpecializationsConfigured
+    }
+
     if (typeof candidate.is_ready === 'boolean' && candidate.is_ready && itemKeys.size === 0) {
       return emptyHardRequirementDone(true)
     }
@@ -381,11 +403,13 @@ function normalizeHardRequirementDone(
   }
   const missingCodes = new Set(missingItems.map((item) => item.code))
   const fallback = emptyHardRequirementDone(true)
+  const persistedSpecializationsConfigured = readPersistedSpecializationsConfigured(source, readiness)
 
   fallback.display_name = readBool(readiness, 'public_display_name_exists') ?? !missingCodes.has('MISSING_DISPLAY_NAME')
   fallback.description = readBool(readiness, 'basic_description_exists') ?? !missingCodes.has('MISSING_DESCRIPTION')
   fallback.topics =
     readBool(readiness, 'topics_configured') ??
+    persistedSpecializationsConfigured ??
     !(missingCodes.has('MISSING_TOPICS') || missingCodes.has('topics') || missingCodes.has('request_topics'))
   fallback.work_format =
     readBool(readiness, 'work_format_configured') ??
@@ -526,7 +550,7 @@ export function buildSpecialistOnboardingViewModel(
   const routeByStep: Record<OnboardingStepKey, string> = {
     display_name: '/cabinet/profile',
     description: '/cabinet/profile',
-    topics: '/cabinet/profile',
+    topics: '/cabinet/profile?focus=specializations',
     work_format: '/cabinet/profile',
     base_price: '/cabinet/profile',
     client_entry_path: '/cabinet/slots?tab=settings',

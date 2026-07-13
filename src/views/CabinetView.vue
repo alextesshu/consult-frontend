@@ -943,7 +943,7 @@ const compactPrimaryCtaLabel = computed(() => {
 function compactOnboardingStepTitle(step: OnboardingStep) {
   if (step.key === 'display_name') return 'Публічне ім’я'
   if (step.key === 'description') return 'Короткий опис'
-  if (step.key === 'topics') return 'Теми й запити'
+  if (step.key === 'topics') return 'Спеціалізації'
   if (step.key === 'work_format') return 'Формат роботи'
   if (step.key === 'base_price') return 'Базова ціна'
   if (step.key === 'client_entry_path') return 'Запис або запит'

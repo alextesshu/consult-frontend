@@ -895,11 +895,24 @@
         </label>
 
         <div class="settings-form__actions">
-          <button class="btn" type="submit" :disabled="settingsSaving || settingsLoading || !settingsLoaded">
-            {{ settingsSaving ? 'Зберігаємо...' : 'Зберегти налаштування' }}
+          <button class="btn" type="submit" :disabled="settingsSaveDisabled">
+            {{ settingsSaving ? 'Зберігаємо…' : 'Зберегти зміни' }}
           </button>
         </div>
       </form>
+
+      <StickySaveBar
+        v-if="publicBookingSettingsDirty"
+        data-testid="settings-sticky-save-bar"
+        message="Є незбережені зміни"
+        :error="Boolean(settingsError)"
+        :saving="settingsSaving"
+        primary-label="Зберегти зміни"
+        saving-label="Зберігаємо…"
+        secondary-label="Скасувати"
+        @cancel="resetPublicBookingSettingsChanges"
+        @save="savePublicBookingSettings"
+      />
     </section>
 
     <section v-if="isAvailabilityTab && createFormOpen" class="panel create-slot-panel">
@@ -1596,6 +1609,7 @@ import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
 import { buildTenMinuteTimeOptions } from '../lib/timeOptions'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import StickySaveBar from '../components/StickySaveBar.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 
 type Slot = {
@@ -1678,6 +1692,13 @@ type RegularClientOption = {
 
 type ScheduleTab = 'CALENDAR' | 'AVAILABILITY' | 'SETTINGS'
 type PublicBookingMode = 'request_only' | 'direct_booking'
+type PublicBookingSettingsSnapshot = {
+  public_booking_mode: PublicBookingMode
+  show_public_availability: boolean
+  public_booking_min_lead_time_hours: number
+  public_booking_horizon_days: number
+  public_booking_requires_confirmation: boolean
+}
 type WeekRange = {
   dateFrom: string
   dateTo: string
@@ -1884,6 +1905,7 @@ const publicBookingMode = ref<PublicBookingMode>('request_only')
 const showPublicAvailability = ref(false)
 const persistedPublicBookingMode = ref<PublicBookingMode | null>(null)
 const persistedShowPublicAvailability = ref(false)
+const persistedPublicBookingSettings = ref<PublicBookingSettingsSnapshot | null>(null)
 const publicBookingMinLeadTimeHours = ref(24)
 const publicBookingHorizonDays = ref(14)
 const publicBookingRequiresConfirmation = ref(true)
@@ -3531,6 +3553,58 @@ function normalizePublicBookingHorizon(value: unknown): number {
   return publicBookingHorizonOptions.includes(parsed) ? parsed : 14
 }
 
+function currentPublicBookingSettingsSnapshot(): PublicBookingSettingsSnapshot {
+  return {
+    public_booking_mode: publicBookingMode.value,
+    show_public_availability:
+      publicBookingMode.value === 'direct_booking' ? showPublicAvailability.value : false,
+    public_booking_min_lead_time_hours: publicBookingMinLeadTimeHours.value,
+    public_booking_horizon_days: publicBookingHorizonDays.value,
+    public_booking_requires_confirmation: publicBookingRequiresConfirmation.value,
+  }
+}
+
+function snapshotsEqual(
+  left: PublicBookingSettingsSnapshot | null,
+  right: PublicBookingSettingsSnapshot | null
+) {
+  if (!left || !right) return false
+  return (
+    left.public_booking_mode === right.public_booking_mode &&
+    left.show_public_availability === right.show_public_availability &&
+    left.public_booking_min_lead_time_hours === right.public_booking_min_lead_time_hours &&
+    left.public_booking_horizon_days === right.public_booking_horizon_days &&
+    left.public_booking_requires_confirmation === right.public_booking_requires_confirmation
+  )
+}
+
+const publicBookingSettingsDirty = computed(() =>
+  Boolean(
+    settingsLoaded.value &&
+      persistedPublicBookingSettings.value &&
+      !snapshotsEqual(currentPublicBookingSettingsSnapshot(), persistedPublicBookingSettings.value)
+  )
+)
+
+const settingsSaveDisabled = computed(
+  () =>
+    settingsSaving.value ||
+    settingsLoading.value ||
+    !settingsLoaded.value ||
+    !publicBookingSettingsDirty.value
+)
+
+function resetPublicBookingSettingsChanges() {
+  const snapshot = persistedPublicBookingSettings.value
+  if (!snapshot || settingsSaving.value) return
+  publicBookingMode.value = snapshot.public_booking_mode
+  showPublicAvailability.value = snapshot.show_public_availability
+  publicBookingMinLeadTimeHours.value = snapshot.public_booking_min_lead_time_hours
+  publicBookingHorizonDays.value = snapshot.public_booking_horizon_days
+  publicBookingRequiresConfirmation.value = snapshot.public_booking_requires_confirmation
+  settingsError.value = ''
+}
+
 function applyPublicBookingSettings(profile: Partial<SpecialistProfile>) {
   const normalizedMode = normalizePublicBookingMode(profile.public_booking_mode)
   publicBookingMode.value = normalizedMode
@@ -3545,6 +3619,7 @@ function applyPublicBookingSettings(profile: Partial<SpecialistProfile>) {
   )
   publicBookingHorizonDays.value = normalizePublicBookingHorizon(profile.public_booking_horizon_days)
   publicBookingRequiresConfirmation.value = profile.public_booking_requires_confirmation !== false
+  persistedPublicBookingSettings.value = currentPublicBookingSettingsSnapshot()
 }
 
 function onPublicBookingConfirmationChange(event: Event) {
@@ -3570,20 +3645,15 @@ async function loadPublicBookingSettings() {
 }
 
 async function savePublicBookingSettings() {
+  if (settingsSaveDisabled.value) return
   settingsSaving.value = true
   settingsError.value = ''
+  const payload = currentPublicBookingSettingsSnapshot()
   try {
-    const updatedProfile = await updateSpecialistProfile({
-      public_booking_mode: publicBookingMode.value,
-      show_public_availability:
-        publicBookingMode.value === 'direct_booking' ? showPublicAvailability.value : false,
-      public_booking_min_lead_time_hours: publicBookingMinLeadTimeHours.value,
-      public_booking_horizon_days: publicBookingHorizonDays.value,
-      public_booking_requires_confirmation: publicBookingRequiresConfirmation.value,
-    })
+    const updatedProfile = await updateSpecialistProfile(payload)
     applyPublicBookingSettings(updatedProfile)
     settingsLoaded.value = true
-    toast.success('Налаштування публічного запису збережено.')
+    toast.success('Зміни збережено')
   } catch (err) {
     settingsError.value = getApiErrorMessage(err, 'Не вдалося зберегти налаштування публічного запису.')
   } finally {

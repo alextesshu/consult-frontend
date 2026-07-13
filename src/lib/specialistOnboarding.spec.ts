@@ -12,7 +12,7 @@ describe('specialist onboarding mapping', () => {
   it('keeps contract-aligned copy and route mappings', () => {
     expect(MISSING_ITEM_COPY.MISSING_DISPLAY_NAME).toBe('публічне ім’я')
     expect(MISSING_ITEM_COPY.MISSING_DESCRIPTION).toBe('короткий опис')
-    expect(MISSING_ITEM_COPY.MISSING_TOPICS).toBe('теми й запити')
+    expect(MISSING_ITEM_COPY.MISSING_TOPICS).toBe('спеціалізації')
     expect(MISSING_ITEM_COPY.MISSING_WORK_FORMAT).toBe('формат роботи')
     expect(MISSING_ITEM_COPY.MISSING_BASE_PRICE).toBe('базова ціна')
     expect(MISSING_ITEM_COPY.MISSING_CLIENT_ENTRY_PATH).toBe('спосіб першого звернення')
@@ -48,7 +48,7 @@ describe('specialist onboarding mapping', () => {
         items: [
           { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
           { key: 'description', label: 'Короткий опис', complete: true },
-          { key: 'topics', label: 'Теми й запити', complete: false },
+          { key: 'topics', label: 'Спеціалізації', complete: false },
           { key: 'work_format', label: 'Формат роботи', complete: false },
           { key: 'price_decision', label: 'Базова ціна', complete: true },
           { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
@@ -75,7 +75,7 @@ describe('specialist onboarding mapping', () => {
     ])
     expect(viewModel.steps.find((step) => step.key === 'topics')?.done).toBe(false)
     expect(viewModel.steps.find((step) => step.key === 'work_format')?.done).toBe(false)
-    expect(viewModel.missingSummary).toBe('Що залишилось: теми й запити, формат роботи.')
+    expect(viewModel.missingSummary).toBe('Що залишилось: спеціалізації, формат роботи.')
     expect(viewModel.missingItems).not.toContain('публікація профілю')
     expect(viewModel.missingItems).not.toContain('публічне посилання')
     expect(viewModel.publicationSummary).toBe('Публікація стане доступною після заповнення основних даних.')
@@ -103,8 +103,70 @@ describe('specialist onboarding mapping', () => {
     expect(vm.readiness).toBe(false)
     expect(vm.steps.find((step) => step.key === 'topics')?.done).toBe(false)
     expect(vm.steps.find((step) => step.key === 'work_format')?.done).toBe(true)
-    expect(vm.missingSummary).toBe('Що залишилось: теми й запити.')
+    expect(vm.missingSummary).toBe('Що залишилось: спеціалізації.')
     expect(vm.publicationSummary).not.toMatch(/тільки|лише/)
+  })
+
+  it('routes missing topics to persisted specializations setup', () => {
+    const vm = buildSpecialistOnboardingViewModel(
+      normalizeOnboardingState({
+        readiness: {
+          public_display_name_exists: true,
+          basic_description_exists: true,
+          standard_price_configured: true,
+          client_entry_path_exists: true,
+        },
+        specializations: [],
+        missing_items: ['topics'],
+        warnings: [],
+        next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+        primary_cta_code: 'COMPLETE_PROFILE',
+      })!
+    )
+
+    const topicsStep = vm.steps.find((step) => step.key === 'topics')
+    expect(topicsStep).toMatchObject({
+      title: 'Додайте спеціалізації',
+      done: false,
+      to: '/cabinet/profile?focus=specializations',
+      actionLabel: 'Додати спеціалізації',
+    })
+  })
+
+  it('uses persisted specializations, not main request text, for fallback topics readiness', () => {
+    const incomplete = buildSpecialistOnboardingViewModel(
+      normalizeOnboardingState({
+        readiness: {
+          public_display_name_exists: true,
+          basic_description_exists: true,
+          standard_price_configured: true,
+          client_entry_path_exists: true,
+        },
+        specializations: [],
+        bio_for_whom: 'Працюю з тривогою та вигоранням.',
+        missing_items: [],
+        warnings: [],
+        next_actions: [],
+      })!
+    )
+    const complete = buildSpecialistOnboardingViewModel(
+      normalizeOnboardingState({
+        readiness: {
+          public_display_name_exists: true,
+          basic_description_exists: true,
+          standard_price_configured: true,
+          client_entry_path_exists: true,
+        },
+        specializations: ['Тривога'],
+        bio_for_whom: '',
+        missing_items: [],
+        warnings: [],
+        next_actions: [],
+      })!
+    )
+
+    expect(incomplete.steps.find((step) => step.key === 'topics')?.done).toBe(false)
+    expect(complete.steps.find((step) => step.key === 'topics')?.done).toBe(true)
   })
 
   it('routes missing first-contact setup to booking settings instead of availability creation', () => {
