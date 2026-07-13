@@ -27,6 +27,13 @@ confirmation. Frontend API typing now accepts optional/null document file
 metadata. Backend/runtime public profile behavior, dependencies, deployment
 scripts, and migrations were not changed.
 
+KAN-27 public-profile document scalability hotfix is complete locally and not
+pushed/deployed. The public documents/certificates subsection is collapsed by
+default, shows the public document count in the header, and renders a more
+compact responsive card grid only after expansion. API/backend behavior,
+cabinet upload UX, dependencies, deployment scripts, and migrations were not
+changed. Production remains pending staging approval.
+
 KAN-37 admin specialist list CRM summary is complete locally and awaiting
 review/staging decision. It is not production-deployed. The specialist list now
 consumes backend `crm_summary` from `GET /api/admin/specialists/search/` and
@@ -598,6 +605,8 @@ Frontend production-closure slice is now integrated:
 - KAN-1 email trigger/copy implementation is complete locally and awaiting
   review/staging decision.
 - KAN-27 frontend documents/certificates upload UX is complete locally and
+  awaiting review/staging decision.
+- KAN-27 public-profile document scalability hotfix is complete locally and
   awaiting review/staging decision.
 - KAN-29 is production-closed and Done.
 - Manual Client Records Phase 1 and manual-client session creation are closed on frontend.

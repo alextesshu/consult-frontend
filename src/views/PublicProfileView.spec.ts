@@ -438,6 +438,15 @@ describe('PublicProfileView', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Документи та сертифікати')).toBeInTheDocument()
     expect(screen.getByText(/Документи додані спеціалістом/i)).toBeInTheDocument()
+    expect(screen.getByText('1 документ')).toBeInTheDocument()
+    const documentsToggle = screen.getByRole('button', { name: 'Показати документи, 1' })
+    expect(documentsToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Сертифікат CBT')).not.toBeInTheDocument()
+    await fireEvent.click(documentsToggle)
+    expect(screen.getByRole('button', { name: 'Згорнути документи, 1' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Принципи профілю' })).toBeInTheDocument()
     expect(screen.getByText(/Профіль не є рейтингом або рекомендацією платформи/i)).toBeInTheDocument()
@@ -564,6 +573,12 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('Маю профільну психологічну освіту.')).toBeInTheDocument()
     expect(screen.getByText('Магістр психології')).toBeInTheDocument()
     expect(screen.getByText('Навчання з когнітивно-поведінкової терапії')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Показати документи, 1' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+    expect(screen.queryByText('Сертифікат CBT')).not.toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати документи, 1' }))
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
     expect(
       screen.queryByText(
