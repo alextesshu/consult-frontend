@@ -27,19 +27,7 @@
               {{ detail.identity.public_display_name || detail.identity.display_name || detail.identity.username }}
             </h2>
           </div>
-          <div class="summary-actions">
-            <a
-              v-if="publicProfileUrl"
-              class="btn btn--ghost btn--sm"
-              :href="publicProfileUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Відкрити публічний профіль
-            </a>
-            <span v-else class="public-profile-action__status">
-              {{ publicProfileUnavailableText }}
-            </span>
+        <div class="summary-actions">
             <button class="btn btn--sm" type="button" @click="openPlanModal">Змінити базовий тариф</button>
             <div class="access-action access-action--primary">
               <button class="btn btn--ghost btn--sm" type="button" @click="openTrialModal">
@@ -77,139 +65,131 @@
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">ОНБОРДИНГ</div>
-            <h2 class="panel__title">Перший лист спеціалісту</h2>
-            <p class="muted readiness-panel__helper">
-              Автоматичний лист після реєстрації. Цей блок не надсилає листи.
-            </p>
+      <section class="crm-grid">
+        <article class="panel crm-panel crm-panel--readiness">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">CRM</div>
+              <h2 class="panel__title">Готовність профілю</h2>
+              <p class="muted readiness-panel__helper">{{ readinessSummaryText }}</p>
+            </div>
+            <span class="status-pill" :class="readinessOverallClass">
+              {{ readinessBadgeText }}
+            </span>
           </div>
-          <span
-            class="status-pill"
-            :class="detail.admin_context.signup_template_a_email?.sent ? 'status-pill--ok' : 'status-pill--muted'"
-          >
-            {{
-              detail.admin_context.signup_template_a_email?.sent
-                ? 'Надіслано автоматично'
-                : 'Не зафіксовано'
-            }}
-          </span>
-        </div>
 
-        <div class="summary-list summary-list--onboarding">
-          <div>
-            <strong>Статус:</strong>
-            <span class="summary-list__value">
-              <template v-if="detail.admin_context.signup_template_a_email?.sent">
-                Template A надіслано після реєстрації.
-              </template>
-              <template v-else>Автоматичний лист ще не зафіксовано.</template>
+          <div v-if="readinessUnavailable" class="muted">Дані про готовність недоступні</div>
+          <template v-else>
+            <div class="readiness-list">
+              <div
+                v-for="check in readinessChecks"
+                :key="check.key"
+                class="readiness-row"
+              >
+                <span class="readiness-row__label">{{ check.label }}</span>
+                <span class="status-pill" :class="check.pass ? 'status-pill--ok' : 'status-pill--muted'">
+                  {{ check.pass ? 'Готово' : 'Потрібно доповнити' }}
+                </span>
+              </div>
+            </div>
+
+            <p v-if="readinessMissingSummary" class="muted readiness-panel__missing">
+              Не вистачає: {{ readinessMissingSummary }}
+            </p>
+          </template>
+        </article>
+
+        <article class="panel crm-panel">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">CRM</div>
+              <h2 class="panel__title">Публікація та пошук</h2>
+              <p class="muted readiness-panel__helper">{{ visibilityText }}</p>
+            </div>
+            <span class="status-pill" :class="visibilityStatusClass">
+              {{ visibilityBadgeText }}
             </span>
           </div>
-          <div>
-            <strong>Надіслано:</strong>
-            <span class="summary-list__value">
-              <template v-if="detail.admin_context.signup_template_a_email?.sent_at">
-                {{ formatDate(detail.admin_context.signup_template_a_email.sent_at) }}
-              </template>
-              <template v-else>—</template>
+
+          <div v-if="visibilityUnavailable" class="muted">Дані про публікацію недоступні</div>
+          <template v-else>
+            <a
+              v-if="publicProfileUrl"
+              class="btn btn--ghost btn--sm public-profile-action"
+              :href="publicProfileUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Відкрити публічний профіль
+            </a>
+            <p v-else-if="publicProfileUnavailableText" class="muted readiness-panel__missing">
+              {{ publicProfileUnavailableText }}
+            </p>
+          </template>
+        </article>
+
+        <article class="panel crm-panel">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">CRM</div>
+              <h2 class="panel__title">Запис і запити</h2>
+              <p class="muted readiness-panel__helper">{{ clientEntryText }}</p>
+            </div>
+            <span class="status-pill" :class="clientEntryStatusClass">
+              {{ clientEntryBadgeText }}
             </span>
           </div>
-          <div>
-            <strong>Наступна дія:</strong>
-            <span class="summary-list__value">
-              <template v-if="detail.admin_context.signup_template_a_email?.sent">
-                Дочекатися заповнення профілю, потім переглянути готовність.
+          <div v-if="clientEntryUnavailable" class="muted">Дані про спосіб звернення недоступні</div>
+        </article>
+
+        <article class="panel crm-panel">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">CRM</div>
+              <h2 class="panel__title">Онбординг</h2>
+            </div>
+          </div>
+
+          <div v-if="onboardingUnavailable" class="muted">Дані про онбординг недоступні</div>
+          <div v-else class="onboarding-grid">
+            <section class="onboarding-card" aria-label="Перший лист спеціалісту">
+              <div class="onboarding-card__header">
+                <h3>Перший лист спеціалісту</h3>
+                <span class="status-pill" :class="templateA.sent ? 'status-pill--ok' : 'status-pill--muted'">
+                  {{ templateA.sent ? 'Надіслано' : 'Не зафіксовано' }}
+                </span>
+              </div>
+              <p>
+                {{
+                  templateA.sent
+                    ? 'Автоматичний лист після реєстрації надіслано.'
+                    : 'Надсилання першого листа не зафіксовано.'
+                }}
+              </p>
+              <div class="muted">Надіслано: {{ templateA.sentAtText }}</div>
+            </section>
+
+            <section class="onboarding-card" aria-label="Другий лист спеціалісту">
+              <div class="onboarding-card__header">
+                <h3>Другий лист спеціалісту</h3>
+                <span class="status-pill" :class="templateB.sent ? 'status-pill--ok' : 'status-pill--muted'">
+                  {{ templateB.sent ? 'Надіслано' : 'Не зафіксовано' }}
+                </span>
+              </div>
+              <template v-if="templateB.sent">
+                <p>{{ templateB.displayLabel }}</p>
+                <div class="muted">Надіслано: {{ templateB.sentAtText }}</div>
+                <div v-if="templateB.variant" class="muted">
+                  Код варіанта: {{ templateB.variant }}
+                </div>
               </template>
               <template v-else>
-                За потреби перевірити спеціаліста вручну.
+                <p>Надсилання другого листа ще не зафіксовано.</p>
+                <div class="muted">Надіслано: —</div>
               </template>
-            </span>
+            </section>
           </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">ОНБОРДИНГ</div>
-            <h2 class="panel__title">Другий лист спеціалісту</h2>
-            <p class="muted readiness-panel__helper">
-              Статус відображає зафіксоване надсилання Template B. Цей блок не надсилає листи.
-            </p>
-          </div>
-          <span
-            class="status-pill"
-            :class="detail.admin_context.signup_template_b_email?.sent ? 'status-pill--ok' : 'status-pill--muted'"
-          >
-            {{
-              detail.admin_context.signup_template_b_email?.sent
-                ? 'Надіслано'
-                : 'Не зафіксовано'
-            }}
-          </span>
-        </div>
-
-        <div class="summary-list summary-list--onboarding">
-          <div>
-            <strong>Статус:</strong>
-            <span class="summary-list__value">
-              <template v-if="detail.admin_context.signup_template_b_email?.sent">
-                Template B надіслано.
-              </template>
-              <template v-else>Надсилання другого листа ще не зафіксовано.</template>
-            </span>
-          </div>
-          <div>
-            <strong>Надіслано:</strong>
-            <span class="summary-list__value">
-              <template v-if="detail.admin_context.signup_template_b_email?.sent_at">
-                {{ formatDate(detail.admin_context.signup_template_b_email.sent_at) }}
-              </template>
-              <template v-else>—</template>
-            </span>
-          </div>
-          <div>
-            <strong>Варіант:</strong>
-            <span class="summary-list__value">
-              {{ detail.admin_context.signup_template_b_email?.variant || '—' }}
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">ПРОФІЛЬ</div>
-            <h2 class="panel__title">Готовність профілю</h2>
-            <p class="muted readiness-panel__helper">
-              Швидка перевірка, чи спеціаліст готовий приймати перші запити.
-            </p>
-          </div>
-          <span class="status-pill" :class="readinessOverallClass">
-            {{ readinessOverallStatus }}
-          </span>
-        </div>
-
-        <div class="readiness-list">
-          <div
-            v-for="check in readinessChecks"
-            :key="check.key"
-            class="readiness-row"
-          >
-            <span class="readiness-row__label">{{ check.label }}</span>
-            <span class="status-pill" :class="check.pass ? 'status-pill--ok' : 'status-pill--muted'">
-              {{ check.pass ? 'Так' : 'Ні' }}
-            </span>
-          </div>
-        </div>
-
-        <p v-if="readinessMissingSummary" class="muted readiness-panel__missing">
-          Що варто доповнити перед публікацією: {{ readinessMissingSummary }}.
-        </p>
+        </article>
       </section>
 
       <section class="panel">
@@ -643,6 +623,7 @@ import {
   fetchAdminSpecialistAccessHistory,
   fetchAdminSpecialistDetail,
   getApiErrorMessage,
+  type AdminCrmReadinessItem,
   type AdminSpecialistAccessHistoryItem,
   type AdminSpecialistDetailResponse,
 } from '../lib/api'
@@ -652,6 +633,7 @@ type TrialAction = 'START' | 'END'
 type OverrideAction = 'ENABLE' | 'UPDATE' | 'DISABLE'
 type DateTimeParts = { date: string; time: string }
 type DateTimeParseResult = { iso: string | null; error: string }
+type ReadinessCheck = { key: string; label: string; missingLabel: string; pass: boolean }
 
 const dateFormatError = 'Вкажіть дату у форматі ДД.ММ.РРРР.'
 const timeFormatError = 'Вкажіть час у форматі HH:mm.'
@@ -718,13 +700,34 @@ const specialistId = computed(() => Number(route.params.id))
 const publicProfileSlug = computed(() =>
   String(detail.value?.identity.slug || detail.value?.identity.public_slug || '').trim()
 )
+const adminCrmState = computed(() => detail.value?.admin_crm_state || null)
+const crmReadiness = computed(() => adminCrmState.value?.readiness || null)
+const crmVisibility = computed(() => adminCrmState.value?.visibility || null)
+const crmClientEntry = computed(() => adminCrmState.value?.client_entry || null)
+const crmOnboarding = computed(() => adminCrmState.value?.onboarding || null)
+const normalizedVisibilityState = computed(() =>
+  String(crmVisibility.value?.state || '').trim()
+)
 const publicProfileUrl = computed(() => {
+  if (crmVisibility.value) {
+    const state = normalizedVisibilityState.value
+    const path = String(crmVisibility.value.public_profile_path || '').trim()
+    if ((state === 'direct_link_only' || state === 'search_visible') && path) return path
+    return ''
+  }
   if (!detail.value?.identity.public_profile_enabled || !publicProfileSlug.value) return ''
   return `/s/${encodeURIComponent(publicProfileSlug.value)}`
 })
 const publicProfileUnavailableText = computed(() => {
-  if (!detail.value?.identity.public_profile_enabled) return 'Публічний профіль вимкнено'
-  if (!publicProfileSlug.value) return 'Слаг профілю не налаштовано'
+  if (crmVisibility.value) {
+    const state = normalizedVisibilityState.value
+    if ((state === 'direct_link_only' || state === 'search_visible') && !publicProfileUrl.value) {
+      return 'Публічне посилання ще не сформоване.'
+    }
+    return ''
+  }
+  if (!detail.value?.identity.public_profile_enabled) return ''
+  if (!publicProfileSlug.value) return 'Публічне посилання ще не сформоване.'
   return ''
 })
 const profileReadiness = computed(() => {
@@ -754,31 +757,31 @@ const profileReadiness = computed(() => {
 const minimumPublicProfileReadiness = computed(
   () => profileReadiness.value.minimum_public_profile_readiness || null
 )
-const readinessChecks = computed(() => {
+const readinessChecks = computed<ReadinessCheck[]>(() => {
+  if (adminCrmState.value && !crmReadiness.value) return []
+
+  const crmItems = crmReadiness.value?.items
+  if (crmItems?.length) {
+    return crmItems.map((item: AdminCrmReadinessItem) => ({
+      key: item.key,
+      label: item.label,
+      missingLabel: item.label,
+      pass: Boolean(item.complete),
+    }))
+  }
+
   const minimumReadiness = minimumPublicProfileReadiness.value
   if (minimumReadiness?.items?.length) {
-    return [
-      {
-        key: 'public_profile_enabled',
-        label: 'Публічний профіль увімкнено',
-        missingLabel: 'публічний профіль',
-        pass: Boolean(profileReadiness.value.public_profile_enabled),
-      },
-      ...minimumReadiness.items.map((item) => ({
-        key: item.key,
-        label: item.label,
-        missingLabel: item.label,
-        pass: Boolean(item.complete),
-      })),
-    ]
+    return minimumReadiness.items.map((item) => ({
+      key: item.key,
+      label: item.label,
+      missingLabel: item.label,
+      pass: Boolean(item.complete),
+    }))
   }
+
+  if (!detail.value?.profile_readiness && !detail.value?.identity) return []
   return [
-    {
-      key: 'public_profile_enabled',
-      label: 'Публічний профіль увімкнено',
-      missingLabel: 'публічний профіль',
-      pass: Boolean(profileReadiness.value.public_profile_enabled),
-    },
     {
       key: 'public_display_name_exists',
       label: 'Публічне ім’я заповнене',
@@ -818,22 +821,145 @@ const readinessChecks = computed(() => {
   ]
 })
 const readinessFailedChecks = computed(() => readinessChecks.value.filter((check) => !check.pass))
-const readinessContentFailedChecks = computed(() =>
-  readinessFailedChecks.value.filter((check) => check.key !== 'public_profile_enabled')
-)
 const readinessMissingSummary = computed(() =>
-  readinessContentFailedChecks.value.map((check) => check.missingLabel).join(', ')
+  readinessFailedChecks.value.map((check) => check.missingLabel).join(', ')
 )
-const readinessOverallStatus = computed(() => {
-  if (!profileReadiness.value.public_profile_enabled) return 'Профіль ще не відкритий'
-  if (readinessFailedChecks.value.length === 0) return 'Готовий до перших запитів'
-  return 'Профіль відкритий, але потребує доповнення'
+const readinessUnavailable = computed(() => readinessChecks.value.length === 0)
+const readinessCompletedCount = computed(() => {
+  if (crmReadiness.value?.completed_count != null) return Number(crmReadiness.value.completed_count)
+  if (minimumPublicProfileReadiness.value?.completed_count != null) {
+    return Number(minimumPublicProfileReadiness.value.completed_count)
+  }
+  return readinessChecks.value.filter((check) => check.pass).length
+})
+const readinessTotalCount = computed(() => {
+  if (crmReadiness.value?.total_count != null) return Number(crmReadiness.value.total_count)
+  if (minimumPublicProfileReadiness.value?.total_count != null) {
+    return Number(minimumPublicProfileReadiness.value.total_count)
+  }
+  return readinessChecks.value.length
+})
+const readinessIsReady = computed(() => {
+  if (crmReadiness.value?.is_ready != null) return Boolean(crmReadiness.value.is_ready)
+  if (minimumPublicProfileReadiness.value?.is_ready != null) {
+    return Boolean(minimumPublicProfileReadiness.value.is_ready)
+  }
+  return readinessChecks.value.length > 0 && readinessFailedChecks.value.length === 0
+})
+const readinessSummaryText = computed(() => {
+  if (readinessUnavailable.value) return 'Дані про готовність недоступні'
+  if (readinessIsReady.value) return 'Усі обов’язкові дані заповнені'
+  return `Заповнено ${readinessCompletedCount.value} з ${readinessTotalCount.value}`
+})
+const readinessBadgeText = computed(() => {
+  if (readinessUnavailable.value) return '—'
+  return `${readinessCompletedCount.value} з ${readinessTotalCount.value}`
 })
 const readinessOverallClass = computed(() => {
-  if (!profileReadiness.value.public_profile_enabled) return 'status-pill--muted'
-  if (readinessFailedChecks.value.length === 0) return 'status-pill--ok'
+  if (readinessUnavailable.value) return 'status-pill--muted'
+  if (readinessIsReady.value) return 'status-pill--ok'
   return 'status-pill--warn'
 })
+const visibilityUnavailable = computed(() => Boolean(adminCrmState.value && !crmVisibility.value))
+const visibilityBadgeText = computed(() => {
+  if (visibilityUnavailable.value) return '—'
+  const state = normalizedVisibilityState.value
+  if (state === 'unpublished') return 'Не опубліковано'
+  if (state === 'direct_link_only') return 'Доступно за посиланням'
+  if (state === 'search_visible') return 'Показується в пошуку'
+  if (state === 'invalid') return 'Некоректний службовий стан'
+  if (!crmVisibility.value && detail.value?.identity.public_profile_enabled) return 'Доступно за посиланням'
+  if (!crmVisibility.value && detail.value) return 'Не опубліковано'
+  return '—'
+})
+const visibilityText = computed(() => {
+  if (visibilityUnavailable.value) return 'Дані про публікацію недоступні'
+  const state = normalizedVisibilityState.value
+  if (state === 'unpublished') return 'Сторінка ще недоступна клієнтам.'
+  if (state === 'direct_link_only') return 'Сторінка опублікована, але не показується в пошуку Pro Consult.'
+  if (state === 'search_visible') return 'Сторінка опублікована й доступна в пошуку Pro Consult.'
+  if (state === 'invalid') {
+    return 'Показ у пошуку увімкнено для неопублікованої сторінки. Потрібна службова перевірка.'
+  }
+  if (!crmVisibility.value && detail.value?.identity.public_profile_enabled) {
+    return 'Сторінка опублікована. Дані про показ у пошуку недоступні.'
+  }
+  if (!crmVisibility.value && detail.value) return 'Сторінка ще недоступна клієнтам.'
+  return 'Дані про публікацію недоступні'
+})
+const visibilityStatusClass = computed(() => {
+  if (visibilityUnavailable.value) return 'status-pill--muted'
+  const state = normalizedVisibilityState.value
+  if (state === 'search_visible' || state === 'direct_link_only') return 'status-pill--ok'
+  if (state === 'invalid') return 'status-pill--warn'
+  return 'status-pill--muted'
+})
+const clientEntryMode = computed(() => String(crmClientEntry.value?.mode || '').trim())
+const clientEntryUnavailable = computed(() => !crmClientEntry.value)
+const clientEntryBadgeText = computed(() => {
+  const mode = clientEntryMode.value
+  if (mode === 'request_only') return 'Запит без вибору часу'
+  if (mode === 'direct_booking') return 'Запис на доступне вікно'
+  if (mode === 'unknown') return 'Не налаштовано'
+  return 'Не налаштовано'
+})
+const clientEntryText = computed(() => {
+  const mode = clientEntryMode.value
+  if (mode === 'request_only') {
+    return 'Клієнти можуть залишати запит, а спеціаліст сам узгоджує час. Вікна для запису не обов’язкові.'
+  }
+  if (mode === 'direct_booking') {
+    if (crmClientEntry.value?.windows_attention_required) {
+      return 'Прямий запис увімкнено, але майбутніх доступних вікон немає.'
+    }
+    if (crmClientEntry.value?.show_public_availability === false) {
+      return 'Прямий запис обрано, але показ доступних вікон у публічному профілі вимкнено.'
+    }
+    if (crmClientEntry.value?.has_future_available_windows) {
+      return 'Клієнти можуть обирати доступний час. Майбутні вікна для запису є.'
+    }
+    return 'Запис на доступне вікно налаштовано.'
+  }
+  if (mode === 'unknown') return 'Спосіб звернення клієнтів ще не визначено.'
+  return 'Дані про спосіб звернення недоступні'
+})
+const clientEntryStatusClass = computed(() => {
+  if (clientEntryUnavailable.value) return 'status-pill--muted'
+  if (crmClientEntry.value?.windows_attention_required) return 'status-pill--warn'
+  if (clientEntryMode.value === 'request_only' || clientEntryMode.value === 'direct_booking') return 'status-pill--ok'
+  return 'status-pill--muted'
+})
+const legacyTemplateA = computed(() => detail.value?.admin_context.signup_template_a_email || null)
+const legacyTemplateB = computed(() => detail.value?.admin_context.signup_template_b_email || null)
+const templateA = computed(() => {
+  const crmTemplate = crmOnboarding.value?.template_a
+  const sent = Boolean(crmTemplate ? crmTemplate.sent : legacyTemplateA.value?.sent)
+  const sentAt = crmTemplate ? crmTemplate.sent_at || null : legacyTemplateA.value?.sent_at || null
+  return {
+    sent,
+    sentAt,
+    sentAtText: formatDate(sentAt),
+  }
+})
+const templateB = computed(() => {
+  const crmTemplate = crmOnboarding.value?.template_b
+  const sent = Boolean(crmTemplate ? crmTemplate.sent : legacyTemplateB.value?.sent)
+  const sentAt = crmTemplate ? crmTemplate.sent_at || null : legacyTemplateB.value?.sent_at || null
+  const variant = String((crmTemplate ? crmTemplate.variant : legacyTemplateB.value?.variant) || '').trim()
+  const variantLabel = String(crmTemplate?.variant_label || '').trim()
+  return {
+    sent,
+    sentAt,
+    sentAtText: formatDate(sentAt),
+    variant,
+    displayLabel: variantLabel || (variant ? `Зафіксовано варіант: ${variant}` : 'Другий лист спеціалісту надіслано.'),
+  }
+})
+const onboardingUnavailable = computed(
+  () =>
+    Boolean(adminCrmState.value && !crmOnboarding.value) ||
+    (!adminCrmState.value && !legacyTemplateA.value && !legacyTemplateB.value)
+)
 
 function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
@@ -1281,22 +1407,30 @@ watch(
   line-height: 1.35;
 }
 
-.public-profile-action__status {
-  align-self: flex-start;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.2;
-  padding: 8px 10px;
-}
-
 .summary-grid,
 .access-grid,
 .requests-grid {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.crm-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.crm-panel {
+  align-content: start;
+}
+
+.crm-panel--readiness {
+  grid-column: 1 / -1;
+}
+
+.public-profile-action {
+  width: fit-content;
 }
 
 .summary-list {
@@ -1309,6 +1443,36 @@ watch(
 
 .summary-list--onboarding .summary-list__value {
   margin-left: 4px;
+}
+
+.onboarding-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.onboarding-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.onboarding-card p {
+  margin: 0;
+}
+
+.onboarding-card__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.onboarding-card__header h3 {
+  font-size: 16px;
+  margin: 0;
 }
 
 .operational-counts {
@@ -1417,6 +1581,11 @@ watch(
   color: #8b5f00;
 }
 
+.status-pill--info {
+  background: rgba(8, 113, 201, 0.14);
+  color: #075b8f;
+}
+
 .setting-modal {
   position: fixed;
   inset: 0;
@@ -1482,6 +1651,11 @@ watch(
   .access-action--service {
     border-left: 0;
     padding-left: 0;
+  }
+
+  .crm-grid,
+  .onboarding-grid {
+    grid-template-columns: 1fr;
   }
 
   .date-time-grid {

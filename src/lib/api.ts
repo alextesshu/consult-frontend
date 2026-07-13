@@ -647,6 +647,66 @@ export type AdminSpecialistSearchResponse = {
   results: AdminSpecialistSearchItem[]
 }
 
+export type AdminCrmReadinessItem = {
+  key: string
+  label: string
+  complete: boolean
+}
+
+export type AdminCrmReadiness = {
+  is_ready?: boolean | null
+  completed_count?: number | null
+  total_count?: number | null
+  missing_items?: string[] | null
+  items?: AdminCrmReadinessItem[] | null
+}
+
+export type AdminCrmVisibilityState =
+  | 'unpublished'
+  | 'direct_link_only'
+  | 'search_visible'
+  | 'invalid'
+
+export type AdminCrmVisibility = {
+  public_profile_enabled?: boolean | null
+  is_search_visible?: boolean | null
+  state?: AdminCrmVisibilityState | string | null
+  public_profile_path?: string | null
+}
+
+export type AdminCrmClientEntryMode = 'request_only' | 'direct_booking' | 'unknown'
+
+export type AdminCrmClientEntry = {
+  mode?: AdminCrmClientEntryMode | string | null
+  show_public_availability?: boolean | null
+  has_future_available_windows?: boolean | null
+  windows_attention_required?: boolean | null
+}
+
+export type AdminCrmTemplateA = {
+  sent?: boolean | null
+  sent_at?: string | null
+}
+
+export type AdminCrmTemplateB = {
+  sent?: boolean | null
+  sent_at?: string | null
+  variant?: string | null
+  variant_label?: string | null
+}
+
+export type AdminCrmOnboarding = {
+  template_a?: AdminCrmTemplateA | null
+  template_b?: AdminCrmTemplateB | null
+}
+
+export type AdminCrmState = {
+  readiness?: AdminCrmReadiness | null
+  visibility?: AdminCrmVisibility | null
+  client_entry?: AdminCrmClientEntry | null
+  onboarding?: AdminCrmOnboarding | null
+}
+
 export type AdminSpecialistDetailResponse = {
   identity: {
     id: number
@@ -711,6 +771,7 @@ export type AdminSpecialistDetailResponse = {
       actor: string | null
     }
   }
+  admin_crm_state?: AdminCrmState | null
   admin_context: {
     open_billing_admin_requests_count: number
     open_admin_inbox_items_count?: number

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AdminSpecialistDetailView from './AdminSpecialistDetailView.vue'
@@ -35,6 +35,14 @@ const mockedFetchAdminSpecialistAccessHistory = vi.mocked(fetchAdminSpecialistAc
 const mockedFetchAdminSpecialistDetail = vi.mocked(fetchAdminSpecialistDetail)
 const nativeDateTimeInputType = ['datetime', 'local'].join('-')
 const meridiemPattern = new RegExp(`\\b${['A', 'M'].join('')}\\b|\\b${['P', 'M'].join('')}\\b`)
+const canonicalReadinessItems = [
+  { key: 'display_name', label: 'Публічне ім’я', complete: true },
+  { key: 'about', label: 'Опис', complete: true },
+  { key: 'topics', label: 'Спеціалізації', complete: true },
+  { key: 'work_format', label: 'Формат роботи', complete: true },
+  { key: 'first_contact', label: 'Запис або запит', complete: true },
+  { key: 'price_decision', label: 'Вартість консультації', complete: true },
+]
 
 function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): AdminSpecialistDetailResponse {
   return {
@@ -61,6 +69,39 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
       show_public_availability: false,
       has_future_availability_windows: false,
       missing_items: [],
+    },
+    admin_crm_state: {
+      readiness: {
+        is_ready: true,
+        completed_count: 6,
+        total_count: 6,
+        missing_items: [],
+        items: canonicalReadinessItems,
+      },
+      visibility: {
+        public_profile_enabled: true,
+        is_search_visible: false,
+        state: 'direct_link_only',
+        public_profile_path: '/s/olena',
+      },
+      client_entry: {
+        mode: 'request_only',
+        show_public_availability: false,
+        has_future_available_windows: false,
+        windows_attention_required: false,
+      },
+      onboarding: {
+        template_a: {
+          sent: false,
+          sent_at: null,
+        },
+        template_b: {
+          sent: false,
+          sent_at: null,
+          variant: null,
+          variant_label: null,
+        },
+      },
     },
     role_state: {
       role: 'SPECIALIST',
@@ -209,128 +250,263 @@ describe('AdminSpecialistDetailView', () => {
     mockedApplyAdminSpecialistTrialAction.mockResolvedValue({} as any)
   })
 
-  it('renders the profile readiness panel with a ready status when critical fields pass', async () => {
+  it('renders canonical readiness from admin_crm_state', async () => {
     await renderView()
 
-    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
-    expect(panel).toBeTruthy()
-    expect(within(panel).getByText('Швидка перевірка, чи спеціаліст готовий приймати перші запити.')).toBeInTheDocument()
-    expect(within(panel).getByText('Готовий до перших запитів')).toBeInTheDocument()
-    expect(within(panel).getByText('Публічний профіль увімкнено').parentElement).toHaveTextContent('Так')
-    expect(within(panel).getByText('Публічне ім’я заповнене').parentElement).toHaveTextContent('Так')
-    expect(within(panel).getByText('Слаг профілю налаштовано').parentElement).toHaveTextContent('Так')
-    expect(within(panel).queryByText(/Що варто доповнити перед публікацією:/)).not.toBeInTheDocument()
+    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Усі обов’язкові дані заповнені')).toBeInTheDocument()
+    expect(within(panel).getByText('6 з 6')).toBeInTheDocument()
+    for (const item of canonicalReadinessItems) {
+      expect(within(panel).getByText(item.label).parentElement).toHaveTextContent('Готово')
+    }
+    expect(panel.textContent || '').not.toMatch(/Фото|Основні запити|Теми й запити|Запити/)
+    expect(within(panel).queryByText(/Не вистачає:/)).not.toBeInTheDocument()
   })
 
-  it('shows that the profile is not open when the public profile is disabled', async () => {
+  it('renders incomplete canonical readiness and missing summary from backend labels', async () => {
     await renderView(buildDetail({
-      identity: {
-        ...buildDetail().identity,
-        public_profile_enabled: false,
-      },
-      profile_readiness: {
-        ...buildDetail().profile_readiness!,
-        public_profile_enabled: false,
-        public_profile_link_available: false,
-        missing_items: ['public_profile_enabled', 'public_profile_link_available'],
-      },
-    }))
-
-    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
-    expect(within(panel).getByText('Профіль ще не відкритий')).toBeInTheDocument()
-    expect(within(panel).getByText('Публічний профіль увімкнено').parentElement).toHaveTextContent('Ні')
-    const missingSummary = within(panel).getByText(/Що варто доповнити перед публікацією:/)
-    expect(missingSummary).toHaveTextContent('публічне посилання')
-    expect(missingSummary).not.toHaveTextContent('публічний профіль')
-  })
-
-  it('shows that an open profile needs completion when readiness fields are missing', async () => {
-    await renderView(buildDetail({
-      profile_readiness: {
-        ...buildDetail().profile_readiness!,
-        basic_description_exists: false,
-        standard_price_configured: false,
-        client_entry_path_exists: false,
-        missing_items: [
-          'basic_description_exists',
-          'standard_price_configured',
-          'client_entry_path_exists',
-        ],
-      },
-    }))
-
-    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
-    expect(within(panel).getByText('Профіль відкритий, але потребує доповнення')).toBeInTheDocument()
-    expect(within(panel).getByText('Опис профілю заповнений').parentElement).toHaveTextContent('Ні')
-    expect(within(panel).getByText('Базова ціна налаштована').parentElement).toHaveTextContent('Ні')
-    expect(within(panel).getByText('Є шлях для першого звернення').parentElement).toHaveTextContent('Ні')
-    expect(within(panel).getByText(/Що варто доповнити перед публікацією:/)).toHaveTextContent(
-      'опис профілю, базову ціну, доступність для звернень'
-    )
-  })
-
-  it('renders minimum public profile readiness items when backend provides them', async () => {
-    await renderView(buildDetail({
-      profile_readiness: {
-        ...buildDetail().profile_readiness!,
-        public_profile_enabled: false,
-        minimum_public_profile_ready: false,
-        minimum_public_profile_readiness: {
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        readiness: {
           is_ready: false,
-          completed_count: 5,
-          total_count: 7,
-          missing_items: ['photo', 'topics'],
-          items: [
-            { key: 'display_name', label: 'Публічне ім’я', complete: true },
-            { key: 'photo', label: 'Фото', complete: false },
-            { key: 'about', label: 'Опис', complete: true },
-            { key: 'topics', label: 'Запити', complete: false },
-          ],
+          completed_count: 4,
+          total_count: 6,
+          missing_items: ['topics', 'work_format'],
+          items: canonicalReadinessItems.map((item) =>
+            item.key === 'topics' || item.key === 'work_format'
+              ? { ...item, complete: false }
+              : item
+          ),
         },
       },
     }))
 
-    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
-    expect(within(panel).getByText('Публічний профіль увімкнено').parentElement).toHaveTextContent('Ні')
-    expect(within(panel).getByText('Фото')).toBeInTheDocument()
-    expect(within(panel).getByText('Запити')).toBeInTheDocument()
-    const missingSummary = within(panel).getByText(/Що варто доповнити перед публікацією:/)
-    expect(missingSummary).toHaveTextContent('Фото, Запити')
-    expect(missingSummary).not.toHaveTextContent('Публічний профіль')
+    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Заповнено 4 з 6')).toBeInTheDocument()
+    expect(within(panel).getByText('4 з 6')).toBeInTheDocument()
+    expect(within(panel).getByText('Спеціалізації').parentElement).toHaveTextContent('Потрібно доповнити')
+    expect(within(panel).getByText('Формат роботи').parentElement).toHaveTextContent('Потрібно доповнити')
+    expect(within(panel).getByText('Не вистачає: Спеціалізації, Формат роботи')).toBeInTheDocument()
   })
 
-  it('does not fail public link readiness when search visibility is false', async () => {
+  it('renders visibility states and controls public profile action from admin_crm_state', async () => {
+    const cases = [
+      {
+        state: 'unpublished',
+        badge: 'Не опубліковано',
+        text: 'Сторінка ще недоступна клієнтам.',
+        path: '/s/olena',
+        hasLink: false,
+      },
+      {
+        state: 'direct_link_only',
+        badge: 'Доступно за посиланням',
+        text: 'Сторінка опублікована, але не показується в пошуку Pro Consult.',
+        path: '/s/olena',
+        hasLink: true,
+      },
+      {
+        state: 'search_visible',
+        badge: 'Показується в пошуку',
+        text: 'Сторінка опублікована й доступна в пошуку Pro Consult.',
+        path: '/s/olena',
+        hasLink: true,
+      },
+      {
+        state: 'invalid',
+        badge: 'Некоректний службовий стан',
+        text: 'Показ у пошуку увімкнено для неопублікованої сторінки. Потрібна службова перевірка.',
+        path: '/s/olena',
+        hasLink: false,
+      },
+      {
+        state: 'direct_link_only',
+        badge: 'Доступно за посиланням',
+        text: 'Сторінка опублікована, але не показується в пошуку Pro Consult.',
+        path: null,
+        hasLink: false,
+        missingPath: true,
+      },
+    ]
+
+    for (const item of cases) {
+      cleanup()
+      await renderView(buildDetail({
+        admin_crm_state: {
+          ...buildDetail().admin_crm_state!,
+          visibility: {
+            public_profile_enabled: item.state !== 'unpublished',
+            is_search_visible: item.state === 'search_visible' || item.state === 'invalid',
+            state: item.state,
+            public_profile_path: item.path,
+          },
+        },
+      }))
+
+      const panel = screen.getByRole('heading', { name: 'Публікація та пошук' }).closest('article') as HTMLElement
+      expect(within(panel).getByText(item.badge)).toBeInTheDocument()
+      expect(within(panel).getByText(item.text)).toBeInTheDocument()
+      if (item.hasLink) {
+        expect(within(panel).getByRole('link', { name: 'Відкрити публічний профіль' })).toHaveAttribute(
+          'href',
+          '/s/olena'
+        )
+      } else {
+        expect(within(panel).queryByRole('link', { name: 'Відкрити публічний профіль' })).not.toBeInTheDocument()
+      }
+      if (item.missingPath) {
+        expect(within(panel).getByText('Публічне посилання ще не сформоване.')).toBeInTheDocument()
+      }
+    }
+  })
+
+  it('renders client-entry states without treating request-only as missing windows', async () => {
+    const cases = [
+      {
+        mode: 'request_only',
+        show_public_availability: false,
+        has_future_available_windows: false,
+        windows_attention_required: false,
+        badge: 'Запит без вибору часу',
+        text: 'Клієнти можуть залишати запит, а спеціаліст сам узгоджує час. Вікна для запису не обов’язкові.',
+      },
+      {
+        mode: 'direct_booking',
+        show_public_availability: true,
+        has_future_available_windows: true,
+        windows_attention_required: false,
+        badge: 'Запис на доступне вікно',
+        text: 'Клієнти можуть обирати доступний час. Майбутні вікна для запису є.',
+      },
+      {
+        mode: 'direct_booking',
+        show_public_availability: true,
+        has_future_available_windows: false,
+        windows_attention_required: true,
+        badge: 'Запис на доступне вікно',
+        text: 'Прямий запис увімкнено, але майбутніх доступних вікон немає.',
+      },
+      {
+        mode: 'direct_booking',
+        show_public_availability: false,
+        has_future_available_windows: false,
+        windows_attention_required: false,
+        badge: 'Запис на доступне вікно',
+        text: 'Прямий запис обрано, але показ доступних вікон у публічному профілі вимкнено.',
+      },
+      {
+        mode: 'unknown',
+        show_public_availability: false,
+        has_future_available_windows: false,
+        windows_attention_required: false,
+        badge: 'Не налаштовано',
+        text: 'Спосіб звернення клієнтів ще не визначено.',
+      },
+    ]
+
+    for (const item of cases) {
+      cleanup()
+      await renderView(buildDetail({
+        admin_crm_state: {
+          ...buildDetail().admin_crm_state!,
+          client_entry: item,
+        },
+      }))
+
+      const panel = screen.getByRole('heading', { name: 'Запис і запити' }).closest('article') as HTMLElement
+      expect(within(panel).getByText(item.badge)).toBeInTheDocument()
+      expect(within(panel).getByText(item.text)).toBeInTheDocument()
+      if (item.mode === 'request_only' || item.show_public_availability === false) {
+        expect(panel.textContent || '').not.toMatch(/майбутніх доступних вікон немає/)
+      }
+    }
+  })
+
+  it('renders onboarding state with human Template B label and raw code as metadata', async () => {
     await renderView(buildDetail({
-      profile_readiness: {
-        ...buildDetail().profile_readiness!,
-        public_profile_link_available: true,
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          template_a: {
+            sent: true,
+            sent_at: '2026-06-02T09:30:00Z',
+          },
+          template_b: {
+            sent: true,
+            sent_at: '2026-06-04T10:45:00Z',
+            variant: 'B4_READY_PUBLIC_FEEDBACK',
+            variant_label: 'Опубліковано за прямим посиланням',
+          },
+        },
       },
     }))
 
-    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
-    expect(within(panel).getByText('Публічне посилання доступне').parentElement).toHaveTextContent('Так')
+    const panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    const templateA = within(panel).getByRole('region', { name: 'Перший лист спеціалісту' })
+    expect(within(templateA).getByText('Автоматичний лист після реєстрації надіслано.')).toBeInTheDocument()
+    expect(within(templateA).getByText(/Надіслано:/)).toHaveTextContent('2026')
+    const templateB = within(panel).getByRole('region', { name: 'Другий лист спеціалісту' })
+    expect(within(templateB).getByText('Опубліковано за прямим посиланням')).toBeInTheDocument()
+    expect(within(templateB).getByText('Код варіанта: B4_READY_PUBLIC_FEEDBACK')).toBeInTheDocument()
   })
 
-  it('does not render marketplace or rating wording in readiness panel', async () => {
-    await renderView()
-
-    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
-    expect(panel.textContent || '').not.toMatch(/рейтинг|топ|рекомендац|верифікац/i)
-  })
-
-  it('shows an empty state when the automatic first email is not recorded', async () => {
-    await renderView()
-
-    const panel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
-    expect(panel).toBeTruthy()
-    expect(within(panel).getByText('Автоматичний лист після реєстрації. Цей блок не надсилає листи.')).toBeInTheDocument()
-    expect(within(panel).getByText('Не зафіксовано')).toBeInTheDocument()
-    expect(within(panel).getByText('Автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
-    expect(within(panel).getByText(/За потреби перевірити спеціаліста вручну/)).toBeInTheDocument()
-  })
-
-  it('shows the automatic first email sent state and timestamp', async () => {
+  it('renders Template B fallback label, absent state, and legacy B5 label safely', async () => {
     await renderView(buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          template_a: { sent: false, sent_at: null },
+          template_b: {
+            sent: true,
+            sent_at: '2026-06-04T10:45:00Z',
+            variant: 'UNKNOWN_VARIANT',
+            variant_label: null,
+          },
+        },
+      },
+    }))
+
+    let panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Зафіксовано варіант: UNKNOWN_VARIANT')).toBeInTheDocument()
+
+    cleanup()
+    await renderView(buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          template_a: { sent: false, sent_at: null },
+          template_b: { sent: false, sent_at: null, variant: null, variant_label: null },
+        },
+      },
+    }))
+
+    panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Надсилання першого листа не зафіксовано.')).toBeInTheDocument()
+    expect(within(panel).getByText('Надсилання другого листа ще не зафіксовано.')).toBeInTheDocument()
+
+    cleanup()
+    await renderView(buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          template_a: { sent: false, sent_at: null },
+          template_b: {
+            sent: true,
+            sent_at: '2026-06-04T10:45:00Z',
+            variant: 'B5_PUBLIC_BUT_INCOMPLETE',
+            variant_label: 'Опублікований профіль потребував доповнення',
+          },
+        },
+      },
+    }))
+
+    panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Опублікований профіль потребував доповнення')).toBeInTheDocument()
+  })
+
+  it('falls back to legacy detail fields when admin_crm_state is absent', async () => {
+    const detail = buildDetail({
+      admin_crm_state: null,
       admin_context: {
         ...buildDetail().admin_context,
         signup_template_a_email: {
@@ -338,34 +514,6 @@ describe('AdminSpecialistDetailView', () => {
           sent_at: '2026-06-02T09:30:00Z',
           item_key: 'specialist_signup_template_a_email:2',
         },
-      },
-    }))
-
-    const panel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
-    expect(within(panel).getByText('Надіслано автоматично')).toBeInTheDocument()
-    expect(within(panel).getByText('Template A надіслано після реєстрації.')).toBeInTheDocument()
-    expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('2026')
-    expect(within(panel).getByText(/Дочекатися заповнення профілю/)).toBeInTheDocument()
-  })
-
-  it('shows an empty state when Template B is not recorded', async () => {
-    await renderView()
-
-    const panel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
-    expect(panel).toBeTruthy()
-    expect(within(panel).getByText('Статус відображає зафіксоване надсилання Template B. Цей блок не надсилає листи.')).toBeInTheDocument()
-    expect(within(panel).getByText('Не зафіксовано')).toBeInTheDocument()
-    expect(within(panel).getByText('Надсилання другого листа ще не зафіксовано.')).toBeInTheDocument()
-    expect(within(panel).queryByText('Другий автоматичний лист ще не зафіксовано.')).not.toBeInTheDocument()
-    expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('—')
-    expect(within(panel).getByText('Варіант:').parentElement).toHaveTextContent('—')
-    expect(panel.textContent || '').not.toMatch(/48|заплановано|worker|буде автоматично|автоматичне надсилання/i)
-  })
-
-  it('shows Template B sent state, timestamp, and variant', async () => {
-    await renderView(buildDetail({
-      admin_context: {
-        ...buildDetail().admin_context,
         signup_template_b_email: {
           sent: true,
           sent_at: '2026-06-04T10:45:00Z',
@@ -373,82 +521,39 @@ describe('AdminSpecialistDetailView', () => {
           variant: 'B6_SEARCH_VISIBLE_FEEDBACK',
         },
       },
-    }))
-
-    const panel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
-    expect(within(panel).getByText('Надіслано')).toBeInTheDocument()
-    expect(within(panel).getByText('Template B надіслано.')).toBeInTheDocument()
-    expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('2026')
-    expect(within(panel).getByText('Варіант:').parentElement).toHaveTextContent('B6_SEARCH_VISIBLE_FEEDBACK')
-  })
-
-  it('does not crash when Template B status is absent from a compatibility payload', async () => {
-    const detail = buildDetail({
-      admin_context: {
-        ...buildDetail().admin_context,
-      },
     })
-    delete detail.admin_context.signup_template_b_email
 
     await renderView(detail)
 
-    const firstEmailPanel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
-    expect(within(firstEmailPanel).getByText('Автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
-    const secondEmailPanel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
-    expect(within(secondEmailPanel).getByText('Надсилання другого листа ще не зафіксовано.')).toBeInTheDocument()
-    expect(within(secondEmailPanel).queryByText('Другий автоматичний лист ще не зафіксовано.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Публікація та пошук' })).toBeInTheDocument()
+    expect(screen.getByText('Сторінка опублікована. Дані про показ у пошуку недоступні.')).toBeInTheDocument()
+    expect(screen.getAllByText('Дані про спосіб звернення недоступні').length).toBeGreaterThan(0)
+    const panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Автоматичний лист після реєстрації надіслано.')).toBeInTheDocument()
+    expect(within(panel).getByText('Зафіксовано варіант: B6_SEARCH_VISIBLE_FEEDBACK')).toBeInTheDocument()
   })
 
-  it('renders a safe new-tab link to the public profile when enabled and slug exists', async () => {
-    await renderView()
-
-    const link = await screen.findByRole('link', { name: 'Відкрити публічний профіль' })
-    expect(link).toHaveAttribute('href', '/s/olena')
-    expect(link).toHaveAttribute('target', '_blank')
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-  })
-
-  it('does not render an active public profile link when the public profile is disabled', async () => {
+  it('renders neutral unavailable states for missing optional CRM subobjects', async () => {
     await renderView(buildDetail({
-      identity: {
-        ...buildDetail().identity,
-        public_profile_enabled: false,
-        slug: 'olena',
+      admin_crm_state: {
+        readiness: null,
+        visibility: null,
+        client_entry: null,
+        onboarding: null,
+      },
+      profile_readiness: undefined,
+      admin_context: {
+        ...buildDetail().admin_context,
+        signup_template_a_email: undefined,
+        signup_template_b_email: undefined,
       },
     }))
 
-    expect(screen.queryByRole('link', { name: 'Відкрити публічний профіль' })).not.toBeInTheDocument()
-    expect(await screen.findByText('Публічний профіль вимкнено')).toBeInTheDocument()
-  })
-
-  it('does not render an active public profile link when slug is missing', async () => {
-    await renderView(buildDetail({
-      identity: {
-        ...buildDetail().identity,
-        public_profile_enabled: true,
-        slug: '',
-        public_slug: '',
-      },
-    }))
-
-    expect(screen.queryByRole('link', { name: 'Відкрити публічний профіль' })).not.toBeInTheDocument()
-    expect(await screen.findByText('Слаг профілю не налаштовано')).toBeInTheDocument()
-  })
-
-  it('does not require search visibility for the public profile link', async () => {
-    await renderView(buildDetail({
-      identity: {
-        ...buildDetail().identity,
-        public_profile_enabled: true,
-        slug: 'olena-hidden-search',
-        is_search_visible: false,
-      } as any,
-    }))
-
-    expect(await screen.findByRole('link', { name: 'Відкрити публічний профіль' })).toHaveAttribute(
-      'href',
-      '/s/olena-hidden-search'
-    )
+    expect(screen.getAllByText('Дані про готовність недоступні').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Дані про публікацію недоступні').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Дані про спосіб звернення недоступні').length).toBeGreaterThan(0)
+    expect(screen.getByText('Дані про онбординг недоступні')).toBeInTheDocument()
   })
 
   it('explains the difference between test access and service override', async () => {

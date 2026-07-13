@@ -8,6 +8,15 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-36 admin specialist detail CRM alignment is complete locally and awaiting
+review/staging decision. It is not production-deployed. The detail page now
+prefers backend `admin_crm_state` from the KAN-35 contract and presents four
+CRM sections: canonical readiness, publication/search visibility, client-entry
+state, and onboarding Template A/B status. Legacy detail fields remain as a
+fallback when `admin_crm_state` is absent. Backend runtime, admin specialist
+list UI, Admin Work Queue behavior, migrations, dependencies, deployment
+scripts, Template C, and automation flows were not changed.
+
 KAN-1 email trigger/copy implementation is complete locally and awaiting
 review/staging decision. It is not production-deployed.
 
