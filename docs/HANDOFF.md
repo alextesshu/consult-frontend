@@ -8,6 +8,16 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+CI usage reduction is complete locally and not pushed/deployed:
+- automatic frontend CI now runs on `dev` pushes only; `main` push no longer
+  repeats the same full CI;
+- PR checks remain for `dev` and `main`, manual `workflow_dispatch` remains,
+  and docs-only commits are skipped;
+- frontend CI now has read-only permissions, concurrency cancellation, npm
+  cache, and a 20-minute timeout while preserving `npm run build` and the full
+  `npm run test:run`;
+- runtime/deploy code, tests, migrations, and dependencies were not changed.
+
 KAN-37 admin specialist list CRM summary is complete locally and awaiting
 review/staging decision. It is not production-deployed. The specialist list now
 consumes backend `crm_summary` from `GET /api/admin/specialists/search/` and

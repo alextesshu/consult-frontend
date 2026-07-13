@@ -2,13 +2,31 @@ name: CI
 
 on:
   push:
-    branches: ["dev", "main"]
+    branches: ["dev"]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+
   pull_request:
+    branches: ["dev", "main"]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   frontend-tests:
     name: Frontend tests (vitest)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -18,6 +36,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
 
       - name: Install dependencies
         run: npm ci
