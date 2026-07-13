@@ -18,6 +18,15 @@ CI usage reduction is complete locally and not pushed/deployed:
   `npm run test:run`;
 - runtime/deploy code, tests, migrations, and dependencies were not changed.
 
+KAN-27 frontend documents/certificates upload UX is complete locally and not
+pushed/deployed. Cabinet profile document management now has client-side
+JPG/PNG/PDF validation up to 10 MB, accessible choose/drop upload area, pending
+file preview/metadata, retry-safe upload failure handling, document card
+metadata/previews with missing-file fallback, and shared-modal delete
+confirmation. Frontend API typing now accepts optional/null document file
+metadata. Backend/runtime public profile behavior, dependencies, deployment
+scripts, and migrations were not changed.
+
 KAN-37 admin specialist list CRM summary is complete locally and awaiting
 review/staging decision. It is not production-deployed. The specialist list now
 consumes backend `crm_summary` from `GET /api/admin/specialists/search/` and
@@ -588,6 +597,8 @@ Frontend production-closure slice is now integrated:
 
 - KAN-1 email trigger/copy implementation is complete locally and awaiting
   review/staging decision.
+- KAN-27 frontend documents/certificates upload UX is complete locally and
+  awaiting review/staging decision.
 - KAN-29 is production-closed and Done.
 - Manual Client Records Phase 1 and manual-client session creation are closed on frontend.
 - Keep canonical slug/public-link behavior stable while extending profile-related UX.

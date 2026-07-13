@@ -893,7 +893,10 @@ export type AdminSpecialistOverrideActionPayload =
 export type SpecialistProfileDocument = {
   id: number
   title: string
-  file_url: string
+  file_url?: string | null
+  mime_type?: string | null
+  original_filename?: string | null
+  file_size?: number | null
   document_kind: string
   is_public: boolean
   sort_order: number

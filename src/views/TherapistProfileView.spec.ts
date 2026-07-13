@@ -8,6 +8,7 @@ import {
   deleteProfileDocument,
   fetchProfileDocuments,
   fetchSpecialistProfile,
+  type SpecialistProfileDocument,
   type SpecialistProfile,
   updateProfileDocument,
   updateSpecialistProfile,
@@ -207,6 +208,23 @@ function createFile(name: string, type: string, sizeOverride?: number) {
   return file
 }
 
+function makeDocument(overrides: Partial<SpecialistProfileDocument> = {}): SpecialistProfileDocument {
+  return {
+    id: 10,
+    title: 'CBT Certificate',
+    file_url: 'https://example.com/certificate.pdf',
+    mime_type: 'application/pdf',
+    original_filename: 'certificate.pdf',
+    file_size: 1024 * 1024,
+    document_kind: 'CERTIFICATE',
+    is_public: true,
+    sort_order: 0,
+    uploaded_at: '2026-01-01T10:00:00Z',
+    source: 'cabinet',
+    ...overrides,
+  }
+}
+
 function setClipboard(writeText?: (value: string) => Promise<void>) {
   Object.defineProperty(navigator, 'clipboard', {
     configurable: true,
@@ -224,6 +242,16 @@ describe('TherapistProfileView', () => {
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: scrollIntoViewSpy,
+    })
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => 'blob:document-preview'),
+    })
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
     })
     routerMocks.onBeforeRouteLeave.mockReset()
     mockedCreateProfileDocument.mockReset()
@@ -262,6 +290,173 @@ describe('TherapistProfileView', () => {
     expect(finalOpenLink).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(finalOpenLink).toHaveAttribute('target', '_blank')
     expect(finalOpenLink).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('validates profile document files before upload', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Документи та сертифікати' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Додайте дипломи, сертифікати або інші професійні документи. Для кожного файла можна окремо визначити, чи показувати його у публічному профілі.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText('JPG, PNG або PDF, до 10 МБ.')).toBeInTheDocument()
+
+    const fileInput = screen.getByLabelText('Обрати файл документа')
+    await fireEvent.change(fileInput, {
+      target: { files: [createFile('notes.txt', 'text/plain')] },
+    })
+
+    expect(screen.getByText('Підтримуються лише файли JPG, PNG або PDF.')).toBeInTheDocument()
+    expect(screen.getByText('Файл ще не вибрано')).toBeInTheDocument()
+    expect(mockedCreateProfileDocument).not.toHaveBeenCalled()
+
+    await fireEvent.change(fileInput, {
+      target: { files: [createFile('large.pdf', 'application/pdf', 10 * 1024 * 1024 + 1)] },
+    })
+
+    expect(screen.getByText('Файл перевищує максимальний розмір 10 МБ.')).toBeInTheDocument()
+    expect(mockedCreateProfileDocument).not.toHaveBeenCalled()
+  })
+
+  it('uploads a valid pending document and clears the local preview after success', async () => {
+    const uploaded = makeDocument({
+      id: 11,
+      title: 'Diploma',
+      file_url: 'https://example.com/diploma.jpg',
+      mime_type: 'image/jpeg',
+      original_filename: 'diploma.jpg',
+      file_size: 2 * 1024 * 1024,
+      document_kind: 'CERTIFICATE',
+    })
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedCreateProfileDocument.mockResolvedValue(uploaded)
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Документи та сертифікати' })).toBeInTheDocument()
+    const file = createFile('diploma.jpg', '', 2 * 1024 * 1024)
+    await fireEvent.change(screen.getByLabelText('Обрати файл документа'), {
+      target: { files: [file] },
+    })
+
+    expect(URL.createObjectURL).toHaveBeenCalledWith(file)
+    expect(screen.getByText('diploma.jpg')).toBeInTheDocument()
+    expect(screen.getByText('JPG')).toBeInTheDocument()
+    expect(screen.getByText('2.0 МБ')).toBeInTheDocument()
+    expect(screen.getByText('Показується у публічному профілі')).toBeInTheDocument()
+    expect(screen.getByText('Якщо вимкнено, документ буде доступний лише вам у кабінеті.')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити документ' }))
+
+    await waitFor(() => {
+      expect(mockedCreateProfileDocument).toHaveBeenCalledWith({
+        file,
+        title: 'diploma',
+        document_kind: 'CERTIFICATE',
+        is_public: true,
+      })
+    })
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:document-preview')
+    expect(screen.queryByRole('button', { name: 'Прибрати' })).not.toBeInTheDocument()
+    expect(screen.getByText('Документ завантажено.')).toBeInTheDocument()
+    expect(screen.getAllByText('diploma.jpg').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('keeps the selected document available for retry when upload fails', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedCreateProfileDocument.mockRejectedValue({})
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Документи та сертифікати' })).toBeInTheDocument()
+    const file = createFile('certificate.pdf', 'application/pdf', 512 * 1024)
+    await fireEvent.change(screen.getByLabelText('Обрати файл документа'), {
+      target: { files: [file] },
+    })
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити документ' }))
+
+    await waitFor(() => {
+      expect(mockedCreateProfileDocument).toHaveBeenCalledTimes(1)
+    })
+    expect(screen.getByText('certificate.pdf')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Завантажити документ' })).toBeEnabled()
+    expect(screen.getByText('Не вдалося завантажити документ. Спробуйте ще раз.')).toBeInTheDocument()
+  })
+
+  it('renders existing document metadata, previews, visibility copy, and missing file fallback', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedFetchProfileDocuments.mockResolvedValue([
+      makeDocument({
+        id: 12,
+        title: 'Photo certificate',
+        file_url: 'https://example.com/photo.png',
+        mime_type: 'image/png',
+        original_filename: 'photo.png',
+        file_size: 2048,
+        is_public: false,
+      }),
+      makeDocument({
+        id: 13,
+        title: 'PDF certificate',
+        file_url: 'https://example.com/certificate.pdf',
+        mime_type: 'application/pdf',
+        original_filename: 'certificate.pdf',
+        file_size: 1024 * 1024,
+        is_public: true,
+      }),
+      makeDocument({
+        id: 14,
+        title: 'Unavailable',
+        file_url: null,
+        mime_type: 'application/pdf',
+        original_filename: null,
+        file_size: null,
+        is_public: true,
+      }),
+    ])
+
+    renderView()
+
+    expect((await screen.findAllByText('photo.png')).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByAltText('photo.png')).toHaveAttribute('src', 'https://example.com/photo.png')
+    expect(screen.getByText('PNG')).toBeInTheDocument()
+    expect(screen.getByText('2.0 КБ')).toBeInTheDocument()
+    expect(screen.getByText('Не показується у публічному профілі')).toBeInTheDocument()
+    expect(screen.getAllByText('Переглянути PDF')[0]).toHaveAttribute('href', 'https://example.com/certificate.pdf')
+    expect(screen.getAllByText('Показується у публічному профілі').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Перегляд файла тимчасово недоступний.')).toBeInTheDocument()
+  })
+
+  it('confirms document deletion with the shared modal', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedFetchProfileDocuments.mockResolvedValue([makeDocument({ id: 15, title: 'Delete me' })])
+    mockedDeleteProfileDocument.mockResolvedValue(undefined)
+    const browserConfirm = vi.spyOn(window, 'confirm')
+
+    renderView()
+
+    expect(await screen.findByDisplayValue('Delete me')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Видалити' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Видалити документ?' })
+    expect(
+      within(dialog).getByText('Документ буде прибрано з вашого кабінету та публічного профілю, якщо він там показувався.')
+    ).toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Скасувати' }))
+    expect(mockedDeleteProfileDocument).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Видалити' }))
+    await fireEvent.click(within(await screen.findByRole('dialog', { name: 'Видалити документ?' })).getByRole('button', { name: 'Видалити документ' }))
+
+    await waitFor(() => {
+      expect(mockedDeleteProfileDocument).toHaveBeenCalledWith(15)
+    })
+    expect(screen.queryByDisplayValue('Delete me')).not.toBeInTheDocument()
+    expect(browserConfirm).not.toHaveBeenCalled()
   })
 
   it('renders a compact public profile summary with the active public CTA', async () => {

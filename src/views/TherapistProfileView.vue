@@ -984,8 +984,7 @@
           <div>
             <h2 class="panel__title">Документи та сертифікати</h2>
             <p class="panel__hint">
-              Завантажуйте документи, які допомагають клієнтам краще зрозуміти ваш професійний шлях.
-              Ви самі вирішуєте, які з них показувати у публічному профілі. Нові документи автоматично показуються першими.
+              Додайте дипломи, сертифікати або інші професійні документи. Для кожного файла можна окремо визначити, чи показувати його у публічному профілі.
             </p>
           </div>
         </div>
@@ -1009,38 +1008,101 @@
                 </option>
               </select>
             </label>
-            <label class="field">
-              Файл (PDF або зображення)
-              <input
-                ref="documentFileInput"
-                class="input input--file"
-                type="file"
-                accept="application/pdf,image/*"
-                @change="onDocumentFileSelected"
-              />
-            </label>
           </div>
 
-          <label class="check">
-            <input v-model="newDocumentIsPublic" type="checkbox" />
-            Показувати у публічному профілі
-          </label>
-
-          <div class="documents-uploader__actions">
-            <button
-              class="btn"
-              type="button"
-              :disabled="documentUploading || !newDocumentTitle.trim() || !newDocumentFile"
-              @click="onUploadDocument"
-            >
-              {{ documentUploading ? 'Завантаження...' : 'Завантажити документ' }}
+          <div
+            class="documents-upload-area"
+            :class="{
+              'documents-upload-area--active': documentDragActive,
+              'documents-upload-area--disabled': documentUploading,
+            }"
+            @dragenter.prevent="documentDragActive = true"
+            @dragover.prevent="documentDragActive = true"
+            @dragleave.prevent="documentDragActive = false"
+            @drop.prevent="onDocumentDrop"
+          >
+            <input
+              ref="documentFileInput"
+              class="documents-file-input"
+              type="file"
+              :accept="DOCUMENT_ACCEPT"
+              :disabled="documentUploading"
+              aria-label="Обрати файл документа"
+              @change="onDocumentFileSelected"
+            />
+            <button class="btn btn--ghost" type="button" :disabled="documentUploading" @click="triggerDocumentSelect">
+              Обрати файл
             </button>
-            <span v-if="newDocumentFile" class="muted">Обрано: {{ newDocumentFile.name }}</span>
+            <div class="documents-upload-area__copy">
+              <span class="muted">або перетягніть його сюди</span>
+              <span class="muted">JPG, PNG або PDF, до 10 МБ.</span>
+              <strong v-if="!newDocumentFile">Файл ще не вибрано</strong>
+            </div>
           </div>
+
+          <article v-if="newDocumentFile" class="documents-pending-card">
+            <div class="documents-preview documents-preview--pending">
+              <img
+                v-if="isDocumentImage(newDocumentFile.type, newDocumentFile.name)"
+                :src="pendingDocumentPreviewUrl"
+                :alt="newDocumentFile.name"
+              />
+              <a
+                v-else-if="isDocumentPdf(newDocumentFile.type, newDocumentFile.name)"
+                class="documents-preview__pdf"
+                :href="pendingDocumentPreviewUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Переглянути PDF
+              </a>
+              <span v-else class="documents-preview__file">Файл</span>
+            </div>
+            <div class="documents-pending-card__content">
+              <div>
+                <strong>{{ newDocumentFile.name }}</strong>
+                <div class="documents-meta-line">
+                  <span>{{ documentTypeLabel(newDocumentFile.type, newDocumentFile.name) }}</span>
+                  <span>{{ formatDocumentSize(newDocumentFile.size) }}</span>
+                  <span>{{ newDocumentIsPublic ? 'Показується у публічному профілі' : 'Не показується у публічному профілі' }}</span>
+                </div>
+              </div>
+              <input
+                :value="newDocumentFile.name"
+                class="input is-hidden"
+                type="text"
+                readonly
+                aria-hidden="true"
+              />
+              <label class="check documents-visibility-control">
+                <input v-model="newDocumentIsPublic" type="checkbox" :disabled="documentUploading" />
+                <span>
+                  Показувати у публічному профілі
+                  <small>Якщо вимкнено, документ буде доступний лише вам у кабінеті.</small>
+                </span>
+              </label>
+              <div class="documents-uploader__actions">
+                <button class="btn btn--ghost" type="button" :disabled="documentUploading" @click="triggerDocumentSelect">
+                  Змінити файл
+                </button>
+                <button class="btn btn--ghost" type="button" :disabled="documentUploading" @click="clearPendingDocumentFile">
+                  Прибрати
+                </button>
+                <button
+                  class="btn"
+                  type="button"
+                  :disabled="documentUploading || !newDocumentTitle.trim() || !newDocumentFile"
+                  @click="onUploadDocument"
+                >
+                  {{ documentUploading ? 'Завантажуємо…' : 'Завантажити документ' }}
+                </button>
+              </div>
+            </div>
+          </article>
         </div>
 
-        <div v-if="documentsNotice" class="muted">{{ documentsNotice }}</div>
-        <div v-if="documentsError" class="form-error">{{ documentsError }}</div>
+        <div v-if="documentsNotice" class="muted" aria-live="polite">{{ documentsNotice }}</div>
+        <div v-if="documentsError" class="form-error" aria-live="assertive">{{ documentsError }}</div>
         <div v-if="documentsLoading" class="muted">Завантаження документів...</div>
         <div v-else-if="!documents.length" class="documents-empty">
           Документи ще не додані. Завантажте перший файл, щоб клієнти могли ознайомитися з вашим професійним профілем.
@@ -1054,17 +1116,49 @@
                   class="documents-visibility"
                   :class="document.is_public ? 'documents-visibility--public' : 'documents-visibility--private'"
                 >
-                  {{ document.is_public ? 'Публічний' : 'Приватний' }}
+                  {{ document.is_public ? 'Показується у публічному профілі' : 'Не показується у публічному профілі' }}
                 </span>
               </div>
               <a
+                v-if="document.file_url"
                 class="btn btn--ghost"
                 :href="document.file_url"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Відкрити
+                {{ isDocumentPdf(document.mime_type, documentFileName(document)) ? 'Переглянути PDF' : 'Відкрити файл' }}
               </a>
+            </div>
+
+            <div class="documents-item__body">
+              <div class="documents-preview">
+                <img
+                  v-if="document.file_url && isDocumentImage(document.mime_type, documentFileName(document)) && !documentImageFailed(document.id)"
+                  :src="document.file_url"
+                  :alt="documentFileName(document)"
+                  @error="onDocumentImageError(document.id)"
+                />
+                <a
+                  v-else-if="document.file_url && isDocumentPdf(document.mime_type, documentFileName(document))"
+                  class="documents-preview__pdf"
+                  :href="document.file_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Переглянути PDF
+                </a>
+                <span v-else-if="document.file_url" class="documents-preview__file">Файл</span>
+                <span v-else class="documents-preview__missing">Перегляд файла тимчасово недоступний.</span>
+              </div>
+              <div class="documents-item__details">
+                <strong>{{ documentFileName(document) }}</strong>
+                <div class="documents-meta-line">
+                  <span>{{ documentKindLabel(document.document_kind) }}</span>
+                  <span v-if="document.original_filename">{{ document.original_filename }}</span>
+                  <span v-if="document.mime_type || document.original_filename">{{ documentTypeLabel(document.mime_type, document.original_filename || document.title) }}</span>
+                  <span v-if="formatDocumentSize(document.file_size)">{{ formatDocumentSize(document.file_size) }}</span>
+                </div>
+              </div>
             </div>
 
             <div class="documents-item__grid">
@@ -1072,9 +1166,12 @@
                 Назва
                 <input v-model="document.title" class="input" type="text" />
               </label>
-              <label class="check">
+              <label class="check documents-visibility-control">
                 <input v-model="document.is_public" type="checkbox" />
-                Показувати у публічному профілі
+                <span>
+                  Показувати у публічному профілі
+                  <small>Якщо вимкнено, документ буде доступний лише вам у кабінеті.</small>
+                </span>
               </label>
             </div>
 
@@ -1091,7 +1188,7 @@
                 class="btn btn--danger"
                 type="button"
                 :disabled="updatingDocumentId === document.id || deletingDocumentId === document.id"
-                @click="onDeleteDocument(document.id)"
+                @click="requestDeleteDocument(document)"
               >
                 {{ deletingDocumentId === document.id ? 'Видалення...' : 'Видалити' }}
               </button>
@@ -1160,6 +1257,17 @@
       tone="danger"
       @confirm="confirmDisablePublicProfile"
       @cancel="showDisablePublicProfileConfirm = false"
+    />
+
+    <ConfirmModal
+      :open="Boolean(documentPendingDelete)"
+      title="Видалити документ?"
+      message="Документ буде прибрано з вашого кабінету та публічного профілю, якщо він там показувався."
+      confirm-text="Видалити документ"
+      cancel-text="Скасувати"
+      tone="danger"
+      @confirm="confirmDeleteDocument"
+      @cancel="documentPendingDelete = null"
     />
 
     <div v-if="cropperOpen" class="cropper-overlay">
@@ -1265,6 +1373,10 @@ const documentUploading = ref(false)
 const updatingDocumentId = ref<number | null>(null)
 const deletingDocumentId = ref<number | null>(null)
 const documentFileInput = ref<HTMLInputElement | null>(null)
+const pendingDocumentPreviewUrl = ref('')
+const documentDragActive = ref(false)
+const documentImageErrorIds = ref<Set<number>>(new Set())
+const documentPendingDelete = ref<SpecialistProfileDocument | null>(null)
 const newDocumentTitle = ref('')
 const newDocumentKind = ref('CERTIFICATE')
 const newDocumentIsPublic = ref(true)
@@ -1278,6 +1390,12 @@ const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const ALLOWED_PHOTO_EXT = new Set(['jpg', 'jpeg', 'png', 'webp'])
 const ALLOWED_VIDEO_MIME = new Set(['video/mp4', 'video/quicktime', 'video/webm'])
 const ALLOWED_VIDEO_EXT = new Set(['mp4', 'mov', 'webm'])
+const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024
+const DOCUMENT_ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf'
+const ALLOWED_DOCUMENT_MIME = new Set(['image/jpeg', 'image/png', 'application/pdf'])
+const ALLOWED_DOCUMENT_EXT = new Set(['jpg', 'jpeg', 'png', 'pdf'])
+const DOCUMENT_UNSUPPORTED_MESSAGE = 'Підтримуються лише файли JPG, PNG або PDF.'
+const DOCUMENT_OVERSIZED_MESSAGE = 'Файл перевищує максимальний розмір 10 МБ.'
 const languageOptions = [
   'Українська',
   'Російська',
@@ -1528,12 +1646,130 @@ function documentKindLabel(kind: string): string {
   return normalized || 'Документ'
 }
 
+function documentExtension(fileName: string | null | undefined): string {
+  const match = String(fileName || '')
+    .trim()
+    .toLowerCase()
+    .match(/\.([a-z0-9]+)$/)
+  return match?.[1] || ''
+}
+
+function documentFileName(document: SpecialistProfileDocument): string {
+  return (
+    String(document.original_filename || '').trim() ||
+    String(document.title || '').trim() ||
+    'Документ'
+  )
+}
+
+function isDocumentImage(mimeType?: string | null, fileName?: string | null): boolean {
+  const mime = String(mimeType || '').toLowerCase()
+  const ext = documentExtension(fileName)
+  return mime.startsWith('image/') || ext === 'jpg' || ext === 'jpeg' || ext === 'png'
+}
+
+function isDocumentPdf(mimeType?: string | null, fileName?: string | null): boolean {
+  return String(mimeType || '').toLowerCase() === 'application/pdf' || documentExtension(fileName) === 'pdf'
+}
+
+function documentTypeLabel(mimeType?: string | null, fileName?: string | null): string {
+  const mime = String(mimeType || '').toLowerCase()
+  const ext = documentExtension(fileName)
+  if (mime === 'application/pdf' || ext === 'pdf') return 'PDF'
+  if (mime === 'image/jpeg' || ext === 'jpg' || ext === 'jpeg') return 'JPG'
+  if (mime === 'image/png' || ext === 'png') return 'PNG'
+  return 'Файл'
+}
+
+function formatDocumentSize(bytes?: number | null): string {
+  if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return ''
+  if (bytes < 1024) return `${bytes} Б`
+  const kilobytes = bytes / 1024
+  if (kilobytes < 1024) return `${kilobytes.toFixed(kilobytes >= 10 ? 0 : 1)} КБ`
+  const megabytes = kilobytes / 1024
+  return `${megabytes.toFixed(megabytes >= 10 ? 0 : 1)} МБ`
+}
+
+function validateDocumentFile(file: File): string {
+  if (file.size > DOCUMENT_MAX_BYTES) return DOCUMENT_OVERSIZED_MESSAGE
+  const ext = documentExtension(file.name)
+  if (!ALLOWED_DOCUMENT_EXT.has(ext)) return DOCUMENT_UNSUPPORTED_MESSAGE
+  const mime = String(file.type || '').toLowerCase()
+  if (mime && !ALLOWED_DOCUMENT_MIME.has(mime)) return DOCUMENT_UNSUPPORTED_MESSAGE
+  return ''
+}
+
+function clearDocumentFileInput() {
+  if (documentFileInput.value) {
+    documentFileInput.value.value = ''
+  }
+}
+
+function setPendingDocumentFile(file: File | null) {
+  if (pendingDocumentPreviewUrl.value) {
+    URL.revokeObjectURL(pendingDocumentPreviewUrl.value)
+  }
+  pendingDocumentPreviewUrl.value = file ? URL.createObjectURL(file) : ''
+  newDocumentFile.value = file
+  if (file && !newDocumentTitle.value.trim()) {
+    const fileNameWithoutExt = file.name.replace(/\.[^.]+$/, '').trim()
+    if (fileNameWithoutExt) {
+      newDocumentTitle.value = fileNameWithoutExt
+    }
+  }
+}
+
+function clearPendingDocumentFile() {
+  setPendingDocumentFile(null)
+  clearDocumentFileInput()
+}
+
+function selectPendingDocumentFile(file: File | null) {
+  documentsNotice.value = ''
+  documentsError.value = ''
+  if (!file) {
+    clearPendingDocumentFile()
+    return
+  }
+  const validationError = validateDocumentFile(file)
+  if (validationError) {
+    clearPendingDocumentFile()
+    documentsError.value = validationError
+    return
+  }
+  setPendingDocumentFile(file)
+}
+
+function triggerDocumentSelect() {
+  if (documentUploading.value) return
+  documentFileInput.value?.click()
+}
+
+function documentImageFailed(documentId: number): boolean {
+  return documentImageErrorIds.value.has(documentId)
+}
+
+function onDocumentImageError(documentId: number) {
+  const next = new Set(documentImageErrorIds.value)
+  next.add(documentId)
+  documentImageErrorIds.value = next
+}
+
+function onDocumentDrop(event: DragEvent) {
+  documentDragActive.value = false
+  if (documentUploading.value) return
+  selectPendingDocumentFile(event.dataTransfer?.files?.[0] || null)
+}
+
 function normalizeDocument(document: SpecialistProfileDocument): SpecialistProfileDocument {
   const parsedSortOrder = Number(document.sort_order)
   return {
     ...document,
     title: (document.title || '').trim() || 'Без назви',
-    file_url: document.file_url || '',
+    file_url: document.file_url || null,
+    mime_type: document.mime_type || null,
+    original_filename: document.original_filename || null,
+    file_size: typeof document.file_size === 'number' ? document.file_size : null,
     document_kind: normalizeDocumentKind(document.document_kind),
     is_public: Boolean(document.is_public),
     sort_order: Number.isFinite(parsedSortOrder) ? Math.max(0, Math.trunc(parsedSortOrder)) : 0,
@@ -1555,28 +1791,24 @@ function resetDocumentForm() {
   newDocumentTitle.value = ''
   newDocumentKind.value = 'CERTIFICATE'
   newDocumentIsPublic.value = true
-  newDocumentFile.value = null
-  if (documentFileInput.value) {
-    documentFileInput.value.value = ''
-  }
+  clearPendingDocumentFile()
 }
 
 function onDocumentFileSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0] || null
-  newDocumentFile.value = file
-  if (file && !newDocumentTitle.value.trim()) {
-    const fileNameWithoutExt = file.name.replace(/\.[^.]+$/, '').trim()
-    if (fileNameWithoutExt) {
-      newDocumentTitle.value = fileNameWithoutExt
-    }
-  }
+  selectPendingDocumentFile(file)
 }
 
 async function onUploadDocument() {
   const normalizedTitle = String(newDocumentTitle.value ?? '').trim()
   if (!newDocumentFile.value || !normalizedTitle) {
     documentsError.value = 'Додайте назву та файл документа.'
+    return
+  }
+  const validationError = validateDocumentFile(newDocumentFile.value)
+  if (validationError) {
+    documentsError.value = validationError
     return
   }
   documentUploading.value = true
@@ -1598,7 +1830,7 @@ async function onUploadDocument() {
         : 'Документ завантажено. Тип документа автоматично узгоджено з API.'
     resetDocumentForm()
   } catch (err) {
-    documentsError.value = getApiErrorMessage(err, 'Не вдалося завантажити документ.')
+    documentsError.value = getApiErrorMessage(err, 'Не вдалося завантажити документ. Спробуйте ще раз.')
   } finally {
     documentUploading.value = false
   }
@@ -1624,6 +1856,10 @@ async function onUpdateDocument(document: SpecialistProfileDocument) {
   }
 }
 
+function requestDeleteDocument(document: SpecialistProfileDocument) {
+  documentPendingDelete.value = document
+}
+
 async function onDeleteDocument(documentId: number) {
   deletingDocumentId.value = documentId
   documentsError.value = ''
@@ -1632,11 +1868,20 @@ async function onDeleteDocument(documentId: number) {
     await deleteProfileDocument(documentId)
     documents.value = documents.value.filter((item) => item.id !== documentId)
     documentsNotice.value = 'Документ видалено.'
+    if (documentPendingDelete.value?.id === documentId) {
+      documentPendingDelete.value = null
+    }
   } catch (err) {
-    documentsError.value = getApiErrorMessage(err, 'Не вдалося видалити документ.')
+    documentsError.value = getApiErrorMessage(err, 'Не вдалося видалити документ. Спробуйте ще раз.')
   } finally {
     deletingDocumentId.value = null
   }
+}
+
+async function confirmDeleteDocument() {
+  const document = documentPendingDelete.value
+  if (!document || deletingDocumentId.value) return
+  await onDeleteDocument(document.id)
 }
 
 function normalizeDecimal(value: string | number | null | undefined): string | null {
@@ -2870,6 +3115,9 @@ watch(
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
   clearProfileFocusAttentionTimer()
+  if (pendingDocumentPreviewUrl.value) {
+    URL.revokeObjectURL(pendingDocumentPreviewUrl.value)
+  }
 })
 </script>
 
@@ -3705,6 +3953,121 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.documents-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px dashed var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-primary-soft) 30%, #ffffff);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.documents-upload-area--active {
+  border-color: var(--pc-navy-900);
+  background: color-mix(in srgb, var(--pc-primary-soft) 56%, #ffffff);
+}
+
+.documents-upload-area--disabled {
+  opacity: 0.68;
+}
+
+.documents-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.documents-file-input:focus-visible + .btn {
+  outline: 2px solid var(--pc-navy-900);
+  outline-offset: 2px;
+}
+
+.documents-upload-area__copy,
+.documents-pending-card__content,
+.documents-item__details {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.documents-pending-card,
+.documents-item__body {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.documents-pending-card {
+  padding: 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #ffffff;
+}
+
+.documents-preview {
+  width: 112px;
+  min-height: 88px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-primary-soft) 24%, #ffffff);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.documents-preview img {
+  width: 100%;
+  height: 100%;
+  min-height: 88px;
+  object-fit: cover;
+}
+
+.documents-preview__pdf,
+.documents-preview__file,
+.documents-preview__missing {
+  padding: 10px;
+}
+
+.documents-preview__missing {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.documents-meta-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 0;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+}
+
+.documents-visibility-control {
+  align-items: flex-start;
+}
+
+.documents-visibility-control small {
+  display: block;
+  margin-top: 2px;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .documents-uploader__actions {
   display: flex;
   align-items: center;
@@ -3999,6 +4362,20 @@ onBeforeUnmount(() => {
   .documents-uploader__grid,
   .documents-item__grid {
     grid-template-columns: 1fr;
+  }
+
+  .documents-upload-area,
+  .documents-pending-card,
+  .documents-item__body {
+    grid-template-columns: 1fr;
+  }
+
+  .documents-upload-area {
+    display: grid;
+  }
+
+  .documents-preview {
+    width: 100%;
   }
 
   .profile__hero {
