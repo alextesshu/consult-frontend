@@ -627,6 +627,36 @@ export interface AdminWorkQueueResponse {
   items: AdminWorkQueueItem[]
 }
 
+export type AdminCrmVisibilityState =
+  | 'unpublished'
+  | 'direct_link_only'
+  | 'search_visible'
+  | 'invalid'
+
+export type AdminCrmSummaryReadiness = {
+  is_ready: boolean
+  completed_count: number
+  total_count: number
+  missing_items: string[]
+}
+
+export type AdminCrmSummaryVisibility = {
+  state?: AdminCrmVisibilityState | string | null
+  public_profile_path?: string | null
+}
+
+export type AdminCrmSummaryOnboarding = {
+  template_a_sent: boolean
+  template_b_sent: boolean
+  template_b_variant?: string | null
+}
+
+export type AdminCrmSummary = {
+  readiness?: AdminCrmSummaryReadiness | null
+  visibility?: AdminCrmSummaryVisibility | null
+  onboarding?: AdminCrmSummaryOnboarding | null
+}
+
 export type AdminSpecialistSearchItem = {
   id: number
   username: string
@@ -640,6 +670,7 @@ export type AdminSpecialistSearchItem = {
   active_override: boolean
   trial_active?: boolean
   override_active?: boolean
+  crm_summary?: AdminCrmSummary | null
 }
 
 export type AdminSpecialistSearchResponse = {
@@ -660,12 +691,6 @@ export type AdminCrmReadiness = {
   missing_items?: string[] | null
   items?: AdminCrmReadinessItem[] | null
 }
-
-export type AdminCrmVisibilityState =
-  | 'unpublished'
-  | 'direct_link_only'
-  | 'search_visible'
-  | 'invalid'
 
 export type AdminCrmVisibility = {
   public_profile_enabled?: boolean | null

@@ -8,6 +8,16 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-37 admin specialist list CRM summary is complete locally and awaiting
+review/staging decision. It is not production-deployed. The specialist list now
+consumes backend `crm_summary` from `GET /api/admin/specialists/search/` and
+shows compact readiness, visibility, and onboarding state per row. Public
+profile action is gated by canonical visibility state plus
+`public_profile_path`; missing summary data renders neutral fallback badges.
+Admin specialist detail runtime, backend runtime, Admin Work Queue, migrations,
+dependencies, deploy scripts, and automation flows were not changed. KAN-38 is
+not production-closed.
+
 KAN-36 admin specialist detail CRM alignment is complete locally and awaiting
 review/staging decision. It is not production-deployed. The detail page now
 prefers backend `admin_crm_state` from the KAN-35 contract and presents four

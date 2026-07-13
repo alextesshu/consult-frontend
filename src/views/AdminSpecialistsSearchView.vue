@@ -76,9 +76,21 @@
               <h3 class="result-card__title">{{ item.display_name || item.username }}</h3>
               <div class="muted">@{{ item.username }}</div>
             </div>
-            <button class="btn btn--ghost btn--sm" type="button" @click.stop="openDetail(item.id)">
-              Відкрити деталку
-            </button>
+            <div class="result-card__actions">
+              <a
+                v-if="publicProfileUrl(item)"
+                class="btn btn--ghost btn--sm"
+                :href="publicProfileUrl(item)"
+                target="_blank"
+                rel="noopener noreferrer"
+                @click.stop
+              >
+                Відкрити публічний профіль
+              </a>
+              <button class="btn btn--ghost btn--sm" type="button" @click.stop="openDetail(item.id)">
+                Відкрити деталку
+              </button>
+            </div>
           </div>
 
           <div class="result-card__grid">
@@ -87,6 +99,27 @@
             <div><strong>Слаг профілю:</strong> {{ item.slug || '—' }}</div>
             <div><strong>Базовий тариф:</strong> {{ planLabel(item.base_plan) }}</div>
             <div><strong>Фактичний тариф:</strong> {{ planLabel(item.effective_plan) }}</div>
+          </div>
+
+          <div class="result-card__crm" aria-label="CRM">
+            <div class="crm-summary__label">CRM</div>
+            <div class="crm-summary__badges">
+              <span :class="readinessPillClass(item)">
+                {{ readinessBadgeText(item) }}
+              </span>
+              <span :class="visibilityPillClass(item)">
+                {{ visibilityBadgeText(item) }}
+              </span>
+              <span :class="onboardingPillClass(item, 'template_a')">
+                {{ onboardingBadgeText(item, 'template_a') }}
+              </span>
+              <span :class="onboardingPillClass(item, 'template_b')">
+                {{ onboardingBadgeText(item, 'template_b') }}
+              </span>
+            </div>
+            <div v-if="templateBVariant(item)" class="crm-summary__meta">
+              Варіант: {{ templateBVariant(item) }}
+            </div>
           </div>
 
           <div class="result-card__badges">
@@ -146,12 +179,86 @@ function statusPillClass(active: boolean) {
   return ['status-pill', active ? 'status-pill--ok' : 'status-pill--muted']
 }
 
+function statusToneClass(tone: 'ok' | 'warn' | 'muted') {
+  return ['status-pill', `status-pill--${tone}`]
+}
+
 function planLabel(value: string | null | undefined) {
   const normalized = String(value || '').trim().toUpperCase()
   if (normalized === 'START') return 'Start'
   if (normalized === 'PRO') return 'Pro'
   if (normalized === 'LEADER') return 'Leader'
   return value || '—'
+}
+
+function readinessBadgeText(item: AdminSpecialistSearchItem) {
+  const readiness = item.crm_summary?.readiness
+  if (!readiness) return 'Готовність недоступна'
+  if (readiness.is_ready) return 'Профіль готовий'
+  return `Заповнено ${readiness.completed_count} з ${readiness.total_count}`
+}
+
+function readinessPillClass(item: AdminSpecialistSearchItem) {
+  const readiness = item.crm_summary?.readiness
+  if (!readiness) return statusToneClass('muted')
+  return statusToneClass(readiness.is_ready ? 'ok' : 'warn')
+}
+
+function visibilityBadgeText(item: AdminSpecialistSearchItem) {
+  const state = String(item.crm_summary?.visibility?.state || '').trim()
+  if (state === 'unpublished') return 'Не опубліковано'
+  if (state === 'direct_link_only') return 'За прямим посиланням'
+  if (state === 'search_visible') return 'У пошуку'
+  if (state === 'invalid') return 'Некоректний стан'
+  return 'Видимість недоступна'
+}
+
+function visibilityPillClass(item: AdminSpecialistSearchItem) {
+  const state = String(item.crm_summary?.visibility?.state || '').trim()
+  if (state === 'invalid') return statusToneClass('warn')
+  if (state === 'direct_link_only' || state === 'search_visible') return statusToneClass('ok')
+  return statusToneClass('muted')
+}
+
+function onboardingBadgeText(
+  item: AdminSpecialistSearchItem,
+  template: 'template_a' | 'template_b'
+) {
+  const onboarding = item.crm_summary?.onboarding
+  if (!onboarding) return 'Дані про листи недоступні'
+  if (template === 'template_a') {
+    return onboarding.template_a_sent
+      ? 'Лист A: надіслано'
+      : 'Лист A: не зафіксовано'
+  }
+  return onboarding.template_b_sent
+    ? 'Лист B: надіслано'
+    : 'Лист B: не зафіксовано'
+}
+
+function onboardingPillClass(
+  item: AdminSpecialistSearchItem,
+  template: 'template_a' | 'template_b'
+) {
+  const onboarding = item.crm_summary?.onboarding
+  if (!onboarding) return statusToneClass('muted')
+  const sent = template === 'template_a'
+    ? onboarding.template_a_sent
+    : onboarding.template_b_sent
+  return statusToneClass(sent ? 'ok' : 'muted')
+}
+
+function templateBVariant(item: AdminSpecialistSearchItem) {
+  if (!item.crm_summary?.onboarding?.template_b_sent) return ''
+  return String(item.crm_summary.onboarding.template_b_variant || '').trim()
+}
+
+function publicProfileUrl(item: AdminSpecialistSearchItem) {
+  const visibility = item.crm_summary?.visibility
+  const state = String(visibility?.state || '').trim()
+  const path = String(visibility?.public_profile_path || '').trim()
+  if ((state === 'direct_link_only' || state === 'search_visible') && path) return path
+  return ''
 }
 
 function openDetail(specialistId: number) {
@@ -288,12 +395,53 @@ watch(
 
 .result-card__title {
   margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.result-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .result-card__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem 0.75rem;
+}
+
+.result-card__grid > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.result-card__crm {
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 10px;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+}
+
+.crm-summary__label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.crm-summary__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.crm-summary__meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 
 .result-card__badges {
@@ -309,6 +457,7 @@ watch(
   padding: 0.2rem 0.55rem;
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.25;
 }
 
 .status-pill--ok {
@@ -321,6 +470,11 @@ watch(
   color: #334155;
 }
 
+.status-pill--warn {
+  background: rgba(217, 119, 6, 0.16);
+  color: #8b5f00;
+}
+
 @media (max-width: 760px) {
   .admin-specialists-search__hero {
     flex-direction: column;
@@ -330,6 +484,10 @@ watch(
   .result-card__head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .result-card__actions {
+    justify-content: flex-start;
   }
 
   .result-card__grid {
