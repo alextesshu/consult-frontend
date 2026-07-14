@@ -1592,6 +1592,81 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Застосунок не відкрився?')).not.toBeInTheDocument()
   })
 
+  it('renders primary and secondary phone contact actions in backend order', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'PHONE',
+            label: 'Телефон',
+            value: '+380501234567',
+            action_url: 'tel:+380501234567',
+          },
+          {
+            channel: 'PHONE',
+            label: 'Додатковий телефон',
+            value: '+380671234567',
+            action_url: 'tel:+380671234567',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const primaryButton = await screen.findByRole('button', {
+      name: 'Скопіювати Телефон: +380501234567',
+    })
+    const secondaryButton = screen.getByRole('button', {
+      name: 'Скопіювати Додатковий телефон: +380671234567',
+    })
+    expect(
+      Boolean(primaryButton.compareDocumentPosition(secondaryButton) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+
+    await fireEvent.click(secondaryButton)
+    expect(clipboardWriteTextSpy).toHaveBeenCalledWith('+380671234567')
+  })
+
+  it('renders a secondary-only phone action with the canonical phone label', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'PHONE',
+            label: 'Телефон',
+            value: '+380671234567',
+            action_url: 'tel:+380671234567',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await fireEvent.click(
+      await screen.findByRole('button', { name: 'Скопіювати Телефон: +380671234567' })
+    )
+
+    expect(clipboardWriteTextSpy).toHaveBeenCalledWith('+380671234567')
+  })
+
   it('copies direct external contact channels without opening an app', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({

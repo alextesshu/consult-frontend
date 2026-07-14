@@ -930,6 +930,48 @@
             Телефон для зв'язку
             <input v-model="profile.contact_phone" class="input" type="text" placeholder="+380" />
           </label>
+          <button
+            v-if="!showSecondaryPhoneField"
+            class="btn btn--ghost btn--sm secondary-phone-add"
+            type="button"
+            :disabled="saving"
+            @click="activateSecondaryPhone"
+          >
+            Додати ще один номер
+          </button>
+          <div v-else class="secondary-phone-block">
+            <label class="field">
+              Додатковий телефон
+              <input
+                v-model="profile.secondary_phone"
+                class="input"
+                type="text"
+                placeholder="+380"
+                data-testid="secondary-phone-input"
+                :aria-invalid="Boolean(secondaryPhoneError)"
+                aria-describedby="secondary-phone-help secondary-phone-error"
+              />
+            </label>
+            <p id="secondary-phone-help" class="field-help">
+              Додайте другий номер, якщо використовуєте окремий телефон для запису або зв’язку з клієнтами.
+            </p>
+            <p
+              v-if="secondaryPhoneError"
+              id="secondary-phone-error"
+              class="field-error"
+              role="alert"
+            >
+              {{ secondaryPhoneError }}
+            </p>
+            <button
+              class="btn btn--ghost btn--sm secondary-phone-remove"
+              type="button"
+              :disabled="saving"
+              @click="removeSecondaryPhone"
+            >
+              Прибрати додатковий номер
+            </button>
+          </div>
           <div class="field-row">
             <label class="field field--half">
               Messenger / Signal
@@ -958,6 +1000,17 @@
             <label class="check">
               <input v-model="profile.show_phone" type="checkbox" />
               Показувати телефон
+            </label>
+            <label v-if="showSecondaryPhoneField" class="check">
+              <input
+                v-model="profile.show_secondary_phone"
+                type="checkbox"
+                aria-label="Показувати додатковий номер у публічному профілі"
+              />
+              Показувати додатковий номер у публічному профілі
+              <span class="check__hint">
+                Якщо вимкнено, додатковий номер не бачитимуть клієнти.
+              </span>
             </label>
             <label class="check">
               <input v-model="profile.show_messenger" type="checkbox" />
@@ -1344,6 +1397,8 @@ const error = ref('')
 const success = ref('')
 const copyStatus = ref('')
 const showDisablePublicProfileConfirm = ref(false)
+const secondaryPhoneExpanded = ref(false)
+const secondaryPhoneServerError = ref('')
 const slugEditOpen = ref(false)
 const slugDraft = ref('')
 const slugSaving = ref(false)
@@ -1637,6 +1692,46 @@ function getApiErrorMessage(err: unknown, fallback: string) {
     if (message) return message
   }
   return fallback
+}
+
+function fieldErrorMessage(payload: unknown, fieldName: string): string {
+  if (!payload || typeof payload !== 'object') return ''
+  const value = (payload as Record<string, unknown>)[fieldName]
+  if (Array.isArray(value) && value[0]) return String(value[0])
+  if (typeof value === 'string') return value
+  return ''
+}
+
+function normalizedPhoneValue(value: string | null | undefined): string | null {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  if ((raw.match(/\+/g) || []).length > 1 || (raw.includes('+') && !raw.startsWith('+'))) {
+    return null
+  }
+  for (const char of raw) {
+    if (/\d/.test(char) || char === '+' || char === ' ' || char === '-' || char === '(' || char === ')') {
+      continue
+    }
+    return null
+  }
+  const compact = raw.replace(/[^\d+]/g, '')
+  if (!compact || compact === '+') return null
+  if ((compact.match(/\+/g) || []).length > 1 || (compact.includes('+') && !compact.startsWith('+'))) {
+    return null
+  }
+  const digits = compact.startsWith('+') ? compact.slice(1) : compact
+  if (digits.length < 8 || digits.length > 15) return null
+  return compact
+}
+
+function duplicatePhoneValue(value: string | null | undefined): string | null {
+  const normalized = normalizedPhoneValue(value)
+  if (!normalized) return null
+  const digits = normalized.replace(/^\+/, '')
+  if (digits.length === 10 && digits.startsWith('0')) {
+    return `380${digits.slice(1)}`
+  }
+  return digits
 }
 
 function documentKindLabel(kind: string): string {
@@ -1986,12 +2081,14 @@ function buildProfilePayload() {
     couple_session_duration_minutes: profile.couple_session_duration_minutes || 50,
     contact_email: profile.contact_email,
     contact_phone: profile.contact_phone,
+    secondary_phone: profile.secondary_phone || '',
     messenger: profile.messenger,
     telegram: profile.telegram,
     viber: profile.viber,
     whatsapp: profile.whatsapp,
     show_email: profile.show_email,
     show_phone: profile.show_phone,
+    show_secondary_phone: Boolean(profile.secondary_phone?.trim()) && profile.show_secondary_phone,
     show_messenger: profile.show_messenger,
     show_telegram: profile.show_telegram,
     show_viber: profile.show_viber,
@@ -2055,6 +2152,7 @@ const profile = reactive<SpecialistProfile>({
   couple_session_duration_minutes: 50,
   contact_email: '',
   contact_phone: '',
+  secondary_phone: '',
   messenger: '',
   telegram: '',
   viber: '',
@@ -2063,6 +2161,7 @@ const profile = reactive<SpecialistProfile>({
   video_url: '',
   show_email: false,
   show_phone: false,
+  show_secondary_phone: false,
   show_messenger: false,
   show_telegram: false,
   show_viber: false,
@@ -2073,6 +2172,51 @@ const profile = reactive<SpecialistProfile>({
   show_location: false,
   show_photo: false,
 })
+
+const showSecondaryPhoneField = computed(() => {
+  return secondaryPhoneExpanded.value || Boolean(profile.secondary_phone?.trim())
+})
+
+const secondaryPhoneClientError = computed(() => {
+  const secondaryPhone = profile.secondary_phone?.trim() || ''
+  if (!secondaryPhone) return ''
+  if (!normalizedPhoneValue(secondaryPhone)) {
+    return 'Введіть коректний додатковий номер телефону.'
+  }
+  const primaryDuplicateValue = duplicatePhoneValue(profile.contact_phone)
+  const secondaryDuplicateValue = duplicatePhoneValue(secondaryPhone)
+  if (
+    primaryDuplicateValue &&
+    secondaryDuplicateValue &&
+    primaryDuplicateValue === secondaryDuplicateValue
+  ) {
+    return 'Додатковий номер збігається з основним.'
+  }
+  return ''
+})
+
+const secondaryPhoneError = computed(() => {
+  return secondaryPhoneServerError.value || secondaryPhoneClientError.value
+})
+
+watch(
+  () => [profile.contact_phone, profile.secondary_phone],
+  () => {
+    secondaryPhoneServerError.value = ''
+  }
+)
+
+function activateSecondaryPhone() {
+  secondaryPhoneExpanded.value = true
+  secondaryPhoneServerError.value = ''
+}
+
+function removeSecondaryPhone() {
+  profile.secondary_phone = ''
+  profile.show_secondary_phone = false
+  secondaryPhoneExpanded.value = false
+  secondaryPhoneServerError.value = ''
+}
 
 const showCoupleAvailabilityHelper = computed(
   () =>
@@ -2468,12 +2612,14 @@ type ProfileFormSnapshot = {
   couple_session_duration_minutes: number
   contact_email: string
   contact_phone: string
+  secondary_phone: string
   messenger: string
   telegram: string
   viber: string
   whatsapp: string
   show_email: boolean
   show_phone: boolean
+  show_secondary_phone: boolean
   show_messenger: boolean
   show_telegram: boolean
   show_viber: boolean
@@ -2531,12 +2677,14 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     couple_session_duration_minutes: profile.couple_session_duration_minutes || 50,
     contact_email: profile.contact_email || '',
     contact_phone: profile.contact_phone || '',
+    secondary_phone: profile.secondary_phone || '',
     messenger: profile.messenger || '',
     telegram: profile.telegram || '',
     viber: profile.viber || '',
     whatsapp: profile.whatsapp || '',
     show_email: profile.show_email,
     show_phone: profile.show_phone,
+    show_secondary_phone: profile.show_secondary_phone ?? false,
     show_messenger: profile.show_messenger,
     show_telegram: profile.show_telegram,
     show_viber: profile.show_viber,
@@ -2572,6 +2720,8 @@ function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
   showOtherSpecialization.value = false
   otherSpecializationInput.value = ''
   languageInput.value = ''
+  secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
+  secondaryPhoneServerError.value = ''
 }
 
 const isDirty = computed(() => dirtySnapshot.hasSavedSnapshot.value && dirtySnapshot.isDirty.value)
@@ -2621,6 +2771,8 @@ async function loadProfile() {
     const profileData = await fetchSpecialistProfile()
     profileLoaded.value = true
     Object.assign(profile, normalizeProfile(profileData))
+    secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
+    secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
     educationItemsText.value = listToMultilineText(profile.education_items)
@@ -2684,12 +2836,20 @@ async function onSave() {
     saving.value = false
     return
   }
+  secondaryPhoneServerError.value = ''
+  if (secondaryPhoneClientError.value) {
+    error.value = secondaryPhoneClientError.value
+    saving.value = false
+    return
+  }
   try {
     if (showOtherSpecialization.value && otherSpecializationInput.value.trim()) {
       addOtherSpecialization()
     }
     const data = await updateSpecialistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
+    secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
+    secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
     educationItemsText.value = listToMultilineText(profile.education_items)
@@ -2714,6 +2874,7 @@ async function onSave() {
       profile.is_search_visible = false
       error.value = buildProfileNotReadyMessage(readinessLabelsForKeys(payload.missing_items))
     } else {
+      secondaryPhoneServerError.value = fieldErrorMessage(payload, 'secondary_phone')
       error.value = getApiErrorMessage(err, PROFILE_SAVE_ERROR_MESSAGE)
     }
   } finally {
@@ -2945,6 +3106,7 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
         : 50,
     contact_email: data.contact_email || '',
     contact_phone: data.contact_phone || '',
+    secondary_phone: data.secondary_phone || '',
     messenger: data.messenger || '',
     telegram: data.telegram || '',
     viber: data.viber || '',
@@ -2952,6 +3114,7 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     photo_url: data.photo_url || '',
     video_url: data.video_url || '',
     show_telegram: data.show_telegram ?? false,
+    show_secondary_phone: data.show_secondary_phone ?? false,
     show_viber: data.show_viber ?? false,
     show_whatsapp: data.show_whatsapp ?? false,
     show_intro_price: data.show_intro_price ?? false,
@@ -3456,6 +3619,26 @@ onBeforeUnmount(() => {
   background: color-mix(in srgb, var(--pc-primary-soft) 32%, #ffffff);
 }
 
+.secondary-phone-add {
+  justify-self: flex-start;
+}
+
+.secondary-phone-block {
+  display: grid;
+  gap: 6px;
+}
+
+.secondary-phone-remove {
+  justify-self: flex-start;
+}
+
+.field-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
@@ -3779,10 +3962,18 @@ onBeforeUnmount(() => {
 .check {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 13px;
   line-height: 1.35;
   color: color-mix(in srgb, var(--text-2) 82%, #ffffff);
+}
+
+.check__hint {
+  flex-basis: 100%;
+  padding-left: 22px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .check input[type="checkbox"],

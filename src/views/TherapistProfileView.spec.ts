@@ -146,6 +146,7 @@ function makeProfile(): SpecialistProfile {
     couple_session_duration_minutes: 50,
     contact_email: 'anna@example.com',
     contact_phone: '+380001112233',
+    secondary_phone: '',
     messenger: '@anna-signal',
     telegram: '@anna',
     viber: '+380001112233',
@@ -154,6 +155,7 @@ function makeProfile(): SpecialistProfile {
     video_url: 'https://example.com/video.mp4',
     show_email: true,
     show_phone: false,
+    show_secondary_phone: false,
     show_messenger: true,
     show_telegram: true,
     show_viber: false,
@@ -827,6 +829,113 @@ describe('TherapistProfileView', () => {
     expect(within(mediaPanel).getByLabelText('Показувати відео')).toBeChecked()
 
     expect(screen.queryByRole('heading', { name: 'Видимість' })).not.toBeInTheDocument()
+  })
+
+  it('supports adding and saving an optional secondary phone', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      secondary_phone: '+380671234567',
+      show_secondary_phone: true,
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Додати ще один номер' }))
+    const secondaryInput = screen.getByTestId('secondary-phone-input') as HTMLInputElement
+    expect(screen.getByLabelText('Показувати додатковий номер у публічному профілі')).not.toBeChecked()
+
+    await fireEvent.update(secondaryInput, '+380 67 123 45 67')
+    await fireEvent.click(screen.getByLabelText('Показувати додатковий номер у публічному профілі'))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          secondary_phone: '+380 67 123 45 67',
+          show_secondary_phone: true,
+        })
+      )
+    })
+  })
+
+  it('removes the optional secondary phone and clears visibility', async () => {
+    const profile = {
+      ...makeProfile(),
+      secondary_phone: '+380671234567',
+      show_secondary_phone: true,
+    }
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      secondary_phone: '',
+      show_secondary_phone: false,
+    })
+
+    renderView()
+
+    expect(await screen.findByTestId('secondary-phone-input')).toHaveValue('+380671234567')
+    await fireEvent.click(screen.getByRole('button', { name: 'Прибрати додатковий номер' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          secondary_phone: '',
+          show_secondary_phone: false,
+        })
+      )
+    })
+  })
+
+  it('shows local secondary phone validation errors before saving', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Додати ще один номер' }))
+    await fireEvent.update(screen.getByTestId('secondary-phone-input'), 'tel:+380501234567 ext 12')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    expect((await screen.findAllByText('Введіть коректний додатковий номер телефону.'))[0]).toHaveClass(
+      'field-error'
+    )
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+  })
+
+  it('shows duplicate secondary phone validation before saving', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Додати ще один номер' }))
+    await fireEvent.update(screen.getByTestId('secondary-phone-input'), '000 111 22 33')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    expect((await screen.findAllByText('Додатковий номер збігається з основним.'))[0]).toHaveClass(
+      'field-error'
+    )
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+  })
+
+  it('renders backend secondary phone field errors near the field', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedUpdateSpecialistProfile.mockRejectedValue({
+      response: {
+        data: {
+          secondary_phone: ['Backend secondary phone error'],
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Додати ще один номер' }))
+    await fireEvent.update(screen.getByTestId('secondary-phone-input'), '+380671234567')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    expect(await screen.findByText('Backend secondary phone error')).toBeInTheDocument()
   })
 
   it('keeps photo and video as one section directly after basic identity data', async () => {

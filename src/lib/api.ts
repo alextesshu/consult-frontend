@@ -273,6 +273,7 @@ export type TherapistProfile = {
   couple_session_duration_minutes: number | null
   contact_email: string
   contact_phone: string
+  secondary_phone?: string
   messenger: string
   telegram: string
   viber: string
@@ -281,6 +282,7 @@ export type TherapistProfile = {
   video_url: string
   show_email: boolean
   show_phone: boolean
+  show_secondary_phone?: boolean
   show_messenger: boolean
   show_telegram: boolean
   show_viber: boolean
@@ -1147,6 +1149,7 @@ export type PublicTherapistProfile = {
   couple_session_duration_minutes?: number | null
   contact_email?: string
   contact_phone?: string
+  secondary_phone?: string
   messenger?: string
   telegram?: string
   viber?: string

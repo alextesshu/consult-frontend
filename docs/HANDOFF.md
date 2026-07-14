@@ -8,6 +8,21 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-28 optional secondary specialist phone is implemented locally and not
+pushed/deployed:
+- frontend API typing accepts additive `secondary_phone` and
+  `show_secondary_phone` with safe defaults when older responses omit them;
+- cabinet profile keeps the existing primary phone field and adds an optional
+  secondary phone flow with add/remove controls, independent public visibility,
+  local invalid/duplicate convenience validation, and backend field-error
+  display near the secondary field;
+- public profile runtime components were not changed because they already
+  render backend-provided `contact_actions` labels and can show two `PHONE`
+  actions in order;
+- secondary phone is optional, defaults private, and is not a readiness
+  requirement;
+- no dependencies, endpoint path changes, push, or deploy.
+
 CI usage reduction is complete locally and not pushed/deployed:
 - automatic frontend CI now runs on `dev` pushes only; `main` push no longer
   repeats the same full CI;
