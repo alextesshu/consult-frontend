@@ -8,6 +8,15 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+Short professional introduction copy is clarified locally and not
+pushed/deployed:
+- the existing `public_profile_summary` cabinet field now uses clearer
+  professional-introduction label, helper, and placeholder copy;
+- no new field was added, API payload/response handling and saved values are
+  unchanged;
+- readiness, public-profile runtime semantics, backend, dependencies, push,
+  and deploy are unchanged.
+
 KAN-28 optional secondary specialist phone is implemented locally and not
 pushed/deployed:
 - frontend API typing accepts additive `secondary_phone` and

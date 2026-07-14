@@ -682,7 +682,19 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Короткий опис для верхнього блоку профілю')).toBeInTheDocument()
+    expect(await screen.findByText('Коротке професійне представлення')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'У 1–2 реченнях напишіть, хто ви як спеціаліст, з ким працюєте та що є важливим у вашому підході. Цей текст клієнт побачить одразу під вашим ім’ям.'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText(
+        'Наприклад: Психологиня, гештальт-психотерапевтка. Працюю з дорослими, які переживають тривогу, життєві кризи або труднощі у стосунках.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Коротко про себе')).not.toBeInTheDocument()
+    expect(screen.queryByText('Короткий опис для верхнього блоку профілю')).not.toBeInTheDocument()
     expect(screen.getByDisplayValue('Короткий опис для hero-блоку.')).toBeInTheDocument()
   })
 

@@ -699,15 +699,15 @@
           <details class="details" open data-readiness-key="about">
             <summary>Про мене</summary>
             <label class="field">
-              <span class="field-label">Короткий опис для верхнього блоку профілю</span>
+              <span class="field-label">Коротке професійне представлення</span>
               <textarea
                 v-model="profile.public_profile_summary"
                 class="input"
                 rows="3"
                 maxlength="240"
-                placeholder="Наприклад: Працюю з тривогою, самооцінкою та стосунками."
+                placeholder="Наприклад: Психологиня, гештальт-психотерапевтка. Працюю з дорослими, які переживають тривогу, життєві кризи або труднощі у стосунках."
               ></textarea>
-              <div class="field-help">До 240 символів. Напишіть 1–2 речення про ваш формат роботи, основні запити або підхід.</div>
+              <div class="field-help">У 1–2 реченнях напишіть, хто ви як спеціаліст, з ким працюєте та що є важливим у вашому підході. Цей текст клієнт побачить одразу під вашим ім’ям.</div>
             </label>
             <label class="field">
               <div class="field-head">
