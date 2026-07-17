@@ -1,124 +1,46 @@
 # Consult Frontend Repository Instructions
 
-## Repository role
-
-This repository is the frontend of the Consult project.
-
-Preserve:
-
-- current UX patterns,
-
-- routing behavior,
-
-- state flow,
-
-- naming consistency,
-
-- API contract alignment.
-
-## Product constraints
-
-Consult is a technical service for organizing consultations.
-
-It does not verify, certify, rank, endorse, or guarantee specialists.
-
-Specialists upload their own information and documents.
-
-Clients independently evaluate and choose specialists.
-
-Do not introduce UI copy that implies platform verification, recommendation authority, or guaranteed specialist quality.
-
-## Required repository docs
-
-Before making non-trivial UI changes, inspect relevant docs in `docs/` when applicable.
-
-Priority references:
-
-- `docs/UI\_SHAPE\_STANDARD.md`
-- `docs/HANDOFF.md`
-- `docs/HANDOFF_RULES.md`
-- `docs/PHASE_CLOSE_SUMMARIES.md`
-
-If the task affects shared layout, forms, profile presentation, landing structure, or dashboard UX, inspect the relevant UI guidance first.
-
 ## Workflow
 
-- Inspect current implementation before proposing changes.
+- Reply to the user in Ukrainian unless another language is requested.
+- Run local commands in Windows PowerShell.
+- Work on branch `dev` unless explicitly agreed otherwise.
+- Do not create feature branches without explicit approval.
+- Do not commit, push, merge, or deploy without a direct request.
+- Run production deploys only after explicit confirmation.
+- Do not use the GitHub connector for this project.
+- Do not remind the user to run `npm run dev`; the local dev server is usually already running.
+- Inspect repository state before editing.
+- Provide a short plan and list exact files before editing.
+- Do not modify unrelated files.
+- Do not erase, reset, stash, or overwrite unfamiliar local changes.
 
-- Provide a short execution plan before editing.
+## Frontend Boundaries
 
-- List exact files before making edits.
+- Stack: Vue 3, TypeScript, Vite, Pinia, Vue Router, Vitest.
+- Reuse existing components, stores, composables, and design tokens before creating new ones.
+- Preserve routing behavior, state flow, accessibility, and API contract alignment.
+- Do not invent API fields or backend behavior.
+- UX copy must follow canonical product terminology and must not imply Pro Consult verifies, certifies, ranks, endorses, or guarantees specialists.
+- Add or update regression tests for behavior changes.
+- Do not change build or deploy configuration without a direct need.
 
-- Prefer minimal diffs.
+## Canonical Documentation
 
-- Change one focused UI slice at a time.
+- Frontend handoff: `docs/HANDOFF.md`
+- Handoff governance: `docs/HANDOFF_RULES.md`
+- Design system: `docs/DESIGN_SYSTEM.md`, `docs/UI_SHAPE_STANDARD.md`
+- Product/public profile rules: `docs/PROFILE_PUBLIC_URLS.md`
+- Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
+- Backend API/product contract, when needed: `..\backend\docs\AI_CONTRACT.md`
 
-- Do not perform broad redesign unless explicitly requested.
-
-- Do not modify unrelated views, stores, composables, or shared components without necessity.
-
-## UI discipline
-
-- Reuse existing components, stores, composables, and patterns.
-
-- Keep loading, empty, success, and error states explicit.
-
-- Preserve visual consistency unless the task explicitly requires redesign.
-
-- Do not introduce duplicated state logic.
-
-- Do not introduce inconsistent naming or ad-hoc UI behavior.
-
-## API discipline
-
-- Do not invent API fields.
-
-- Inspect existing API usage before changing integration.
-
-- If backend behavior is uncertain, state the assumption clearly.
-
-- If API usage changes, explicitly list:
-
-&nbsp; 1. affected endpoint,
-
-&nbsp; 2. affected fields,
-
-&nbsp; 3. UI impact,
-
-&nbsp; 4. compatibility risks.
+Read only the relevant canonical docs for the task. Do not duplicate their full content in `AGENTS.md`.
 
 ## Validation
 
-- Run the smallest relevant checks available in the repository.
-
-- Use the actual package manager and actual scripts from the repository.
-
-- Never claim build, lint, or test success unless it was actually run.
-
-## Output requirements
-
-After each completed task, always provide:
-
-1. what changed,
-
-2. exact changed files,
-
-3. how to verify in UI,
-
-4. risks, follow-up, or remaining work.
-
-## Handoff format
-
-When asked for a handoff, use:
-
-- Context
-
-- Done
-
-- Changed files
-
-- Validation
-
-- Remaining work
-
-- Risks / open questions
+- Run the narrowest relevant Vitest tests first.
+- Run TypeScript or build checks when the change requires them.
+- Run `git diff --check` before final reporting.
+- Report exact changed files and exact verification commands.
+- Do not report warnings as errors, but document new warnings.
+- Do not claim success for checks that were not run.
