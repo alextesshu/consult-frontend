@@ -1,12 +1,21 @@
 # Handoff
 
-Last updated: 2026-07-13
+Last updated: 2026-07-18
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
 Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
+
+KAN-45 records the approved future client directory discovery contract for
+KAN-46/KAN-47.
+
+Canonical backend contract:
+backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
+
+It approves future taxonomy and discovery behavior only; no frontend runtime/API
+integration was added, and the current direct profile lookup remains unchanged.
 
 Short professional introduction copy is clarified locally and not
 pushed/deployed:
@@ -108,9 +117,8 @@ KAN-29 public profile visibility/readiness and availability creation guidance
 is production-deployed, production smoke passed, manual production verification
 passed, and Done.
 
-Production baselines:
-- Backend production/main HEAD: `88ce3d6`
-- Frontend production/main HEAD: `344addc`
+Production baselines must be determined from Git and deployment evidence; this
+handoff does not carry mutable commit hashes.
 
 KAN-1 implementation planning should use the finalized KAN-29
 visibility/readiness mapping from `docs/PROFILE_PUBLIC_URLS.md` and the backend
@@ -264,7 +272,7 @@ Frontend production-closure slice is now integrated:
   - manual session creation UI from client card is active
 - clients index and client modal workspace: done
   - production smoke passed after staging promotion
-  - `origin/frontend dev` and `origin/frontend main` are both at `0f11eb2 Add client modal access tab`
+  - `origin/frontend dev` and `origin/frontend main` were aligned for that phase
   - local frontend repo, server frontend repo, and server backend repo were returned to `dev`
   - backend/API were not changed for this frontend phase
   - `/cabinet/clients` is now a compact client index: top count chips, table-like rows, no persistent right-side selected-client panel
@@ -654,7 +662,7 @@ Do not add payment buttons for guest sessions until backend contract is confirme
 
 Use the canonical Vitest run script and keep these three specs in scope for related manual-client/session/payment copy changes:
 
-- `cd C:\Users\admin\dev\portfolio\consult\frontend`
+- `cd <frontend repository root>`
 - `npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts`
 - `npm run typecheck`
 - `npm run build`
