@@ -98,10 +98,10 @@ describe('HomeView', () => {
 
     expect(
       screen.getByText(
-        /Для клієнтів: якщо ви знаєте імʼя спеціаліста або маєте частину посилання, знайдіть його публічний профіль/
+        /Для клієнтів: знайдіть спеціаліста за своїм запитом або відкрийте профіль за іменем чи прямим посиланням/
       )
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute(
       'href',
       '/specialists'
     )
@@ -207,7 +207,7 @@ describe('HomeView', () => {
     expect(screen.queryByText('Власний профіль без залежності від зовнішнього майданчика')).not.toBeInTheDocument()
     expect(screen.queryByText(/Оберіть формат доступу для своєї практики/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Створіть простір, у якому вашу роботу легко зрозуміти/)).not.toBeInTheDocument()
-    expect(screen.queryByText('Знайти спеціаліста')).not.toBeInTheDocument()
+    expect(screen.queryByText('Знайти профіль спеціаліста')).not.toBeInTheDocument()
     expect(container.querySelector('a[href="/tour"]')).not.toBeInTheDocument()
     expect(container).not.toHaveTextContent(/присутність/i)
   })

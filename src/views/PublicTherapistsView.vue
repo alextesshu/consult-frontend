@@ -1,460 +1,274 @@
 <template>
-  <section class="profile-finder">
-    <header class="profile-finder__hero card">
-      <div class="profile-finder__hero-copy">
-        <h1 class="title">Знайти профіль спеціаліста</h1>
-        <p class="muted">
-          Якщо ви знаєте ім’я спеціаліста або маєте частину посилання, знайдіть його публічний профіль у
-          Pro Consult і залиште запит без реєстрації.
-        </p>
+  <section class="discovery-page">
+    <header class="discovery-page__hero">
+      <div>
+        <h1 class="title">Знайдіть спеціаліста для вашого запиту</h1>
+        <p class="muted">Оберіть напрям або опишіть своїми словами, з чим хочете звернутися.</p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
+      <RouterLink class="btn btn--ghost hero-home-link" to="/">← На головну</RouterLink>
     </header>
 
-    <section class="card">
-      <p class="muted">
-        Пошук показує лише профілі, для яких спеціаліст увімкнув публічну видимість у пошуку.
-        Порядок результатів не є рейтингом.
-      </p>
-      <form class="finder-form" @submit.prevent="submitSearch">
-        <label class="finder-form__field" for="specialist-search-input">
-          <span class="finder-form__label">Пошук профілю</span>
-          <input
-            id="specialist-search-input"
-            v-model="searchQuery"
-            class="input"
-            type="text"
-            placeholder="Ім’я спеціаліста або частина посилання"
-            autocomplete="off"
-          />
-          <span class="finder-form__hint">
-            Введіть ім’я спеціаліста, частину адреси або посилання, яке вам надіслали.
-          </span>
-          <span class="finder-form__example">
-            Наприклад: Олена Коваль, kovalenko або proconsult.space/s/proconsult
-          </span>
-        </label>
-        <button class="btn" type="submit">Знайти профіль</button>
-      </form>
-      <p v-if="validationMessage" class="form-error">{{ validationMessage }}</p>
-    </section>
+    <section class="discovery-controls" aria-label="Пошук спеціалістів">
+      <fieldset class="control-group">
+        <legend>Спосіб пошуку</legend>
+        <div class="segmented-control segmented-control--modes">
+          <label><input name="specialist-discovery-mode" value="request" type="radio" :checked="mode === 'request'" @change="setMode('request')" />За запитом</label>
+          <label><input name="specialist-discovery-mode" value="direction" type="radio" :checked="mode === 'direction'" @change="setMode('direction')" />За професійним напрямом</label>
+        </div>
+      </fieldset>
 
-    <section class="card">
-      <div class="card__title">{{ hasSearched ? 'Результати пошуку' : 'Пошук за іменем або посиланням' }}</div>
-
-      <LoadingSkeleton v-if="loading" variant="card" :count="3" height="176px" />
-
-      <EmptyState
-        v-else-if="error"
-        title="Не вдалося виконати пошук"
-        description="Спробуйте ще раз трохи пізніше."
-      >
-        <template #actions>
-          <button class="btn btn--ghost" type="button" @click="retrySearch">Спробувати ще раз</button>
-        </template>
-      </EmptyState>
-
-      <EmptyState
-        v-else-if="!hasSearched"
-        title="Знайдіть профіль за посиланням або іменем"
-        description="Вставте ім’я спеціаліста або посилання, яке він надіслав. Профілі з’являються тут лише після пошуку."
-      />
-
-      <EmptyState
-        v-else-if="results.length === 0"
-        title="Профіль не знайдено"
-        description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання на профіль. Деякі профілі доступні тільки за прямим посиланням або ще не увімкнені спеціалістом."
-      />
-
-      <div v-else class="result-list">
-        <RouterLink
-          v-for="specialist in results"
-          :key="specialist.slug || specialist.public_slug"
-          class="result-card"
-          :to="profileRoute(specialist)"
-        >
-          <div class="result-card__media">
-            <img
-              v-if="specialist.photo_url"
-              :src="specialist.photo_url"
-              :alt="publicName(specialist)"
-              class="result-card__photo"
-            />
-            <div v-else class="result-card__photo result-card__photo--empty">Фото</div>
+      <template v-if="mode === 'request'">
+        <fieldset class="control-group">
+          <legend>Оберіть запит</legend>
+          <div class="choice-list request-group-controls__desktop">
+            <label v-for="option in REQUEST_GROUP_OPTIONS" :key="option.code" class="choice-button">
+              <input name="specialist-request-group" :value="option.code" type="radio" :checked="requestGroup === option.code" @change="setRequestGroup(option.code)" />
+              <span>{{ option.label }}</span>
+            </label>
+            <button v-if="requestGroup" class="btn btn--ghost choice-list__clear" type="button" @click="setRequestGroup(null)">Очистити категорію</button>
           </div>
-
-          <div class="result-card__body">
-            <div class="result-card__head">
-              <div class="result-card__name">{{ publicName(specialist) }}</div>
-              <p v-if="primarySpecialization(specialist)" class="result-card__headline">
-                {{ primarySpecialization(specialist) }}
-              </p>
-            </div>
-
-            <p v-if="specialist.public_profile_summary" class="result-card__summary">
-              {{ specialist.public_profile_summary }}
-            </p>
-
-            <dl class="result-card__details">
-              <div v-if="specializationText(specialist)" class="result-card__detail">
-                <dt>Теми</dt>
-                <dd>{{ specializationText(specialist) }}</dd>
-              </div>
-              <div v-if="formatText(specialist)" class="result-card__detail">
-                <dt>Формат</dt>
-                <dd>{{ formatText(specialist) }}</dd>
-              </div>
-              <div v-if="specialist.location" class="result-card__detail">
-                <dt>Локація</dt>
-                <dd>{{ specialist.location }}</dd>
-              </div>
-            </dl>
-
-            <div class="result-card__actions">
-              <span class="btn btn--ghost result-card__cta">Відкрити профіль</span>
-            </div>
+          <label class="request-group-controls__mobile" for="specialist-request-group-select">
+            <span>Оберіть категорію запиту</span>
+            <select id="specialist-request-group-select" class="input" :value="requestGroup || ''" @change="setRequestGroupFromSelect">
+              <option value="">Усі запити</option>
+              <option v-for="option in REQUEST_GROUP_OPTIONS" :key="option.code" :value="option.code">{{ option.label }}</option>
+            </select>
+          </label>
+        </fieldset>
+        <form class="query-form" @submit.prevent="submitQuery">
+          <label for="discovery-query">Опишіть запит своїми словами</label>
+          <div class="query-form__row">
+            <input id="discovery-query" v-model="queryDraft" class="input" type="text" placeholder="Наприклад: не можу впоратися з тривогою" :aria-invalid="fieldError?.field === 'q' ? 'true' : undefined" :aria-describedby="fieldError?.field === 'q' ? 'discovery-query-error' : undefined" />
+            <button class="btn" type="submit">Знайти</button>
           </div>
-        </RouterLink>
+          <p v-if="fieldError?.field === 'q'" id="discovery-query-error" class="form-error">{{ fieldError.detail }}</p>
+        </form>
+      </template>
+
+      <fieldset v-else class="control-group">
+        <legend>Оберіть професійний напрям</legend>
+        <div class="choice-list">
+          <label v-for="option in DIRECTION_OPTIONS" :key="option.code" class="choice-button">
+            <input name="specialist-direction" :value="option.code" type="radio" :checked="direction === option.code" @change="setDirection(option.code)" />
+            <span>{{ option.label }}</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="control-group">
+        <legend>Формат</legend>
+        <div class="segmented-control segmented-control--format">
+          <label><input name="specialist-format" value="" type="radio" :checked="format === null" @change="setFormat(null)" />Усі формати</label>
+          <label><input name="specialist-format" value="online" type="radio" :checked="format === 'online'" @change="setFormat('online')" />Онлайн</label>
+          <label><input name="specialist-format" value="offline" type="radio" :checked="format === 'offline'" @change="setFormat('offline')" />Офлайн</label>
+        </div>
+      </fieldset>
+
+      <div v-if="hasActiveSearch" class="active-search">
+        <span>{{ activeSearchSummary }}</span>
+        <button class="btn btn--ghost" type="button" @click="reset">Скинути пошук</button>
       </div>
+      <p v-if="fieldError && fieldError.field !== 'q'" class="form-error" role="alert">
+        {{ fieldError.detail }}
+      </p>
     </section>
+
+    <section class="results" :aria-busy="loading" aria-live="polite">
+      <p v-if="isPendingDirection" class="direction-pending">Оберіть професійний напрям, щоб переглянути спеціалістів.</p>
+      <template v-else>
+        <div class="results__header">
+          <div>
+            <h2 ref="resultsHeading" tabindex="-1">{{ specialistCount(response?.total ?? 0) }}</h2>
+            <p class="muted">Порядок результатів не є рейтингом.</p>
+          </div>
+        </div>
+
+        <LoadingSkeleton v-if="loading" variant="card" :count="3" height="176px" />
+        <EmptyState v-else-if="requestError" title="Не вдалося завантажити спеціалістів" :description="requestError">
+          <template #actions><button class="btn btn--ghost" type="button" @click="retry">Спробувати ще раз</button></template>
+        </EmptyState>
+        <EmptyState v-else-if="response && response.total === 0" :title="hasActiveSearch ? 'За вашим запитом поки немає результатів' : 'Каталог спеціалістів поки порожній'" :description="hasActiveSearch ? 'Спробуйте змінити категорію, опис запиту або формат роботи.' : 'Поверніться сюди трохи пізніше.'">
+          <template v-if="hasActiveSearch" #actions><button class="btn btn--ghost" type="button" @click="reset">Скинути пошук</button></template>
+        </EmptyState>
+        <template v-else>
+          <section v-for="group in visibleGroups" :key="group.code" class="result-group" :aria-labelledby="`group-${group.code}`">
+            <div class="result-group__header">
+              <h2 :id="`group-${group.code}`">{{ group.label }}</h2>
+              <span class="muted">{{ group.total }}</span>
+            </div>
+            <div class="result-list">
+              <PublicSpecialistCard v-for="item in group.items" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" />
+            </div>
+          </section>
+        </template>
+
+        <nav v-if="response && response.total_pages > 1" class="pagination" aria-label="Сторінки каталогу">
+          <button class="btn btn--ghost" type="button" :disabled="response.page <= 1" @click="setPage(response.page - 1)">Попередня</button>
+          <span>Сторінка {{ response.page }} з {{ response.total_pages }}</span>
+          <button class="btn btn--ghost" type="button" :disabled="response.page >= response.total_pages" @click="setPage(response.page + 1)">Наступна</button>
+        </nav>
+      </template>
+    </section>
+
+    <details class="legacy-lookup">
+      <summary>Знайти конкретного спеціаліста</summary>
+      <div class="legacy-lookup__content">
+        <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
+        <form class="query-form" @submit.prevent="submitLegacySearch">
+          <label for="legacy-specialist-search">Ім’я або посилання</label>
+          <div class="query-form__row"><input id="legacy-specialist-search" v-model="legacyQuery" class="input" type="text" autocomplete="off" /><button class="btn" type="submit">Знайти профіль</button></div>
+          <p v-if="legacyValidation" class="form-error">{{ legacyValidation }}</p>
+        </form>
+        <LoadingSkeleton v-if="legacyLoading" variant="card" :count="2" height="150px" />
+        <EmptyState v-else-if="legacyError" title="Не вдалося виконати пошук" description="Спробуйте ще раз трохи пізніше."><template #actions><button class="btn btn--ghost" type="button" @click="retryLegacySearch">Спробувати ще раз</button></template></EmptyState>
+        <EmptyState v-else-if="legacySearched && legacyResults.length === 0" title="Профіль не знайдено" description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання." />
+        <div v-else-if="legacyResults.length" class="result-list legacy-lookup__results"><PublicSpecialistCard v-for="item in legacyResults" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" /></div>
+      </div>
+    </details>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
+import PublicSpecialistCard from '../components/PublicSpecialistCard.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import { DIRECTION_OPTIONS, REQUEST_GROUP_OPTIONS, useSpecialistDiscovery } from '../composables/useSpecialistDiscovery'
 
-const searchQuery = ref('')
-const loading = ref(false)
-const error = ref(false)
-const hasSearched = ref(false)
-const validationMessage = ref('')
-const lastSubmittedQuery = ref('')
-const results = ref<PublicSpecialistProfile[]>([])
+const discovery = useSpecialistDiscovery()
+const { mode, queryDraft, requestGroup, direction, format, response, loading, fieldError, requestError, hasActiveSearch, focusResultsAfterPagination, isPendingDirection, submitQuery, setMode, setRequestGroup, setDirection, setFormat, setPage, reset, retry, consumeFocusResultsAfterPagination } = discovery
+const resultsHeading = ref<HTMLElement | null>(null)
+const legacyQuery = ref('')
+const legacyLoading = ref(false)
+const legacyError = ref(false)
+const legacySearched = ref(false)
+const legacyValidation = ref('')
+const legacyLastQuery = ref('')
+const legacyResults = ref<PublicSpecialistProfile[]>([])
 
-const trimmedQuery = computed(() => searchQuery.value.trim())
+const visibleGroups = computed(() => (response.value?.groups || []).filter((group) => group.items.length > 0))
+const activeSearchSummary = computed(() => {
+  if (mode.value === 'direction') return direction.value ? 'Пошук за професійним напрямом' : format.value ? 'Активний фільтр формату' : ''
+  if (queryDraft.value || requestGroup.value) return 'Активний пошук за запитом'
+  return format.value ? 'Активний фільтр формату' : ''
+})
+
+function setRequestGroupFromSelect(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  void setRequestGroup(value ? value as typeof requestGroup.value : null)
+}
+
+function specialistCount(total: number) {
+  const lastTwoDigits = total % 100
+  const lastDigit = total % 10
+  const label = lastTwoDigits >= 11 && lastTwoDigits <= 14
+    ? 'спеціалістів'
+    : lastDigit === 1
+      ? 'спеціаліст'
+      : lastDigit >= 2 && lastDigit <= 4
+        ? 'спеціалісти'
+        : 'спеціалістів'
+  return `${total} ${label}`
+}
 
 function profileSlugFromPath(pathname: string) {
   const match = pathname.match(/^\/s\/([^/?#]+)\/?$/)
-  if (!match?.[1]) return ''
-  return decodeURIComponent(match[1]).trim()
+  return match?.[1] ? decodeURIComponent(match[1]).trim() : ''
 }
 
-function normalizeSearchQuery(value: string) {
+function normalizeLegacyQuery(value: string) {
   const query = value.trim()
   if (!query) return ''
-
-  if (query.startsWith('/s/')) {
-    return profileSlugFromPath(query) || query
-  }
-
-  try {
-    const parsed = new URL(query)
-    return profileSlugFromPath(parsed.pathname) || query
-  } catch {
-    // Continue with a domain-prefixed parse below.
-  }
-
+  if (query.startsWith('/s/')) return profileSlugFromPath(query) || query
+  try { return profileSlugFromPath(new URL(query).pathname) || query } catch { /* Try a domain-prefixed URL. */ }
   if (/^[\w.-]+\/s\/[^/?#\s]+\/?(?:[?#].*)?$/.test(query)) {
-    try {
-      const parsed = new URL(`https://${query}`)
-      return profileSlugFromPath(parsed.pathname) || query
-    } catch {
-      return query
-    }
+    try { return profileSlugFromPath(new URL(`https://${query}`).pathname) || query } catch { return query }
   }
-
   return query
 }
 
-function publicName(specialist: PublicSpecialistProfile) {
-  return (specialist.public_display_name || specialist.display_name || '').trim()
-}
-
-function specializations(specialist: PublicSpecialistProfile) {
-  const value = specialist.specializations
-  if (Array.isArray(value)) return value.map((item) => item.trim()).filter(Boolean)
-  if (typeof value === 'string' && value.trim()) return [value.trim()]
-  return []
-}
-
-function primarySpecialization(specialist: PublicSpecialistProfile) {
-  return specializations(specialist)[0] || ''
-}
-
-function specializationText(specialist: PublicSpecialistProfile) {
-  return specializations(specialist).join(', ')
-}
-
-function formatText(specialist: PublicSpecialistProfile) {
-  const items = []
-  if (specialist.offers_online) items.push('Онлайн')
-  if (specialist.offers_offline) items.push('Офлайн')
-  return items.join(' · ')
-}
-
-function profileRoute(specialist: PublicSpecialistProfile) {
-  const slug = (specialist.slug || specialist.public_slug || '').trim()
-  return slug ? `/s/${slug}` : '/specialists'
-}
-
-async function runSearch(query: string) {
-  loading.value = true
-  error.value = false
-  validationMessage.value = ''
+async function runLegacySearch(query: string) {
+  legacyLoading.value = true
+  legacyError.value = false
+  legacyValidation.value = ''
   try {
-    const response = await fetchPublicSpecialists({
-      name: query,
-      page_size: 5,
-    })
-    results.value = response.results || []
-    hasSearched.value = true
-    lastSubmittedQuery.value = query
+    const result = await fetchPublicSpecialists({ name: query, page_size: 5 })
+    legacyResults.value = result.results || []
+    legacySearched.value = true
+    legacyLastQuery.value = query
   } catch {
-    error.value = true
-    results.value = []
-  } finally {
-    loading.value = false
-  }
+    legacyError.value = true
+    legacyResults.value = []
+  } finally { legacyLoading.value = false }
 }
 
-async function submitSearch() {
-  const query = normalizeSearchQuery(trimmedQuery.value)
-  if (query.length < 3) {
-    validationMessage.value = 'Введіть щонайменше 3 символи для пошуку.'
-    hasSearched.value = false
-    results.value = []
-    error.value = false
-    return
-  }
-  searchQuery.value = query
-  await runSearch(query)
+async function submitLegacySearch() {
+  const query = normalizeLegacyQuery(legacyQuery.value)
+  if (query.length < 3) { legacyValidation.value = 'Введіть щонайменше 3 символи для пошуку.'; return }
+  legacyQuery.value = query
+  await runLegacySearch(query)
 }
 
-async function retrySearch() {
-  if (!lastSubmittedQuery.value) {
-    await submitSearch()
-    return
-  }
-  await runSearch(lastSubmittedQuery.value)
-}
+async function retryLegacySearch() { await runLegacySearch(legacyLastQuery.value || normalizeLegacyQuery(legacyQuery.value)) }
+
+watch(focusResultsAfterPagination, async (shouldFocus) => {
+  if (!shouldFocus) return
+  await nextTick()
+  resultsHeading.value?.focus()
+  resultsHeading.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  consumeFocusResultsAfterPagination()
+})
 </script>
 
 <style scoped>
-.profile-finder {
-  display: grid;
-  gap: 20px;
-}
-
-.profile-finder__hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 22px 24px;
-}
-
-.profile-finder__hero-copy {
-  display: grid;
-  gap: 10px;
-  max-width: 680px;
-}
-
-.finder-form {
-  display: flex;
-  align-items: end;
-  gap: 12px;
-}
-
-.finder-form__field {
-  flex: 1;
-  display: grid;
-  gap: 6px;
-}
-
-.finder-form__label {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.finder-form__hint,
-.finder-form__example {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.finder-form__example {
-  color: rgba(15, 23, 42, 0.72);
-}
-
-.result-list {
-  display: grid;
-  gap: 16px;
-}
-
-.result-card {
-  display: grid;
-  grid-template-columns: 176px minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: #fff;
-  color: inherit;
-  text-decoration: none;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.result-card:hover {
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  transform: translateY(-1px);
-}
-
-.result-card:focus-visible {
-  outline: 2px solid rgba(15, 118, 110, 0.5);
-  outline-offset: 2px;
-}
-
-.result-card__media {
-  min-width: 0;
-}
-
-.result-card__photo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  background: rgba(15, 23, 42, 0.04);
-}
-
-.result-card__photo--empty {
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.result-card__body {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-}
-
-.result-card__head {
-  display: grid;
-  gap: 6px;
-}
-
-.result-card__name {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-}
-
-.result-card__headline {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.result-card__summary {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--text);
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.result-card__details {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-}
-
-.result-card__detail {
-  display: grid;
-  gap: 4px;
-}
-
-.result-card__detail dt {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.result-card__detail dd {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--text);
-}
-
-.result-card__actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.result-card__cta {
-  width: fit-content;
-  pointer-events: none;
-}
-
+.discovery-page { display: grid; gap: 20px; min-width: 0; }
+.discovery-page__hero, .discovery-controls, .legacy-lookup { border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; padding: 22px 24px; min-width: 0; }
+.discovery-page__hero, .results__header, .result-group__header, .active-search, .pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.discovery-page__hero .title, .result-group h2, .results h2 { margin: 0; }
+.discovery-controls, .control-group, .query-form, .result-group, .results { display: grid; gap: 12px; min-width: 0; }
+.control-group { margin: 0; padding: 0; border: 0; }
+.control-group legend, .query-form label { font-weight: 700; }
+.segmented-control, .choice-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.segmented-control label, .choice-button { align-items: center; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; display: inline-flex; min-height: 44px; padding: 9px 12px; }
+.segmented-control label:has(input:checked), .choice-button[aria-pressed='true'] { background: rgba(15, 118, 110, .1); border-color: rgba(15, 118, 110, .55); font-weight: 700; }
+.choice-button:has(input:checked) { background: rgba(15, 118, 110, .1); border-color: rgba(15, 118, 110, .55); font-weight: 700; }
+.segmented-control input { accent-color: #0f766e; }
+.choice-button input { accent-color: #0f766e; }
+.choice-list__clear { min-height: 44px; }
+.request-group-controls__mobile { display: none; }
+.query-form__row { display: flex; gap: 10px; align-items: center; }
+.query-form__row .input { flex: 1; min-width: 0; }
+.direction-pending { margin: 0; max-width: 52ch; }
+.result-group { padding-top: 4px; }
+.result-list { display: grid; gap: 14px; }
+.pagination { justify-content: center; flex-wrap: wrap; }
+.legacy-lookup summary { cursor: pointer; font-weight: 700; }
+.legacy-lookup__content { display: grid; gap: 14px; margin-top: 16px; }
 @media (max-width: 720px) {
-  .profile-finder {
-    gap: 14px;
-  }
-
-  .profile-finder__hero,
-  .finder-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .profile-finder__hero {
-    gap: 6px;
-    padding: 12px 14px;
-  }
-
-  .profile-finder__hero-copy {
-    gap: 2px;
-  }
-
-  .profile-finder__hero .title {
-    font-size: 24px;
-    line-height: 1.08;
-  }
-
-  .profile-finder__hero .muted {
-    font-size: 15px;
-    line-height: 1.45;
-  }
-
-  .profile-finder__hero .btn {
-    min-height: 40px;
-    padding: 9px 14px;
-  }
-
-  .result-card {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-
-  .result-card__photo {
-    aspect-ratio: 16 / 10;
-    max-height: 220px;
-  }
+  .discovery-page__hero, .results__header, .active-search { align-items: stretch; flex-direction: column; }
+  .discovery-page__hero, .discovery-controls, .legacy-lookup { padding: 16px; }
+  .request-group-controls__desktop { display: none; }
+  .request-group-controls__mobile { display: grid; gap: 6px; width: 100%; }
+  .request-group-controls__mobile .input { min-height: 44px; width: 100%; }
+  .segmented-control--modes { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .segmented-control--modes label { width: 100%; }
+  .segmented-control--format { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .segmented-control--format label { justify-content: center; min-width: 0; padding-inline: 6px; text-align: center; white-space: normal; }
+  .query-form__row { align-items: stretch; }
+  .segmented-control label, .choice-button { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .discovery-page { gap: 14px; }
+  .discovery-page__hero { gap: 8px; padding: 14px; }
+  .discovery-page__hero .title { font-size: 35px; line-height: 1.12; }
+  .discovery-page__hero .muted { font-size: 14px; line-height: 1.45; }
+  .hero-home-link { align-self: flex-start; border: 0; min-height: auto; padding: 2px 0; }
+  .hero-home-link:focus-visible { outline: 2px solid rgba(15, 118, 110, .65); outline-offset: 3px; }
+  .query-form__row { flex-direction: column; }
+  .query-form__row .btn { width: 100%; }
+}
+@media (max-width: 360px) {
+  .discovery-page__hero .title { font-size: 33px; }
 }
 </style>

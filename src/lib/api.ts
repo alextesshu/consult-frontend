@@ -2318,6 +2318,155 @@ export async function fetchPublicSpecialists(
   return fetchPublicTherapists(params)
 }
 
+export type SpecialistDiscoveryMode = 'request' | 'direction'
+export type SpecialistDiscoveryRequestGroup =
+  | 'emotional_state'
+  | 'relationships_family'
+  | 'self_esteem_change'
+  | 'work_career_burnout'
+  | 'loss_life_changes'
+  | 'professional_development'
+  | 'other_request'
+export type SpecialistDiscoveryDirection =
+  | 'psychological_support'
+  | 'development_guidance'
+  | 'education_supervision'
+export type SpecialistDiscoveryFormat = 'online' | 'offline'
+export type SpecialistDiscoveryMatchKind = 'exact' | 'related' | 'fallback' | null
+
+export type PublicSpecialistDiscoveryItem = {
+  slug: string
+  public_slug: string
+  public_profile_path: string | null
+  public_profile_url: string | null
+  display_name: string
+  public_display_name: string
+  public_profile_summary: string | null
+  specializations: string[]
+  location: string | null
+  offers_online: boolean
+  offers_offline: boolean
+  photo_url: string | null
+  match_kind: SpecialistDiscoveryMatchKind
+}
+
+export type PublicSpecialistDiscoveryAppliedFilters = {
+  request_group: SpecialistDiscoveryRequestGroup | null
+  direction: SpecialistDiscoveryDirection | null
+  format: SpecialistDiscoveryFormat | null
+}
+
+export type PublicSpecialistDiscoveryGroup = {
+  code: 'all_specialists' | 'matches_request' | 'related_matches' | 'other_specialists'
+  label: string
+  items: PublicSpecialistDiscoveryItem[]
+  total: number
+}
+
+export type PublicSpecialistDiscoveryResponse = {
+  query: string | null
+  resolved_request_groups: SpecialistDiscoveryRequestGroup[]
+  applied_filters: PublicSpecialistDiscoveryAppliedFilters
+  groups: PublicSpecialistDiscoveryGroup[]
+  page: number
+  page_size: number
+  total: number
+  total_pages: number
+}
+
+export type PublicSpecialistDiscoveryParams = {
+  q?: string
+  request_group?: SpecialistDiscoveryRequestGroup
+  direction?: SpecialistDiscoveryDirection
+  format?: SpecialistDiscoveryFormat
+  page?: number
+}
+
+export type PublicSpecialistDiscoveryError = {
+  code: SpecialistDiscoveryErrorCode
+  detail: string
+  field: SpecialistDiscoveryErrorField
+}
+
+export type SpecialistDiscoveryErrorCode =
+  | 'QUERY_TOO_SHORT'
+  | 'QUERY_TOO_LONG'
+  | 'INVALID_REQUEST_GROUP'
+  | 'INVALID_DIRECTION'
+  | 'INVALID_FORMAT'
+  | 'INVALID_PAGE'
+  | 'INVALID_PAGE_SIZE'
+  | 'CONFLICTING_DISCOVERY_INPUTS'
+
+export type SpecialistDiscoveryErrorField =
+  | 'q'
+  | 'request_group'
+  | 'direction'
+  | 'format'
+  | 'page'
+  | 'page_size'
+
+const discoveryErrorCodes = new Set<SpecialistDiscoveryErrorCode>([
+  'QUERY_TOO_SHORT',
+  'QUERY_TOO_LONG',
+  'INVALID_REQUEST_GROUP',
+  'INVALID_DIRECTION',
+  'INVALID_FORMAT',
+  'INVALID_PAGE',
+  'INVALID_PAGE_SIZE',
+  'CONFLICTING_DISCOVERY_INPUTS',
+])
+
+const discoveryErrorFields = new Set<SpecialistDiscoveryErrorField>([
+  'q',
+  'request_group',
+  'direction',
+  'format',
+  'page',
+  'page_size',
+])
+
+export function getPublicSpecialistDiscoveryError(
+  error: unknown
+): PublicSpecialistDiscoveryError | null {
+  if (!isRecord(error) || !isRecord(error.response) || !isRecord(error.response.data)) return null
+  const value = error.response.data
+  if (
+    typeof value.code !== 'string' ||
+    !discoveryErrorCodes.has(value.code as SpecialistDiscoveryErrorCode) ||
+    typeof value.detail !== 'string' ||
+    typeof value.field !== 'string' ||
+    !discoveryErrorFields.has(value.field as SpecialistDiscoveryErrorField)
+  ) {
+    return null
+  }
+  return {
+    code: value.code as SpecialistDiscoveryErrorCode,
+    detail: value.detail,
+    field: value.field as SpecialistDiscoveryErrorField,
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object'
+}
+
+export async function fetchPublicSpecialistDiscovery(
+  params: PublicSpecialistDiscoveryParams = {}
+): Promise<PublicSpecialistDiscoveryResponse> {
+  const safeParams: PublicSpecialistDiscoveryParams = {}
+  if (params.q?.trim()) safeParams.q = params.q.trim()
+  if (params.request_group) safeParams.request_group = params.request_group
+  if (params.direction) safeParams.direction = params.direction
+  if (params.format) safeParams.format = params.format
+  if (params.page && Number.isInteger(params.page) && params.page > 0) safeParams.page = params.page
+
+  const response = await http.get<PublicSpecialistDiscoveryResponse>('/public/specialists/discovery/', {
+    params: safeParams,
+  })
+  return response.data
+}
+
 export type ChatThread = {
   id: number
   therapist_id: number

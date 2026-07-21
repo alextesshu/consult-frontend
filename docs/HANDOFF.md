@@ -8,14 +8,19 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-KAN-45 records the approved future client directory discovery contract for
-KAN-46/KAN-47.
+KAN-46 directory discovery backend is implemented and staging-verified. KAN-47
+uses that additive public endpoint in the frontend directory.
+
+KAN-47 directory polish keeps the existing discovery contract: request groups
+use a compact mobile select, direction mode waits for an explicit direction
+before loading results, and the directory count uses Ukrainian inflection.
 
 Canonical backend contract:
 backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
 
-It approves future taxonomy and discovery behavior only; no frontend runtime/API
-integration was added, and the current direct profile lookup remains unchanged.
+The frontend calls `GET /api/public/specialists/discovery/` for directory
+discovery. The current name/slug lookup and direct profile routes remain
+unchanged; the lookup is retained as a secondary path in the directory UI.
 
 Short professional introduction copy is clarified locally and not
 pushed/deployed:

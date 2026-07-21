@@ -86,7 +86,7 @@ requirements. Do not describe photo as a blocking publication requirement.
 - Fallback slug cleanup (for values such as `specialist`, `specialist-2`) applies only when `public_profile_enabled=false`.
 - Already public fallback URLs are not auto-rewritten.
 
-## Approved Directory Discovery Contract (KAN-45)
+## Directory Discovery Contract (KAN-45/KAN-46/KAN-47)
 
 Canonical backend contract:
 backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
@@ -96,9 +96,9 @@ backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
 - Every directory result requires both `public_profile_enabled=true` and
   `is_search_visible=true`.
 - The current public specialist lookup remains unchanged. The additive
-  `/api/public/specialists/discovery/` API is approved for KAN-46 but is not
-  implemented yet.
-- KAN-47 must render the documented open-directory and grouped-result states
+  `/api/public/specialists/discovery/` API is implemented in KAN-46 and was
+  staging-verified.
+- KAN-47 consumes the documented open-directory and grouped-result states
   without changing direct profile, request, or booking behavior.
 
 ## Regression Checklist
