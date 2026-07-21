@@ -24,6 +24,7 @@ const mockRoute = {
   query: {} as Record<string, string>,
 }
 const mockRouter = {
+  push: vi.fn(),
   replace: vi.fn(),
 }
 
@@ -190,6 +191,26 @@ function makeIncompleteProfile(): SpecialistProfile {
   }
 }
 
+function makeProfileWithSingleMissingReadinessItem(key: string, label: string): SpecialistProfile {
+  const profile = makeProfile()
+  const hasKnownKey = profile.public_profile_readiness?.items.some((item) => item.key === key)
+  const items = (profile.public_profile_readiness?.items || []).map((item, index) => {
+    if (item.key === key || (!hasKnownKey && index === 0)) {
+      return { ...item, key, label, complete: false }
+    }
+    return { ...item, complete: true }
+  })
+
+  profile.public_profile_readiness = {
+    is_ready: false,
+    completed_count: 5,
+    total_count: 6,
+    missing_items: [key],
+    items,
+  }
+  return profile
+}
+
 function renderView() {
   return render(TherapistProfileView, {
     global: {
@@ -239,6 +260,7 @@ describe('TherapistProfileView', () => {
     mockRoute.query = {}
     setClipboard()
     vi.restoreAllMocks()
+    mockRouter.push.mockReset()
     mockRouter.replace.mockReset()
     scrollIntoViewSpy.mockReset()
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -675,6 +697,78 @@ describe('TherapistProfileView', () => {
 
     expect(specializationsField).toHaveClass('field--attention')
     expect(container.querySelector('[data-readiness-key="topics"]')).not.toBeInTheDocument()
+  })
+
+  it('routes first_contact readiness to booking settings instead of Contacts', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит')
+    )
+
+    const { container } = renderView()
+    await screen.findByRole('heading', { name: 'Готовність профілю' })
+    const summary = container.querySelector('.profile-summary-card') as HTMLElement
+    const contactsSection = container.querySelector('[data-readiness-key="first_contact"]')
+
+    expect(within(summary).getByText('Не вистачає:')).toBeInTheDocument()
+    expect(within(summary).getByText('Запис або запит')).toBeInTheDocument()
+    await fireEvent.click(within(summary).getByRole('button', { name: 'Завершити профіль' }))
+
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      path: '/cabinet/slots',
+      query: { tab: 'settings' },
+    })
+    expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+    expect(contactsSection).not.toBeNull()
+    expect(contactsSection).not.toContain(document.activeElement)
+  })
+
+  it.each([
+    ['display_name', 'Публічне ім’я', '[data-readiness-key="display_name"]'],
+    ['about', 'Опис', '[data-readiness-key="about"]'],
+    ['topics', 'Спеціалізації', '[data-readiness-key="specializations"]'],
+    ['work_format', 'Формат роботи', '[data-readiness-key="work_format"]'],
+    ['price_decision', 'Вартість консультації', '[data-readiness-key="price_decision"]'],
+  ])('keeps %s readiness targeting its profile section', async (key, label, selector) => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfileWithSingleMissingReadinessItem(key, label))
+
+    const { container } = renderView()
+    await screen.findByRole('heading', { name: 'Готовність профілю' })
+    const summary = container.querySelector('.profile-summary-card') as HTMLElement
+    const target = container.querySelector(selector)
+
+    await fireEvent.click(within(summary).getByRole('button', { name: 'Завершити профіль' }))
+
+    expect(scrollIntoViewSpy).toHaveBeenCalledTimes(1)
+    expect(scrollIntoViewSpy.mock.contexts[0]).toBe(target)
+    expect(mockRouter.push).not.toHaveBeenCalled()
+  })
+
+  it('uses the profile basics section for an unknown readiness key instead of Contacts', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfileWithSingleMissingReadinessItem('unexpected_readiness_key', 'Невідома вимога')
+    )
+
+    const { container } = renderView()
+    await screen.findByRole('heading', { name: 'Готовність профілю' })
+    const summary = container.querySelector('.profile-summary-card') as HTMLElement
+    const safeFallback = container.querySelector('.form--profile-basics')
+    const contactsSection = container.querySelector('[data-readiness-key="first_contact"]')
+
+    await fireEvent.click(within(summary).getByRole('button', { name: 'Завершити профіль' }))
+
+    expect(scrollIntoViewSpy.mock.contexts[0]).toBe(safeFallback)
+    expect(mockRouter.push).not.toHaveBeenCalled()
+    expect(contactsSection).not.toContain(document.activeElement)
+  })
+
+  it('keeps the ready-profile primary action unchanged', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect((await screen.findAllByRole('link', { name: 'Переглянути сторінку' })).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Завершити профіль' })).not.toBeInTheDocument()
+    expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
   it('renders public_profile_summary field in profile settings', async () => {

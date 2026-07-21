@@ -2516,8 +2516,28 @@ function confirmDisablePublicProfile() {
 const profileFocusAttentionKey = ref('')
 let profileFocusAttentionTimer: number | undefined
 
+type ProfileReadinessAction =
+  | { kind: 'focus'; targetKey: string }
+  | { kind: 'route'; path: string; query: Record<string, string> }
+
+const profileReadinessActions: Record<string, ProfileReadinessAction> = {
+  display_name: { kind: 'focus', targetKey: 'display_name' },
+  about: { kind: 'focus', targetKey: 'about' },
+  topics: { kind: 'focus', targetKey: 'specializations' },
+  specializations: { kind: 'focus', targetKey: 'specializations' },
+  work_format: { kind: 'focus', targetKey: 'work_format' },
+  price: { kind: 'focus', targetKey: 'price_decision' },
+  price_decision: { kind: 'focus', targetKey: 'price_decision' },
+  first_contact: {
+    kind: 'route',
+    path: '/cabinet/slots',
+    query: { tab: 'settings' },
+  },
+}
+
 function readinessFocusTargetKey(key: string): string {
-  return key === 'topics' ? 'specializations' : key
+  const action = profileReadinessActions[key]
+  return action?.kind === 'focus' ? action.targetKey : ''
 }
 
 function clearProfileFocusAttentionTimer() {
@@ -2557,7 +2577,13 @@ function focusProfileReadinessTarget(rawKey: string, clearFocusQuery = false) {
 }
 
 function scrollToFirstMissingProfileSection() {
-  focusProfileReadinessTarget(firstMissingProfileReadinessKey.value)
+  const action = profileReadinessActions[firstMissingProfileReadinessKey.value]
+  if (action?.kind === 'route') {
+    void router.push({ path: action.path, query: action.query })
+    return
+  }
+
+  focusProfileReadinessTarget(action?.kind === 'focus' ? action.targetKey : '')
 }
 
 function onProfilePrimaryAction() {
