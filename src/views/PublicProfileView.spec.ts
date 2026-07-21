@@ -22,10 +22,13 @@ import {
 const mockRoute = {
   params: { slug: 'olena' },
   query: {},
+  path: '/s/olena',
+  hash: '',
 }
 
 const mockRouter = {
   push: vi.fn(),
+  replace: vi.fn(),
 }
 
 const mockAuth = {
@@ -351,7 +354,10 @@ describe('PublicProfileView', () => {
   beforeEach(() => {
     mockRoute.params.slug = 'olena'
     mockRoute.query = {}
+    mockRoute.path = '/s/olena'
+    mockRoute.hash = ''
     mockRouter.push.mockReset()
+    mockRouter.replace.mockReset()
     mockAuth.accessToken = ''
     mockAuth.user = null
     mockAuth.me = null
@@ -3658,6 +3664,85 @@ describe('PublicProfileView', () => {
     expect(bookingCard.getByText('Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.')).toBeInTheDocument()
     expect(screen.getByText(/У цьому місяці немає доступних вікон/)).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+  })
+
+  it('keeps the availability error distinct from an empty direct-booking horizon', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') throw new Error('Availability unavailable')
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(
+      await screen.findAllByText('Не вдалося завантажити вільний час. Ви можете залишити запит спеціалісту.')
+    ).toHaveLength(2)
+    const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
+    expect(
+      bookingCard.getByText('Не вдалося завантажити вільний час. Ви можете залишити запит спеціалісту.')
+    ).toBeInTheDocument()
+    expect(
+      bookingCard.queryByText('Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.')
+    ).not.toBeInTheDocument()
+    expect(bookingCard.getByRole('button', { name: 'Залишити запит' })).toBeInTheDocument()
+  })
+
+  it('opens the generic request flow once from the recovery intent query', async () => {
+    mockRoute.query = { intent: 'request', source: 'recovery' }
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        path: '/s/olena',
+        query: { source: 'recovery' },
+        hash: '',
+      })
+    })
+  })
+
+  it('does not consume the recovery request intent without a valid public request format', async () => {
+    mockRoute.query = { intent: 'request' }
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+        offers_online: false,
+        offers_offline: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByText('Загальна інформація')
+    expect(screen.queryByRole('heading', { name: 'Запит до мене' })).not.toBeInTheDocument()
+    expect(mockRouter.replace).not.toHaveBeenCalled()
   })
 
   it('hides booking calendar when public availability is hidden', async () => {

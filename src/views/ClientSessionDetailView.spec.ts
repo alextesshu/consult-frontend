@@ -2,7 +2,9 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   apiGet,
+  apiPatch,
   apiPost,
+  fetchPublicSpecialistProfile,
   fetchSessionPaymentProof,
   requestSessionPaymentProof,
   markSessionPaymentProofPaid,
@@ -47,6 +49,7 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
+  fetchPublicSpecialistProfile: vi.fn(),
   fetchSessionPaymentProof: vi.fn(),
   requestSessionPaymentProof: vi.fn(),
   markSessionPaymentProofPaid: vi.fn(),
@@ -55,7 +58,9 @@ vi.mock('../lib/api', () => ({
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
+const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedFetchPublicSpecialistProfile = vi.mocked(fetchPublicSpecialistProfile)
 const mockedFetchSessionPaymentProof = vi.mocked(fetchSessionPaymentProof)
 const mockedRequestSessionPaymentProof = vi.mocked(requestSessionPaymentProof)
 const mockedMarkSessionPaymentProofPaid = vi.mocked(markSessionPaymentProofPaid)
@@ -85,6 +90,17 @@ function makeSession(status: string, overrides: Record<string, unknown> = {}) {
   }
 }
 
+function makePublicProfile(overrides: Record<string, unknown> = {}) {
+  return {
+    therapist_id: 8,
+    public_booking_mode: 'direct_booking',
+    show_public_availability: true,
+    public_direct_booking_enabled: true,
+    public_booking_horizon_days: 14,
+    ...overrides,
+  } as any
+}
+
 function renderView() {
   return render(ClientSessionDetailView, {
     global: {
@@ -108,7 +124,9 @@ describe('ClientSessionDetailView', () => {
     mockToast.warning.mockReset()
     mockToast.info.mockReset()
     mockedApiGet.mockReset()
+    mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedFetchPublicSpecialistProfile.mockReset()
     mockedFetchSessionPaymentProof.mockReset()
     mockedRequestSessionPaymentProof.mockReset()
     mockedMarkSessionPaymentProofPaid.mockReset()
@@ -343,6 +361,7 @@ describe('ClientSessionDetailView', () => {
 
   it('shows completed and cancelled guidance while keeping follow-up actions disabled', async () => {
     let sessionStatus = 'COMPLETED'
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(makePublicProfile())
 
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/55/') {
@@ -395,9 +414,7 @@ describe('ClientSessionDetailView', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
     expect(screen.queryByRole('button', { name: 'Перенести на обраний варіант' })).not.toBeInTheDocument()
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeDisabled()
-    })
+    expect(screen.queryByRole('button', { name: 'Перенести сюди' })).not.toBeInTheDocument()
 
     sessionStatus = 'CANCELLED'
     firstView.unmount()
@@ -405,12 +422,12 @@ describe('ClientSessionDetailView', () => {
 
     expect(
       await screen.findByText(
-        'Сесію скасовано. Якщо потрібна нова зустріч, оберіть інший доступний слот у профілі спеціаліста.'
+        'Сесію скасовано. Перевірте доступні варіанти для нової зустрічі.'
       )
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Обрати новий слот' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: 'Обрати новий час' })).toHaveAttribute(
       'href',
-      '/s/olena'
+      '/s/olena#slots'
     )
     expect(screen.getByText('Скасовано')).toBeInTheDocument()
     expect(
@@ -420,9 +437,117 @@ describe('ClientSessionDetailView', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
     expect(screen.queryByRole('button', { name: 'Перенести на обраний варіант' })).not.toBeInTheDocument()
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Перенести сюди' })).not.toBeInTheDocument()
+  })
+
+  it('uses direct-booking availability for cancelled session recovery', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(makePublicProfile())
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') return makeSession('CANCELLED')
+      if (url === '/booking/slots/') return [{ id: 401, start_at: '2099-06-20T09:00:00Z', end_at: '2099-06-20T09:50:00Z' }]
+      throw new Error(`Unexpected apiGet call: ${url}`)
     })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Обрати новий час' })).toHaveAttribute(
+      'href',
+      '/s/olena#slots'
+    )
+  })
+
+  it('refreshes the recovery action after cancelling an active session', async () => {
+    let status = 'SCHEDULED'
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(makePublicProfile())
+    mockedApiPatch.mockImplementation(async () => {
+      status = 'CANCELLED'
+      return {} as any
+    })
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') return makeSession(status)
+      if (url === '/booking/slots/') return [{ id: 402, start_at: '2099-06-20T09:00:00Z', end_at: '2099-06-20T09:50:00Z' }]
+      if (url === '/booking/sessions/55/reschedule-suggestions/') return { suggestions: [] }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Скасувати сесію' }))
+
+    expect(await screen.findByRole('link', { name: 'Обрати новий час' })).toHaveAttribute(
+      'href',
+      '/s/olena#slots'
+    )
+    expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/55/cancel/')
+  })
+
+  it('uses the request flow for no-show recovery when direct booking has no slots', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(makePublicProfile())
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') return makeSession('NO_SHOW')
+      if (url === '/booking/slots/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Залишити запит' })).toHaveAttribute(
+      'href',
+      '/s/olena?intent=request'
+    )
+    expect(
+      screen.getByText('Наразі вільних вікон немає. Залиште запит, і спеціаліст узгодить час окремо.')
+    ).toBeInTheDocument()
+  })
+
+  it('does not request slots for request-only recovery', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      makePublicProfile({ public_booking_mode: 'request_only', show_public_availability: false })
+    )
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') return makeSession('CANCELLED')
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Залишити запит' })).toHaveAttribute(
+      'href',
+      '/s/olena?intent=request'
+    )
+    expect(mockedApiGet.mock.calls.some(([url]) => url === '/booking/slots/')).toBe(false)
+  })
+
+  it('keeps the request path distinct when recovery availability loading fails', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(makePublicProfile())
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') return makeSession('CANCELLED')
+      if (url === '/booking/slots/') throw new Error('Availability unavailable')
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Залишити запит' })).toHaveAttribute(
+      'href',
+      '/s/olena?intent=request'
+    )
+    expect(
+      screen.getByText('Не вдалося завантажити вільний час. Ви можете залишити запит спеціалісту.')
+    ).toBeInTheDocument()
+  })
+
+  it('shows no recovery action when the specialist public profile is unavailable', async () => {
+    mockedFetchPublicSpecialistProfile.mockRejectedValue(new Error('Not found'))
+    mockedApiGet.mockResolvedValue(makeSession('CANCELLED') as any)
+
+    renderView()
+
+    expect(
+      await screen.findByText('Публічний профіль цього спеціаліста наразі недоступний.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Залишити запит' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Обрати новий час' })).not.toBeInTheDocument()
   })
 
   it('shows online-meeting empty state when specialist has not added a link yet', async () => {

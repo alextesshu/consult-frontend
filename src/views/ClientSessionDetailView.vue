@@ -96,8 +96,18 @@
       </div>
 
       <div class="action-row">
+        <template v-if="isRecoverySession">
+          <div v-if="recoveryState === 'loading'" class="muted">Перевіряємо доступні варіанти…</div>
+          <div v-else-if="recoveryState === 'unavailable'" class="muted">
+            Публічний профіль цього спеціаліста наразі недоступний.
+          </div>
+          <template v-else-if="recoveryAction">
+            <RouterLink class="btn" :to="recoveryAction.to">{{ recoveryAction.label }}</RouterLink>
+            <div v-if="recoveryHelperCopy" class="muted recovery-helper">{{ recoveryHelperCopy }}</div>
+          </template>
+        </template>
         <RouterLink
-          v-if="followUpBookingLabel && session.specialist_public_slug"
+          v-else-if="followUpBookingLabel && session.specialist_public_slug"
           class="btn"
           :to="`/s/${session.specialist_public_slug}`"
         >
@@ -203,12 +213,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   apiGet,
   apiPatch,
   apiPost,
+  fetchPublicSpecialistProfile,
+  type PublicSpecialistProfile,
   type SessionPaymentProof,
   type BookingSessionCreatePayload,
   type SessionFormat,
@@ -229,6 +241,11 @@ import {
 } from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
 import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
+import {
+  getPublicBookingHorizonRange,
+  resolvePublicBookingRecovery,
+  type PublicBookingRecoveryState,
+} from '../lib/publicBookingRecovery'
 type SessionDetail = {
   id: number
   status: string
@@ -278,6 +295,8 @@ const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
 const meetingLinkRequestSending = ref(false)
 const meetingLinkRequestSent = ref(false)
+const recoveryState = ref<PublicBookingRecoveryState | null>(null)
+let recoveryRequestVersion = 0
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
@@ -338,8 +357,31 @@ const meetingHint = computed(() => {
 const followUpBookingLabel = computed(() => {
   if (!session.value?.specialist_public_slug) return ''
   if (session.value.status === 'COMPLETED') return 'Записатися повторно'
-  if (session.value.status === 'CANCELLED' || session.value.status === 'NO_SHOW') {
-    return 'Обрати новий слот'
+  return ''
+})
+const isRecoverySession = computed(() =>
+  Boolean(session.value && ['CANCELLED', 'NO_SHOW'].includes(session.value.status))
+)
+const recoveryAction = computed(() => {
+  const slug = session.value?.specialist_public_slug?.trim()
+  if (!slug) return null
+  if (recoveryState.value === 'booking') {
+    return { label: 'Обрати новий час', to: `/s/${slug}#slots` }
+  }
+  if (
+    recoveryState.value === 'request' ||
+    recoveryState.value === 'request_after_availability_error'
+  ) {
+    return { label: 'Залишити запит', to: `/s/${slug}?intent=request` }
+  }
+  return null
+})
+const recoveryHelperCopy = computed(() => {
+  if (recoveryState.value === 'request') {
+    return 'Наразі вільних вікон немає. Залиште запит, і спеціаліст узгодить час окремо.'
+  }
+  if (recoveryState.value === 'request_after_availability_error') {
+    return 'Не вдалося завантажити вільний час. Ви можете залишити запит спеціалісту.'
   }
   return ''
 })
@@ -372,7 +414,7 @@ const statusGuidance = computed(() => {
     return 'Сесію завершено. Для наступної зустрічі оберіть новий вільний слот у профілі спеціаліста.'
   }
   if (session.value.status === 'CANCELLED') {
-    return 'Сесію скасовано. Якщо потрібна нова зустріч, оберіть інший доступний слот у профілі спеціаліста.'
+    return 'Сесію скасовано. Перевірте доступні варіанти для нової зустрічі.'
   }
   return ''
 })
@@ -511,6 +553,62 @@ async function loadSession() {
   }
 }
 
+async function loadRecovery() {
+  const currentSession = session.value
+  const requestVersion = ++recoveryRequestVersion
+  recoveryState.value = null
+
+  if (!currentSession || !['CANCELLED', 'NO_SHOW'].includes(currentSession.status)) return
+
+  const slug = currentSession.specialist_public_slug?.trim()
+  if (!slug) {
+    recoveryState.value = 'unavailable'
+    return
+  }
+
+  recoveryState.value = 'loading'
+  let profile: PublicSpecialistProfile
+  try {
+    profile = await fetchPublicSpecialistProfile(slug)
+  } catch {
+    if (requestVersion !== recoveryRequestVersion || session.value?.id !== currentSession.id) return
+    recoveryState.value = 'unavailable'
+    return
+  }
+  if (requestVersion !== recoveryRequestVersion || session.value?.id !== currentSession.id) return
+
+  const directBookingState = resolvePublicBookingRecovery({
+    profileStatus: 'available',
+    profile,
+    slotsStatus: 'loading',
+  })
+  if (directBookingState !== 'loading') {
+    recoveryState.value = directBookingState
+    return
+  }
+
+  try {
+    const horizonRange = getPublicBookingHorizonRange(profile)
+    const slots = await apiGet<PublicSlot[]>('/booking/slots/', {
+      params: {
+        therapist_id: profile.therapist_id,
+        ...horizonRange,
+      },
+    })
+    if (requestVersion !== recoveryRequestVersion || session.value?.id !== currentSession.id) return
+
+    recoveryState.value = resolvePublicBookingRecovery({
+      profileStatus: 'available',
+      profile,
+      slotsStatus: 'success',
+      slotsCount: Array.isArray(slots) ? slots.length : 0,
+    })
+  } catch {
+    if (requestVersion !== recoveryRequestVersion || session.value?.id !== currentSession.id) return
+    recoveryState.value = 'request_after_availability_error'
+  }
+}
+
 async function loadSlots() {
   if (!session.value) return
   slotsLoading.value = true
@@ -541,6 +639,17 @@ async function loadRescheduleSuggestions() {
   }
 }
 
+async function loadSessionRelatedData() {
+  const canLoadRescheduleData = Boolean(
+    session.value && ['SCHEDULED', 'CONFIRMED'].includes(session.value.status)
+  )
+
+  await Promise.all([
+    ...(canLoadRescheduleData ? [loadSlots(), loadRescheduleSuggestions()] : []),
+    loadRecovery(),
+  ])
+}
+
 async function cancelSession() {
   if (!session.value) return
   actionLoading.value = true
@@ -548,6 +657,7 @@ async function cancelSession() {
   try {
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
+    await loadSessionRelatedData()
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
     return
@@ -610,7 +720,17 @@ async function applySelectedSuggestion() {
 
 onMounted(async () => {
   await loadSession()
-  await Promise.all([loadSlots(), loadRescheduleSuggestions()])
+  await loadSessionRelatedData()
+})
+
+watch(sessionId, async () => {
+  recoveryRequestVersion += 1
+  await loadSession()
+  await loadSessionRelatedData()
+})
+
+onBeforeUnmount(() => {
+  recoveryRequestVersion += 1
 })
 </script>
 

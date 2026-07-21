@@ -975,6 +975,10 @@ import {
   type PublicJournalCollectionListItem,
 } from '../lib/api'
 import { getCompletedSessionsBadge } from '../lib/completedSessionsBadge'
+import {
+  getPublicBookingHorizonRange,
+  resolvePublicBookingRecovery,
+} from '../lib/publicBookingRecovery'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
 
@@ -1039,6 +1043,8 @@ const DIRECT_BOOKING_CTA_HELPER_TEXT =
   'Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.'
 const NO_SLOTS_REQUEST_HELPER_TEXT =
   'Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.'
+const AVAILABILITY_ERROR_REQUEST_HELPER_TEXT =
+  'Не вдалося завантажити вільний час. Ви можете залишити запит спеціалісту.'
 const REQUEST_CTA_TOOLTIP_TEXT =
   'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед запитом.'
 const CONSULTATION_OFFER_LABELS: Record<ConsultationOfferType, string> = {
@@ -1129,6 +1135,7 @@ const slotsLoading = ref(false)
 const slotsLoaded = ref(false)
 const horizonSlotsLoading = ref(false)
 const horizonSlotsLoaded = ref(false)
+const horizonSlotsError = ref(false)
 const error = ref('')
 const ownerUnpublishedProfile = ref(false)
 const slotsError = ref('')
@@ -1140,6 +1147,7 @@ const clientBookingConfirmSlotId = ref<number | null>(null)
 const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
 const showGuestBookingModal = ref(false)
+const requestIntentConsumedFor = ref('')
 const guestBookingSlot = ref<PublicSlot | null>(null)
 const guestBookingSubmitting = ref(false)
 const guestBookingSubmitSlotId = ref<number | null>(null)
@@ -1226,6 +1234,20 @@ const isPublicSlotBookingMode = computed(() => {
   return true
 })
 const publicDirectBookingEnabled = computed(() => isPublicSlotBookingMode.value)
+const publicBookingRecovery = computed(() =>
+  resolvePublicBookingRecovery({
+    profileStatus: loading.value ? 'loading' : profile.value ? 'available' : 'unavailable',
+    profile: profile.value,
+    slotsStatus: !publicDirectBookingEnabled.value
+      ? 'not_required'
+      : horizonSlotsLoading.value || !horizonSlotsLoaded.value
+        ? 'loading'
+        : horizonSlotsError.value
+          ? 'error'
+          : 'success',
+    slotsCount: horizonSlots.value.length,
+  })
+)
 const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
 const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
 const needsSessionFormatChoice = computed(
@@ -1237,6 +1259,9 @@ const resolvedSessionFormat = computed<SessionFormat | null>(() => {
   if (!hasOnlineBooking.value && hasOfflineBooking.value) return 'offline'
   return null
 })
+const canOpenPublicRequestFlow = computed(
+  () => Boolean(profile.value && resolvedSessionFormat.value)
+)
 const sessionFormatLabelForBooking = computed(() => {
   if (resolvedSessionFormat.value === 'online') return 'Онлайн'
   if (resolvedSessionFormat.value === 'offline') return 'Офлайн'
@@ -1424,23 +1449,23 @@ const isConfirmedProfileOwner = computed(
 )
 const showInquiryEntry = computed(() => {
   if (!isAuthenticated.value || !isClient.value || !profile.value || !inquiryState.value) return false
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return false
+  if (!publicDirectBookingEnabled.value || usesPublicRequestFlow.value) return false
   return inquiryState.value.inquiry_status !== 'ACTIVE_CLIENT'
 })
 const showInquiryPanel = computed(() => {
   if (!isAuthenticated.value || !isClient.value || !profile.value) return false
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return false
+  if (!publicDirectBookingEnabled.value || usesPublicRequestFlow.value) return false
   if (hasActiveClientRelation.value) return false
   return inquiryLoading.value || Boolean(inquiryState.value)
 })
 const showRailInquiryCta = computed(() => Boolean(showInquiryEntry.value && publicDirectBookingEnabled.value))
 const showRailRequestCta = computed(() => {
-  if (publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value) return true
+  if (publicDirectBookingEnabled.value && !usesPublicRequestFlow.value) return true
   if (!canMessageSpecialist.value) return false
-  return !publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value
+  return !publicDirectBookingEnabled.value || usesPublicRequestFlow.value
 })
 const showRequestExplanation = computed(
-  () => !publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value
+  () => !publicDirectBookingEnabled.value || usesPublicRequestFlow.value
 )
 const showRailSlotsCta = computed(() => false)
 const showClosingRequestCta = computed(() => showRailRequestCta.value)
@@ -1453,30 +1478,32 @@ const calendarLeadingBlanks = computed(() => {
 const offerFilteredMonthSlots = computed(() =>
   monthSlots.value.filter((slot) => isSlotCompatibleWithSelectedPublicOffer(slot))
 )
-const offerFilteredHorizonSlots = computed(() =>
-  horizonSlots.value.filter((slot) => isSlotCompatibleWithSelectedPublicOffer(slot))
-)
 const slotsByLocalDate = computed(() => groupSlotsByLocalDate(offerFilteredMonthSlots.value))
 const monthHasSlots = computed(() => offerFilteredMonthSlots.value.length > 0)
-const hasSlotsInBookingHorizon = computed(() => offerFilteredHorizonSlots.value.length > 0)
 const showDirectBookingRequestFallback = computed(
-  () =>
-    publicDirectBookingEnabled.value &&
-    horizonSlotsLoaded.value &&
-    !horizonSlotsLoading.value &&
-    !hasSlotsInBookingHorizon.value
+  () => publicBookingRecovery.value === 'request'
 )
-const showSlotHeaderActions = computed(() => showDirectBookingRequestFallback.value || canMessageSpecialist.value)
+const showAvailabilityErrorRequestFallback = computed(
+  () => publicBookingRecovery.value === 'request_after_availability_error'
+)
+const usesPublicRequestFlow = computed(
+  () => showDirectBookingRequestFallback.value || showAvailabilityErrorRequestFallback.value
+)
+const showSlotHeaderActions = computed(() => usesPublicRequestFlow.value || canMessageSpecialist.value)
 const railRequestCtaLabel = computed(() =>
-  publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value
+  publicDirectBookingEnabled.value && !usesPublicRequestFlow.value
     ? REQUEST_WITHOUT_SLOT_CTA_LABEL
     : REQUEST_GENERIC_CTA_LABEL
 )
 const railRequestHelperText = computed(() =>
-  showDirectBookingRequestFallback.value ? NO_SLOTS_REQUEST_HELPER_TEXT : REQUEST_CTA_HELPER_TEXT
+  showAvailabilityErrorRequestFallback.value
+    ? AVAILABILITY_ERROR_REQUEST_HELPER_TEXT
+    : showDirectBookingRequestFallback.value
+      ? NO_SLOTS_REQUEST_HELPER_TEXT
+      : REQUEST_CTA_HELPER_TEXT
 )
 const closingRequestCtaLabel = computed(() =>
-  publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value
+  publicDirectBookingEnabled.value && !usesPublicRequestFlow.value
     ? REQUEST_WITHOUT_SLOT_CTA_LABEL
     : REQUEST_GENERIC_CTA_LABEL
 )
@@ -1999,7 +2026,7 @@ const heroCtaTitle = computed(() => {
     : 'Звернутися до мене'
 })
 const heroPrimaryLabel = computed(() => {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_GENERIC_CTA_LABEL
+  if (!publicDirectBookingEnabled.value || usesPublicRequestFlow.value) return REQUEST_GENERIC_CTA_LABEL
   return CHOOSE_TIME_CTA_LABEL
 })
 
@@ -2010,8 +2037,8 @@ const primaryActionNextStepCopy = computed(() => {
   if (!publicDirectBookingEnabled.value) {
     return REQUEST_CTA_HELPER_TEXT
   }
-  if (showDirectBookingRequestFallback.value) {
-    return NO_SLOTS_REQUEST_HELPER_TEXT
+  if (usesPublicRequestFlow.value) {
+    return railRequestHelperText.value
   }
   if (isUnsupportedBookingRole.value) {
     return 'Запит на час доступний у ролі клієнта. Натисніть кнопку, щоб переглянути доступні вікна.'
@@ -2020,7 +2047,7 @@ const primaryActionNextStepCopy = computed(() => {
 })
 
 const closingPrimaryLabel = computed(() => {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_GENERIC_CTA_LABEL
+  if (!publicDirectBookingEnabled.value || usesPublicRequestFlow.value) return REQUEST_GENERIC_CTA_LABEL
   return CHOOSE_TIME_CTA_LABEL
 })
 
@@ -2040,7 +2067,7 @@ const closingCtaSupportLine = computed(() => {
 const closingSecondaryKind = computed<'sessions' | 'slots' | 'contact' | 'none'>(() => {
   if (showClientSessionsCta.value) return 'sessions'
   if (hasPublicContactCta.value) return 'contact'
-  if (publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value) return 'none'
+  if (publicDirectBookingEnabled.value && !usesPublicRequestFlow.value) return 'none'
   return 'none'
 })
 
@@ -2998,20 +3025,6 @@ function toApiMonthRange(monthStart: string) {
   }
 }
 
-function addDays(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount)
-}
-
-function toApiBookingHorizonRange() {
-  const today = new Date()
-  const rawHorizonDays = Number(profile.value?.public_booking_horizon_days)
-  const horizonDays = Number.isFinite(rawHorizonDays) && rawHorizonDays > 0 ? rawHorizonDays : 14
-  return {
-    date_from: toLocalDate(today),
-    date_to: toLocalDate(addDays(today, horizonDays)),
-  }
-}
-
 function addMonths(monthStart: string, amount: number) {
   const date = parseLocalDateValue(monthStart)
   return toLocalMonthStart(new Date(date.getFullYear(), date.getMonth() + amount, 1))
@@ -3222,7 +3235,7 @@ function retryContactActionFallback() {
 }
 
 function handleHeroPrimaryAction() {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) {
+  if (!publicDirectBookingEnabled.value || usesPublicRequestFlow.value) {
     openGuestBookingModal()
     return
   }
@@ -3235,6 +3248,24 @@ function handleClosingPrimaryAction() {
 
 function handlePublicRequestAction() {
   openGuestBookingModal()
+}
+
+async function consumeRequestIntent() {
+  if (String(route.query.intent || '') !== 'request') return
+  if (!profile.value || loading.value || !canOpenPublicRequestFlow.value) return
+
+  const intentKey = `${slug.value}:request`
+  if (requestIntentConsumedFor.value === intentKey) return
+  requestIntentConsumedFor.value = intentKey
+  openGuestBookingModal()
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.intent
+  await router.replace({
+    path: route.path,
+    query: nextQuery,
+    hash: route.hash,
+  })
 }
 
 function isMyInquiryMessage(senderId: number) {
@@ -3344,13 +3375,15 @@ async function loadHorizonSlots() {
     horizonSlots.value = []
     horizonSlotsLoading.value = false
     horizonSlotsLoaded.value = true
+    horizonSlotsError.value = false
     return
   }
 
   horizonSlotsLoading.value = true
   horizonSlotsLoaded.value = false
+  horizonSlotsError.value = false
   try {
-    const horizonRange = toApiBookingHorizonRange()
+    const horizonRange = getPublicBookingHorizonRange(profile.value)
     const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
       params: {
         therapist_id: profile.value.therapist_id,
@@ -3370,6 +3403,7 @@ async function loadHorizonSlots() {
     }
   } catch {
     horizonSlots.value = []
+    horizonSlotsError.value = true
   } finally {
     horizonSlotsLoading.value = false
     horizonSlotsLoaded.value = true
@@ -4260,6 +4294,8 @@ watch(slug, () => {
   slotsLoaded.value = false
   horizonSlotsLoaded.value = false
   horizonSlotsLoading.value = false
+  horizonSlotsError.value = false
+  requestIntentConsumedFor.value = ''
   didAutoShiftToFirstAvailableMonth.value = false
   monthSlotsCache.clear()
   selectedPublicOfferType.value = null
@@ -4313,6 +4349,14 @@ watch([isAuthenticated, isClient], () => {
     closeGuestBookingModal()
   }
 })
+
+watch(
+  [() => route.query.intent, profile, loading, canOpenPublicRequestFlow],
+  () => {
+    void consumeRequestIntent()
+  },
+  { immediate: true }
+)
 
 watch(
   [() => route.hash, showInquiryPanel],

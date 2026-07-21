@@ -16,13 +16,24 @@ use a compact mobile select, direction mode waits for an explicit direction
 before loading results, and the directory count uses Ukrainian inflection.
 
 KAN-48 refines the existing public specialist profile presentation without
-changing API routes, booking behavior, privacy contracts, or backend code:
+changing API routes, privacy contracts, or backend code:
 - desktop content and sidebar spacing are widened within a centered safe layout;
 - authored public work, request, journal, document, contact, and booking data
   remain the only profile sources;
 - the public journal CTA appears only when public posts are available;
 - public review publication consent remains a backend follow-up; no review
   behavior was changed in the frontend.
+
+Cancelled and no-show client sessions now use the current public-profile
+booking mode and availability before rendering a recovery CTA:
+- available direct-booking slots lead to `/s/:slug#slots`;
+- request-only, hidden availability, and an empty direct-booking horizon lead
+  to `/s/:slug?intent=request`, which opens the existing generic request flow
+  once and removes only that intent query parameter;
+- availability-loading failure uses the request CTA with distinct helper copy,
+  rather than claiming that no slots exist;
+- unavailable public profiles render no recovery CTA; external guest-session
+  cancellation remains a separate backend follow-up.
 
 Canonical backend contract:
 backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
