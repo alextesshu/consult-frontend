@@ -270,7 +270,7 @@ describe('PublicTherapistsView', () => {
     const details = screen.getByText('Знайти конкретного спеціаліста').closest('details') as HTMLDetailsElement
     expect(details.open).toBe(false)
     details.open = true
-    await fireEvent.click(details)
+    await fireEvent.click(details.querySelector('summary')!)
     const input = screen.getByLabelText('Ім’я або посилання')
     await fireEvent.update(input, 'Ол')
     await fireEvent.submit(input.closest('form')!)
@@ -280,6 +280,24 @@ describe('PublicTherapistsView', () => {
     await fireEvent.update(input, 'https://proconsult.space/s/olena')
     await fireEvent.submit(input.closest('form')!)
     await waitFor(() => expect(legacy).toHaveBeenCalledWith({ name: 'olena', page_size: 5 }))
+  })
+
+  it('renders one collapsed exact lookup above the directory count and cards', async () => {
+    await renderView()
+
+    const lookups = screen.getAllByText('Знайти конкретного спеціаліста')
+    const details = lookups[0]!.closest('details') as HTMLDetailsElement
+    const count = await screen.findByRole('heading', { name: '1 спеціаліст' })
+    const card = screen.getByRole('link', { name: /Олена Коваль/ })
+
+    expect(lookups).toHaveLength(1)
+    expect(details.open).toBe(false)
+    expect(details.compareDocumentPosition(count) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(details.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    details.open = true
+    expect(details).toHaveAttribute('open')
+    expect(screen.getByLabelText('Ім’я або посилання')).toBeInTheDocument()
   })
 
   it('falls back to public_slug when a discovery path is nullable', async () => {

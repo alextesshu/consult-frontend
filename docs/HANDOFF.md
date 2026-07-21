@@ -29,7 +29,8 @@ backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
 
 The frontend calls `GET /api/public/specialists/discovery/` for directory
 discovery. The current name/slug lookup and direct profile routes remain
-unchanged; the lookup is retained as a secondary path in the directory UI.
+unchanged; the separate exact lookup appears above directory results and keeps
+its existing secondary-flow behavior.
 
 Short professional introduction copy is clarified locally and not
 pushed/deployed:

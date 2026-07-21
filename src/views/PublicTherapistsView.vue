@@ -73,6 +73,22 @@
       </p>
     </section>
 
+    <details class="legacy-lookup">
+      <summary>Знайти конкретного спеціаліста</summary>
+      <div class="legacy-lookup__content">
+        <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
+        <form class="query-form" @submit.prevent="submitLegacySearch">
+          <label for="legacy-specialist-search">Ім’я або посилання</label>
+          <div class="query-form__row"><input id="legacy-specialist-search" v-model="legacyQuery" class="input" type="text" autocomplete="off" /><button class="btn" type="submit">Знайти профіль</button></div>
+          <p v-if="legacyValidation" class="form-error">{{ legacyValidation }}</p>
+        </form>
+        <LoadingSkeleton v-if="legacyLoading" variant="card" :count="2" height="150px" />
+        <EmptyState v-else-if="legacyError" title="Не вдалося виконати пошук" description="Спробуйте ще раз трохи пізніше."><template #actions><button class="btn btn--ghost" type="button" @click="retryLegacySearch">Спробувати ще раз</button></template></EmptyState>
+        <EmptyState v-else-if="legacySearched && legacyResults.length === 0" title="Профіль не знайдено" description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання." />
+        <div v-else-if="legacyResults.length" class="result-list legacy-lookup__results"><PublicSpecialistCard v-for="item in legacyResults" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" /></div>
+      </div>
+    </details>
+
     <section class="results" :aria-busy="loading" aria-live="polite">
       <p v-if="isPendingDirection" class="direction-pending">Оберіть професійний напрям, щоб переглянути спеціалістів.</p>
       <template v-else>
@@ -110,21 +126,6 @@
       </template>
     </section>
 
-    <details class="legacy-lookup">
-      <summary>Знайти конкретного спеціаліста</summary>
-      <div class="legacy-lookup__content">
-        <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
-        <form class="query-form" @submit.prevent="submitLegacySearch">
-          <label for="legacy-specialist-search">Ім’я або посилання</label>
-          <div class="query-form__row"><input id="legacy-specialist-search" v-model="legacyQuery" class="input" type="text" autocomplete="off" /><button class="btn" type="submit">Знайти профіль</button></div>
-          <p v-if="legacyValidation" class="form-error">{{ legacyValidation }}</p>
-        </form>
-        <LoadingSkeleton v-if="legacyLoading" variant="card" :count="2" height="150px" />
-        <EmptyState v-else-if="legacyError" title="Не вдалося виконати пошук" description="Спробуйте ще раз трохи пізніше."><template #actions><button class="btn btn--ghost" type="button" @click="retryLegacySearch">Спробувати ще раз</button></template></EmptyState>
-        <EmptyState v-else-if="legacySearched && legacyResults.length === 0" title="Профіль не знайдено" description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання." />
-        <div v-else-if="legacyResults.length" class="result-list legacy-lookup__results"><PublicSpecialistCard v-for="item in legacyResults" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" /></div>
-      </div>
-    </details>
   </section>
 </template>
 
