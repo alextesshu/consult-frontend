@@ -36,13 +36,13 @@
             type="button"
             @click="emit('about-action')"
           >
-            Детальніше про мене
+            Більше про мене
           </button>
         </div>
 
         <div v-if="profile && (displaySpecializationChips.length || generalInfoItems.length)" class="hero-main__details">
-          <section v-if="displaySpecializationChips.length" class="hero-section" aria-label="Спеціалізації">
-            <h2 class="hero-section__title">Спеціалізації</h2>
+          <section v-if="displaySpecializationChips.length" class="hero-section" aria-label="Мої спеціалізації">
+            <h2 class="hero-section__title">Мої спеціалізації</h2>
             <div class="hero-trust">
               <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
             </div>

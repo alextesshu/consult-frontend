@@ -30,7 +30,7 @@ const mockRouter = {
 
 const mockAuth = {
   accessToken: '',
-  user: null as null | { roles: string[] },
+  user: null as null | { id?: number; roles: string[] },
   me: null as null | { user: { id?: number; roles: string[] } },
 }
 
@@ -315,7 +315,7 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a><slot /></a>',
+          template: '<a href="#" :data-target="JSON.stringify(to)"><slot /></a>',
         },
       },
     },
@@ -425,14 +425,14 @@ describe('PublicProfileView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    const { container } = renderView()
+    renderView()
 
     expect(await screen.findByText('Загальна інформація')).toBeInTheDocument()
     expect(screen.queryByText('Профіль спеціаліста')).not.toBeInTheDocument()
     expect(screen.queryByText('Швидкий огляд')).not.toBeInTheDocument()
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Професійний профіль' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Моя професійна підготовка' })).toBeInTheDocument()
     expect(
       screen.getByText(/Цей розділ містить інформацію, яку спеціаліст вирішив опублікувати/i)
     ).toBeInTheDocument()
@@ -448,24 +448,22 @@ describe('PublicProfileView', () => {
       'true'
     )
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Принципи профілю' })).toBeInTheDocument()
+    expect(screen.getByText('Як працює публічний профіль Pro Consult')).toBeInTheDocument()
     expect(screen.getByText(/Профіль не є рейтингом або рекомендацією платформи/i)).toBeInTheDocument()
     expect(
       screen.getByText(/Приватні нотатки й робочі матеріали не використовуються для публічного профілю або пошуку/i)
     ).toBeInTheDocument()
-    expect(screen.getByText('Контакти спеціаліста')).toBeInTheDocument()
+    expect(screen.getByText('Мої контакти')).toBeInTheDocument()
     expect(screen.getByText('hello@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Скопіювати Email: hello@example.com' })).toBeInTheDocument()
     expect(screen.queryByText('Скопіювати')).not.toBeInTheDocument()
     const generalInfo = screen.getByLabelText('Загальна інформація')
     expect(within(generalInfo).getByText('Локація')).toBeInTheDocument()
     expect(within(generalInfo).queryByText('Офлайн локація')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Спеціалізації')).toBeInTheDocument()
+    expect(screen.getByLabelText('Мої спеціалізації')).toBeInTheDocument()
     expect(screen.queryByText('Тривога, Вигорання · Київ')).not.toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
-    expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
     expect(screen.getByText('Правила потрібно підтвердити один раз для цього спеціаліста.')).toBeInTheDocument()
-    expect(container).toHaveTextContent('Дуже уважний підхід.')
   })
 
   it('renders the exact public display name without automatic shortening', async () => {
@@ -567,7 +565,7 @@ describe('PublicProfileView', () => {
 
     await screen.findByRole('heading', { name: 'Оберіть час для запиту' })
     expect(screen.queryByText('Зв’язок зі спеціалістом')).not.toBeInTheDocument()
-    const contactBlockTitle = screen.getByText('Контакти спеціаліста')
+    const contactBlockTitle = screen.getByText('Мої контакти')
     expect(contactBlockTitle.closest('.identity-rail__contacts')).toBeTruthy()
     const documentsHeading = screen.getByRole('heading', { name: 'Документи та сертифікати' })
     expect(screen.getByText('Маю профільну психологічну освіту.')).toBeInTheDocument()
@@ -748,7 +746,7 @@ describe('PublicProfileView', () => {
     })
 
     const { container } = renderView()
-    const aboutButton = await screen.findByRole('button', { name: 'Детальніше про мене' })
+    const aboutButton = await screen.findByRole('button', { name: 'Більше про мене' })
 
     expect(container.querySelector('#about-me')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Про мене' })).not.toBeInTheDocument()
@@ -757,6 +755,177 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Про мене' })).toBeInTheDocument()
     expect(screen.getByText('Працюю з тривогою.')).toBeInTheDocument()
+  })
+
+  it('uses professional focus as the hero role only when there is no authored public summary', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({ professional_focus: 'psychological_practice' })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Психологічна практика')).toBeInTheDocument()
+  })
+
+  it('shows the cabinet reviews shortcut only to the confirmed specialist owner', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.user = { id: 12, roles: ['SPECIALIST'] }
+    mockAuth.me = { user: { id: 12, roles: ['SPECIALIST'] } }
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') throw new Error('Public reviews must not be requested')
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const reviewsLink = await screen.findByRole('link', { name: 'Мої відгуки' })
+    expect(reviewsLink).toHaveAttribute('data-target', JSON.stringify('/cabinet/reviews'))
+    expect(screen.queryByRole('link', { name: 'Відгуки' })).not.toBeInTheDocument()
+  })
+
+  it('does not show the cabinet reviews shortcut to an anonymous visitor', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByRole('link', { name: 'Мої відгуки' })).not.toBeInTheDocument()
+  })
+
+  it('does not treat another specialist as the profile owner', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.user = { id: 99, roles: ['SPECIALIST'] }
+    mockAuth.me = { user: { id: 99, roles: ['SPECIALIST'] } }
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByRole('link', { name: 'Мої відгуки' })).not.toBeInTheDocument()
+  })
+
+  it('does not treat authentication alone as a confirmed owner match', async () => {
+    mockAuth.user = { roles: ['SPECIALIST'] }
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 12, roles: ['SPECIALIST'] } }
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByRole('link', { name: 'Мої відгуки' })).not.toBeInTheDocument()
+  })
+
+  it('keeps distinct authored work texts and removes an exact normalized duplicate', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        bio_work: 'Перший опис процесу.',
+        bio_approach: ' Перший опис процесу. ',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const section = (await screen.findByRole('heading', { name: 'Як проходить робота' })).closest('section')
+    expect(section?.querySelectorAll('.scope-text')).toHaveLength(1)
+    expect(section).toHaveTextContent('Перший опис процесу.')
+  })
+
+  it('uses the relationship-based sidebar heading for an authenticated client with an active chat', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.user = { roles: ['CLIENT'] }
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 44,
+        therapist_id: 12,
+        client_id: 7,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 12,
+          role: 'THERAPIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ])
+    mockedFetchInquiryState.mockResolvedValue(
+      buildInquiryState({
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_create_inquiry: false,
+        create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      })
+    )
+    mockClientPageData()
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Продовжити спілкування' })).toBeInTheDocument()
+  })
+
+  it('keeps the safe sidebar heading for an authenticated client without a prior interaction', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.user = { roles: ['CLIENT'] }
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockClientPageData()
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Продовжити спілкування' })).not.toBeInTheDocument()
+  })
+
+  it('announces a generic loading error and retries the public profile request', async () => {
+    mockedFetchPublicSpecialistProfile.mockRejectedValueOnce(new Error('Temporary failure'))
+    mockedFetchPublicSpecialistProfile.mockResolvedValueOnce(buildProfile())
+
+    renderView()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveAttribute('aria-live', 'assertive')
+    await fireEvent.click(screen.getByRole('button', { name: 'Спробувати ще раз' }))
+
+    expect(await screen.findByRole('heading', { name: 'Олена' })).toBeInTheDocument()
+    expect(mockedFetchPublicSpecialistProfile).toHaveBeenCalledTimes(2)
   })
 
   it('shows compact specialist terms reminder in booking sidebar when setting_text is present', async () => {
@@ -796,10 +965,10 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('button', { name: 'Детальніше про мене' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Більше про мене' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Про мене' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Формат роботи' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Основні запити' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Як проходить робота' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'З чим я працюю' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'З чим я не працюю' })).toBeInTheDocument()
     expect(screen.getByText('Не працюю з кризовими станами.')).toBeInTheDocument()
     expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
@@ -818,7 +987,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await screen.findByRole('button', { name: 'Детальніше про мене' })
+    await screen.findByRole('button', { name: 'Більше про мене' })
     expect(screen.queryByRole('heading', { name: 'З чим я не працюю' })).not.toBeInTheDocument()
     expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
   })
@@ -865,6 +1034,7 @@ describe('PublicProfileView', () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({
         bio_work: workStyleParagraphs.join('\n\n'),
+        bio_approach: '',
       })
     )
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
@@ -878,7 +1048,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    const heading = await screen.findByRole('heading', { name: 'Формат роботи' })
+    const heading = await screen.findByRole('heading', { name: 'Як проходить робота' })
     const section = heading.closest('section') as HTMLElement
     const paragraphs = Array.from(section.querySelectorAll('.scope-text'))
 
@@ -910,7 +1080,7 @@ describe('PublicProfileView', () => {
     const { container } = renderView()
 
     await fireEvent.click(
-      await screen.findByRole('button', { name: 'Детальніше про мене' })
+      await screen.findByRole('button', { name: 'Більше про мене' })
     )
     const aboutText = container.querySelector('.about-modal__text')
 
@@ -1014,10 +1184,11 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Поки немає публікацій')).toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByText('Поки немає публікацій')).not.toBeInTheDocument()
     expect(
-      screen.getByText('Коли зʼявляться нові матеріали, вони будуть доступні у цьому розділі.')
-    ).toBeInTheDocument()
+      screen.queryByText('Коли зʼявляться нові матеріали, вони будуть доступні у цьому розділі.')
+    ).not.toBeInTheDocument()
     expect(mockedFetchPublicAuthorJournalPosts).not.toHaveBeenCalled()
     expect(mockedFetchPublicJournalCollections).not.toHaveBeenCalled()
   })
@@ -1082,7 +1253,7 @@ describe('PublicProfileView', () => {
     expect((await screen.findAllByText('Section trust label')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Section trust value').length).toBeGreaterThan(0)
     expect(screen.queryByText('Section about title')).not.toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Детальніше про мене' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Більше про мене' }))
     expect(screen.getByText('Section about body copy.')).toBeInTheDocument()
     expect(screen.getByText('Section topics body.')).toBeInTheDocument()
     expect(screen.getAllByText('Section topic chip').length).toBeGreaterThan(0)
@@ -1095,7 +1266,7 @@ describe('PublicProfileView', () => {
   })
 
   it('renders concrete request chips in main requests without category chips or duplicated text suffix', async () => {
-    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const heading = '\u0417 \u0447\u0438\u043c \u044f \u043f\u0440\u0430\u0446\u044e\u044e'
     const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
     const motivation = '\u041c\u043e\u0442\u0438\u0432\u0430\u0446\u0456\u044f'
     const selfDiscipline = '\u0421\u0430\u043c\u043e\u0434\u0438\u0441\u0446\u0438\u043f\u043b\u0456\u043d\u0430'
@@ -1144,7 +1315,7 @@ describe('PublicProfileView', () => {
   })
 
   it('deduplicates structured request chips from an appended text tail', async () => {
-    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const heading = '\u0417 \u0447\u0438\u043c \u044f \u043f\u0440\u0430\u0446\u044e\u044e'
     const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
     const motivation = '\u041c\u043e\u0442\u0438\u0432\u0430\u0446\u0456\u044f'
     const selfDiscipline = '\u0421\u0430\u043c\u043e\u0434\u0438\u0441\u0446\u0438\u043f\u043b\u0456\u043d\u0430'
@@ -1184,7 +1355,7 @@ describe('PublicProfileView', () => {
   })
 
   it('keeps author-written bullet content as text and does not fall back to category chips', async () => {
-    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const heading = '\u0417 \u0447\u0438\u043c \u044f \u043f\u0440\u0430\u0446\u044e\u044e'
     const coaching = '\u041a\u043e\u0443\u0447\u0438\u043d\u0433'
     const authorBulletText =
       '\u0423 \u0440\u043e\u0431\u043e\u0442\u0456 \u043c\u043e\u0436\u0443 ' +
@@ -1221,7 +1392,7 @@ describe('PublicProfileView', () => {
   })
 
   it('preserves mixed paragraph and bullet formatting from section topics text', async () => {
-    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const heading = '\u0417 \u0447\u0438\u043c \u044f \u043f\u0440\u0430\u0446\u044e\u044e'
     const firstParagraph = '\u041f\u0435\u0440\u0448\u0438\u0439 \u0430\u0431\u0437\u0430\u0446 \u0442\u0435\u043a\u0441\u0442\u0443.'
     const secondParagraph = '\u0414\u0440\u0443\u0433\u0438\u0439 \u0430\u0431\u0437\u0430\u0446 \u0442\u0435\u043a\u0441\u0442\u0443.'
     const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
@@ -1285,7 +1456,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect((await screen.findAllByText('Формат зустрічей')).length).toBeGreaterThan(0)
-    await fireEvent.click(screen.getByRole('button', { name: 'Детальніше про мене' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Більше про мене' }))
     expect(screen.getByText('Працюю з тривогою.')).toBeInTheDocument()
     expect(screen.getByText('Для людей у стресі.')).toBeInTheDocument()
     expect(screen.getAllByText('Тривога').length).toBeGreaterThan(0)
@@ -1293,7 +1464,7 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('hello@example.com')).toBeInTheDocument()
   })
 
-  it('uses sections.reviews as primary source and skips legacy reviews endpoint', async () => {
+  it('does not render public reviews or call the public reviews endpoint', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({
         sections_version: 1,
@@ -1315,43 +1486,36 @@ describe('PublicProfileView', () => {
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/slots/') return [buildTodayLocalSlot()]
-      if (url === '/public/specialists/olena/reviews/') {
-        throw new Error('Legacy reviews endpoint should not be called when sections.reviews exists')
-      }
+      if (url === '/public/specialists/olena/reviews/') throw new Error('Public reviews must not be requested')
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
     renderView()
 
-    expect(await screen.findByText('Section review text')).toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByText('Section review text')).not.toBeInTheDocument()
+    expect(screen.queryByText('Відгуки')).not.toBeInTheDocument()
     const reviewCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/public/specialists/olena/reviews/')
     expect(reviewCalls).toHaveLength(0)
   })
 
-  it('falls back to legacy reviews endpoint when sections.reviews is unavailable', async () => {
+  it('does not request legacy public reviews when the profile has no review section', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
     mockedFetchPublicJournalCollections.mockResolvedValue([])
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/slots/') return [buildTodayLocalSlot()]
-      if (url === '/public/specialists/olena/reviews/') {
-        return [
-          {
-            id: 1,
-            review_text: 'Legacy reviews endpoint text',
-            created_at: '2026-03-19T10:00:00Z',
-          },
-        ]
-      }
+      if (url === '/public/specialists/olena/reviews/') throw new Error('Public reviews must not be requested')
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
     renderView()
 
-    expect(await screen.findByText('Legacy reviews endpoint text')).toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByText('Legacy reviews endpoint text')).not.toBeInTheDocument()
     const reviewCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/public/specialists/olena/reviews/')
-    expect(reviewCalls.length).toBeGreaterThan(0)
+    expect(reviewCalls).toHaveLength(0)
   })
 
   it('renders FAQ and media blocks from sections when provided', async () => {
@@ -3200,9 +3364,9 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Готові зробити перший крок?' })).toBeInTheDocument()
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Залиште запит' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
     expect(bookingCard.getByRole('button', { name: 'Залишити запит' })).toBeInTheDocument()
-    expect(bookingCard.queryByRole('button', { name: 'Обрати час' })).not.toBeInTheDocument()
+    expect(bookingCard.queryByRole('button', { name: 'Записатися на сесію' })).not.toBeInTheDocument()
     expect(screen.queryByText('Запит на сесію')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть час для запиту' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Запит до мене' })).not.toBeInTheDocument()
@@ -3300,7 +3464,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Залиште запит')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
     expect(screen.queryByText('Запит на сесію')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть час для запиту' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
@@ -3349,8 +3513,8 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Оберіть час для запиту' })).toBeInTheDocument()
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
-    expect(bookingCard.getByRole('button', { name: 'Обрати час' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('button', { name: 'Записатися на сесію' })).toBeInTheDocument()
     expect(bookingCard.getByRole('button', { name: 'Залишити запит без вибору часу' })).toBeInTheDocument()
     expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
@@ -3372,8 +3536,8 @@ describe('PublicProfileView', () => {
     renderView()
 
     const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
-    expect(bookingCard.getByRole('button', { name: 'Обрати час' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('button', { name: 'Записатися на сесію' })).toBeInTheDocument()
     expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
     expect(
       bookingCard.getByText('Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.')
@@ -3410,8 +3574,8 @@ describe('PublicProfileView', () => {
       renderView()
 
       const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
-      expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
-      expect(bookingCard.getByRole('button', { name: 'Обрати час' })).toBeInTheDocument()
+      expect(bookingCard.getByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
+      expect(bookingCard.getByRole('button', { name: 'Записатися на сесію' })).toBeInTheDocument()
       expect(bookingCard.queryByRole('heading', { name: 'Немає доступних вікон' })).not.toBeInTheDocument()
       expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
 
@@ -3442,7 +3606,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     await screen.findByRole('heading', { name: 'Оберіть час для запиту' })
-    const primaryButtons = screen.getAllByRole('button', { name: 'Обрати час' })
+    const primaryButtons = screen.getAllByRole('button', { name: 'Записатися на сесію' })
     const railButton = primaryButtons.find((button) => Boolean(button.closest('.identity-rail')))
     expect(railButton).toBeDefined()
 
@@ -3488,9 +3652,9 @@ describe('PublicProfileView', () => {
       expect(screen.queryByText('Завантажуємо вільні вікна')).not.toBeInTheDocument()
     })
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Немає доступних вікон' })).toBeInTheDocument()
+    expect(bookingCard.getByText('Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.')).toBeInTheDocument()
     expect(bookingCard.getByRole('button', { name: 'Залишити запит' })).toBeInTheDocument()
-    expect(bookingCard.queryByRole('button', { name: 'Обрати час' })).not.toBeInTheDocument()
+    expect(bookingCard.queryByRole('button', { name: 'Записатися на сесію' })).not.toBeInTheDocument()
     expect(bookingCard.getByText('Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.')).toBeInTheDocument()
     expect(screen.getByText(/У цьому місяці немає доступних вікон/)).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
@@ -4071,7 +4235,7 @@ describe('PublicProfileView', () => {
     })
   })
 
-  it('shows feedback CTA only when the client has a completed session with this specialist', async () => {
+  it('does not show the owner reviews shortcut to a client with a completed session', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
 
@@ -4126,7 +4290,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findAllByText('Відгуки')).toHaveLength(1)
+    await screen.findByRole('heading', { name: 'Продовжити спілкування' })
+    expect(screen.queryByRole('link', { name: 'Мої відгуки' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відгуки' })).not.toBeInTheDocument()
   })
 
   it('shows inquiry CTA instead of full-chat CTA for a non-active client', async () => {
@@ -4161,7 +4327,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Звернутися до мене' })).toBeInTheDocument()
     expect(await screen.findByText('Коротке питання перед запитом')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Поставити питання перед запитом' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Поставити запитання' })).not.toBeInTheDocument()

@@ -29,7 +29,7 @@ describe('PublicProfileTrustSection', () => {
   it('renders dedicated competence content and keeps documents collapsed by default', () => {
     render(PublicProfileTrustSection, { props: buildProps() })
 
-    expect(screen.getByRole('heading', { name: 'Професійний профіль' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Моя професійна підготовка' })).toBeInTheDocument()
     expect(
       screen.getByText(/Цей розділ містить інформацію, яку спеціаліст вирішив опублікувати/i)
     ).toBeInTheDocument()
@@ -57,7 +57,7 @@ describe('PublicProfileTrustSection', () => {
       },
     })
 
-    expect(screen.getByRole('heading', { name: 'Професійний профіль' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Моя професійна підготовка' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Документи та сертифікати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Показати документи/i })).not.toBeInTheDocument()
   })

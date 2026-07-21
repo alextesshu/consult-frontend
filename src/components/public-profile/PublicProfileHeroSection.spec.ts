@@ -23,7 +23,7 @@ describe('PublicProfileHeroSection', () => {
     })
 
     expect(screen.queryByText('Командний коучинг, Коучинг цілей · Київ')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Спеціалізації')).toBeInTheDocument()
+    expect(screen.getByLabelText('Мої спеціалізації')).toBeInTheDocument()
     expect(screen.getByLabelText('Загальна інформація')).toHaveTextContent('Київ')
   })
 

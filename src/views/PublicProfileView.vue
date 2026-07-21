@@ -1,6 +1,6 @@
 ﻿<template>
   <section class="public">
-    <div v-if="loading" class="muted">Завантаження...</div>
+    <div v-if="loading" class="muted" role="status" aria-live="polite">Завантаження профілю...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
       <div class="panel__header">
         <div>
@@ -16,14 +16,17 @@
         <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
       </div>
     </section>
-    <div v-else-if="error" class="form-error">{{ error }}</div>
+    <section v-else-if="error" class="public__error" role="alert" aria-live="assertive">
+      <p class="form-error">{{ error }}</p>
+      <button class="btn btn--ghost" type="button" @click="retryPublicProfile">Спробувати ще раз</button>
+    </section>
 
     <section v-else-if="profile" class="public__layout">
       <section class="public__hero-col">
         <PublicProfileHeroSection
           :profile="heroMediaProfile"
           :public-name="publicName"
-          hero-role-line=""
+          :hero-role-line="heroRoleLine"
           :hero-lead-text="heroLeadText"
           :hero-support-text="heroSupportText"
           :display-specialization-chips="displaySpecializationChips"
@@ -40,7 +43,6 @@
           :hero-cta-title="heroCtaTitle"
           :hero-primary-label="heroPrimaryLabel"
           :show-client-sessions-cta="showClientSessionsCta"
-          :feedback-link="feedbackLink"
           :primary-action-next-step-copy="primaryActionNextStepCopy"
           :intro-price-display="introPriceDisplay"
           :intro-duration-label="introDurationLabel"
@@ -62,7 +64,9 @@
           :show-slots-cta="showRailSlotsCta"
           :show-inquiry-cta="showRailInquiryCta"
           :inquiry-cta-label="INQUIRY_BEFORE_BOOKING_CTA_LABEL"
-          :show-feedback-cta="showFeedbackCta"
+          :show-owner-reviews-cta="isConfirmedProfileOwner"
+          :show-blog-cta="hasPublicJournalPosts"
+          :blog-link="publicJournalLink"
           @primary-action="handleHeroPrimaryAction"
           @chat-action="openClientChat"
           @request-action="handlePublicRequestAction"
@@ -74,7 +78,7 @@
 
       <section class="public__grid">
         <PublicProfileAboutSection
-          :work-style-text="workStyleText"
+          :work-process-texts="workProcessTexts"
           :work-with-text="whoThisIsForText"
           :work-with-chips="mainRequestChips"
           :who-is-not-suitable-text="whoIsNotSuitableText"
@@ -90,21 +94,6 @@
           :document-kind-label="documentKindLabel"
           :format-date="formatDate"
         />
-
-        <section class="panel panel--profile-principles" aria-labelledby="profilePrinciplesTitle">
-          <div class="panel__header">
-            <div>
-              <p class="panel__eyebrow">Простір практики</p>
-              <h2 id="profilePrinciplesTitle" class="panel__title">Принципи профілю</h2>
-              <p class="panel__lead">
-                Профіль не є рейтингом або рекомендацією платформи. Спеціаліст самостійно визначає,
-                яку інформацію опублікувати, які формати консультацій пропонувати, які межі роботи
-                зазначити та коли приймати запити. Приватні нотатки й робочі матеріали не
-                використовуються для публічного профілю або пошуку.
-              </p>
-            </div>
-          </div>
-        </section>
 
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
@@ -439,14 +428,25 @@
         @navigate-to-post="navigateToPost"
       />
 
+      <section class="panel panel--profile-principles">
+        <details class="profile-principles">
+          <summary>Як працює публічний профіль Pro Consult</summary>
+          <div class="profile-principles__content">
+            <p>
+              Профіль не є рейтингом або рекомендацією платформи. Спеціаліст самостійно визначає,
+              яку інформацію опублікувати, які формати консультацій пропонувати, які межі роботи
+              зазначити та коли приймати запити.
+            </p>
+            <p>
+              Pro Consult показує цю інформацію як частину профілю, але не підтверджує її зміст.
+              Приватні нотатки й робочі матеріали не використовуються для публічного профілю або пошуку.
+            </p>
+          </div>
+        </details>
+      </section>
+
       <PublicProfileMediaSection
         :media-items="mediaItems"
-      />
-
-      <PublicProfileReviewsSection
-        :reviews="displayReviews"
-        :feedback-link="feedbackLink"
-        :format-date="formatDate"
       />
 
       <PublicProfileFaqSection
@@ -454,17 +454,17 @@
       />
 
       <PublicProfileFinalCtaSection
+        v-if="showFinalCta"
+        class="public__final-cta"
         :closing-cta-support-line="closingCtaSupportLine"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
         :closing-primary-label="closingPrimaryLabel"
         :closing-secondary-kind="closingSecondaryKind"
-        :feedback-link="feedbackLink"
         :contact-cta-label="CONTACT_CHOOSER_COPY.ctaLabel"
         :show-chat-cta="canMessageSpecialist"
         chat-cta-label="Написати в чат"
         :show-request-cta="showClosingRequestCta"
         :request-cta-label="closingRequestCtaLabel"
-        :show-feedback-cta="showFeedbackCta"
         @primary-action="handleClosingPrimaryAction"
         @chat-action="openClientChat"
         @request-action="handlePublicRequestAction"
@@ -915,7 +915,6 @@ import PublicProfileHeroSection from '../components/public-profile/PublicProfile
 import PublicProfileIdentityRail from '../components/public-profile/PublicProfileIdentityRail.vue'
 import PublicProfileJournalPreviewSection from '../components/public-profile/PublicProfileJournalPreviewSection.vue'
 import PublicProfileMediaSection from '../components/public-profile/PublicProfileMediaSection.vue'
-import PublicProfileReviewsSection from '../components/public-profile/PublicProfileReviewsSection.vue'
 import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
 import ScrollToTopButton from '../components/ScrollToTopButton.vue'
 import { getApiErrorMessage } from '../lib/errors'
@@ -964,7 +963,6 @@ import {
   type PublicProfileMediaItem,
   type PublicProfilePublicationsPreviewEmptyState,
   type PublicProfilePublicationsPreviewItem,
-  type PublicProfileReviewItem,
   type PublicProfileTopicsSection,
   type PublicProfileTrustItem,
   type PublicProfileTrustSection as PublicProfileTrustSectionData,
@@ -1033,7 +1031,7 @@ const GUEST_BOOKING_SLOT_NEXT_STEP_COPY =
   'Спеціаліст побачить обраний вами час у кабінеті.'
 const REQUEST_GENERIC_CTA_LABEL = 'Залишити запит'
 const REQUEST_WITHOUT_SLOT_CTA_LABEL = 'Залишити запит без вибору часу'
-const CHOOSE_TIME_CTA_LABEL = 'Обрати час'
+const CHOOSE_TIME_CTA_LABEL = 'Записатися на сесію'
 const INQUIRY_BEFORE_BOOKING_CTA_LABEL = 'Поставити питання перед запитом'
 const REQUEST_CTA_HELPER_TEXT =
   'Опишіть коротко, з чим хочете звернутися. Спеціаліст відповість у кабінеті й допоможе узгодити формат та час.'
@@ -1059,18 +1057,6 @@ type ClientSession = {
   slot?: { start_at: string; end_at: string } | null
   slot_start_at?: string | null
   slot_end_at?: string | null
-}
-
-type PublicReview = {
-  id: number
-  review_text: string
-  created_at: string
-}
-
-type PublicReviewView = {
-  id: string
-  review_text: string
-  created_at: string
 }
 
 type PublicFaqItemView = {
@@ -1199,7 +1185,6 @@ const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
 const journalEmptyStateCode = ref<JournalCanonicalEmptyStateCode | null>(null)
-const reviews = ref<PublicReview[]>([])
 type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
 const activeCategory = ref<JournalCategory>('ALL')
 const categoryOptions: { key: JournalCategory; label: string }[] = [
@@ -1223,6 +1208,9 @@ const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const isSpecialist = computed(() =>
+  roles.value.some((role) => ['SPECIALIST', 'THERAPIST'].includes(String(role).toUpperCase()))
+)
 const isGuestVisitor = computed(() => !isAuthenticated.value)
 const isUnsupportedBookingRole = computed(() => isAuthenticated.value && !isClient.value)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
@@ -1364,9 +1352,7 @@ const isSlotBusy = (slotId: number) =>
   (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId)
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
-const hasPublicJournalPosts = computed(
-  () => journalPosts.value.length > 0 || Boolean(journalEmptyStateCode.value)
-)
+const hasPublicJournalPosts = computed(() => journalPosts.value.length > 0)
 const journalCanonicalEmptyStateTitle = computed(() => {
   if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') return 'Власний блог тимчасово вимкнено'
   if (journalEmptyStateCode.value === 'NO_PUBLICATIONS') return 'Поки немає публікацій'
@@ -1425,11 +1411,16 @@ const hasClientHistoryWithSpecialist = computed(
 const showClientSessionsCta = computed(
   () => Boolean(isClient.value && isAuthenticated.value && hasClientHistoryWithSpecialist.value)
 )
-const hasFeedbackEligibleSession = computed(() =>
-  relatedPastSessions.value.some((session) => String(session.status || '').toUpperCase() === 'COMPLETED')
+const hasProvenProfileInteraction = computed(
+  () => hasActiveClientRelation.value || hasClientHistoryWithSpecialist.value
 )
-const showFeedbackCta = computed(
-  () => Boolean(isClient.value && isAuthenticated.value && hasFeedbackEligibleSession.value)
+const isConfirmedProfileOwner = computed(
+  () => Boolean(
+    isAuthenticated.value &&
+      isSpecialist.value &&
+      profile.value?.therapist_id &&
+      auth.user?.id === profile.value.therapist_id
+  )
 )
 const showInquiryEntry = computed(() => {
   if (!isAuthenticated.value || !isClient.value || !profile.value || !inquiryState.value) return false
@@ -1522,7 +1513,6 @@ const sectionsCompetence = computed(() => profile.value?.sections?.competence ||
 const sectionsTopics = computed(() => profile.value?.sections?.topics || null)
 const sectionsFormats = computed(() => profile.value?.sections?.formats || null)
 const sectionsContactActions = computed(() => profile.value?.sections?.contact_actions ?? null)
-const sectionsReviews = computed(() => profile.value?.sections?.reviews || null)
 const sectionsFaq = computed(() => profile.value?.sections?.faq || null)
 const sectionsMedia = computed(() => profile.value?.sections?.media || null)
 
@@ -1711,29 +1701,6 @@ function removeDuplicatedTopicChipLine(text: string, chips: string[]): string {
     .filter((line) => line.trim())
     .join('\n')
     .trim()
-}
-
-function normalizeReviewItemFromSection(
-  item: PublicProfileReviewItem | null | undefined,
-  index: number
-): PublicReviewView | null {
-  if (!item || typeof item !== 'object') return null
-  const reviewText = toDisplayText(item.review_text ?? item.text)
-  if (!reviewText) return null
-  const createdAt = toDisplayText(item.created_at ?? item.published_at)
-  return {
-    id: toDisplayText(item.id) || `section-review-${index}`,
-    review_text: reviewText,
-    created_at: createdAt,
-  }
-}
-
-function resolveSectionReviewItems(): PublicReviewView[] {
-  const source = sectionsReviews.value?.items
-  if (!Array.isArray(source) || source.length === 0) return []
-  return source
-    .map((item, index) => normalizeReviewItemFromSection(item, index))
-    .filter((item): item is PublicReviewView => Boolean(item))
 }
 
 function normalizeFaqItemFromSection(
@@ -1978,6 +1945,21 @@ const heroLeadText = computed(() => {
 
 const heroSupportText = computed(() => '')
 
+const PROFESSIONAL_FOCUS_LABELS: Record<string, string> = {
+  psychological_practice: 'Психологічна практика',
+  coaching_practice: 'Коучингова практика',
+  mentoring_practice: 'Менторська практика',
+  consulting_practice: 'Консультаційна практика',
+  teaching_practice: 'Викладацька практика',
+  other: 'Практика спеціаліста',
+}
+
+const heroRoleLine = computed(() => {
+  if (heroLeadText.value) return ''
+  const focus = String(profile.value?.professional_focus || '').trim()
+  return PROFESSIONAL_FOCUS_LABELS[focus] || ''
+})
+
 const meetingFormatLabel = computed(() => {
   const sectionLabel = toDisplayText(sectionsFormats.value?.meeting_format_label)
   if (sectionLabel) return sectionLabel
@@ -2007,15 +1989,14 @@ const profileLocationDisplay = computed(() => {
   return toDisplayText(profile.value?.location)
 })
 
-const feedbackLink = computed(() => ({
-  name: 'specialist-feedback',
+const publicJournalLink = computed(() => ({
+  name: 'public-journal',
   params: { slug: profile.value?.public_slug || profile.value?.slug || slug.value },
 }))
 const heroCtaTitle = computed(() => {
-  if (canMessageSpecialist.value) return 'Продовжити спілкування'
-  if (showDirectBookingRequestFallback.value) return 'Немає доступних вікон'
-  if (!publicDirectBookingEnabled.value) return 'Залиште запит'
-  return 'Оберіть формат'
+  return hasProvenProfileInteraction.value
+    ? 'Продовжити спілкування'
+    : 'Звернутися до мене'
 })
 const heroPrimaryLabel = computed(() => {
   if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_GENERIC_CTA_LABEL
@@ -2056,12 +2037,23 @@ const closingCtaSupportLine = computed(() => {
   return 'Оберіть зручний формат і час для першого знайомства.'
 })
 
-const closingSecondaryKind = computed<'sessions' | 'reviews' | 'slots' | 'contact' | 'none'>(() => {
+const closingSecondaryKind = computed<'sessions' | 'slots' | 'contact' | 'none'>(() => {
   if (showClientSessionsCta.value) return 'sessions'
-  if (showFeedbackCta.value) return 'reviews'
   if (hasPublicContactCta.value) return 'contact'
   if (publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value) return 'none'
   return 'none'
+})
+
+const showFinalCta = computed(() => {
+  const contentSections = [
+    workProcessTexts.value.length > 0,
+    Boolean(whoThisIsForText.value || mainRequestChips.value.length),
+    Boolean(whoIsNotSuitableText.value),
+    Boolean(competenceEducationSummary.value || competenceEducationItems.value.length || competenceProfessionalDevelopmentItems.value.length || publicDocuments.value.length),
+    publicDirectBookingEnabled.value || showInquiryPanel.value,
+    hasPublicJournalPosts.value,
+  ]
+  return contentSections.filter(Boolean).length >= 3
 })
 
 function formatPriceAmount(value: string | number | null | undefined): string {
@@ -2329,20 +2321,34 @@ const aboutNarrativeText = computed(() =>
   )
 )
 
-const workStyleText = computed(() => {
-  const source = normalizeMultilineText(
+function normalizeExactAuthoredText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+const workProcessTexts = computed(() => {
+  const work = normalizeMultilineText(
+    firstFilledMultilineText(resolveSectionAboutField('bio_work'), profile.value?.bio_work)
+  )
+  const approach = normalizeMultilineText(
+    firstFilledMultilineText(resolveSectionAboutField('bio_approach'), profile.value?.bio_approach)
+  )
+  const fallback = normalizeMultilineText(
     firstFilledMultilineText(
-      resolveSectionAboutField('bio_work'),
-      resolveSectionAboutField('bio_approach'),
       sectionAboutBodyByKeywords(['підхід', 'approach', 'метод', 'стиль', 'працюю']),
       sectionAboutSections.value[2]?.body,
-      sectionAboutSections.value[1]?.body,
-      profile.value?.bio_work,
-      profile.value?.bio_approach
+      sectionAboutSections.value[1]?.body
     )
   )
-  if (!source) return ''
-  return source === aboutNarrativeText.value ? '' : source
+  const candidates = [work, approach].filter(Boolean)
+  const source = candidates.length ? candidates : fallback ? [fallback] : []
+  const seen = new Set<string>()
+  return source.filter((text) => {
+    if (text === aboutNarrativeText.value) return false
+    const normalized = normalizeExactAuthoredText(text)
+    if (!normalized || seen.has(normalized)) return false
+    seen.add(normalized)
+    return true
+  })
 })
 
 const specialistBookingTermsText = computed(() => {
@@ -2598,18 +2604,6 @@ const contactActions = computed<PublicContactActionViewModel[]>(() => {
   return source
     .map((action, index) => normalizePublicContactAction(action, index))
     .filter((action): action is PublicContactActionViewModel => Boolean(action))
-})
-
-const displayReviews = computed<PublicReviewView[]>(() => {
-  const sectionItems = resolveSectionReviewItems()
-  if (sectionsReviews.value && typeof sectionsReviews.value === 'object') {
-    return sectionItems
-  }
-  return reviews.value.map((item, index) => ({
-    id: String(item.id ?? index),
-    review_text: toDisplayText(item.review_text),
-    created_at: toDisplayText(item.created_at),
-  }))
 })
 
 const faqItems = computed<PublicFaqItemView[]>(() => resolveSectionFaqItems())
@@ -3236,15 +3230,7 @@ function handleHeroPrimaryAction() {
 }
 
 function handleClosingPrimaryAction() {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) {
-    openGuestBookingModal()
-    return
-  }
-  if (hasPublicContactCta.value) {
-    openPublicContactCta()
-    return
-  }
-  scrollToSlots()
+  handleHeroPrimaryAction()
 }
 
 function handlePublicRequestAction() {
@@ -3293,6 +3279,19 @@ async function loadProfile() {
   } finally {
     loading.value = false
   }
+}
+
+async function retryPublicProfile() {
+  await loadProfile()
+  if (!profile.value) return
+  await Promise.all([
+    loadHorizonSlots(),
+    loadSlots({ preferFirstAvailable: true }),
+    loadClientSessions(),
+    loadChatThreads(),
+    loadInquiryState(),
+    loadJournal(),
+  ])
 }
 
 async function loadSlots(options: { preferFirstAvailable?: boolean; forceRefresh?: boolean } = {}) {
@@ -3460,22 +3459,6 @@ async function loadJournal() {
     journalError.value = 'Не вдалося завантажити авторський блог.'
   } finally {
     journalLoading.value = false
-  }
-}
-
-async function loadReviews() {
-  if (!slug.value) return
-  if (sectionsReviews.value && typeof sectionsReviews.value === 'object') {
-    reviews.value = []
-    return
-  }
-  try {
-    const resp = await apiGet<PublicReview[]>(`/public/specialists/${slug.value}/reviews/`, {
-      params: { limit: 4 },
-    })
-    reviews.value = resp || []
-  } catch {
-    reviews.value = []
   }
 }
 
@@ -4302,13 +4285,11 @@ watch(slug, () => {
   inquiryError.value = ''
   inquirySubmitError.value = ''
   journalEmptyStateCode.value = null
-  reviews.value = []
   loadProfile().then(async () => {
     await loadHorizonSlots()
     await loadSlots({ preferFirstAvailable: true })
     await loadInquiryState()
     await loadJournal()
-    await loadReviews()
   })
   loadClientSessions()
   loadChatThreads()
@@ -4382,7 +4363,6 @@ onMounted(async () => {
   await loadChatThreads()
   await loadInquiryState()
   await loadJournal()
-  await loadReviews()
 })
 </script>
 
@@ -4390,18 +4370,27 @@ onMounted(async () => {
 .public {
   display: grid;
   gap: 9px;
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  padding-inline: clamp(12px, 2vw, 24px);
   background: transparent;
   border-radius: 0;
-  padding: clamp(7px, 1vw, 11px) 0;
+  padding-block: clamp(7px, 1vw, 11px);
   color: var(--pc-text-main);
 }
 
 .public__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(300px, 22vw, 340px);
-  column-gap: clamp(10px, 1.1vw, 16px);
+  grid-template-columns: minmax(0, 1fr) clamp(310px, 23vw, 340px);
+  column-gap: clamp(20px, 2vw, 28px);
   row-gap: 8px;
   align-items: start;
+}
+
+.public__error {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
 }
 
 .public__hero-col {
@@ -4433,6 +4422,45 @@ onMounted(async () => {
   grid-template-columns: minmax(0, 1fr);
   gap: 7px;
   min-width: 0;
+}
+
+.public__final-cta {
+  display: none;
+}
+
+.panel--profile-principles {
+  grid-column: 1 / -1;
+}
+
+.profile-principles {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, #ffffff);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #ffffff 94%, var(--surface));
+  padding: 0 14px;
+}
+
+.profile-principles summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--pc-navy-900);
+}
+
+.profile-principles__content {
+  max-width: 800px;
+  padding: 0 0 14px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
+}
+
+.profile-principles__content p {
+  margin: 0;
+}
+
+.profile-principles__content p + p {
+  margin-top: 10px;
 }
 
 
@@ -6450,6 +6478,10 @@ onMounted(async () => {
   .public__grid {
     grid-column: 1;
     grid-row: auto;
+  }
+
+  .public__final-cta {
+    display: block;
   }
 
   .public__sidebar {

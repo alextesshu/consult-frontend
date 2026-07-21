@@ -1,14 +1,14 @@
 ﻿<template>
-  <section class="panel profile-content-section" v-if="workStyleText">
+  <section class="panel profile-content-section" v-if="resolvedWorkProcessTexts.length">
     <div class="panel__header">
       <div>
-        <h2 class="panel__title">Формат роботи</h2>
+        <h2 class="panel__title">Як проходить робота</h2>
       </div>
     </div>
-    <div class="scope-blocks">
-      <template v-for="(block, index) in workStyleBlocks" :key="`work-style-block-${index}`">
+    <div v-for="(text, textIndex) in resolvedWorkProcessTexts" :key="`work-process-${textIndex}`" class="scope-blocks">
+      <template v-for="(block, index) in parseAuthoredTextBlocks(text)" :key="`work-style-${textIndex}-${index}`">
         <ul v-if="block.kind === 'list'" class="scope-list">
-          <li v-for="(item, itemIndex) in block.items" :key="`work-style-${index}-${itemIndex}`">{{ item }}</li>
+          <li v-for="(item, itemIndex) in block.items" :key="`work-style-${textIndex}-${index}-${itemIndex}`">{{ item }}</li>
         </ul>
         <p v-else class="scope-text">{{ block.text }}</p>
       </template>
@@ -18,7 +18,7 @@
   <section class="panel profile-content-section" v-if="workWithText || workWithChips.length">
     <div class="panel__header">
       <div>
-        <h2 class="panel__title">Основні запити</h2>
+        <h2 class="panel__title">З чим я працюю</h2>
       </div>
     </div>
     <div v-if="workWithChips.length" class="work-with__chips">
@@ -32,7 +32,7 @@
     </div>
     <div v-if="workWithBlocks.length" class="scope-blocks">
       <template v-for="(block, index) in workWithBlocks" :key="`work-with-block-${index}`">
-        <ul v-if="block.kind === 'list'" class="scope-list">
+        <ul v-if="block.kind === 'list'" class="scope-list" :class="{ 'scope-list--columns': shouldUseTwoColumns(block) }">
           <li v-for="(item, itemIndex) in block.items" :key="`work-with-${index}-${itemIndex}`">{{ item }}</li>
         </ul>
         <p v-else class="scope-text">{{ block.text }}</p>
@@ -48,7 +48,7 @@
     </div>
     <div v-if="whoIsNotSuitableBlocks.length" class="scope-blocks">
       <template v-for="(block, index) in whoIsNotSuitableBlocks" :key="`not-suitable-block-${index}`">
-        <ul v-if="block.kind === 'list'" class="scope-list scope-list--warning">
+        <ul v-if="block.kind === 'list'" class="scope-list scope-list--warning" :class="{ 'scope-list--columns': shouldUseTwoColumns(block) }">
           <li v-for="(item, itemIndex) in block.items" :key="`not-suitable-${index}-${itemIndex}`">
             {{ item }}
           </li>
@@ -63,7 +63,8 @@
 import { computed } from 'vue'
 
 type Props = {
-  workStyleText: string
+  workStyleText?: string
+  workProcessTexts?: string[]
   workWithText: string
   workWithChips: string[]
   whoIsNotSuitableText: string
@@ -83,6 +84,10 @@ function normalizeAuthoredText(rawValue: string): string {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+}
+
+function normalizeWorkProcessComparisonText(rawValue: string): string {
+  return normalizeAuthoredText(rawValue).replace(/\s+/g, ' ').trim()
 }
 
 function parseBulletLine(line: string): string | null {
@@ -135,9 +140,26 @@ function parseAuthoredTextBlocks(rawValue: string): AuthoredTextBlock[] {
   return blocks
 }
 
-const workStyleBlocks = computed(() => parseAuthoredTextBlocks(props.workStyleText))
+const resolvedWorkProcessTexts = computed(() => {
+  const values = props.workProcessTexts?.length ? props.workProcessTexts : [props.workStyleText || '']
+  const seen = new Set<string>()
+
+  return values
+    .map(normalizeAuthoredText)
+    .filter((text) => {
+      if (!text) return false
+      const comparisonText = normalizeWorkProcessComparisonText(text)
+      if (seen.has(comparisonText)) return false
+      seen.add(comparisonText)
+      return true
+    })
+})
 const workWithBlocks = computed(() => parseAuthoredTextBlocks(props.workWithText))
 const whoIsNotSuitableBlocks = computed(() => parseAuthoredTextBlocks(props.whoIsNotSuitableText))
+
+function shouldUseTwoColumns(block: AuthoredTextBlock): boolean {
+  return block.kind === 'list' && block.items.length >= 6
+}
 </script>
 
 <style scoped>
@@ -212,6 +234,7 @@ const whoIsNotSuitableBlocks = computed(() => parseAuthoredTextBlocks(props.whoI
 .scope-blocks {
   display: grid;
   gap: 8px;
+  max-width: 800px;
 }
 
 .scope-list li::marker {
@@ -229,6 +252,13 @@ const whoIsNotSuitableBlocks = computed(() => parseAuthoredTextBlocks(props.whoI
 
 .scope-list--warning li::marker {
   color: color-mix(in srgb, #b27843 74%, var(--muted));
+}
+
+@media (min-width: 800px) {
+  .scope-list--columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
 }
 
 .badge--soft {

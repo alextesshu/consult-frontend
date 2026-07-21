@@ -80,7 +80,6 @@
               {{ requestHelperText }}
             </p>
           </div>
-          <RouterLink v-if="showFeedbackCta" class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>
         <template v-else-if="showClientSessionsCta">
           <div v-if="showRequestExplanation" class="identity-rail__request-action">
@@ -124,7 +123,6 @@
           <RouterLink class="btn btn--ghost" to="/client">
             Мої сесії
           </RouterLink>
-          <RouterLink v-if="showFeedbackCta" class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>
         <template v-else>
           <div v-if="showRequestExplanation" class="identity-rail__request-action">
@@ -169,8 +167,17 @@
         </template>
       </div>
 
+      <div v-if="showBlogCta || showOwnerReviewsCta" class="identity-rail__context-actions">
+        <RouterLink v-if="showBlogCta" class="btn btn--ghost" :to="blogLink">
+          Читати мій блог
+        </RouterLink>
+        <RouterLink v-if="showOwnerReviewsCta" class="btn btn--ghost" to="/cabinet/reviews">
+          Мої відгуки
+        </RouterLink>
+      </div>
+
       <section class="identity-rail__contacts" v-if="showContactActions">
-        <div class="identity-rail__contacts-title">Контакти спеціаліста</div>
+        <div class="identity-rail__contacts-title">Мої контакти</div>
         <div class="identity-rail__contact-list">
           <button
             v-for="item in contactActions"
@@ -226,7 +233,6 @@ type Props = {
   heroCtaTitle: string
   heroPrimaryLabel: string
   showClientSessionsCta: boolean
-  feedbackLink: string | Record<string, unknown>
   primaryActionNextStepCopy: string
   introPriceDisplay: string
   introDurationLabel: string
@@ -248,7 +254,9 @@ type Props = {
   showSlotsCta?: boolean
   showInquiryCta?: boolean
   inquiryCtaLabel?: string
-  showFeedbackCta?: boolean
+  showOwnerReviewsCta?: boolean
+  showBlogCta?: boolean
+  blogLink?: string | Record<string, unknown>
 }
 
 withDefaults(defineProps<Props>(), {
@@ -263,7 +271,9 @@ withDefaults(defineProps<Props>(), {
   showSlotsCta: false,
   showInquiryCta: false,
   inquiryCtaLabel: 'Поставити питання перед записом',
-  showFeedbackCta: false,
+  showOwnerReviewsCta: false,
+  showBlogCta: false,
+  blogLink: '',
   selectedOfferType: null,
 })
 
@@ -370,6 +380,13 @@ defineEmits<{
 .identity-rail__actions {
   display: grid;
   gap: 8px;
+}
+
+.identity-rail__context-actions {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 82%, #ffffff);
 }
 
 .identity-rail__actions .btn {

@@ -26,15 +26,8 @@
         <button v-if="!showChatCta && showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
           {{ requestCtaLabel }}
         </button>
-        <RouterLink
-          v-if="!showChatCta && showFeedbackCta && closingSecondaryKind === 'reviews'"
-          class="btn btn--ghost"
-          :to="feedbackLink"
-        >
-          Відгуки
-        </RouterLink>
         <button
-          v-else-if="!showChatCta && closingSecondaryKind === 'slots'"
+          v-if="!showChatCta && closingSecondaryKind === 'slots'"
           class="btn btn--ghost"
           type="button"
           @click="$emit('scroll-slots')"
@@ -55,20 +48,18 @@
 </template>
 
 <script setup lang="ts">
-type ClosingSecondaryKind = 'sessions' | 'reviews' | 'slots' | 'contact' | 'none'
+type ClosingSecondaryKind = 'sessions' | 'slots' | 'contact' | 'none'
 
 type Props = {
   closingCtaSupportLine: string
   primaryActionNextStepCopy: string
   closingPrimaryLabel: string
   closingSecondaryKind: ClosingSecondaryKind
-  feedbackLink: string | Record<string, unknown>
   contactCtaLabel: string
   showChatCta?: boolean
   chatCtaLabel?: string
   showRequestCta?: boolean
   requestCtaLabel?: string
-  showFeedbackCta?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -76,7 +67,6 @@ withDefaults(defineProps<Props>(), {
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
   requestCtaLabel: 'Залишити запит',
-  showFeedbackCta: false,
 })
 
 defineEmits<{

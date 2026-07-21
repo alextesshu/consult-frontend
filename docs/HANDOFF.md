@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-07-18
+Last updated: 2026-07-21
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -14,6 +14,15 @@ uses that additive public endpoint in the frontend directory.
 KAN-47 directory polish keeps the existing discovery contract: request groups
 use a compact mobile select, direction mode waits for an explicit direction
 before loading results, and the directory count uses Ukrainian inflection.
+
+KAN-48 refines the existing public specialist profile presentation without
+changing API routes, booking behavior, privacy contracts, or backend code:
+- desktop content and sidebar spacing are widened within a centered safe layout;
+- authored public work, request, journal, document, contact, and booking data
+  remain the only profile sources;
+- the public journal CTA appears only when public posts are available;
+- public review publication consent remains a backend follow-up; no review
+  behavior was changed in the frontend.
 
 Canonical backend contract:
 backend repository — docs/DIRECTORY_DISCOVERY_CONTRACT.md
