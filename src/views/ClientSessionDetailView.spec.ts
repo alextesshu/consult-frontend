@@ -500,6 +500,25 @@ describe('ClientSessionDetailView', () => {
     ).toBeInTheDocument()
   })
 
+  it('uses the request flow for cancelled recovery when direct booking has no slots', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(makePublicProfile())
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') return makeSession('CANCELLED')
+      if (url === '/booking/slots/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Залишити запит' })).toHaveAttribute(
+      'href',
+      '/s/olena?intent=request'
+    )
+    expect(
+      screen.getByText('Наразі вільних вікон немає. Залиште запит, і спеціаліст узгодить час окремо.')
+    ).toBeInTheDocument()
+  })
+
   it('does not request slots for request-only recovery', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       makePublicProfile({ public_booking_mode: 'request_only', show_public_availability: false })
