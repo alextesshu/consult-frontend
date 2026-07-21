@@ -683,6 +683,63 @@ describe('TherapistProfileView', () => {
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
   })
 
+  it('keeps unpublish and search disable available for a published incomplete profile', async () => {
+    const profile = makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит')
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    const unpublishButton = await screen.findByRole('button', { name: 'Зняти з публікації' })
+    const searchCheckbox = screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
+
+    expect(screen.getByRole('button', { name: 'Завершити профіль' })).toBeInTheDocument()
+    expect(unpublishButton).toBeEnabled()
+    expect(searchCheckbox).toBeChecked()
+    expect(searchCheckbox).toBeEnabled()
+
+    await fireEvent.click(searchCheckbox)
+
+    expect(searchCheckbox).not.toBeChecked()
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          public_profile_enabled: true,
+          is_search_visible: false,
+        })
+      )
+    })
+  })
+
+  it('blocks search enable but keeps unpublish available for a published incomplete profile', async () => {
+    const profile = makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит')
+    profile.is_search_visible = false
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Зняти з публікації' })).toBeEnabled()
+    const searchCheckbox = screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
+    expect(searchCheckbox).not.toBeChecked()
+    expect(searchCheckbox).toBeDisabled()
+  })
+
+  it('keeps unpublish unavailable and search enable blocked for an unpublished incomplete profile', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeIncompleteProfile())
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Завершити профіль' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зняти з публікації' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).toBeDisabled()
+  })
+
   it('focuses specializations from readiness deep link and preserves other query params', async () => {
     mockRoute.query = { focus: 'specializations', keep: '1' }
     mockedFetchSpecialistProfile.mockResolvedValue(makeIncompleteProfile())

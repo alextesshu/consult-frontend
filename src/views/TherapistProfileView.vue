@@ -74,7 +74,7 @@
             Відкриється сторінка, яку бачать клієнти.
           </p>
           <button
-            v-if="profilePrimaryActionKind === 'open'"
+            v-if="showUnpublishAction"
             class="btn btn--ghost profile-summary-card__secondary-action"
             type="button"
             @click="showDisablePublicProfileConfirm = true"
@@ -179,7 +179,7 @@
               <input
                 v-model="profile.is_search_visible"
                 type="checkbox"
-                :disabled="!canEnableSearchVisibility"
+                :disabled="!canChangeSearchVisibility"
               />
               Показувати сторінку в пошуку Pro Consult
             </label>
@@ -2040,7 +2040,7 @@ function buildProfilePayload() {
   const publicDisplayName = (profile.public_display_name || '').trim()
   return {
     public_profile_enabled: profile.public_profile_enabled,
-    is_search_visible: canEnableSearchVisibility.value ? profile.is_search_visible : false,
+    is_search_visible: profile.is_search_visible,
     public_display_name: publicDisplayName,
     display_name: publicDisplayName,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
@@ -2321,8 +2321,11 @@ const publicProfileReadinessHelper = computed(() =>
     : 'Заповніть обов’язкові дані, щоб опублікувати профіль.'
 )
 
-const canEnableSearchVisibility = computed(() =>
-  Boolean(profile.public_profile_enabled && publicProfileReadiness.value.is_ready)
+const canChangeSearchVisibility = computed(() =>
+  Boolean(
+    profile.public_profile_enabled &&
+      (profile.is_search_visible || publicProfileReadiness.value.is_ready)
+  )
 )
 
 const persistedPublicProfileEnabled = ref(false)
@@ -2339,6 +2342,9 @@ const isPendingPublication = computed(
 )
 const isPendingUnpublication = computed(
   () => Boolean(!profile.public_profile_enabled && persistedPublicProfileEnabled.value)
+)
+const showUnpublishAction = computed(
+  () => Boolean(persistedPublicProfileEnabled.value && !isPendingUnpublication.value)
 )
 const isPendingSearchEnable = computed(
   () => Boolean(profile.is_search_visible && !persistedSearchVisible.value)
