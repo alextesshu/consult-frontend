@@ -577,11 +577,18 @@
       </div>
     </div>
 
-    <div v-if="showGuestBookingModal" ref="guestBookingModalRef" class="setting-modal">
+    <div
+      v-if="showGuestBookingModal"
+      ref="guestBookingModalRef"
+      class="setting-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="guest-booking-modal-title"
+    >
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
       <div class="setting-modal__content guest-booking-modal">
         <div class="setting-modal__header">
-          <h3>{{ guestBookingModalTitle }}</h3>
+          <h3 id="guest-booking-modal-title">{{ guestBookingModalTitle }}</h3>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeGuestBookingModal">
             Закрити
           </button>
@@ -1218,6 +1225,7 @@ const selectedPublicOfferType = ref<ConsultationOfferType | null>(null)
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
+const isAuthResolved = computed(() => Boolean(auth.authResolved))
 const isClient = computed(() => roles.value.includes('CLIENT'))
 const isSpecialist = computed(() =>
   roles.value.some((role) => ['SPECIALIST', 'THERAPIST'].includes(String(role).toUpperCase()))
@@ -3255,15 +3263,17 @@ function handlePublicRequestAction() {
 
 async function consumeRequestIntent() {
   if (String(route.query.intent || '') !== 'request') return
-  if (!profile.value || loading.value || !canOpenPublicRequestFlow.value) return
+  if (!isAuthResolved.value || !profile.value || loading.value || !canOpenPublicRequestFlow.value) return
 
   const intentKey = `${slug.value}:request`
   if (requestIntentConsumedFor.value === intentKey) return
   requestIntentOpeningFor.value = intentKey
-  openGuestBookingModal()
+  handlePublicRequestAction()
   await nextTick()
 
-  if (!showGuestBookingModal.value || !guestBookingModalRef.value) {
+  const requestDialog = guestBookingModalRef.value
+  const requestForm = requestDialog?.querySelector('form.guest-booking-form')
+  if (!showGuestBookingModal.value || !requestDialog?.isConnected || !requestForm) {
     requestIntentOpeningFor.value = ''
     return
   }
@@ -4371,7 +4381,15 @@ watch([isAuthenticated, isClient], () => {
 })
 
 watch(
-  [() => route.query.intent, profile, loading, canOpenPublicRequestFlow, isAuthenticated, isClient],
+  [
+    () => route.query.intent,
+    profile,
+    loading,
+    canOpenPublicRequestFlow,
+    isAuthenticated,
+    isAuthResolved,
+    isClient,
+  ],
   () => {
     void consumeRequestIntent()
   },

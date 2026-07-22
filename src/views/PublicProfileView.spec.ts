@@ -36,6 +36,7 @@ const mockAuth = reactive({
   accessToken: '',
   user: null as null | { id?: number; roles: string[] },
   me: null as null | { user: { id?: number; roles: string[] } },
+  authResolved: true,
 })
 
 const mockToast = {
@@ -362,6 +363,7 @@ describe('PublicProfileView', () => {
     mockAuth.accessToken = ''
     mockAuth.user = null
     mockAuth.me = null
+    mockAuth.authResolved = true
     mockToast.success.mockReset()
     mockToast.error.mockReset()
     mockToast.warning.mockReset()
