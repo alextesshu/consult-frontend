@@ -8,6 +8,10 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+Client profile saving treats the photo as optional: the profile response may
+contain `photo_url: null`, while ordinary name/contact saves omit `photo_url`
+and preserve any existing uploaded photo.
+
 KAN-46 directory discovery backend is implemented and staging-verified. KAN-47
 uses that additive public endpoint in the frontend directory.
 

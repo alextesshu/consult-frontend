@@ -20,7 +20,11 @@
     <section v-else class="profile-card">
       <div class="profile-media">
         <div class="profile-photo">
-          <img v-if="photoPreview || profile.photo_url" :src="photoPreview || profile.photo_url" alt="Фото клієнта" />
+          <img
+            v-if="photoPreview || profile.photo_url"
+            :src="photoPreview || profile.photo_url || undefined"
+            alt="Фото клієнта"
+          />
           <div v-else class="profile-photo__placeholder">Фото</div>
         </div>
         <div class="profile-media__actions">
@@ -349,7 +353,11 @@ async function onSave() {
   saving.value = true
   error.value = ''
   try {
-    profile.value = await updateClientProfile(profile.value)
+    profile.value = await updateClientProfile({
+      display_name: profile.value.display_name,
+      contact_email: profile.value.contact_email,
+      contact_phone: profile.value.contact_phone,
+    })
     toast.success('Профіль збережено.')
     await router.push('/client')
   } catch (err) {

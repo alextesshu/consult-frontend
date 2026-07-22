@@ -66,7 +66,7 @@ function profileFixture(overrides: Partial<ClientProfile> = {}): ClientProfile {
     display_name: 'Марія',
     contact_email: 'maria@example.com',
     contact_phone: '+380991112233',
-    photo_url: '',
+    photo_url: null,
     client_code: 'CL-1007',
     created_at: '2026-06-01T10:00:00Z',
     updated_at: '2026-06-16T10:00:00Z',
@@ -129,6 +129,61 @@ describe('ClientProfileView', () => {
     expect(screen.getByRole('heading', { name: 'Акаунт і дані' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Видалити акаунт' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Скасувати видалення' })).not.toBeInTheDocument()
+  })
+
+  it('loads and saves editable fields without sending an absent photo', async () => {
+    const savedProfile = profileFixture({
+      display_name: 'Updated client',
+      contact_email: 'updated@example.com',
+      contact_phone: '+380501112233',
+    })
+    mockedUpdateClientProfile.mockResolvedValue(savedProfile)
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.profile-form input')).toHaveLength(3)
+    })
+    const inputs = container.querySelectorAll<HTMLInputElement>('.profile-form input')
+    await fireEvent.update(inputs[0]!, 'Updated client')
+    await fireEvent.update(inputs[1]!, 'updated@example.com')
+    await fireEvent.update(inputs[2]!, '+380501112233')
+    await fireEvent.submit(container.querySelector('.profile-form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(mockedUpdateClientProfile).toHaveBeenCalledWith({
+        display_name: 'Updated client',
+        contact_email: 'updated@example.com',
+        contact_phone: '+380501112233',
+      })
+    })
+    expect(mockedUpdateClientProfile.mock.calls[0]?.[0]).not.toHaveProperty('photo_url')
+    expect(mockRouter.push).toHaveBeenCalledWith('/client')
+  })
+
+  it('keeps the existing photo upload flow', async () => {
+    mockedUploadClientPhoto.mockResolvedValue(
+      profileFixture({ photo_url: 'https://signed.example/client-photos/new.jpg' })
+    )
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.querySelector('input[type="file"]')).toBeInTheDocument()
+    })
+    const file = new File(['photo'], 'photo.jpg', { type: 'image/jpeg' })
+    const photoInput = container.querySelector<HTMLInputElement>('input[type="file"]')
+    Object.defineProperty(photoInput, 'files', {
+      configurable: true,
+      value: [file],
+    })
+    await fireEvent(photoInput as HTMLInputElement, new Event('change', { bubbles: true }))
+
+    await waitFor(() => {
+      expect(mockedUploadClientPhoto).toHaveBeenCalledWith(file)
+    })
+    expect(
+      container.querySelector('img[src="https://signed.example/client-photos/new.jpg"]')
+    ).toBeInTheDocument()
   })
 
   it('executes account deletion from confirm modal, clears auth, and redirects', async () => {

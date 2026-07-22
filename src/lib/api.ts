@@ -1938,11 +1938,15 @@ export type ClientProfile = {
   display_name: string
   contact_email: string
   contact_phone: string
-  photo_url: string
+  photo_url: string | null
   client_code?: string
   created_at: string
   updated_at: string
 }
+
+export type ClientProfileUpdate = Partial<
+  Pick<ClientProfile, 'display_name' | 'contact_email' | 'contact_phone' | 'photo_url'>
+>
 
 export type DataDeletionRequestKind = 'ACCOUNT' | 'PUBLIC_GUEST_REQUEST' | string
 
@@ -1987,7 +1991,7 @@ export async function fetchClientProfile(): Promise<ClientProfile> {
 }
 
 export async function updateClientProfile(
-  payload: Partial<ClientProfile>
+  payload: ClientProfileUpdate
 ): Promise<ClientProfile> {
   const resp = await http.patch<ClientProfile>('/client/profile/', payload)
   return resp.data
