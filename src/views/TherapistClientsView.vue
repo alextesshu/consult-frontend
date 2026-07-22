@@ -2844,7 +2844,7 @@
         aria-label="Закрити форму додавання клієнта"
         @click="closeManualClientModal"
       ></button>
-      <form class="manual-client-modal__content" @submit.prevent="submitManualClient">
+      <form class="manual-client-modal__content" @submit.prevent="submitManualClient()">
         <div class="manual-client-modal__header">
           <div>
             <div class="badge badge--soft">Без реєстрації</div>
@@ -2855,6 +2855,24 @@
           </button>
         </div>
         <div v-if="manualClientFormError" class="form-error">{{ manualClientFormError }}</div>
+        <section v-if="manualClientContactConflict" class="form-warning" aria-labelledby="manual-client-contact-conflict-title">
+          <h3 id="manual-client-contact-conflict-title">Схожий клієнт уже є</h3>
+          <p>У вашому списку вже є картка з таким контактом. Перевірте її перед створенням нової.</p>
+          <div class="manual-client-modal__actions">
+            <button
+              v-for="candidate in manualClientContactConflict.candidates"
+              :key="candidate.id"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click="openContactConflictCandidate(candidate)"
+            >
+              Відкрити картку: {{ candidate.display_name }}
+            </button>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="openManualClientDuplicateConfirm">
+            Створити окрему картку
+          </button>
+        </section>
         <div class="manual-client-form">
           <label class="field">
             Імʼя клієнта
@@ -2909,6 +2927,35 @@
         </div>
       </form>
     </div>
+
+    <div
+      v-if="manualClientDuplicateConfirmOpen"
+      class="manual-client-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="manual-client-duplicate-confirm-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Скасувати створення окремої картки"
+        @click="closeManualClientDuplicateConfirm"
+      ></button>
+      <div class="manual-client-modal__content">
+        <div class="manual-client-modal__header">
+          <div>
+            <h2 id="manual-client-duplicate-confirm-title" class="manual-client-modal__title">Створити окрему картку?</h2>
+            <p class="muted">Це створить ще одну картку з таким самим контактом. Продовжити?</p>
+          </div>
+        </div>
+        <div class="manual-client-modal__actions">
+          <button class="btn btn--ghost" type="button" @click="closeManualClientDuplicateConfirm">Скасувати</button>
+          <button class="btn" type="button" :disabled="manualClientSaving" @click="confirmManualClientDuplicate">
+            Створити окрему картку
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -2919,6 +2966,7 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  getClientRecordContactConflict,
   createClientRegularTime,
   createSpecialistClientMaterial,
   deleteClientMaterialAttachment,
@@ -2951,6 +2999,7 @@ import {
   type ClientMaterialType,
   type ClientRecordAccountInvite,
   type ClientRecordAccountInviteResponse,
+  type ClientRecordContactConflictCandidate,
   type SessionFormat,
 } from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
@@ -3030,6 +3079,10 @@ type ManualClientFormState = {
   telegram: string
   internal_note: string
   custom_price_amount: string
+}
+
+type ManualClientContactConflictState = {
+  candidates: ClientRecordContactConflictCandidate[]
 }
 
 type ManualClientSessionFormState = {
@@ -3299,6 +3352,8 @@ const manualClientModalOpen = ref(false)
 const manualClientEditingId = ref<number | null>(null)
 const manualClientSaving = ref(false)
 const manualClientFormError = ref('')
+const manualClientContactConflict = ref<ManualClientContactConflictState | null>(null)
+const manualClientDuplicateConfirmOpen = ref(false)
 const manualClientForm = ref<ManualClientFormState>({
   display_name: '',
   email: '',
@@ -6677,6 +6732,8 @@ function resetManualClientForm() {
     custom_price_amount: '',
   }
   manualClientFormError.value = ''
+  manualClientContactConflict.value = null
+  manualClientDuplicateConfirmOpen.value = false
 }
 
 function openManualClientModal() {
@@ -6688,6 +6745,7 @@ function openManualClientModal() {
 function openManualClientEditModal(client: ManualClientRecord) {
   manualClientEditingId.value = client.id
   manualClientFormError.value = ''
+  manualClientContactConflict.value = null
   manualClientForm.value = {
     display_name: client.display_name || '',
     email: client.email || '',
@@ -6900,7 +6958,7 @@ async function submitManualClientSession() {
   }
 }
 
-function manualClientPayload() {
+function manualClientPayload(allowContactDuplicate = false) {
   const form = manualClientForm.value
   const customPriceAmount = String(form.custom_price_amount ?? '').trim()
   return {
@@ -6911,7 +6969,38 @@ function manualClientPayload() {
     internal_note: form.internal_note.trim() || null,
     custom_price_amount: customPriceAmount || null,
     custom_price_currency: 'UAH',
+    ...(allowContactDuplicate === true ? { allow_contact_duplicate: true } : {}),
   }
+}
+
+function openManualClientDuplicateConfirm() {
+  if (!manualClientContactConflict.value || manualClientEditingId.value !== null) return
+  manualClientDuplicateConfirmOpen.value = true
+}
+
+function closeManualClientDuplicateConfirm() {
+  if (manualClientSaving.value) return
+  manualClientDuplicateConfirmOpen.value = false
+}
+
+async function confirmManualClientDuplicate() {
+  manualClientDuplicateConfirmOpen.value = false
+  await submitManualClient(true)
+}
+
+async function openContactConflictCandidate(candidate: ClientRecordContactConflictCandidate) {
+  await Promise.all([loadClients(), loadManualClientRecords()])
+  const client = loadedClientItems.value.find((item) =>
+    isManualClientRecord(item)
+      ? item.id === candidate.id
+      : Number(item.client_record_id || 0) === candidate.id
+  )
+  if (!client) {
+    manualClientFormError.value = 'Не вдалося відкрити картку клієнта. Оновіть список і спробуйте ще раз.'
+    return
+  }
+  closeManualClientModal()
+  openClientFromList(client)
 }
 
 function manualClientErrorMessage(err: unknown, fallback: string) {
@@ -6954,8 +7043,8 @@ async function confirmArchiveClient() {
   archiveClientConfirm.value = null
 }
 
-async function submitManualClient() {
-  const payload = manualClientPayload()
+async function submitManualClient(allowContactDuplicate = false) {
+  const payload = manualClientPayload(allowContactDuplicate)
 
   if (!payload.display_name) {
     manualClientFormError.value = 'Вкажіть імʼя клієнта.'
@@ -6966,6 +7055,7 @@ async function submitManualClient() {
 
   manualClientSaving.value = true
   manualClientFormError.value = ''
+  manualClientContactConflict.value = null
   error.value = ''
 
   try {
@@ -6980,11 +7070,17 @@ async function submitManualClient() {
 
     manualClientModalOpen.value = false
     manualClientEditingId.value = null
+    manualClientDuplicateConfirmOpen.value = false
     resetManualClientForm()
     if (editingId) {
       toast.success('Дані клієнта оновлено')
     }
   } catch (err: any) {
+    const conflict = getClientRecordContactConflict(err)
+    if (!editingId && conflict) {
+      manualClientContactConflict.value = { candidates: conflict.candidates }
+      return
+    }
     manualClientFormError.value = manualClientErrorMessage(
       err,
       editingId ? 'Не вдалося зберегти зміни.' : 'Не вдалося додати клієнта.'

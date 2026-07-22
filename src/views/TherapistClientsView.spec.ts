@@ -40,6 +40,11 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
+  getClientRecordContactConflict: (err: { response?: { data?: { code?: string; candidates?: unknown[]; detail?: string } } }) => {
+    const data = err?.response?.data
+    if (data?.code !== 'CLIENT_RECORD_CONTACT_CONFLICT' || !Array.isArray(data.candidates)) return null
+    return data
+  },
   createClientRegularTime: vi.fn(),
   materializeClientRegularTimeSessions: vi.fn(),
   createSpecialistClientMaterial: vi.fn(),
@@ -3100,6 +3105,100 @@ describe('TherapistClientsView', () => {
       expect(within(clientsPanel).getAllByText('Без реєстрації').length).toBeGreaterThan(0)
       expect(within(clientsPanel).getAllByText('maria@example.com').length).toBeGreaterThan(0)
     })
+  })
+
+  it('shows contact conflict candidates and creates a separate record only after confirmation', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 501, display_name: 'Наявна картка' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost
+      .mockRejectedValueOnce({
+        response: {
+          data: {
+            code: 'CLIENT_RECORD_CONTACT_CONFLICT',
+            detail: 'Схожий клієнт уже є у вашому списку.',
+            candidates: [
+              {
+                id: 501,
+                display_name: 'Наявна картка',
+                matching_contact_types: ['email'],
+                source: 'manual',
+                has_account: false,
+                archived: false,
+                latest_session_at: null,
+                has_upcoming_session: false,
+              },
+            ],
+          },
+        },
+      })
+      .mockResolvedValueOnce(manualClientRecord({ id: 502, display_name: 'Окрема картка' }) as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    await fireEvent.click(await within(clientsPanel).findByRole('button', { name: 'Додати клієнта' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Додати клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Окрема картка')
+    await fireEvent.update(within(dialog).getByLabelText('Email'), 'same@example.com')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати клієнта' }))
+
+    expect(await within(dialog).findByRole('heading', { name: 'Схожий клієнт уже є' })).toBeInTheDocument()
+    expect(within(dialog).getByText('У вашому списку вже є картка з таким контактом. Перевірте її перед створенням нової.')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Відкрити картку: Наявна картка' })).toBeInTheDocument()
+    expect(mockedApiPost).toHaveBeenCalledTimes(1)
+    expect(mockedApiPatch).not.toHaveBeenCalled()
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити окрему картку' }))
+    const confirmDialog = await screen.findByRole('dialog', { name: 'Створити окрему картку?' })
+    expect(within(confirmDialog).getByText('Це створить ще одну картку з таким самим контактом. Продовжити?')).toBeInTheDocument()
+    await fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Скасувати' }))
+    expect(mockedApiPost).toHaveBeenCalledTimes(1)
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити окрему картку' }))
+    await fireEvent.click((await screen.findByRole('dialog', { name: 'Створити окрему картку?' })).querySelector('.btn:not(.btn--ghost)') as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenLastCalledWith(
+        CLIENT_RECORDS_URL,
+        expect.objectContaining({
+          display_name: 'Окрема картка',
+          email: 'same@example.com',
+          allow_contact_duplicate: true,
+        })
+      )
+    })
+  })
+
+  it('opens the existing candidate card instead of creating or changing it', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 503, display_name: 'Наявна картка' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockRejectedValueOnce({
+      response: {
+        data: {
+          code: 'CLIENT_RECORD_CONTACT_CONFLICT',
+          candidates: [{ id: 503, display_name: 'Наявна картка', matching_contact_types: ['phone'], source: 'manual', has_account: false, archived: false, latest_session_at: null, has_upcoming_session: false }],
+        },
+      },
+    })
+
+    const { container } = renderView()
+    await fireEvent.click(await within(getPanels(container).clientsPanel).findByRole('button', { name: 'Додати клієнта' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Додати клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Нова картка')
+    await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380501112233')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати клієнта' }))
+    await fireEvent.click(await within(dialog).findByRole('button', { name: 'Відкрити картку: Наявна картка' }))
+
+    expect(await screen.findByRole('dialog', { name: 'Картка клієнта' })).toHaveTextContent('Наявна картка')
+    expect(mockedApiPost).toHaveBeenCalledTimes(1)
+    expect(mockedApiPatch).not.toHaveBeenCalled()
   })
 
   it('edits manual client record using display_name payload', async () => {

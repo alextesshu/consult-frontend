@@ -24,6 +24,13 @@ changing API routes, privacy contracts, or backend code:
 - public review publication consent remains a backend follow-up; no review
   behavior was changed in the frontend.
 
+Manual client creation on `/cabinet/clients` handles
+`CLIENT_RECORD_CONTACT_CONFLICT` without automatic data changes: it shows safe
+candidate summaries, opens an existing client card on request, and requires a
+separate confirmation before retrying with `allow_contact_duplicate=true`.
+The UI must not merge, archive, edit, or auto-select a candidate from contact
+equality alone.
+
 Cancelled and no-show client sessions now use the current public-profile
 booking mode and availability before rendering a recovery CTA:
 - available direct-booking slots lead to `/s/:slug#slots`;

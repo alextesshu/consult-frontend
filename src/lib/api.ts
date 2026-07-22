@@ -34,6 +34,31 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
+export type ClientRecordContactConflictCandidate = {
+  id: number
+  display_name: string
+  matching_contact_types: Array<'email' | 'phone' | 'telegram'>
+  source: 'manual' | 'registered'
+  has_account: boolean
+  archived: boolean
+  latest_session_at: string | null
+  has_upcoming_session: boolean
+}
+
+export type ClientRecordContactConflict = {
+  code: 'CLIENT_RECORD_CONTACT_CONFLICT'
+  detail: string
+  candidates: ClientRecordContactConflictCandidate[]
+}
+
+export function getClientRecordContactConflict(err: unknown): ClientRecordContactConflict | null {
+  const data = (err as { response?: { data?: unknown } })?.response?.data
+  if (!data || typeof data !== 'object') return null
+  const candidate = data as Partial<ClientRecordContactConflict>
+  if (candidate.code !== 'CLIENT_RECORD_CONTACT_CONFLICT' || !Array.isArray(candidate.candidates)) return null
+  return candidate as ClientRecordContactConflict
+}
+
 export async function loginWithIdentifier(
   identifier: string,
   password: string
