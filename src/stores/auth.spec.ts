@@ -196,9 +196,10 @@ describe('auth store cookie-based flow', () => {
     expect(auth.accessToken).toBe('')
     expect(auth.user).toBeNull()
     expect(auth.me).toBeNull()
+    expect(auth.authResolved).toBe(true)
   })
 
-  it('resets auth bootstrap state on logout and does not reuse stale resolve promise across login', async () => {
+  it('sets a stable anonymous auth state on logout and does not reuse stale resolve promise across login', async () => {
     const auth = useAuthStore()
     const refreshDeferred = deferred<{ access: string }>()
 
@@ -206,7 +207,7 @@ describe('auth store cookie-based flow', () => {
     const staleResolve = auth.ensureAuthResolved()
 
     auth.logout()
-    expect(auth.authResolved).toBe(false)
+    expect(auth.authResolved).toBe(true)
     expect(auth.accessToken).toBe('')
     expect(auth.user).toBeNull()
     expect(auth.me).toBeNull()

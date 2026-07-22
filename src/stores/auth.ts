@@ -299,7 +299,8 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.beginAuthEpoch()
       this.clearAuthState()
-      this.authResolved = false
+      // Logout is a terminal anonymous state, not a pending authentication check.
+      this.authResolved = true
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
     },

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
+import { defineComponent, type Component } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.vue'
@@ -96,6 +97,7 @@ async function renderWithProviders(options?: {
   notificationsState?: { current: NotificationFeedItem[] }
   upcomingSessions?: any[]
   workQueue?: Record<string, unknown>
+  publicProfileComponent?: Component
 }) {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' } },
@@ -146,7 +148,7 @@ async function renderWithProviders(options?: {
     {
       path: '/s/:slug',
       name: 'public-profile',
-      component: { template: '<div>Public Profile</div>' },
+      component: options?.publicProfileComponent ?? { template: '<div>Public Profile</div>' },
     },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ]
@@ -242,6 +244,29 @@ describe('App shell', () => {
     expect(
       screen.queryByRole('link', { name: 'Спробувати безкоштовно' })
     ).not.toBeInTheDocument()
+  })
+
+  it('keeps a public profile mounted when only its query changes', async () => {
+    const mounted = vi.fn()
+    const PublicProfileProbe = defineComponent({
+      setup() {
+        mounted()
+      },
+      template: '<div>Public Profile Probe</div>',
+    })
+    const { router } = await renderWithProviders({
+      initialPath: '/s/olena?intent=request',
+      publicProfileComponent: PublicProfileProbe,
+    })
+
+    expect(mounted).toHaveBeenCalledTimes(1)
+
+    await router.replace({ path: '/s/olena', query: { source: 'recovery' } })
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.fullPath).toBe('/s/olena?source=recovery')
+    })
+    expect(mounted).toHaveBeenCalledTimes(1)
   })
 
   it('allows guests to open /specialists without redirect to signup-client', async () => {

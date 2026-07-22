@@ -3266,19 +3266,38 @@ async function consumeRequestIntent() {
   if (!isAuthResolved.value || !profile.value || loading.value || !canOpenPublicRequestFlow.value) return
 
   const intentKey = `${slug.value}:request`
-  if (requestIntentConsumedFor.value === intentKey) return
+  if (
+    requestIntentConsumedFor.value === intentKey ||
+    requestIntentOpeningFor.value === intentKey ||
+    requestIntentOpenedFor.value === intentKey
+  ) {
+    return
+  }
   requestIntentOpeningFor.value = intentKey
   handlePublicRequestAction()
   await nextTick()
 
-  const requestDialog = guestBookingModalRef.value
-  const requestForm = requestDialog?.querySelector('form.guest-booking-form')
-  if (!showGuestBookingModal.value || !requestDialog?.isConnected || !requestForm) {
+  const hasMountedGuestRequestForm = () => {
+    const requestDialog = guestBookingModalRef.value
+    const requestForm = requestDialog?.querySelector('form.guest-booking-form')
+    return Boolean(showGuestBookingModal.value && requestDialog?.isConnected && requestForm)
+  }
+
+  if (!hasMountedGuestRequestForm()) {
     requestIntentOpeningFor.value = ''
     return
   }
 
   requestIntentOpenedFor.value = intentKey
+  await nextTick()
+
+  if (!hasMountedGuestRequestForm()) {
+    requestIntentOpeningFor.value = ''
+    requestIntentOpenedFor.value = ''
+    return
+  }
+
+  requestIntentOpeningFor.value = ''
   requestIntentConsumedFor.value = intentKey
 
   const nextQuery = { ...route.query }

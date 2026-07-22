@@ -374,10 +374,10 @@
               </nav>
             </div>
           </div>
-          <RouterView :key="route.fullPath" />
+          <RouterView :key="route.path" />
         </section>
       </div>
-      <RouterView v-else :key="route.fullPath" />
+      <RouterView v-else :key="route.path" />
     </main>
     <ScrollToTopButton v-if="showGlobalScrollTopButton" />
     <ToastHost />

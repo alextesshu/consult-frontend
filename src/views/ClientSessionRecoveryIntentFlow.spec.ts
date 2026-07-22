@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { defineComponent, reactive } from 'vue'
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createMemoryHistory, createRouter, useRoute } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   acceptBookingRules,
@@ -20,6 +20,7 @@ import {
   requestSessionPaymentProof,
   requestSessionPaymentProofClarification,
   sendInquiryMessage,
+  type PublicSpecialistProfile,
   uploadSessionPaymentProof,
 } from '../lib/api'
 import ClientSessionDetailView from './ClientSessionDetailView.vue'
@@ -187,7 +188,16 @@ describe('Client session recovery request intent', () => {
     })
   })
 
-  it('opens the existing request dialog only after auth initialization during real SPA recovery navigation', async () => {
+  it('keeps the recovery intent through a failed auth refresh and opens the real request form once', async () => {
+    let resolveProfile: (value: PublicSpecialistProfile) => void
+    mockedFetchPublicSpecialistProfile.mockReset()
+    mockedFetchPublicSpecialistProfile.mockResolvedValueOnce(publicProfile as any)
+    mockedFetchPublicSpecialistProfile.mockReturnValueOnce(
+      new Promise<PublicSpecialistProfile>((resolve) => {
+        resolveProfile = resolve
+      })
+    )
+
     const router = createTestRouter()
     await router.push('/client/sessions/55')
     await router.isReady()
@@ -201,7 +211,12 @@ describe('Client session recovery request intent', () => {
     }
     document.addEventListener('click', trackSidebarRequestCta)
 
-    render(defineComponent({ template: '<RouterView />' }), {
+    render(defineComponent({
+      setup() {
+        return { route: useRoute() }
+      },
+      template: '<RouterView :key="route.path" />',
+    }), {
       global: { plugins: [router] },
     })
 
@@ -211,11 +226,21 @@ describe('Client session recovery request intent', () => {
       expect(router.currentRoute.value.path).toBe('/s/olena')
       expect(router.currentRoute.value.query.intent).toBe('request')
     })
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-
-    mockAuth.accessToken = 'client-token'
+    mockAuth.accessToken = 'stale-client-token'
     mockAuth.user = { id: 21, roles: ['CLIENT'] }
     mockAuth.me = { user: { id: 21, roles: ['CLIENT'] } }
+    mockAuth.authResolved = true
+    mockAuth.accessToken = ''
+    mockAuth.user = null
+    mockAuth.me = null
+    mockAuth.authResolved = false
+    resolveProfile!(publicProfile as PublicSpecialistProfile)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(router.currentRoute.value.query.intent).toBe('request')
+    })
+
     mockAuth.authResolved = true
 
     expect(await screen.findByRole('dialog', { name: 'Запит на сесію' })).toBeInTheDocument()
@@ -223,6 +248,7 @@ describe('Client session recovery request intent', () => {
     await waitFor(() => {
       expect(router.currentRoute.value.query.intent).toBeUndefined()
     })
+    expect(screen.getByRole('dialog').querySelector('form.guest-booking-form')).toBeTruthy()
     expect(sidebarRequestCtaClick).not.toHaveBeenCalled()
     document.removeEventListener('click', trackSidebarRequestCta)
   })
@@ -233,7 +259,12 @@ describe('Client session recovery request intent', () => {
     await router.push('/s/olena?intent=request')
     await router.isReady()
 
-    render(defineComponent({ template: '<RouterView />' }), {
+    render(defineComponent({
+      setup() {
+        return { route: useRoute() }
+      },
+      template: '<RouterView :key="route.path" />',
+    }), {
       global: { plugins: [router] },
     })
 
