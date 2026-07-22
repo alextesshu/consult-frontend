@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { reactive } from 'vue'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
 import {
@@ -31,11 +32,11 @@ const mockRouter = {
   replace: vi.fn(),
 }
 
-const mockAuth = {
+const mockAuth = reactive({
   accessToken: '',
   user: null as null | { id?: number; roles: string[] },
   me: null as null | { user: { id?: number; roles: string[] } },
-}
+})
 
 const mockToast = {
   success: vi.fn(),
@@ -3707,16 +3708,86 @@ describe('PublicProfileView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
+    mockRouter.replace.mockImplementation(async () => {
+      expect(screen.getByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
+    })
+
     renderView()
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
     await waitFor(() => {
       expect(mockRouter.replace).toHaveBeenCalledWith({
-        path: '/s/olena',
         query: { source: 'recovery' },
         hash: '',
       })
     })
+  })
+
+  it('keeps the recovery intent pending until the profile loads and the request modal mounts', async () => {
+    mockRoute.query = { intent: 'request', source: 'recovery' }
+    let resolveProfile: (profile: PublicSpecialistProfile) => void
+    mockedFetchPublicSpecialistProfile.mockReturnValue(
+      new Promise<PublicSpecialistProfile>((resolve) => {
+        resolveProfile = resolve
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(mockRouter.replace).not.toHaveBeenCalled()
+    resolveProfile!(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+
+    expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        query: { source: 'recovery' },
+        hash: '',
+      })
+    })
+  })
+
+  it('does not let authenticated client initialization close an intent-opened request modal', async () => {
+    mockRoute.query = { intent: 'request' }
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') return []
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
+    mockAuth.accessToken = 'client-token'
+    mockAuth.user = { id: 21, roles: ['CLIENT'] }
+    mockAuth.me = { user: { id: 21, roles: ['CLIENT'] } }
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
+    })
+    expect(mockRouter.replace).toHaveBeenCalledTimes(1)
   })
 
   it('does not consume the recovery request intent without a valid public request format', async () => {

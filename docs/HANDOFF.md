@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-07-21
+Last updated: 2026-07-22
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -29,7 +29,8 @@ booking mode and availability before rendering a recovery CTA:
 - available direct-booking slots lead to `/s/:slug#slots`;
 - request-only, hidden availability, and an empty direct-booking horizon lead
   to `/s/:slug?intent=request`, which opens the existing generic request flow
-  once and removes only that intent query parameter;
+  once after the profile and modal are ready, then removes only that intent
+  query parameter without resetting the open form;
 - availability-loading failure uses the request CTA with distinct helper copy,
   rather than claiming that no slots exist;
 - unavailable public profiles render no recovery CTA; external guest-session

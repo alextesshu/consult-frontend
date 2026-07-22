@@ -577,7 +577,7 @@
       </div>
     </div>
 
-    <div v-if="showGuestBookingModal" class="setting-modal">
+    <div v-if="showGuestBookingModal" ref="guestBookingModalRef" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
       <div class="setting-modal__content guest-booking-modal">
         <div class="setting-modal__header">
@@ -904,7 +904,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
@@ -1148,6 +1148,9 @@ const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
 const showGuestBookingModal = ref(false)
 const requestIntentConsumedFor = ref('')
+const requestIntentOpeningFor = ref('')
+const requestIntentOpenedFor = ref('')
+const guestBookingModalRef = ref<HTMLElement | null>(null)
 const guestBookingSlot = ref<PublicSlot | null>(null)
 const guestBookingSubmitting = ref(false)
 const guestBookingSubmitSlotId = ref<number | null>(null)
@@ -3256,13 +3259,21 @@ async function consumeRequestIntent() {
 
   const intentKey = `${slug.value}:request`
   if (requestIntentConsumedFor.value === intentKey) return
-  requestIntentConsumedFor.value = intentKey
+  requestIntentOpeningFor.value = intentKey
   openGuestBookingModal()
+  await nextTick()
+
+  if (!showGuestBookingModal.value || !guestBookingModalRef.value) {
+    requestIntentOpeningFor.value = ''
+    return
+  }
+
+  requestIntentOpenedFor.value = intentKey
+  requestIntentConsumedFor.value = intentKey
 
   const nextQuery = { ...route.query }
   delete nextQuery.intent
   await router.replace({
-    path: route.path,
     query: nextQuery,
     hash: route.hash,
   })
@@ -3771,6 +3782,7 @@ function guestBookingRequiredFieldMessage(field: 'guest_name' | 'contact_value')
 
 function closeGuestBookingModal() {
   showGuestBookingModal.value = false
+  requestIntentOpenedFor.value = ''
   guestBookingSlot.value = null
   guestBookingError.value = ''
   guestBookingSuccess.value = null
@@ -4287,6 +4299,9 @@ watch(
 )
 
 watch(slug, () => {
+  if (!selectedDate.value) {
+    selectedDate.value = toLocalDate(new Date())
+  }
   profile.value = null
   slots.value = []
   monthSlots.value = []
@@ -4296,6 +4311,8 @@ watch(slug, () => {
   horizonSlotsLoading.value = false
   horizonSlotsError.value = false
   requestIntentConsumedFor.value = ''
+  requestIntentOpeningFor.value = ''
+  requestIntentOpenedFor.value = ''
   didAutoShiftToFirstAvailableMonth.value = false
   monthSlotsCache.clear()
   selectedPublicOfferType.value = null
@@ -4329,7 +4346,7 @@ watch(slug, () => {
   })
   loadClientSessions()
   loadChatThreads()
-})
+}, { immediate: true })
 
 watch(selectedDate, () => {
   showAllSlots.value = false
@@ -4345,13 +4362,16 @@ watch([isAuthenticated, isClient], () => {
   loadClientSessions()
   loadChatThreads()
   loadInquiryState()
-  if (isAuthenticated.value && showGuestBookingModal.value) {
+  const intentKey = `${slug.value}:request`
+  const requestIntentModalIsActive =
+    requestIntentOpeningFor.value === intentKey || requestIntentOpenedFor.value === intentKey
+  if (isAuthenticated.value && showGuestBookingModal.value && !requestIntentModalIsActive) {
     closeGuestBookingModal()
   }
 })
 
 watch(
-  [() => route.query.intent, profile, loading, canOpenPublicRequestFlow],
+  [() => route.query.intent, profile, loading, canOpenPublicRequestFlow, isAuthenticated, isClient],
   () => {
     void consumeRequestIntent()
   },
@@ -4396,18 +4416,6 @@ onBeforeUnmount(() => {
   }
 })
 
-onMounted(async () => {
-  if (!selectedDate.value) {
-    selectedDate.value = toLocalDate(new Date())
-  }
-  await loadProfile()
-  await loadHorizonSlots()
-  await loadSlots({ preferFirstAvailable: true })
-  await loadClientSessions()
-  await loadChatThreads()
-  await loadInquiryState()
-  await loadJournal()
-})
 </script>
 
 <style scoped>
