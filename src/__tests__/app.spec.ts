@@ -17,6 +17,7 @@ import {
   type NotificationFeedItem,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 const mockToast = {
   show: vi.fn(),
@@ -936,6 +937,110 @@ describe('App shell', () => {
 
     await waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe('/client/sessions/41')
+    })
+  })
+
+  it('renders and routes an unread specialist-created session notification', async () => {
+    const startsAt = '2026-07-22T18:30:00Z'
+    const { router } = await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'reminder_delivery:91',
+          kind: 'reminder_event',
+          source_kind: 'reminder_delivery',
+          source_id: 91,
+          code: 'SESSION_CREATED_BY_SPECIALIST',
+          session_id: 70,
+          client_id: 1,
+          slot_start_at: startsAt,
+          target_type: 'session_detail',
+          target_id: 70,
+        }),
+      ],
+    })
+
+    const notificationsButton = screen.getByRole('button', { name: /Сповіщення/i })
+    await waitFor(() => {
+      expect(notificationsButton).toHaveTextContent('1')
+    })
+    await fireEvent.click(notificationsButton)
+
+    const title = await screen.findByText('Додано нову сесію')
+    expect(
+      screen.getByText(
+        `Спеціаліст додав нову сесію на ${formatUkDateTimeCompact(startsAt, '')}.`
+      )
+    ).toBeInTheDocument()
+    const notificationLink = title.closest('a')
+    expect(notificationLink).toHaveAttribute('href', '/client/sessions/70')
+
+    await fireEvent.click(notificationLink as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'reminder_delivery',
+        source_id: 91,
+      })
+      expect(router.currentRoute.value.fullPath).toBe('/client/sessions/70')
+    })
+  })
+
+  it('does not count a read specialist-created session notification', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'reminder_delivery:92',
+          kind: 'reminder_event',
+          source_kind: 'reminder_delivery',
+          source_id: 92,
+          code: 'SESSION_CREATED_BY_SPECIALIST',
+          session_id: 71,
+          read_at: '2026-07-22T18:00:00Z',
+        }),
+      ],
+    })
+
+    const notificationsButton = screen.getByRole('button', { name: /Сповіщення/i })
+    expect(notificationsButton).not.toHaveTextContent('1')
+    await fireEvent.click(notificationsButton)
+    expect(screen.queryByText('Додано нову сесію')).not.toBeInTheDocument()
+  })
+
+  it('keeps read-all and unknown fallback behavior for reminder events', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'reminder_delivery:93',
+          kind: 'reminder_event',
+          source_kind: 'reminder_delivery',
+          source_id: 93,
+          code: 'SESSION_CREATED_BY_SPECIALIST',
+          session_id: 72,
+        }),
+        buildNotification({
+          id: 'reminder_delivery:94',
+          kind: 'reminder_event',
+          source_kind: 'reminder_delivery',
+          source_id: 94,
+          code: 'UNKNOWN_REMINDER_CODE',
+          session_id: 73,
+        }),
+      ],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
+    expect(await screen.findByText('Додано нову сесію')).toBeInTheDocument()
+    expect(screen.getByText(/Нагадування про сесію/)).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Прочитати все' }))
+    await waitFor(() => {
+      expect(mockedMarkAllNotificationsRead).toHaveBeenCalledTimes(1)
     })
   })
 

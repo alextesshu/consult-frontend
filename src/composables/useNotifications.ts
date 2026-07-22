@@ -93,6 +93,7 @@ export function useNotifications({
     if (isPaymentProofRequested(item)) return 'warn'
     if (item.code === 'PAYMENT_CLARIFICATION_REQUESTED') return 'warn'
     if (item.code === 'PAYMENT_CONFIRMED') return 'ok'
+    if (item.code === 'SESSION_CREATED_BY_SPECIALIST') return 'ok'
     if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') return 'ok'
     if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
     if (item.source_kind === 'session_event' && item.code === 'BOOKED') return 'ok'
@@ -121,6 +122,7 @@ export function useNotifications({
       return `\u041E\u043F\u043B\u0430\u0442\u0430: ${counterpartyLabel} \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0432 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438`
     }
     if (item.code === 'SESSION_MEETING_LINK_UPDATED') return 'Посилання на онлайн-зустріч оновлено.'
+    if (item.code === 'SESSION_CREATED_BY_SPECIALIST') return 'Додано нову сесію'
     if (item.code === 'SESSION_MEETING_LINK_REQUESTED') return 'Клієнт попросив додати посилання на зустріч.'
     if (item.code === 'PAYMENT_PROOF_SUBMITTED') {
       return isClient.value ? 'Підтвердження оплати надіслано.' : 'Надійшло підтвердження оплати від клієнта.'
@@ -175,6 +177,11 @@ export function useNotifications({
     }
     if (item.code === 'SESSION_MEETING_LINK_UPDATED') {
       return time ? `Сесія: ${time}${email}` : `Перевірте оновлене посилання на зустріч${email}`
+    }
+    if (item.code === 'SESSION_CREATED_BY_SPECIALIST') {
+      return time
+        ? `Спеціаліст додав нову сесію на ${time}.`
+        : 'Спеціаліст додав нову сесію.'
     }
     if (item.code === 'PAYMENT_PROOF_SUBMITTED') {
       return time ? `Сесія: ${time}${email}` : `Перевірте деталі оплати${email}`

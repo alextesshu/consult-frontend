@@ -8,6 +8,12 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+Specialist-created active sessions already linked to a registered client now
+produce one in-app `SESSION_CREATED_BY_SPECIALIST` notification. The client
+bell renders localized copy and routes to `/client/sessions/{id}`; self-booking,
+email delivery, notification preferences, and historical backfill are
+unchanged.
+
 Client profile saving treats the photo as optional: the profile response may
 contain `photo_url: null`, while ordinary name/contact saves omit `photo_url`
 and preserve any existing uploaded photo.
