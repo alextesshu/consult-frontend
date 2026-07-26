@@ -3556,8 +3556,7 @@ function normalizePublicBookingHorizon(value: unknown): number {
 function currentPublicBookingSettingsSnapshot(): PublicBookingSettingsSnapshot {
   return {
     public_booking_mode: publicBookingMode.value,
-    show_public_availability:
-      publicBookingMode.value === 'direct_booking' ? showPublicAvailability.value : false,
+    show_public_availability: showPublicAvailability.value,
     public_booking_min_lead_time_hours: publicBookingMinLeadTimeHours.value,
     public_booking_horizon_days: publicBookingHorizonDays.value,
     public_booking_requires_confirmation: publicBookingRequiresConfirmation.value,

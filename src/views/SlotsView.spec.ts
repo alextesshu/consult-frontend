@@ -119,6 +119,18 @@ function renderView() {
   })
 }
 
+function publicBookingProfile(showPublicAvailability: boolean) {
+  return {
+    standard_session_duration_minutes: 50,
+    timezone: 'Europe/Kyiv',
+    public_booking_mode: 'direct_booking',
+    show_public_availability: showPublicAvailability,
+    public_booking_min_lead_time_hours: 24,
+    public_booking_horizon_days: 14,
+    public_booking_requires_confirmation: true,
+  } as any
+}
+
 function getCreateFormControls(container: Element) {
   const form = container.querySelector('.slot-form')
   if (!form) throw new Error('Create form not found')
@@ -676,6 +688,122 @@ describe('SlotsView', () => {
       expect(screen.queryByTestId('settings-sticky-save-bar')).not.toBeInTheDocument()
     })
     expect(mockToast.success).toHaveBeenCalledWith('Зміни збережено')
+  })
+
+  it('preserves a true public availability setting across request-only save and back to direct booking', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(true))
+    mockedUpdateSpecialistProfile.mockResolvedValueOnce({
+      ...publicBookingProfile(true),
+      public_booking_mode: 'request_only',
+    })
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    const bookingModeSelect = screen.getByLabelText('Спосіб запису')
+
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).toBeChecked()
+
+    await fireEvent.update(bookingModeSelect, 'request_only')
+    await flushAsyncUpdates()
+
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).toBeChecked()
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти зміни' }).at(-1)!)
+
+    expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        public_booking_mode: 'request_only',
+        show_public_availability: true,
+      })
+    )
+    await waitFor(() => {
+      expect(screen.queryByTestId('settings-sticky-save-bar')).not.toBeInTheDocument()
+    })
+
+    await fireEvent.update(bookingModeSelect, 'direct_booking')
+    await flushAsyncUpdates()
+
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).toBeChecked()
+    expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
+  })
+
+  it('preserves a false public availability setting across request-only save and back to direct booking', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(false))
+    mockedUpdateSpecialistProfile.mockResolvedValueOnce({
+      ...publicBookingProfile(false),
+      public_booking_mode: 'request_only',
+    })
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    const bookingModeSelect = screen.getByLabelText('Спосіб запису')
+
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+
+    await fireEvent.update(bookingModeSelect, 'request_only')
+    await flushAsyncUpdates()
+
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти зміни' }).at(-1)!)
+
+    expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+      })
+    )
+    await waitFor(() => {
+      expect(screen.queryByTestId('settings-sticky-save-bar')).not.toBeInTheDocument()
+    })
+
+    await fireEvent.update(bookingModeSelect, 'direct_booking')
+    await flushAsyncUpdates()
+
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+    expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    { initialAvailability: true },
+    { initialAvailability: false },
+  ])('restores persisted booking settings when cancelling request-only changes ($initialAvailability)', async ({
+    initialAvailability,
+  }) => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(initialAvailability))
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    const bookingModeSelect = screen.getByLabelText('Спосіб запису')
+
+    await fireEvent.update(bookingModeSelect, 'request_only')
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+    await flushAsyncUpdates()
+
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Спосіб запису')).toHaveValue('direct_booking')
+    if (initialAvailability) {
+      expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).toBeChecked()
+    } else {
+      expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+    }
+    expect(screen.queryByText('Є незбережені зміни')).not.toBeInTheDocument()
   })
 
   it('keeps booking settings dirty and retryable when save fails', async () => {
