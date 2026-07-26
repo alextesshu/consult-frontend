@@ -119,11 +119,11 @@ function renderView() {
   })
 }
 
-function publicBookingProfile(showPublicAvailability: boolean) {
+function publicBookingProfile(showPublicAvailability: boolean, publicBookingMode: 'request_only' | 'direct_booking' = 'direct_booking') {
   return {
     standard_session_duration_minutes: 50,
     timezone: 'Europe/Kyiv',
-    public_booking_mode: 'direct_booking',
+    public_booking_mode: publicBookingMode,
     show_public_availability: showPublicAvailability,
     public_booking_min_lead_time_hours: 24,
     public_booking_horizon_days: 14,
@@ -690,6 +690,23 @@ describe('SlotsView', () => {
     expect(mockToast.success).toHaveBeenCalledWith('Зміни збережено')
   })
 
+  it('shows an unavailable availability block without a switch in request-only mode', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(true, 'request_only'))
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(
+      screen.queryByRole('checkbox', { name: 'Показувати доступні вікна у публічному профілі' })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Показ доступних вікон у публічному профілі')).toBeInTheDocument()
+    expect(
+      screen.getByText('Показ доступних вікон застосовується лише для запису на вільний час. Попереднє налаштування збережено.')
+    ).toBeInTheDocument()
+  })
+
   it('preserves a true public availability setting across request-only save and back to direct booking', async () => {
     openAvailabilityRoute({ tab: 'settings' })
     mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(true))
@@ -710,7 +727,13 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
-    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).toBeChecked()
+    expect(
+      screen.queryByRole('checkbox', { name: 'Показувати доступні вікна у публічному профілі' })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Показ доступних вікон у публічному профілі')).toBeInTheDocument()
+    expect(
+      screen.getByText('Показ доступних вікон застосовується лише для запису на вільний час. Попереднє налаштування збережено.')
+    ).toBeInTheDocument()
     expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
 
     await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти зміни' }).at(-1)!)
@@ -728,7 +751,7 @@ describe('SlotsView', () => {
     await fireEvent.update(bookingModeSelect, 'direct_booking')
     await flushAsyncUpdates()
 
-    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Показувати доступні вікна у публічному профілі' })).toBeChecked()
     expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
   })
 
@@ -752,7 +775,13 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
-    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+    expect(
+      screen.queryByRole('checkbox', { name: 'Показувати доступні вікна у публічному профілі' })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Показ доступних вікон у публічному профілі')).toBeInTheDocument()
+    expect(
+      screen.getByText('Показ доступних вікон застосовується лише для запису на вільний час. Попереднє налаштування збережено.')
+    ).toBeInTheDocument()
     expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
 
     await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти зміни' }).at(-1)!)
@@ -770,7 +799,7 @@ describe('SlotsView', () => {
     await fireEvent.update(bookingModeSelect, 'direct_booking')
     await flushAsyncUpdates()
 
-    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Показувати доступні вікна у публічному профілі' })).not.toBeChecked()
     expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
   })
 
@@ -793,6 +822,10 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('checkbox', { name: 'Показувати доступні вікна у публічному профілі' })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Показ доступних вікон у публічному профілі')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
     await flushAsyncUpdates()
 

@@ -820,7 +820,7 @@
           <span class="muted settings-form__hint">{{ bookingModeHelperText }}</span>
         </label>
 
-        <label class="settings-form__switch-row">
+        <label v-if="publicBookingMode === 'direct_booking'" class="settings-form__switch-row">
           <span class="settings-form__switch-copy">
             <span id="public-availability-label" class="settings-form__checkbox-label">Показувати доступні вікна у публічному профілі</span>
             <span id="public-availability-helper" class="muted settings-form__hint">
@@ -831,13 +831,25 @@
             <input
               v-model="showPublicAvailability"
               type="checkbox"
-              :disabled="publicBookingMode !== 'direct_booking'"
               aria-labelledby="public-availability-label"
               aria-describedby="public-availability-helper"
             />
             <span class="settings-form__switch-track"></span>
           </span>
         </label>
+        <div
+          v-else
+          class="settings-form__switch-row settings-form__switch-row--unavailable"
+          aria-labelledby="public-availability-label"
+          aria-describedby="public-availability-helper"
+        >
+          <span class="settings-form__switch-copy">
+            <span id="public-availability-label" class="settings-form__checkbox-label">Показ доступних вікон у публічному профілі</span>
+            <span id="public-availability-helper" class="muted settings-form__hint">
+              Показ доступних вікон застосовується лише для запису на вільний час. Попереднє налаштування збережено.
+            </span>
+          </span>
+        </div>
 
         <div v-if="directBookingVisibilityWarning" class="settings-warning" role="status">
           <strong>Запис на вікна вимкнений у публічному профілі</strong>
@@ -4920,8 +4932,20 @@ onBeforeUnmount(() => {
   opacity: 0.72;
 }
 
+.settings-form__switch-row--unavailable {
+  cursor: default;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  opacity: 1;
+}
+
 .settings-form__switch-copy {
   min-width: 0;
+}
+
+.settings-form__switch-row--unavailable .settings-form__switch-copy {
+  display: grid;
+  gap: 4px;
 }
 
 .settings-form__switch-control {
