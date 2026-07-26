@@ -223,6 +223,16 @@ function renderView() {
   })
 }
 
+function visibilityControl(controlId: string) {
+  const control = screen.getByTestId(`${controlId}-visibility-control`)
+  const buttons = within(control).queryAllByRole('button')
+  return {
+    control,
+    show: buttons[0] ?? null,
+    hide: buttons[1] ?? null,
+  }
+}
+
 function createFile(name: string, type: string, sizeOverride?: number) {
   const file = new File(['x'], name, { type })
   if (typeof sizeOverride === 'number') {
@@ -371,8 +381,7 @@ describe('TherapistProfileView', () => {
     expect(screen.getByText('diploma.jpg')).toBeInTheDocument()
     expect(screen.getByText('JPG')).toBeInTheDocument()
     expect(screen.getByText('2.0 МБ')).toBeInTheDocument()
-    expect(screen.getByText('Показується у публічному профілі')).toBeInTheDocument()
-    expect(screen.getByText('Якщо вимкнено, документ буде доступний лише вам у кабінеті.')).toBeInTheDocument()
+    expect(screen.getByText('Документ показується у публічному профілі')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Завантажити документ' }))
 
@@ -449,10 +458,37 @@ describe('TherapistProfileView', () => {
     expect(screen.getByAltText('photo.png')).toHaveAttribute('src', 'https://example.com/photo.png')
     expect(screen.getByText('PNG')).toBeInTheDocument()
     expect(screen.getByText('2.0 КБ')).toBeInTheDocument()
-    expect(screen.getByText('Не показується у публічному профілі')).toBeInTheDocument()
+    expect(screen.getAllByText('Документ доступний лише вам у кабінеті').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Переглянути PDF')[0]).toHaveAttribute('href', 'https://example.com/certificate.pdf')
-    expect(screen.getAllByText('Показується у публічному профілі').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Документ показується у публічному профілі').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Перегляд файла тимчасово недоступний.')).toBeInTheDocument()
+    expect(
+      within(screen.getByTestId('document-12-visibility-control')).getByRole('button', { name: 'Не показувати у профілі' })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(screen.getByTestId('document-13-visibility-control')).getByRole('button', { name: 'Показувати у профілі' })
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('saves document visibility through the existing document flow', async () => {
+    const document = makeDocument({ id: 22, title: 'Private certificate', is_public: true })
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedFetchProfileDocuments.mockResolvedValue([document])
+    mockedUpdateProfileDocument.mockResolvedValue({ ...document, is_public: false })
+
+    renderView()
+
+    const article = (await screen.findByTestId('document-22-visibility-control')).closest('article') as HTMLElement
+    const control = within(article).getByTestId('document-22-visibility-control')
+    await fireEvent.click(within(control).getByRole('button', { name: 'Не показувати у профілі' }))
+    await fireEvent.click(within(article).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateProfileDocument).toHaveBeenCalledWith(22, {
+        title: 'Private certificate',
+        is_public: false,
+      })
+    })
   })
 
   it('confirms document deletion with the shared modal', async () => {
@@ -982,16 +1018,137 @@ describe('TherapistProfileView', () => {
   it('keeps profile visibility controls near their related sections', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
-    renderView()
+    const { container } = renderView()
 
     const contactsPanel = (await screen.findByRole('heading', { name: 'Контакти' })).closest('section') as HTMLElement
-    expect(within(contactsPanel).getByLabelText('Показувати email')).toBeChecked()
+    expect(within(contactsPanel).getByTestId('contact-email-visibility-control')).toBeInTheDocument()
+    expect(within(contactsPanel).getByTestId('contact-phone-visibility-control')).toBeInTheDocument()
+    expect(within(contactsPanel).getByTestId('contact-messenger-visibility-control')).toBeInTheDocument()
+    expect(within(contactsPanel).getByTestId('contact-telegram-visibility-control')).toBeInTheDocument()
+    expect(within(contactsPanel).getByTestId('contact-viber-visibility-control')).toBeInTheDocument()
+    expect(within(contactsPanel).getByTestId('contact-whatsapp-visibility-control')).toBeInTheDocument()
+    expect(within(contactsPanel).queryByLabelText('Видимість контактів у публічному профілі')).not.toBeInTheDocument()
+    expect(container.querySelector('.profile-visibility-grid')).toBeNull()
 
     const mediaPanel = screen.getByRole('heading', { name: 'Фото та відео' }).closest('section') as HTMLElement
-    expect(within(mediaPanel).getByLabelText('Показувати фото')).toBeChecked()
-    expect(within(mediaPanel).getByLabelText('Показувати відео')).toBeChecked()
+    expect(within(mediaPanel).getByTestId('profile-photo-visibility-control')).toBeInTheDocument()
+    expect(within(mediaPanel).getByTestId('profile-video-visibility-control')).toBeInTheDocument()
+
+    expect(visibilityControl('standard-price').show).toHaveAttribute('aria-pressed', 'true')
+    expect(visibilityControl('standard-price').hide).toHaveAttribute('aria-pressed', 'false')
+    expect(visibilityControl('contact-phone').show).toHaveAttribute('aria-pressed', 'false')
+    expect(visibilityControl('contact-phone').hide).toHaveAttribute('aria-pressed', 'true')
 
     expect(screen.queryByRole('heading', { name: 'Видимість' })).not.toBeInTheDocument()
+  })
+
+  it('keeps visibility changes local until the existing save action submits show fields', async () => {
+    const profile = {
+      ...makeProfile(),
+      show_price: false,
+    }
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      show_price: true,
+      show_email: false,
+    })
+
+    renderView()
+
+    await screen.findByDisplayValue('1500')
+    expect(visibilityControl('standard-price').hide).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Вартість заповнена, але не показується клієнтам.')).toBeInTheDocument()
+
+    await fireEvent.click(visibilityControl('standard-price').show as HTMLElement)
+    await fireEvent.click(visibilityControl('contact-email').hide as HTMLElement)
+
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(screen.queryByText('Вартість заповнена, але не показується клієнтам.')).not.toBeInTheDocument()
+    expect(screen.getByText('Email заповнений, але не показується клієнтам.')).toBeInTheDocument()
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          show_price: true,
+          show_email: false,
+        })
+      )
+    })
+  })
+
+  it('shows unavailable states for empty optional contact fields', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      messenger: '',
+      show_messenger: false,
+      whatsapp: '',
+      show_whatsapp: false,
+    })
+
+    renderView()
+
+    await screen.findByText('Контакти')
+    const messengerControl = visibilityControl('contact-messenger')
+    const whatsappControl = visibilityControl('contact-whatsapp')
+
+    expect(messengerControl.show).toBeNull()
+    expect(messengerControl.hide).toBeNull()
+    expect(
+      within(messengerControl.control).getByText(
+        'Спочатку заповніть Messenger / Signal, щоб налаштувати його видимість.'
+      )
+    ).toBeInTheDocument()
+
+    expect(whatsappControl.show).toBeNull()
+    expect(whatsappControl.hide).toBeNull()
+    expect(
+      within(whatsappControl.control).getByText(
+        'Спочатку заповніть WhatsApp, щоб налаштувати його видимість.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('shows hidden-but-filled warnings and keeps zero intro price as a filled value', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      intro_price: '0.00',
+      show_intro_price: false,
+      show_photo: false,
+      secondary_phone: '',
+      show_secondary_phone: false,
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Ознайомча вартість заповнена, але не показується клієнтам.')).toBeInTheDocument()
+    expect(screen.getByText('Фото завантажене, але не показується клієнтам.')).toBeInTheDocument()
+    expect(screen.queryByText('Додатковий телефон заповнений, але не показується клієнтам.')).not.toBeInTheDocument()
+    expect(screen.getByDisplayValue('0.00')).toBeInTheDocument()
+
+    const finalCheck = screen.getByTestId('hidden-filled-final-check')
+    expect(within(finalCheck).getByText('Заповнені, але приховані дані')).toBeInTheDocument()
+    expect(within(finalCheck).getByText('Фото')).toBeInTheDocument()
+    expect(within(finalCheck).getByText('Ознайомча вартість')).toBeInTheDocument()
+    expect(screen.getByText('6 з 6')).toBeInTheDocument()
+  })
+
+  it('explains unavailable video visibility without enabling it automatically', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      video_url: '',
+      show_video: false,
+    })
+
+    renderView()
+
+    const videoControl = await screen.findByTestId('profile-video-visibility-control')
+    expect(within(videoControl).getByText('Спочатку додайте відеовізитку.')).toBeInTheDocument()
+    expect(within(videoControl).queryByRole('button', { name: /Показувати клієнтам/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Відеовізитка завантажена, але не показується клієнтам.')).not.toBeInTheDocument()
   })
 
   it('supports adding and saving an optional secondary phone', async () => {
@@ -1007,10 +1164,13 @@ describe('TherapistProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Додати ще один номер' }))
     const secondaryInput = screen.getByTestId('secondary-phone-input') as HTMLInputElement
-    expect(screen.getByLabelText('Показувати додатковий номер у публічному профілі')).not.toBeChecked()
+    expect(screen.getByText('Спочатку додайте додатковий номер, щоб налаштувати його видимість.')).toBeInTheDocument()
+    expect(visibilityControl('secondary-phone').show).toBeNull()
+    expect(visibilityControl('secondary-phone').hide).toBeNull()
 
     await fireEvent.update(secondaryInput, '+380 67 123 45 67')
-    await fireEvent.click(screen.getByLabelText('Показувати додатковий номер у публічному профілі'))
+    expect(visibilityControl('secondary-phone').hide).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.click(visibilityControl('secondary-phone').show as HTMLElement)
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
@@ -1605,9 +1765,11 @@ describe('TherapistProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Парна консультація')).toBeInTheDocument()
-    const coupleToggle = screen.getByLabelText('Показувати парну консультацію') as HTMLInputElement
-    await fireEvent.click(coupleToggle)
     await fireEvent.update(screen.getByPlaceholderText('1800'), '1800 грн')
+    await fireEvent.update(screen.getByLabelText('Тривалість'), '75')
+    expect(within(screen.getByTestId('couple-session-visibility-control')).getByRole('button', { name: 'Пропонувати клієнтам' })).toBeInTheDocument()
+    expect(within(screen.getByTestId('couple-session-visibility-control')).getByRole('button', { name: 'Не пропонувати' })).toBeInTheDocument()
+    await fireEvent.click(visibilityControl('couple-session').show as HTMLElement)
     const coupleSection = screen.getByText('Парна консультація').closest('.field') as HTMLElement
     const durationSelect = within(coupleSection).getByLabelText('Тривалість') as HTMLSelectElement
     await fireEvent.update(durationSelect, '75')
@@ -1628,7 +1790,11 @@ describe('TherapistProfileView', () => {
 
   it('renders and saves public booking slot policy settings', async () => {
     const profile = makeProfile()
-    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...profile,
+      public_booking_mode: 'direct_booking',
+      show_public_availability: false,
+    })
     mockedUpdateSpecialistProfile.mockResolvedValue({
       ...profile,
       public_booking_mode: 'direct_booking',
@@ -1639,9 +1805,10 @@ describe('TherapistProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Публічний запис')).toBeInTheDocument()
-    expect(screen.queryByText('Коли кілька клієнтів обирають той самий час')).not.toBeInTheDocument()
-    expect(screen.queryByRole('radio', { name: /Один запит на один час/ })).not.toBeInTheDocument()
-    expect(screen.queryByText('Дозволити кілька запитів на один час')).not.toBeInTheDocument()
+
+    const availabilityControl = visibilityControl('public-availability')
+    expect(availabilityControl.hide).toHaveAttribute('aria-pressed', 'true')
+    expect(within(availabilityControl.control).getByText('Вільні вікна приховані від клієнтів')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
 
@@ -1655,11 +1822,28 @@ describe('TherapistProfileView', () => {
     ).toBeInTheDocument()
 
     await fireEvent.click(screen.getByLabelText('Лише запити без вибору часу'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Лише запити без вибору часу' })).toBeChecked()
+    })
     expect(screen.queryByText('Коли кілька клієнтів обирають той самий час')).not.toBeInTheDocument()
     expect(screen.queryByRole('radio', { name: /Один запит на один час/ })).not.toBeInTheDocument()
 
     await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
-    await fireEvent.click(screen.getByLabelText('Показувати вільні вікна на публічному профілі'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Дозволити клієнтам обирати час' })).toBeChecked()
+    })
+    await fireEvent.click(screen.getByRole('button', { name: 'Показувати вільні вікна' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Показувати вільні вікна' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+    expect(
+      within(screen.getByTestId('public-availability-visibility-control')).getByText(
+        'Вільні вікна показуються на публічній сторінці'
+      )
+    ).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('radio', { name: /Дозволити кілька запитів на один час/ }))
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
@@ -1676,17 +1860,136 @@ describe('TherapistProfileView', () => {
     expect(screen.queryByText(/маркетплейс/i)).not.toBeInTheDocument()
   })
 
-  it('requires a positive couple consultation price only when couple offer is enabled', async () => {
+  it('hides public availability visibility control in request-only mode and restores it with preserved true state', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_booking_mode: 'request_only',
+      show_public_availability: true,
+    })
+
+    renderView()
+
+    await screen.findByText('Публічний запис')
+    const requestOnlyRadio = screen.getByRole('radio', { name: 'Лише запити без вибору часу' })
+    expect(requestOnlyRadio).toBeChecked()
+    expect(screen.queryByRole('button', { name: 'Показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Не показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Щоб показувати вільні вікна, дозвольте клієнтам обирати час.')
+    ).toBeInTheDocument()
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Дозволити клієнтам обирати час' })).toBeChecked()
+    })
+
+    await screen.findByRole('button', { name: 'Показувати вільні вікна' })
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Показувати вільні вікна' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+    expect(
+      within(screen.getByTestId('public-availability-visibility-control')).getByText(
+        'Вільні вікна показуються на публічній сторінці'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Щоб показувати вільні вікна, дозвольте клієнтам обирати час.')).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByLabelText('Лише запити без вибору часу'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Лише запити без вибору часу' })).toBeChecked()
+    })
+
+    expect(screen.queryByRole('button', { name: 'Показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Не показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Щоб показувати вільні вікна, дозвольте клієнтам обирати час.')
+    ).toBeInTheDocument()
+    await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Дозволити клієнтам обирати час' })).toBeChecked()
+      expect(screen.getByRole('button', { name: 'Показувати вільні вікна' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+  })
+
+  it('hides public availability visibility control in request-only mode and restores it with preserved false state', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_booking_mode: 'request_only',
+      show_public_availability: false,
+    })
+
+    renderView()
+
+    await screen.findByText('Публічний запис')
+    expect(screen.queryByRole('button', { name: 'Показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Не показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Щоб показувати вільні вікна, дозвольте клієнтам обирати час.')
+    ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Дозволити клієнтам обирати час' })).toBeChecked()
+    })
+
+    await screen.findByRole('button', { name: 'Не показувати вільні вікна' })
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Не показувати вільні вікна' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+    expect(
+      within(screen.getByTestId('public-availability-visibility-control')).getByText(
+        'Вільні вікна приховані від клієнтів'
+      )
+    ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByLabelText('Лише запити без вибору часу'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Лише запити без вибору часу' })).toBeChecked()
+    })
+
+    expect(screen.queryByRole('button', { name: 'Показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Не показувати вільні вікна' })).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Щоб показувати вільні вікна, дозвольте клієнтам обирати час.')
+    ).toBeInTheDocument()
+    await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Дозволити клієнтам обирати час' })).toBeChecked()
+      expect(screen.getByRole('button', { name: 'Не показувати вільні вікна' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+  })
+
+  it('keeps couple consultation visibility unavailable until the offer is configured', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
     renderView()
 
-    const coupleToggle = (await screen.findByLabelText('Показувати парну консультацію')) as HTMLInputElement
-    await fireEvent.click(coupleToggle)
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    await screen.findByText('Парна консультація')
+    const control = visibilityControl('couple-session')
 
+    expect(control.show).toBeNull()
+    expect(control.hide).toBeNull()
+    expect(
+      within(control.control).getByText(
+        'Спочатку вкажіть додатну вартість і тривалість парної консультації.'
+      )
+    ).toBeInTheDocument()
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
-    expect(await screen.findByText('Вкажіть додатну вартість парної консультації.')).toBeInTheDocument()
   })
 
   it('shows couple availability helper when public time selection is enabled', async () => {

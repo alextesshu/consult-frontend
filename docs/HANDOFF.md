@@ -1,12 +1,60 @@
 # Handoff
 
-Last updated: 2026-07-22
+Last updated: 2026-07-26
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
 Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
+
+KAN-66 public-field visibility UX is implemented locally and not
+pushed/deployed:
+- profile-level visibility uses the reusable two-state
+  `ProfileVisibilityControl` with `Показувати клієнтам` / `Не показувати`,
+  explicit status text, `aria-pressed`, keyboard operation, and visible focus;
+- the pattern is colocated with standard/intro prices, the configured couple
+  offer, location, photo, video business card, each contact field, and the five
+  existing `show_bio_*` sections;
+- contacts no longer use a shared bottom checkbox row; media visibility is
+  located inside the corresponding media card, and missing video shows an
+  explanatory unavailable state;
+- visibility changes remain local until the existing sticky
+  `Зберегти зміни` action submits the unchanged backend fields; media upload
+  does not enable visibility automatically;
+- filled hidden values show field-specific non-blocking warnings, and the final
+  profile check lists `Заповнені, але приховані дані`; `intro_price="0.00"`
+  counts as filled;
+- readiness remains the backend-provided six-item contract, photo remains
+  optional, and publication/search visibility behavior is unchanged;
+- couple visibility continues to use the existing
+  `couple_session_enabled` contract and is offered only after positive price
+  and duration are configured; no new frontend-only visibility state exists;
+- known contract boundary: `public_profile_summary`, education fields,
+  `offline_location`, and other fields without dedicated backend visibility
+  properties did not receive pseudo-visibility controls; document `is_public`,
+  publication, and search visibility keep their separate save/lifecycle
+  behavior;
+- residual public visibility controls now use the same explicit two-button
+  pattern: `show_public_availability` uses `Показувати вільні вікна` /
+  `Не показувати вільні вікна` only when `public_booking_mode` allows clients
+  to choose time; in `request_only`, the control is unavailable and shows
+  `Щоб показувати вільні вікна, дозвольте клієнтам обирати час.` while keeping
+  the current `show_public_availability` value intact; document `is_public`
+  still uses `Показувати у профілі` / `Не показувати у профілі`; document
+  updates still use the existing separate document save flow;
+- supporting status is shown for visible state; hidden populated fields show
+  only the field-specific warning, while hidden empty fields may show the
+  generic hidden status; empty optional contact fields now surface an
+  unavailable state until they are filled. Couple offer copy is context-specific:
+  `Пропонувати клієнтам` / `Не пропонувати` and
+  `Парна консультація доступна клієнтам`, with hidden warning copy
+  `Парна консультація налаштована, але не пропонується клієнтам.`;
+- `ProfileVisibilityControl` uses a compact responsive variant with two
+  independent 44px buttons, checkmark selection, `aria-pressed`, keyboard
+  activation, visible focus, reduced desktop padding, and mobile-safe wrapping;
+- backend, migrations, dependencies, route contracts, commit, push, and deploy
+  are unchanged.
 
 Specialist-created active sessions already linked to a registered client now
 produce one in-app `SESSION_CREATED_BY_SPECIALIST` notification. The client

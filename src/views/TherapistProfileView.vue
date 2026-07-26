@@ -317,16 +317,24 @@
                 Можна додавати скільки завгодно мов. Підказки працюють за першими літерами.
               </div>
             </div>
-            <label class="field">
-              <div class="field-head">
-                <span class="field-label">Локація</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_location" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
-              <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
-            </label>
+            <div class="field">
+              <label class="field-label" for="profileLocation">Локація</label>
+              <input
+                id="profileLocation"
+                v-model="profile.location"
+                class="input"
+                type="text"
+                placeholder="Місто / країна"
+                :aria-describedby="visibilityDescriptionIds('location', hasLocationValue && !profile.show_location)"
+              />
+              <ProfileVisibilityControl
+                v-model="profile.show_location"
+                control-id="location"
+                field-label="Локація"
+                :has-value="hasLocationValue"
+                hidden-warning="Локація заповнена, але не показується клієнтам."
+              />
+            </div>
           </div>
           <div class="form-group">
             <div class="field field--format" data-readiness-key="work_format">
@@ -379,10 +387,18 @@
                   Дозволити клієнтам обирати час
                 </label>
               </div>
-              <label class="check">
-                <input v-model="profile.show_public_availability" type="checkbox" />
-                Показувати вільні вікна на публічному профілі
-              </label>
+              <ProfileVisibilityControl
+                :model-value="Boolean(profile.show_public_availability)"
+                control-id="public-availability"
+                field-label="Публічні вільні вікна"
+                visible-label="Показувати вільні вікна"
+                hidden-label="Не показувати вільні вікна"
+                visible-status="Вільні вікна показуються на публічній сторінці"
+                hidden-status="Вільні вікна приховані від клієнтів"
+                :available="profile.public_booking_mode === 'direct_booking'"
+                unavailable-text="Щоб показувати вільні вікна, дозвольте клієнтам обирати час."
+                @update:model-value="profile.show_public_availability = $event"
+              />
               <div class="field-help">
                 Коли клієнти можуть обирати час, ці налаштування керують тим, як публічний профіль показує вільні вікна.
               </div>
@@ -412,22 +428,18 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="field" data-readiness-key="price_decision">
-              <div class="field-head">
-                <span class="field-label">Ціна за одну стандартну консультацію</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_price" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field" data-readiness-key="price_decision">
+              <label class="field-label" for="standardSessionPrice">Ціна за одну стандартну консультацію</label>
               <div class="field-row">
                 <input
+                  id="standardSessionPrice"
                   v-model="profile.price"
                   class="input"
                   type="text"
                   inputmode="decimal"
                   pattern="^[0-9]*([.,][0-9]{0,2})?$"
                   placeholder="1000"
+                  :aria-describedby="visibilityDescriptionIds('standard-price', hasStandardPrice && !profile.show_price)"
                   @input="onPriceInput"
                 />
                 <select v-model="profile.price_currency" class="input input--select">
@@ -436,7 +448,14 @@
                   <option value="EUR">€</option>
                 </select>
               </div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_price"
+                control-id="standard-price"
+                field-label="Основна вартість"
+                :has-value="hasStandardPrice"
+                hidden-warning="Вартість заповнена, але не показується клієнтам."
+              />
+            </div>
             <label class="field">
               <span class="field-label">Стандартна сесія (тривалість)</span>
               <select
@@ -461,22 +480,18 @@
                 <option :value="60">60 хв</option>
               </select>
             </label>
-            <label class="field">
-              <div class="field-head">
-                <span class="field-label">Вартість ознайомчої сесії</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_intro_price" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field">
+              <label class="field-label" for="introSessionPrice">Вартість ознайомчої сесії</label>
               <div class="field-row">
                 <input
+                  id="introSessionPrice"
                   v-model="profile.intro_price"
                   class="input"
                   type="text"
                   inputmode="decimal"
                   pattern="^[0-9]*([.,][0-9]{0,2})?$"
                   placeholder="0"
+                  :aria-describedby="visibilityDescriptionIds('intro-price', hasIntroPrice && !profile.show_intro_price)"
                   @input="onIntroPriceInput"
                 />
                 <select v-model="profile.intro_price_currency" class="input input--select">
@@ -485,15 +500,16 @@
                   <option value="EUR">€</option>
                 </select>
               </div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_intro_price"
+                control-id="intro-price"
+                field-label="Ознайомча вартість"
+                :has-value="hasIntroPrice"
+                hidden-warning="Ознайомча вартість заповнена, але не показується клієнтам."
+              />
+            </div>
             <div class="field offer-settings">
-              <div class="field-head">
-                <span class="field-label">Парна консультація</span>
-                <label class="inline-check">
-                  <input v-model="profile.couple_session_enabled" type="checkbox" />
-                  Показувати парну консультацію
-                </label>
-              </div>
+              <span class="field-label">Парна консультація</span>
               <div class="field-help">
                 Покажіть окрему пропозицію для парної консультації на публічному профілі.
               </div>
@@ -531,6 +547,19 @@
               <div class="field-help">
                 Парна консультація з’явиться на публічному профілі після вказання ціни та тривалості.
               </div>
+              <ProfileVisibilityControl
+                v-model="profile.couple_session_enabled"
+                control-id="couple-session"
+                field-label="Парна консультація"
+                visible-label="Пропонувати клієнтам"
+                hidden-label="Не пропонувати"
+                visible-status="Парна консультація доступна клієнтам"
+                hidden-status="Парна консультація не пропонується клієнтам"
+                :has-value="isCoupleOfferConfigured"
+                :available="isCoupleOfferConfigured"
+                unavailable-text="Спочатку вкажіть додатну вартість і тривалість парної консультації."
+                hidden-warning="Парна консультація налаштована, але не пропонується клієнтам."
+              />
               <div v-if="showCoupleAvailabilityHelper" class="field-help">
                 Щоб клієнти могли обрати час для парної консультації, додайте вікна відповідного часу для запису в розкладі.
               </div>
@@ -544,16 +573,6 @@
           <div>
             <h2 class="panel__title">Фото та відео</h2>
             <p class="panel__hint">Додайте фото профілю та, за бажанням, коротку відеовізитку.</p>
-          </div>
-          <div class="profile-section-toggles" aria-label="Видимість медіа у публічному профілі">
-            <label class="inline-check">
-              <input v-model="profile.show_photo" type="checkbox" />
-              Показувати фото
-            </label>
-            <label class="inline-check">
-              <input v-model="profile.show_video" type="checkbox" />
-              Показувати відео
-            </label>
           </div>
         </div>
         <div class="media-preview media-preview--side" style="margin-top: 12px;">
@@ -609,6 +628,15 @@
               accept="image/*"
               @change="onPhotoSelected"
             />
+            <div class="media-visibility-control" @click.stop @keydown.stop>
+              <ProfileVisibilityControl
+                v-model="profile.show_photo"
+                control-id="profile-photo"
+                field-label="Фото профілю"
+                :has-value="hasPhotoValue"
+                hidden-warning="Фото завантажене, але не показується клієнтам."
+              />
+            </div>
           </div>
           <div
             class="media-card"
@@ -667,6 +695,17 @@
               accept="video/*"
               @change="onVideoSelected"
             />
+            <div class="media-visibility-control" @click.stop @keydown.stop>
+              <ProfileVisibilityControl
+                v-model="profile.show_video"
+                control-id="profile-video"
+                field-label="Відеовізитка"
+                :has-value="hasVideoValue"
+                :available="hasVideoValue"
+                unavailable-text="Спочатку додайте відеовізитку."
+                hidden-warning="Відеовізитка завантажена, але не показується клієнтам."
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -709,84 +748,96 @@
               ></textarea>
               <div class="field-help">У 1–2 реченнях напишіть, хто ви як спеціаліст, з ким працюєте та що є важливим у вашому підході. Цей текст клієнт побачить одразу під вашим ім’ям.</div>
             </label>
-            <label class="field">
-              <div class="field-head">
-                <span>Про мене</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_bio_about" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field">
+              <label for="bioAbout">Про мене</label>
               <textarea
+                id="bioAbout"
                 v-model="profile.bio_about"
                 class="input"
                 rows="4"
                 placeholder="Докладніший опис вашого досвіду, підходу, освіти або формату роботи."
+                :aria-describedby="visibilityDescriptionIds('bio-about', hasBioAboutValue && !profile.show_bio_about)"
               ></textarea>
               <div class="field-help">Докладніший опис вашого досвіду, підходу, освіти або формату роботи.</div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_bio_about"
+                control-id="bio-about"
+                field-label="Про мене"
+                :has-value="hasBioAboutValue"
+                hidden-warning="Розділ «Про мене» заповнений, але не показується клієнтам."
+              />
+            </div>
           </details>
           <details class="details">
             <summary>Формат роботи</summary>
-            <label class="field">
-              <div class="field-head">
-                <span>Формат роботи</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_bio_work" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field">
+              <label for="bioWork">Формат роботи</label>
               <textarea
+                id="bioWork"
                 v-model="profile.bio_work"
                 class="input"
                 rows="4"
                 placeholder="Опишіть, як проходить консультація і чого очікувати від процесу роботи."
+                :aria-describedby="visibilityDescriptionIds('bio-work', hasBioWorkValue && !profile.show_bio_work)"
               ></textarea>
               <div class="field-help">Опишіть, як проходить консультація і чого очікувати від процесу роботи.</div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_bio_work"
+                control-id="bio-work"
+                field-label="Формат роботи"
+                :has-value="hasBioWorkValue"
+                hidden-warning="Розділ «Формат роботи» заповнений, але не показується клієнтам."
+              />
+            </div>
           </details>
           <details class="details">
             <summary>Спеціальності та підходи</summary>
-            <label class="field">
-              <div class="field-head">
-                <span>Спеціальності та підходи</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_bio_approach" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field">
+              <label for="bioApproach">Спеціальності та підходи</label>
               <textarea
+                id="bioApproach"
                 v-model="profile.bio_approach"
                 class="input"
                 rows="4"
                 placeholder="Ваші спеціальності та підходи, які бачить клієнт у верхній частині профілю."
+                :aria-describedby="visibilityDescriptionIds('bio-approach', hasBioApproachValue && !profile.show_bio_approach)"
               ></textarea>
               <div class="field-help">
                 Показуються у верхній частині публічного профілю як ваші професійні орієнтири.
               </div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_bio_approach"
+                control-id="bio-approach"
+                field-label="Спеціальності та підходи"
+                :has-value="hasBioApproachValue"
+                hidden-warning="Розділ «Спеціальності та підходи» заповнений, але не показується клієнтам."
+              />
+            </div>
           </details>
           <details class="details">
             <summary>Основні запити</summary>
-            <label class="field">
-              <div class="field-head">
-                <span>Основні запити</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_bio_for_whom" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field">
+              <label for="bioForWhom">Основні запити</label>
               <textarea
+                id="bioForWhom"
                 v-model="profile.bio_for_whom"
                 class="input"
                 rows="4"
                 placeholder="Теми, з якими до вас звертаються клієнти."
                 data-testid="main-requests-textarea"
+                :aria-describedby="visibilityDescriptionIds('bio-for-whom', hasBioForWhomValue && !profile.show_bio_for_whom)"
               ></textarea>
               <div class="field-help">
                 Оберіть готові приклади або опишіть своїми словами, з якими темами до вас звертаються клієнти.
               </div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_bio_for_whom"
+                control-id="bio-for-whom"
+                field-label="Основні запити"
+                :has-value="hasBioForWhomValue"
+                hidden-warning="Розділ «Основні запити» заповнений, але не показується клієнтам."
+              />
+            </div>
             <div class="quick-suggestions" data-testid="main-requests-suggestions">
               <div class="quick-suggestions__title">Швидко додати приклади</div>
               <div class="quick-suggestions__tabs" role="tablist" aria-label="Категорії прикладів для Основних запитів">
@@ -820,25 +871,28 @@
           </details>
           <details class="details">
             <summary>Межі роботи</summary>
-            <label class="field">
-              <div class="field-head">
-                <span>Межі роботи</span>
-                <label class="inline-check">
-                  <input v-model="profile.show_bio_other" type="checkbox" />
-                  Показувати
-                </label>
-              </div>
+            <div class="field">
+              <label for="bioOther">Межі роботи</label>
               <textarea
+                id="bioOther"
                 v-model="profile.bio_other"
                 class="input"
                 rows="4"
                 placeholder="Теми або запити, з якими ви не працюєте."
                 data-testid="work-boundaries-textarea"
+                :aria-describedby="visibilityDescriptionIds('bio-other', hasBioOtherValue && !profile.show_bio_other)"
               ></textarea>
               <div class="field-help">
                 Оберіть готові приклади або вкажіть теми й запити, з якими ви не працюєте.
               </div>
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_bio_other"
+                control-id="bio-other"
+                field-label="Межі роботи"
+                :has-value="hasBioOtherValue"
+                hidden-warning="Розділ «Межі роботи» заповнений, але не показується клієнтам."
+              />
+            </div>
             <div class="quick-suggestions" data-testid="work-boundaries-suggestions">
               <div class="quick-suggestions__title">Швидко додати приклади</div>
               <div class="quick-suggestions__tabs" role="tablist" aria-label="Категорії прикладів для Меж роботи">
@@ -918,18 +972,50 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Контакти</h2>
-            <p class="panel__hint">Заповніть те, що готові показати. Видимість налаштовується нижче.</p>
+            <p class="panel__hint">Заповніть те, що готові показати, і налаштуйте видимість біля кожного контакту.</p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
-          <label class="field">
-            Email для зв'язку
-            <input v-model="profile.contact_email" class="input" type="email" placeholder="hello@example.com" />
-          </label>
-          <label class="field">
-            Телефон для зв'язку
-            <input v-model="profile.contact_phone" class="input" type="text" placeholder="+380" />
-          </label>
+          <div class="field">
+            <label for="contactEmail">Email для зв'язку</label>
+            <input
+              id="contactEmail"
+              v-model="profile.contact_email"
+              class="input"
+              type="email"
+              placeholder="hello@example.com"
+              :aria-describedby="visibilityDescriptionIds('contact-email', hasContactEmailValue && !profile.show_email)"
+            />
+              <ProfileVisibilityControl
+                v-model="profile.show_email"
+                control-id="contact-email"
+                field-label="Email для зв'язку"
+                :has-value="hasContactEmailValue"
+                :available="hasContactEmailValue"
+                unavailable-text="Спочатку заповніть email, щоб налаштувати його видимість."
+                hidden-warning="Email заповнений, але не показується клієнтам."
+              />
+          </div>
+          <div class="field">
+            <label for="contactPhone">Телефон для зв'язку</label>
+            <input
+              id="contactPhone"
+              v-model="profile.contact_phone"
+              class="input"
+              type="text"
+              placeholder="+380"
+              :aria-describedby="visibilityDescriptionIds('contact-phone', hasContactPhoneValue && !profile.show_phone)"
+            />
+              <ProfileVisibilityControl
+                v-model="profile.show_phone"
+                control-id="contact-phone"
+                field-label="Телефон для зв'язку"
+                :has-value="hasContactPhoneValue"
+                :available="hasContactPhoneValue"
+                unavailable-text="Спочатку заповніть телефон, щоб налаштувати його видимість."
+                hidden-warning="Телефон заповнений, але не показується клієнтам."
+              />
+          </div>
           <button
             v-if="!showSecondaryPhoneField"
             class="btn btn--ghost btn--sm secondary-phone-add"
@@ -940,18 +1026,29 @@
             Додати ще один номер
           </button>
           <div v-else class="secondary-phone-block">
-            <label class="field">
-              Додатковий телефон
+            <div class="field">
+              <label for="secondaryPhone">Додатковий телефон</label>
               <input
+                id="secondaryPhone"
                 v-model="profile.secondary_phone"
                 class="input"
                 type="text"
                 placeholder="+380"
                 data-testid="secondary-phone-input"
                 :aria-invalid="Boolean(secondaryPhoneError)"
-                aria-describedby="secondary-phone-help secondary-phone-error"
+                aria-describedby="secondary-phone-help secondary-phone-error secondary-phone-visibility-status secondary-phone-visibility-warning"
               />
-            </label>
+              <ProfileVisibilityControl
+                :model-value="Boolean(profile.show_secondary_phone)"
+                control-id="secondary-phone"
+                field-label="Додатковий телефон"
+                :has-value="hasSecondaryPhoneValue"
+                :available="hasSecondaryPhoneValue"
+                unavailable-text="Спочатку додайте додатковий номер, щоб налаштувати його видимість."
+                hidden-warning="Додатковий телефон заповнений, але не показується клієнтам."
+                @update:model-value="profile.show_secondary_phone = $event"
+              />
+            </div>
             <p id="secondary-phone-help" class="field-help">
               Додайте другий номер, якщо використовуєте окремий телефон для запису або зв’язку з клієнтами.
             </p>
@@ -973,61 +1070,88 @@
             </button>
           </div>
           <div class="field-row">
-            <label class="field field--half">
-              Messenger / Signal
-              <input v-model="profile.messenger" class="input" type="text" placeholder="username або посилання" />
-            </label>
-            <label class="field field--half">
-              Telegram
-              <input v-model="profile.telegram" class="input" type="text" placeholder="@username або посилання" />
-            </label>
+            <div class="field field--half">
+              <label for="contactMessenger">Messenger / Signal</label>
+              <input
+                id="contactMessenger"
+                v-model="profile.messenger"
+                class="input"
+                type="text"
+                placeholder="username або посилання"
+                :aria-describedby="visibilityDescriptionIds('contact-messenger', hasMessengerValue && !profile.show_messenger)"
+              />
+              <ProfileVisibilityControl
+                v-model="profile.show_messenger"
+                control-id="contact-messenger"
+                field-label="Messenger / Signal"
+                :has-value="hasMessengerValue"
+                :available="hasMessengerValue"
+                unavailable-text="Спочатку заповніть Messenger / Signal, щоб налаштувати його видимість."
+                hidden-warning="Messenger / Signal заповнений, але не показується клієнтам."
+              />
+            </div>
+            <div class="field field--half">
+              <label for="contactTelegram">Telegram</label>
+              <input
+                id="contactTelegram"
+                v-model="profile.telegram"
+                class="input"
+                type="text"
+                placeholder="@username або посилання"
+                :aria-describedby="visibilityDescriptionIds('contact-telegram', hasTelegramValue && !profile.show_telegram)"
+              />
+              <ProfileVisibilityControl
+                v-model="profile.show_telegram"
+                control-id="contact-telegram"
+                field-label="Telegram"
+                :has-value="hasTelegramValue"
+                :available="hasTelegramValue"
+                unavailable-text="Спочатку заповніть Telegram, щоб налаштувати його видимість."
+                hidden-warning="Telegram заповнений, але не показується клієнтам."
+              />
+            </div>
           </div>
           <div class="field-row">
-            <label class="field field--half">
-              Viber
-              <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
-            </label>
-            <label class="field field--half">
-              WhatsApp
-              <input v-model="profile.whatsapp" class="input" type="text" placeholder="номер телефону" />
-            </label>
-          </div>
-          <div class="profile-visibility-grid" aria-label="Видимість контактів у публічному профілі">
-            <label class="check">
-              <input v-model="profile.show_email" type="checkbox" />
-              Показувати email
-            </label>
-            <label class="check">
-              <input v-model="profile.show_phone" type="checkbox" />
-              Показувати телефон
-            </label>
-            <label v-if="showSecondaryPhoneField" class="check">
+            <div class="field field--half">
+              <label for="contactViber">Viber</label>
               <input
-                v-model="profile.show_secondary_phone"
-                type="checkbox"
-                aria-label="Показувати додатковий номер у публічному профілі"
+                id="contactViber"
+                v-model="profile.viber"
+                class="input"
+                type="text"
+                placeholder="номер телефону"
+                :aria-describedby="visibilityDescriptionIds('contact-viber', hasViberValue && !profile.show_viber)"
               />
-              Показувати додатковий номер у публічному профілі
-              <span class="check__hint">
-                Якщо вимкнено, додатковий номер не бачитимуть клієнти.
-              </span>
-            </label>
-            <label class="check">
-              <input v-model="profile.show_messenger" type="checkbox" />
-              Показувати Messenger / Signal
-            </label>
-            <label class="check">
-              <input v-model="profile.show_telegram" type="checkbox" />
-              Показувати Telegram
-            </label>
-            <label class="check">
-              <input v-model="profile.show_viber" type="checkbox" />
-              Показувати Viber
-            </label>
-            <label class="check">
-              <input v-model="profile.show_whatsapp" type="checkbox" />
-              Показувати WhatsApp
-            </label>
+              <ProfileVisibilityControl
+                v-model="profile.show_viber"
+                control-id="contact-viber"
+                field-label="Viber"
+                :has-value="hasViberValue"
+                :available="hasViberValue"
+                unavailable-text="Спочатку заповніть Viber, щоб налаштувати його видимість."
+                hidden-warning="Viber заповнений, але не показується клієнтам."
+              />
+            </div>
+            <div class="field field--half">
+              <label for="contactWhatsapp">WhatsApp</label>
+              <input
+                id="contactWhatsapp"
+                v-model="profile.whatsapp"
+                class="input"
+                type="text"
+                placeholder="номер телефону"
+                :aria-describedby="visibilityDescriptionIds('contact-whatsapp', hasWhatsappValue && !profile.show_whatsapp)"
+              />
+              <ProfileVisibilityControl
+                v-model="profile.show_whatsapp"
+                control-id="contact-whatsapp"
+                field-label="WhatsApp"
+                :has-value="hasWhatsappValue"
+                :available="hasWhatsappValue"
+                unavailable-text="Спочатку заповніть WhatsApp, щоб налаштувати його видимість."
+                hidden-warning="WhatsApp заповнений, але не показується клієнтам."
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -1127,13 +1251,17 @@
                 readonly
                 aria-hidden="true"
               />
-              <label class="check documents-visibility-control">
-                <input v-model="newDocumentIsPublic" type="checkbox" :disabled="documentUploading" />
-                <span>
-                  Показувати у публічному профілі
-                  <small>Якщо вимкнено, документ буде доступний лише вам у кабінеті.</small>
-                </span>
-              </label>
+              <ProfileVisibilityControl
+                v-model="newDocumentIsPublic"
+                control-id="new-document"
+                field-label="Новий документ"
+                visible-label="Показувати у профілі"
+                hidden-label="Не показувати у профілі"
+                visible-status="Документ показується у публічному профілі"
+                hidden-status="Документ доступний лише вам у кабінеті"
+                :available="!documentUploading"
+                unavailable-text="Документ зараз завантажується."
+              />
               <div class="documents-uploader__actions">
                 <button class="btn btn--ghost" type="button" :disabled="documentUploading" @click="triggerDocumentSelect">
                   Змінити файл
@@ -1165,12 +1293,6 @@
             <div class="documents-item__header">
               <div class="documents-item__meta">
                 <span class="documents-kind">{{ documentKindLabel(document.document_kind) }}</span>
-                <span
-                  class="documents-visibility"
-                  :class="document.is_public ? 'documents-visibility--public' : 'documents-visibility--private'"
-                >
-                  {{ document.is_public ? 'Показується у публічному профілі' : 'Не показується у публічному профілі' }}
-                </span>
               </div>
               <a
                 v-if="document.file_url"
@@ -1219,13 +1341,16 @@
                 Назва
                 <input v-model="document.title" class="input" type="text" />
               </label>
-              <label class="check documents-visibility-control">
-                <input v-model="document.is_public" type="checkbox" />
-                <span>
-                  Показувати у публічному профілі
-                  <small>Якщо вимкнено, документ буде доступний лише вам у кабінеті.</small>
-                </span>
-              </label>
+              <ProfileVisibilityControl
+                v-model="document.is_public"
+                :control-id="`document-${document.id}`"
+                field-label="Документ"
+                visible-label="Показувати у профілі"
+                hidden-label="Не показувати у профілі"
+                visible-status="Документ показується у публічному профілі"
+                hidden-status="Документ доступний лише вам у кабінеті"
+                :has-value="true"
+              />
             </div>
 
             <div class="documents-item__actions">
@@ -1259,6 +1384,23 @@
             </p>
           </div>
         </div>
+        <div
+          v-if="hiddenFilledItems.length"
+          class="profile-summary-card__hidden-data"
+          data-testid="hidden-filled-final-check"
+        >
+          <span class="profile-summary-card__missing-label">Заповнені, але приховані дані</span>
+          <ul>
+            <li v-for="item in hiddenFilledItems" :key="item.key">{{ item.label }}</li>
+          </ul>
+        </div>
+        <p
+          v-if="profile.public_booking_mode === 'direct_booking' && !profile.show_public_availability"
+          class="final-check-note final-check-note--warning"
+          data-testid="availability-hidden-final-check"
+        >
+          Вільні вікна приховані від клієнтів: для прямого запису клієнти не бачитимуть доступні години.
+        </p>
         <div class="final-check-actions">
           <a
             v-if="isPublicProfilePublished"
@@ -1372,6 +1514,7 @@ import {
   type SpecialistProfile,
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import ProfileVisibilityControl from '../components/ProfileVisibilityControl.vue'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 import {
@@ -2036,6 +2179,103 @@ function isPositiveDecimalValue(value: string | number | null | undefined): bool
   return Number.isFinite(numeric) && numeric > 0
 }
 
+function hasTextValue(value: unknown): boolean {
+  return String(value ?? '').trim().length > 0
+}
+
+function hasDecimalValue(value: string | number | null | undefined): boolean {
+  return normalizeDecimal(value) !== null
+}
+
+function visibilityDescriptionIds(controlId: string, showWarning: boolean): string {
+  const statusId = `${controlId}-visibility-status`
+  return showWarning ? `${statusId} ${controlId}-visibility-warning` : statusId
+}
+
+const hasLocationValue = computed(() => hasTextValue(profile.location))
+const hasStandardPrice = computed(() => hasDecimalValue(profile.price))
+const hasIntroPrice = computed(() => hasDecimalValue(profile.intro_price))
+const isCoupleOfferConfigured = computed(
+  () =>
+    isPositiveDecimalValue(profile.couple_session_price) &&
+    Number(profile.couple_session_duration_minutes || 0) > 0
+)
+const hasPhotoValue = computed(() => Boolean(photoPreviewUrl.value || profile.photo_url))
+const hasVideoValue = computed(() => Boolean(videoPreviewUrl.value || profile.video_url))
+const hasBioAboutValue = computed(() => hasTextValue(profile.bio_about))
+const hasBioWorkValue = computed(() => hasTextValue(profile.bio_work))
+const hasBioApproachValue = computed(() => hasTextValue(profile.bio_approach))
+const hasBioForWhomValue = computed(() => hasTextValue(profile.bio_for_whom))
+const hasBioOtherValue = computed(() => hasTextValue(profile.bio_other))
+const hasContactEmailValue = computed(() => hasTextValue(profile.contact_email))
+const hasContactPhoneValue = computed(() => hasTextValue(profile.contact_phone))
+const hasSecondaryPhoneValue = computed(() => hasTextValue(profile.secondary_phone))
+const hasMessengerValue = computed(() => hasTextValue(profile.messenger))
+const hasTelegramValue = computed(() => hasTextValue(profile.telegram))
+const hasViberValue = computed(() => hasTextValue(profile.viber))
+const hasWhatsappValue = computed(() => hasTextValue(profile.whatsapp))
+
+type HiddenFilledItem = {
+  key: string
+  label: string
+}
+
+const hiddenFilledItems = computed<HiddenFilledItem[]>(() => {
+  const items: Array<HiddenFilledItem & { hidden: boolean }> = [
+    { key: 'photo', label: 'Фото', hidden: hasPhotoValue.value && !profile.show_photo },
+    { key: 'video', label: 'Відеовізитка', hidden: hasVideoValue.value && !profile.show_video },
+    { key: 'price', label: 'Основна вартість', hidden: hasStandardPrice.value && !profile.show_price },
+    {
+      key: 'intro-price',
+      label: 'Ознайомча вартість',
+      hidden: hasIntroPrice.value && !profile.show_intro_price,
+    },
+    {
+      key: 'couple-session',
+      label: 'Парна консультація',
+      hidden: isCoupleOfferConfigured.value && !profile.couple_session_enabled,
+    },
+    { key: 'location', label: 'Локація', hidden: hasLocationValue.value && !profile.show_location },
+    {
+      key: 'contact-email',
+      label: 'Email для зв’язку',
+      hidden: hasContactEmailValue.value && !profile.show_email,
+    },
+    {
+      key: 'contact-phone',
+      label: 'Телефон для зв’язку',
+      hidden: hasContactPhoneValue.value && !profile.show_phone,
+    },
+    {
+      key: 'secondary-phone',
+      label: 'Додатковий телефон',
+      hidden: hasSecondaryPhoneValue.value && !profile.show_secondary_phone,
+    },
+    {
+      key: 'messenger',
+      label: 'Messenger / Signal',
+      hidden: hasMessengerValue.value && !profile.show_messenger,
+    },
+    { key: 'telegram', label: 'Telegram', hidden: hasTelegramValue.value && !profile.show_telegram },
+    { key: 'viber', label: 'Viber', hidden: hasViberValue.value && !profile.show_viber },
+    { key: 'whatsapp', label: 'WhatsApp', hidden: hasWhatsappValue.value && !profile.show_whatsapp },
+    { key: 'bio-about', label: 'Про мене', hidden: hasBioAboutValue.value && !profile.show_bio_about },
+    { key: 'bio-work', label: 'Формат роботи', hidden: hasBioWorkValue.value && !profile.show_bio_work },
+    {
+      key: 'bio-approach',
+      label: 'Спеціальності та підходи',
+      hidden: hasBioApproachValue.value && !profile.show_bio_approach,
+    },
+    {
+      key: 'bio-for-whom',
+      label: 'Основні запити',
+      hidden: hasBioForWhomValue.value && !profile.show_bio_for_whom,
+    },
+    { key: 'bio-other', label: 'Межі роботи', hidden: hasBioOtherValue.value && !profile.show_bio_other },
+  ]
+  return items.filter((item) => item.hidden).map(({ key, label }) => ({ key, label }))
+})
+
 function buildProfilePayload() {
   const publicDisplayName = (profile.public_display_name || '').trim()
   return {
@@ -2694,11 +2934,14 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     specializations: [...specializationList.value],
     languages: [...languageList.value],
     location: profile.location || '',
-    price: profile.price || '',
+    price: profile.price === null || profile.price === undefined ? '' : String(profile.price),
     price_currency: profile.price_currency || 'UAH',
     standard_session_duration_minutes: profile.standard_session_duration_minutes,
     intro_duration_minutes: profile.intro_duration_minutes,
-    intro_price: profile.intro_price || '',
+    intro_price:
+      profile.intro_price === null || profile.intro_price === undefined
+        ? ''
+        : String(profile.intro_price),
     intro_price_currency: profile.intro_price_currency || 'UAH',
     couple_session_enabled: profile.couple_session_enabled,
     couple_session_price:
@@ -3120,17 +3363,23 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     languages: toStringValue(data.languages),
     location: data.location || '',
     experience_years: typeof data.experience_years === 'number' ? data.experience_years : 0,
-    price: data.price || '',
+    price: data.price === null || data.price === undefined ? '' : String(data.price),
     price_currency: data.price_currency || 'UAH',
     standard_session_duration_minutes:
       typeof data.standard_session_duration_minutes === 'number'
         ? data.standard_session_duration_minutes
         : 50,
     intro_duration_minutes: typeof data.intro_duration_minutes === 'number' ? data.intro_duration_minutes : 30,
-    intro_price: data.intro_price || '',
+    intro_price:
+      data.intro_price === null || data.intro_price === undefined
+        ? ''
+        : String(data.intro_price),
     intro_price_currency: data.intro_price_currency || 'UAH',
     couple_session_enabled: data.couple_session_enabled ?? false,
-    couple_session_price: data.couple_session_price || '',
+    couple_session_price:
+      data.couple_session_price === null || data.couple_session_price === undefined
+        ? ''
+        : String(data.couple_session_price),
     couple_session_price_currency: data.couple_session_price_currency || 'UAH',
     couple_session_duration_minutes:
       typeof data.couple_session_duration_minutes === 'number'
@@ -3482,6 +3731,24 @@ onBeforeUnmount(() => {
   gap: 7px;
 }
 
+.profile-summary-card__hidden-data {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, #b76a00 35%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, #fff4df 72%, #ffffff);
+}
+
+.profile-summary-card__hidden-data ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .profile-summary-card__missing-label {
   color: var(--pc-text-muted);
   font-size: 13px;
@@ -3622,35 +3889,6 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.inline-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.profile-section-toggles,
-.profile-visibility-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  min-width: 0;
-}
-
-.profile-section-toggles {
-  justify-content: flex-end;
-  max-width: 320px;
-}
-
-.profile-visibility-grid {
-  margin-top: 4px;
-  border: 1px dashed var(--pc-border);
-  border-radius: var(--pc-radius-card);
-  padding: 10px;
-  background: color-mix(in srgb, var(--pc-primary-soft) 32%, #ffffff);
-}
-
 .secondary-phone-add {
   justify-self: flex-start;
 }
@@ -3731,6 +3969,10 @@ onBeforeUnmount(() => {
 
 .media-preview--side .media-card {
   width: 100%;
+}
+
+.media-visibility-control {
+  min-width: 0;
 }
 
 .media-card {
@@ -4291,6 +4533,11 @@ onBeforeUnmount(() => {
   line-height: 1.35;
 }
 
+.final-check-note--warning {
+  color: #9a4c00;
+  font-weight: 700;
+}
+
 .documents-uploader__actions {
   display: flex;
   align-items: center;
@@ -4575,11 +4822,6 @@ onBeforeUnmount(() => {
 
   .panel__header {
     flex-direction: column;
-  }
-
-  .profile-section-toggles {
-    justify-content: flex-start;
-    max-width: 100%;
   }
 
   .documents-uploader__grid,
