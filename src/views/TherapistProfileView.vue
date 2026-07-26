@@ -39,6 +39,9 @@
             <span class="profile-summary-card__count">{{ publicProfileReadinessCountText }}</span>
           </div>
           <p class="profile-summary-card__text">{{ publicProfileReadinessHelper }}</p>
+          <p v-if="firstMissingProfileReadinessMessage" class="profile-summary-card__text">
+            {{ firstMissingProfileReadinessMessage }}
+          </p>
           <div v-if="missingProfileReadinessLabels.length" class="profile-summary-card__missing">
             <span class="profile-summary-card__missing-label">Не вистачає:</span>
             <span
@@ -2536,10 +2539,18 @@ const publicProfileReadiness = computed<PublicProfileReadiness>(() => {
   return profile.public_profile_readiness || fallbackPublicProfileReadiness
 })
 
+const firstMissingProfileReadinessItem = computed(() =>
+  publicProfileReadiness.value.items.find((item) => !item.complete)
+)
+
 const firstMissingProfileReadinessKey = computed(() => {
-  const fromItems = publicProfileReadiness.value.items.find((item) => !item.complete)?.key
+  const fromItems = firstMissingProfileReadinessItem.value?.key
   return fromItems || publicProfileReadiness.value.missing_items[0] || ''
 })
+
+const firstMissingProfileReadinessMessage = computed(() =>
+  firstMissingProfileReadinessItem.value?.message?.trim() || ''
+)
 
 const missingProfileReadinessLabels = computed(() => {
   const fromItems = publicProfileReadiness.value.items
@@ -2663,7 +2674,7 @@ const profilePrimaryActionKind = computed<'complete' | 'publish' | 'open' | 'pen
 })
 const profilePrimaryActionLabel = computed(() =>
   profilePrimaryActionKind.value === 'complete'
-    ? 'Завершити профіль'
+    ? firstMissingProfileReadinessItem.value?.action_label?.trim() || 'Завершити профіль'
     : profilePrimaryActionKind.value === 'publish'
       ? 'Опублікувати сторінку'
       : 'Переглянути сторінку'
@@ -2823,6 +2834,12 @@ function focusProfileReadinessTarget(rawKey: string, clearFocusQuery = false) {
 }
 
 function scrollToFirstMissingProfileSection() {
+  const actionRoute = firstMissingProfileReadinessItem.value?.action_route?.trim()
+  if (actionRoute) {
+    void router.push(actionRoute)
+    return
+  }
+
   const action = profileReadinessActions[firstMissingProfileReadinessKey.value]
   if (action?.kind === 'route') {
     void router.push({ path: action.path, query: action.query })

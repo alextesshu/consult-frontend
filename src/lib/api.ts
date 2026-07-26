@@ -227,6 +227,10 @@ export type PublicProfileReadinessItem = {
   key: string
   label: string
   complete: boolean
+  reason?: string
+  message?: string
+  action_label?: string
+  action_route?: string
 }
 
 export type PublicProfileReadiness = {

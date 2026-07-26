@@ -191,12 +191,21 @@ function makeIncompleteProfile(): SpecialistProfile {
   }
 }
 
-function makeProfileWithSingleMissingReadinessItem(key: string, label: string): SpecialistProfile {
+function makeProfileWithSingleMissingReadinessItem(
+  key: string,
+  label: string,
+  metadata: Partial<{
+    reason: string
+    message: string
+    action_label: string
+    action_route: string
+  }> = {}
+): SpecialistProfile {
   const profile = makeProfile()
   const hasKnownKey = profile.public_profile_readiness?.items.some((item) => item.key === key)
   const items = (profile.public_profile_readiness?.items || []).map((item, index) => {
     if (item.key === key || (!hasKnownKey && index === 0)) {
-      return { ...item, key, label, complete: false }
+      return { ...item, key, label, complete: false, ...metadata }
     }
     return { ...item, complete: true }
   })
@@ -813,6 +822,67 @@ describe('TherapistProfileView', () => {
     expect(scrollIntoViewSpy).not.toHaveBeenCalled()
     expect(contactsSection).not.toBeNull()
     expect(contactsSection).not.toContain(document.activeElement)
+  })
+
+  it.each([
+    [
+      'no_future_slots',
+      'Створіть хоча б одне майбутнє вікно для запису.',
+      'Створити вікна для запису',
+      '/cabinet/slots?tab=availability',
+    ],
+    [
+      'availability_hidden',
+      'Увімкніть показ доступних вікон у публічному профілі.',
+      'Увімкнути показ вікон',
+      '/cabinet/slots?tab=settings',
+    ],
+    [
+      'booking_mode_missing',
+      'Оберіть, як клієнти можуть записуватися або залишати запит.',
+      'Налаштувати запис і запити',
+      '/cabinet/slots?tab=settings',
+    ],
+  ])(
+    'uses backend-provided %s readiness message and action',
+    async (_reason, message, actionLabel, actionRoute) => {
+      mockedFetchSpecialistProfile.mockResolvedValue(
+        makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит', {
+          reason: _reason,
+          message,
+          action_label: actionLabel,
+          action_route: actionRoute,
+        })
+      )
+
+      const { container } = renderView()
+      await screen.findByRole('heading', { name: 'Готовність профілю' })
+      const summary = container.querySelector('.profile-summary-card') as HTMLElement
+
+      expect(within(summary).getByText(message)).toBeInTheDocument()
+      await fireEvent.click(within(summary).getByRole('button', { name: actionLabel }))
+
+      expect(mockRouter.push).toHaveBeenCalledWith(actionRoute)
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+    }
+  )
+
+  it('keeps the legacy first_contact action when readiness metadata is absent', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит')
+    )
+
+    const { container } = renderView()
+    await screen.findByRole('heading', { name: 'Готовність профілю' })
+    const summary = container.querySelector('.profile-summary-card') as HTMLElement
+
+    expect(within(summary).queryByText('Створіть хоча б одне майбутнє вікно для запису.')).not.toBeInTheDocument()
+    await fireEvent.click(within(summary).getByRole('button', { name: 'Завершити профіль' }))
+
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      path: '/cabinet/slots',
+      query: { tab: 'settings' },
+    })
   })
 
   it.each([

@@ -27,6 +27,12 @@ pushed/deployed:
   counts as filled;
 - readiness remains the backend-provided six-item contract, photo remains
   optional, and publication/search visibility behavior is unchanged;
+- `first_contact` readiness uses backend-provided additive reason/message/CTA
+  metadata: missing booking mode and hidden direct-booking availability open
+  `/cabinet/slots?tab=settings`, while `no_future_slots` opens
+  `/cabinet/slots?tab=availability` for slot creation. The frontend does not
+  recompute readiness predicates; legacy responses without metadata keep the
+  `Завершити профіль` settings fallback. `request_only` needs no slots.
 - couple visibility continues to use the existing
   `couple_session_enabled` contract and is offered only after positive price
   and duration are configured; no new frontend-only visibility state exists;
