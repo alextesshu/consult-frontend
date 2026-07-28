@@ -177,14 +177,18 @@
             </div>
           </section>
           <section class="profile-search-visibility" aria-labelledby="profile-search-visibility-title">
-            <h3 id="profile-search-visibility-title">Пошук Pro Consult</h3>
+            <div class="profile-search-visibility__eyebrow">Добровільна видимість</div>
+            <h3 id="profile-search-visibility-title">Поява в пошуку Pro Consult</h3>
+            <p>
+              Дозвольте клієнтам знаходити вашу сторінку через пошук спеціалістів у Pro Consult.
+            </p>
             <label class="check">
               <input
                 v-model="profile.is_search_visible"
                 type="checkbox"
                 :disabled="!canChangeSearchVisibility"
               />
-              Показувати сторінку в пошуку Pro Consult
+              Показувати мою сторінку в пошуку
             </label>
             <div class="field-help">{{ searchVisibilityHelper }}</div>
           </section>
@@ -631,15 +635,7 @@
               accept="image/*"
               @change="onPhotoSelected"
             />
-            <div class="media-visibility-control" @click.stop @keydown.stop>
-              <ProfileVisibilityControl
-                v-model="profile.show_photo"
-                control-id="profile-photo"
-                field-label="Фото профілю"
-                :has-value="hasPhotoValue"
-                hidden-warning="Фото завантажене, але не показується клієнтам."
-              />
-            </div>
+            <div class="field-help">Завантажене фото відображається у публічному профілі після успішного збереження файла.</div>
           </div>
           <div
             class="media-card"
@@ -698,17 +694,7 @@
               accept="video/*"
               @change="onVideoSelected"
             />
-            <div class="media-visibility-control" @click.stop @keydown.stop>
-              <ProfileVisibilityControl
-                v-model="profile.show_video"
-                control-id="profile-video"
-                field-label="Відеовізитка"
-                :has-value="hasVideoValue"
-                :available="hasVideoValue"
-                unavailable-text="Спочатку додайте відеовізитку."
-                hidden-warning="Відеовізитка завантажена, але не показується клієнтам."
-              />
-            </div>
+            <div class="field-help">Завантажена відеовізитка відображається у публічному профілі після успішного збереження файла.</div>
           </div>
         </div>
       </section>
@@ -718,7 +704,7 @@
           <div>
             <h2 class="panel__title">Секції публічного профілю</h2>
             <p class="panel__hint">
-              Назви йдуть у тому самому формулюванні, яке бачать клієнти в публічному профілі.
+              Заповнені секції відображаються у публічному профілі. Щоб прибрати секцію, очистьте її вміст.
             </p>
           </div>
         </div>
@@ -759,16 +745,8 @@
                 class="input"
                 rows="4"
                 placeholder="Докладніший опис вашого досвіду, підходу, освіти або формату роботи."
-                :aria-describedby="visibilityDescriptionIds('bio-about', hasBioAboutValue && !profile.show_bio_about)"
               ></textarea>
               <div class="field-help">Докладніший опис вашого досвіду, підходу, освіти або формату роботи.</div>
-              <ProfileVisibilityControl
-                v-model="profile.show_bio_about"
-                control-id="bio-about"
-                field-label="Про мене"
-                :has-value="hasBioAboutValue"
-                hidden-warning="Розділ «Про мене» заповнений, але не показується клієнтам."
-              />
             </div>
           </details>
           <details class="details">
@@ -781,16 +759,8 @@
                 class="input"
                 rows="4"
                 placeholder="Опишіть, як проходить консультація і чого очікувати від процесу роботи."
-                :aria-describedby="visibilityDescriptionIds('bio-work', hasBioWorkValue && !profile.show_bio_work)"
               ></textarea>
               <div class="field-help">Опишіть, як проходить консультація і чого очікувати від процесу роботи.</div>
-              <ProfileVisibilityControl
-                v-model="profile.show_bio_work"
-                control-id="bio-work"
-                field-label="Формат роботи"
-                :has-value="hasBioWorkValue"
-                hidden-warning="Розділ «Формат роботи» заповнений, але не показується клієнтам."
-              />
             </div>
           </details>
           <details class="details">
@@ -803,18 +773,10 @@
                 class="input"
                 rows="4"
                 placeholder="Ваші спеціальності та підходи, які бачить клієнт у верхній частині профілю."
-                :aria-describedby="visibilityDescriptionIds('bio-approach', hasBioApproachValue && !profile.show_bio_approach)"
               ></textarea>
               <div class="field-help">
                 Показуються у верхній частині публічного профілю як ваші професійні орієнтири.
               </div>
-              <ProfileVisibilityControl
-                v-model="profile.show_bio_approach"
-                control-id="bio-approach"
-                field-label="Спеціальності та підходи"
-                :has-value="hasBioApproachValue"
-                hidden-warning="Розділ «Спеціальності та підходи» заповнений, але не показується клієнтам."
-              />
             </div>
           </details>
           <details class="details">
@@ -828,18 +790,10 @@
                 rows="4"
                 placeholder="Теми, з якими до вас звертаються клієнти."
                 data-testid="main-requests-textarea"
-                :aria-describedby="visibilityDescriptionIds('bio-for-whom', hasBioForWhomValue && !profile.show_bio_for_whom)"
               ></textarea>
               <div class="field-help">
                 Оберіть готові приклади або опишіть своїми словами, з якими темами до вас звертаються клієнти.
               </div>
-              <ProfileVisibilityControl
-                v-model="profile.show_bio_for_whom"
-                control-id="bio-for-whom"
-                field-label="Основні запити"
-                :has-value="hasBioForWhomValue"
-                hidden-warning="Розділ «Основні запити» заповнений, але не показується клієнтам."
-              />
             </div>
             <div class="quick-suggestions" data-testid="main-requests-suggestions">
               <div class="quick-suggestions__title">Швидко додати приклади</div>
@@ -883,18 +837,10 @@
                 rows="4"
                 placeholder="Теми або запити, з якими ви не працюєте."
                 data-testid="work-boundaries-textarea"
-                :aria-describedby="visibilityDescriptionIds('bio-other', hasBioOtherValue && !profile.show_bio_other)"
               ></textarea>
               <div class="field-help">
                 Оберіть готові приклади або вкажіть теми й запити, з якими ви не працюєте.
               </div>
-              <ProfileVisibilityControl
-                v-model="profile.show_bio_other"
-                control-id="bio-other"
-                field-label="Межі роботи"
-                :has-value="hasBioOtherValue"
-                hidden-warning="Розділ «Межі роботи» заповнений, але не показується клієнтам."
-              />
             </div>
             <div class="quick-suggestions" data-testid="work-boundaries-suggestions">
               <div class="quick-suggestions__title">Швидко додати приклади</div>
@@ -1164,7 +1110,7 @@
           <div>
             <h2 class="panel__title">Документи та сертифікати</h2>
             <p class="panel__hint">
-              Додайте дипломи, сертифікати або інші професійні документи. Для кожного файла можна окремо визначити, чи показувати його у публічному профілі.
+              Додайте дипломи, сертифікати або інші професійні документи. Завантажений файл відображається у публічному профілі; щоб прибрати його, видаліть документ.
             </p>
           </div>
         </div>
@@ -1244,7 +1190,7 @@
                 <div class="documents-meta-line">
                   <span>{{ documentTypeLabel(newDocumentFile.type, newDocumentFile.name) }}</span>
                   <span>{{ formatDocumentSize(newDocumentFile.size) }}</span>
-                  <span>{{ newDocumentIsPublic ? 'Показується у публічному профілі' : 'Не показується у публічному профілі' }}</span>
+                  <span>Показується у публічному профілі</span>
                 </div>
               </div>
               <input
@@ -1253,17 +1199,6 @@
                 type="text"
                 readonly
                 aria-hidden="true"
-              />
-              <ProfileVisibilityControl
-                v-model="newDocumentIsPublic"
-                control-id="new-document"
-                field-label="Новий документ"
-                visible-label="Показувати у профілі"
-                hidden-label="Не показувати у профілі"
-                visible-status="Документ показується у публічному профілі"
-                hidden-status="Документ доступний лише вам у кабінеті"
-                :available="!documentUploading"
-                unavailable-text="Документ зараз завантажується."
               />
               <div class="documents-uploader__actions">
                 <button class="btn btn--ghost" type="button" :disabled="documentUploading" @click="triggerDocumentSelect">
@@ -1344,16 +1279,6 @@
                 Назва
                 <input v-model="document.title" class="input" type="text" />
               </label>
-              <ProfileVisibilityControl
-                v-model="document.is_public"
-                :control-id="`document-${document.id}`"
-                field-label="Документ"
-                visible-label="Показувати у профілі"
-                hidden-label="Не показувати у профілі"
-                visible-status="Документ показується у публічному профілі"
-                hidden-status="Документ доступний лише вам у кабінеті"
-                :has-value="true"
-              />
             </div>
 
             <div class="documents-item__actions">
@@ -1580,7 +1505,6 @@ const documentImageErrorIds = ref<Set<number>>(new Set())
 const documentPendingDelete = ref<SpecialistProfileDocument | null>(null)
 const newDocumentTitle = ref('')
 const newDocumentKind = ref('CERTIFICATE')
-const newDocumentIsPublic = ref(true)
 const newDocumentFile = ref<File | null>(null)
 const PROFILE_SAVE_SUCCESS_MESSAGE = 'Зміни збережено'
 const PROFILE_SAVE_ERROR_MESSAGE = 'Не вдалося зберегти зміни. Спробуйте ще раз.'
@@ -1705,7 +1629,6 @@ async function createDocumentWithKindFallback(payload: {
   file: File
   title: string
   document_kind: string
-  is_public: boolean
 }) {
   const apiKind = getCreateApiDocumentKind(payload.document_kind)
   try {
@@ -1713,7 +1636,6 @@ async function createDocumentWithKindFallback(payload: {
       file: payload.file,
       title: payload.title,
       document_kind: apiKind,
-      is_public: payload.is_public,
     })
   } catch (err) {
     if (!isInvalidDocumentKindError(err)) {
@@ -1722,7 +1644,6 @@ async function createDocumentWithKindFallback(payload: {
     return await createProfileDocument({
       file: payload.file,
       title: payload.title,
-      is_public: payload.is_public,
     })
   }
 }
@@ -2031,7 +1952,6 @@ function sortProfileDocuments(list: SpecialistProfileDocument[]): SpecialistProf
 function resetDocumentForm() {
   newDocumentTitle.value = ''
   newDocumentKind.value = 'CERTIFICATE'
-  newDocumentIsPublic.value = true
   clearPendingDocumentFile()
 }
 
@@ -2061,7 +1981,6 @@ async function onUploadDocument() {
       file: newDocumentFile.value,
       title: normalizedTitle,
       document_kind: selectedKind,
-      is_public: newDocumentIsPublic.value,
     })
     documents.value = sortProfileDocuments([...documents.value, normalizeDocument(created)])
     const savedKind = normalizeDocumentKind(created.document_kind)
@@ -2084,7 +2003,6 @@ async function onUpdateDocument(document: SpecialistProfileDocument) {
   try {
     const updated = await updateProfileDocument(document.id, {
       title: String(document.title ?? '').trim(),
-      is_public: document.is_public,
     })
     documents.value = sortProfileDocuments(
       documents.value.map((item) => (item.id === document.id ? normalizeDocument(updated) : item))
@@ -2203,13 +2121,6 @@ const isCoupleOfferConfigured = computed(
     isPositiveDecimalValue(profile.couple_session_price) &&
     Number(profile.couple_session_duration_minutes || 0) > 0
 )
-const hasPhotoValue = computed(() => Boolean(photoPreviewUrl.value || profile.photo_url))
-const hasVideoValue = computed(() => Boolean(videoPreviewUrl.value || profile.video_url))
-const hasBioAboutValue = computed(() => hasTextValue(profile.bio_about))
-const hasBioWorkValue = computed(() => hasTextValue(profile.bio_work))
-const hasBioApproachValue = computed(() => hasTextValue(profile.bio_approach))
-const hasBioForWhomValue = computed(() => hasTextValue(profile.bio_for_whom))
-const hasBioOtherValue = computed(() => hasTextValue(profile.bio_other))
 const hasContactEmailValue = computed(() => hasTextValue(profile.contact_email))
 const hasContactPhoneValue = computed(() => hasTextValue(profile.contact_phone))
 const hasSecondaryPhoneValue = computed(() => hasTextValue(profile.secondary_phone))
@@ -2225,18 +2136,11 @@ type HiddenFilledItem = {
 
 const hiddenFilledItems = computed<HiddenFilledItem[]>(() => {
   const items: Array<HiddenFilledItem & { hidden: boolean }> = [
-    { key: 'photo', label: 'Фото', hidden: hasPhotoValue.value && !profile.show_photo },
-    { key: 'video', label: 'Відеовізитка', hidden: hasVideoValue.value && !profile.show_video },
     { key: 'price', label: 'Основна вартість', hidden: hasStandardPrice.value && !profile.show_price },
     {
       key: 'intro-price',
       label: 'Ознайомча вартість',
       hidden: hasIntroPrice.value && !profile.show_intro_price,
-    },
-    {
-      key: 'couple-session',
-      label: 'Парна консультація',
-      hidden: isCoupleOfferConfigured.value && !profile.couple_session_enabled,
     },
     { key: 'location', label: 'Локація', hidden: hasLocationValue.value && !profile.show_location },
     {
@@ -2262,19 +2166,6 @@ const hiddenFilledItems = computed<HiddenFilledItem[]>(() => {
     { key: 'telegram', label: 'Telegram', hidden: hasTelegramValue.value && !profile.show_telegram },
     { key: 'viber', label: 'Viber', hidden: hasViberValue.value && !profile.show_viber },
     { key: 'whatsapp', label: 'WhatsApp', hidden: hasWhatsappValue.value && !profile.show_whatsapp },
-    { key: 'bio-about', label: 'Про мене', hidden: hasBioAboutValue.value && !profile.show_bio_about },
-    { key: 'bio-work', label: 'Формат роботи', hidden: hasBioWorkValue.value && !profile.show_bio_work },
-    {
-      key: 'bio-approach',
-      label: 'Спеціальності та підходи',
-      hidden: hasBioApproachValue.value && !profile.show_bio_approach,
-    },
-    {
-      key: 'bio-for-whom',
-      label: 'Основні запити',
-      hidden: hasBioForWhomValue.value && !profile.show_bio_for_whom,
-    },
-    { key: 'bio-other', label: 'Межі роботи', hidden: hasBioOtherValue.value && !profile.show_bio_other },
   ]
   return items.filter((item) => item.hidden).map(({ key, label }) => ({ key, label }))
 })
@@ -2282,6 +2173,7 @@ const hiddenFilledItems = computed<HiddenFilledItem[]>(() => {
 function buildProfilePayload() {
   const publicDisplayName = (profile.public_display_name || '').trim()
   return {
+    public_visibility_contract_version: 2,
     public_profile_enabled: profile.public_profile_enabled,
     is_search_visible: profile.is_search_visible,
     public_display_name: publicDisplayName,
@@ -2297,11 +2189,6 @@ function buildProfilePayload() {
     education_summary: (profile.education_summary || '').trim(),
     education_items: multilineTextToList(educationItemsText.value),
     professional_development_items: multilineTextToList(professionalDevelopmentItemsText.value),
-    show_bio_about: profile.show_bio_about,
-    show_bio_work: profile.show_bio_work,
-    show_bio_approach: profile.show_bio_approach,
-    show_bio_for_whom: profile.show_bio_for_whom,
-    show_bio_other: profile.show_bio_other,
     public_booking_mode: profile.public_booking_mode || 'request_only',
     show_public_availability: profile.show_public_availability,
     public_booking_slot_policy: profile.public_booking_slot_policy || 'single_hold',
@@ -2336,11 +2223,9 @@ function buildProfilePayload() {
     show_telegram: profile.show_telegram,
     show_viber: profile.show_viber,
     show_whatsapp: profile.show_whatsapp,
-    show_video: profile.show_video,
     show_price: profile.show_price,
     show_intro_price: profile.show_intro_price,
     show_location: profile.show_location,
-    show_photo: profile.show_photo,
   }
 }
 
@@ -2874,11 +2759,6 @@ type ProfileFormSnapshot = {
   education_summary: string
   education_items_text: string
   professional_development_items_text: string
-  show_bio_about: boolean
-  show_bio_work: boolean
-  show_bio_approach: boolean
-  show_bio_for_whom: boolean
-  show_bio_other: boolean
   public_booking_mode: 'request_only' | 'direct_booking'
   show_public_availability: boolean
   public_booking_slot_policy: 'single_hold' | 'parallel_requests'
@@ -2913,11 +2793,9 @@ type ProfileFormSnapshot = {
   show_telegram: boolean
   show_viber: boolean
   show_whatsapp: boolean
-  show_video: boolean
   show_price: boolean
   show_intro_price: boolean
   show_location: boolean
-  show_photo: boolean
 }
 
 function createProfileFormSnapshot(): ProfileFormSnapshot {
@@ -2936,11 +2814,6 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     education_summary: profile.education_summary || '',
     education_items_text: educationItemsText.value,
     professional_development_items_text: professionalDevelopmentItemsText.value,
-    show_bio_about: profile.show_bio_about,
-    show_bio_work: profile.show_bio_work,
-    show_bio_approach: profile.show_bio_approach,
-    show_bio_for_whom: profile.show_bio_for_whom,
-    show_bio_other: profile.show_bio_other,
     public_booking_mode: profile.public_booking_mode || 'request_only',
     show_public_availability: profile.show_public_availability ?? false,
     public_booking_slot_policy: profile.public_booking_slot_policy || 'single_hold',
@@ -2981,11 +2854,9 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     show_telegram: profile.show_telegram,
     show_viber: profile.show_viber,
     show_whatsapp: profile.show_whatsapp,
-    show_video: profile.show_video,
     show_price: profile.show_price,
     show_intro_price: profile.show_intro_price,
     show_location: profile.show_location,
-    show_photo: profile.show_photo,
   }
 }
 
@@ -3988,10 +3859,6 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-.media-visibility-control {
-  min-width: 0;
-}
-
 .media-card {
   border: 1px dashed var(--pc-border);
   border-radius: var(--pc-radius-card);
@@ -4684,7 +4551,11 @@ onBeforeUnmount(() => {
 
 .profile-search-visibility {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  border: 2px solid color-mix(in srgb, var(--pc-teal-500) 44%, var(--pc-border));
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: color-mix(in srgb, var(--pc-teal-500) 12%, #fff);
 }
 
 .profile-search-visibility h3 {
@@ -4692,6 +4563,21 @@ onBeforeUnmount(() => {
   color: var(--pc-navy-950);
   font-size: 15px;
   line-height: 1.25;
+}
+
+.profile-search-visibility p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.profile-search-visibility__eyebrow {
+  color: color-mix(in srgb, var(--pc-teal-500) 48%, var(--pc-navy-950));
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .profile-link-callout {

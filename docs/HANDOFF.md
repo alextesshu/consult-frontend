@@ -1,12 +1,41 @@
 # Handoff
 
-Last updated: 2026-07-26
+Last updated: 2026-07-27
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
 Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
+
+The public-profile content-driven visibility transition is implemented locally
+and is not committed, pushed, or deployed:
+
+- photo, video, five `bio_*` sections, documents, and FAQ no longer expose
+  separate visibility controls; filled/uploaded content is presented as public
+  and removal is done by clearing or deleting it;
+- profile saves omit deprecated `show_photo`, `show_video`, and `show_bio_*`
+  fields so a full/stale frontend payload cannot recreate hidden content;
+- profile saves send `public_visibility_contract_version: 2`; after backend
+  hardening this distinguishes intentional price/contact visibility changes
+  from cached pre-transition full-form payloads;
+- document create/update no longer sends `is_public`; FAQ create/edit forces
+  `is_published=true`, while non-FAQ journal categories retain their explicit
+  publication control;
+- price, contact, location, whole-page publication, search visibility,
+  booking-availability, and configured couple-offer controls remain unchanged;
+- the hidden-items summary now lists only fields that still have a meaningful
+  visibility control and never reports photo/video/bio content as hidden;
+- the prominent `Поява в пошуку Pro Consult` card clearly separates voluntary
+  discovery from direct-link page publication;
+- readiness remains the backend-provided six-item contract; photo, video,
+  documents, and FAQ are not readiness requirements;
+- this frontend batch must be deployed only after the additive backend, while
+  backend content-driven hardening remains disabled until the separately
+  approved production backfill apply and zero-pending dry-run.
+
+The KAN-66 description below is retained as historical context and is
+superseded for media, bio sections, documents, and FAQ by this transition.
 
 KAN-66 public-field visibility UX is implemented locally and not
 pushed/deployed:

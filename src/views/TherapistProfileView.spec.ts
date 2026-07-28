@@ -343,7 +343,7 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByRole('heading', { name: 'Документи та сертифікати' })).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Додайте дипломи, сертифікати або інші професійні документи. Для кожного файла можна окремо визначити, чи показувати його у публічному профілі.'
+        'Додайте дипломи, сертифікати або інші професійні документи. Завантажений файл відображається у публічному профілі; щоб прибрати його, видаліть документ.'
       )
     ).toBeInTheDocument()
     expect(screen.getByText('JPG, PNG або PDF, до 10 МБ.')).toBeInTheDocument()
@@ -390,7 +390,7 @@ describe('TherapistProfileView', () => {
     expect(screen.getByText('diploma.jpg')).toBeInTheDocument()
     expect(screen.getByText('JPG')).toBeInTheDocument()
     expect(screen.getByText('2.0 МБ')).toBeInTheDocument()
-    expect(screen.getByText('Документ показується у публічному профілі')).toBeInTheDocument()
+    expect(screen.getByText('Показується у публічному профілі')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Завантажити документ' }))
 
@@ -399,7 +399,6 @@ describe('TherapistProfileView', () => {
         file,
         title: 'diploma',
         document_kind: 'CERTIFICATE',
-        is_public: true,
       })
     })
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:document-preview')
@@ -429,7 +428,7 @@ describe('TherapistProfileView', () => {
     expect(screen.getByText('Не вдалося завантажити документ. Спробуйте ще раз.')).toBeInTheDocument()
   })
 
-  it('renders existing document metadata, previews, visibility copy, and missing file fallback', async () => {
+  it('renders existing document metadata without deprecated visibility controls and keeps missing file fallback', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
     mockedFetchProfileDocuments.mockResolvedValue([
       makeDocument({
@@ -467,35 +466,29 @@ describe('TherapistProfileView', () => {
     expect(screen.getByAltText('photo.png')).toHaveAttribute('src', 'https://example.com/photo.png')
     expect(screen.getByText('PNG')).toBeInTheDocument()
     expect(screen.getByText('2.0 КБ')).toBeInTheDocument()
-    expect(screen.getAllByText('Документ доступний лише вам у кабінеті').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Переглянути PDF')[0]).toHaveAttribute('href', 'https://example.com/certificate.pdf')
-    expect(screen.getAllByText('Документ показується у публічному профілі').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Перегляд файла тимчасово недоступний.')).toBeInTheDocument()
-    expect(
-      within(screen.getByTestId('document-12-visibility-control')).getByRole('button', { name: 'Не показувати у профілі' })
-    ).toHaveAttribute('aria-pressed', 'true')
-    expect(
-      within(screen.getByTestId('document-13-visibility-control')).getByRole('button', { name: 'Показувати у профілі' })
-    ).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByTestId('document-12-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('document-13-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Не показувати у профілі' })).not.toBeInTheDocument()
   })
 
-  it('saves document visibility through the existing document flow', async () => {
+  it('saves document metadata without resubmitting deprecated visibility state', async () => {
     const document = makeDocument({ id: 22, title: 'Private certificate', is_public: true })
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
     mockedFetchProfileDocuments.mockResolvedValue([document])
-    mockedUpdateProfileDocument.mockResolvedValue({ ...document, is_public: false })
+    mockedUpdateProfileDocument.mockResolvedValue(document)
 
     renderView()
 
-    const article = (await screen.findByTestId('document-22-visibility-control')).closest('article') as HTMLElement
-    const control = within(article).getByTestId('document-22-visibility-control')
-    await fireEvent.click(within(control).getByRole('button', { name: 'Не показувати у профілі' }))
+    const titleInput = await screen.findByDisplayValue('Private certificate')
+    const article = titleInput.closest('article') as HTMLElement
+    await fireEvent.update(titleInput, 'Updated certificate')
     await fireEvent.click(within(article).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedUpdateProfileDocument).toHaveBeenCalledWith(22, {
-        title: 'Private certificate',
-        is_public: false,
+        title: 'Updated certificate',
       })
     })
   })
@@ -583,8 +576,8 @@ describe('TherapistProfileView', () => {
 
     expect(screen.queryByLabelText('Публічний профіль увімкнено')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Публічний профіль' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Пошук Pro Consult' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).toBeChecked()
+    expect(screen.getByRole('heading', { name: 'Поява в пошуку Pro Consult' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Показувати мою сторінку в пошуку')).toBeChecked()
     expect(screen.getByText('Клієнти можуть знайти сторінку через пошук спеціалістів.')).toBeInTheDocument()
     expect(screen.queryByLabelText('Дозволити знаходити мій профіль через пошук спеціалістів')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Поділитись профілем' })).not.toBeInTheDocument()
@@ -660,7 +653,7 @@ describe('TherapistProfileView', () => {
 
     expect(screen.getByText('Сторінку буде знято з публікації після збереження')).toBeInTheDocument()
     expect(screen.getByText('До збереження сторінка ще доступна за прямим посиланням.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).not.toBeChecked()
+    expect(screen.getByLabelText('Показувати мою сторінку в пошуку')).not.toBeChecked()
     expect(screen.getByText('Показ у пошуку буде вимкнено після збереження.')).toBeInTheDocument()
     expect(
       screen.queryByText('Спочатку опублікуйте сторінку. Після цього можна окремо ввімкнути її показ у пошуку.')
@@ -714,7 +707,7 @@ describe('TherapistProfileView', () => {
       within(linkCallout).getByText('Посилання стане доступним клієнтам після публікації сторінки.')
     ).toBeInTheDocument()
 
-    const searchCheckbox = screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
+    const searchCheckbox = screen.getByLabelText('Показувати мою сторінку в пошуку')
     expect(searchCheckbox).toBeDisabled()
     expect(
       screen.getByText(
@@ -739,7 +732,7 @@ describe('TherapistProfileView', () => {
     renderView()
 
     const unpublishButton = await screen.findByRole('button', { name: 'Зняти з публікації' })
-    const searchCheckbox = screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
+    const searchCheckbox = screen.getByLabelText('Показувати мою сторінку в пошуку')
 
     expect(screen.getByRole('button', { name: 'Завершити профіль' })).toBeInTheDocument()
     expect(unpublishButton).toBeEnabled()
@@ -770,7 +763,7 @@ describe('TherapistProfileView', () => {
     renderView()
 
     expect(await screen.findByRole('button', { name: 'Зняти з публікації' })).toBeEnabled()
-    const searchCheckbox = screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
+    const searchCheckbox = screen.getByLabelText('Показувати мою сторінку в пошуку')
     expect(searchCheckbox).not.toBeChecked()
     expect(searchCheckbox).toBeDisabled()
   })
@@ -782,7 +775,7 @@ describe('TherapistProfileView', () => {
 
     expect(await screen.findByRole('button', { name: 'Завершити профіль' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Зняти з публікації' })).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).toBeDisabled()
+    expect(screen.getByLabelText('Показувати мою сторінку в пошуку')).toBeDisabled()
   })
 
   it('focuses specializations from readiness deep link and preserves other query params', async () => {
@@ -993,7 +986,7 @@ describe('TherapistProfileView', () => {
     expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
     expect(screen.queryByText('Відкрити як клієнт')).not.toBeInTheDocument()
     expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
-    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).not.toBeChecked()
+    expect(screen.getByLabelText('Показувати мою сторінку в пошуку')).not.toBeChecked()
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
@@ -1085,7 +1078,7 @@ describe('TherapistProfileView', () => {
     expect(screen.getByText(/Не вистачає: Спеціалізації/)).toBeInTheDocument()
   })
 
-  it('keeps profile visibility controls near their related sections', async () => {
+  it('keeps price and contact visibility controls while removing content-driven controls', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
     const { container } = renderView()
@@ -1101,8 +1094,13 @@ describe('TherapistProfileView', () => {
     expect(container.querySelector('.profile-visibility-grid')).toBeNull()
 
     const mediaPanel = screen.getByRole('heading', { name: 'Фото та відео' }).closest('section') as HTMLElement
-    expect(within(mediaPanel).getByTestId('profile-photo-visibility-control')).toBeInTheDocument()
-    expect(within(mediaPanel).getByTestId('profile-video-visibility-control')).toBeInTheDocument()
+    expect(within(mediaPanel).queryByTestId('profile-photo-visibility-control')).not.toBeInTheDocument()
+    expect(within(mediaPanel).queryByTestId('profile-video-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bio-about-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bio-work-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bio-approach-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bio-for-whom-visibility-control')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bio-other-visibility-control')).not.toBeInTheDocument()
 
     expect(visibilityControl('standard-price').show).toHaveAttribute('aria-pressed', 'true')
     expect(visibilityControl('standard-price').hide).toHaveAttribute('aria-pressed', 'false')
@@ -1182,7 +1180,7 @@ describe('TherapistProfileView', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows hidden-but-filled warnings and keeps zero intro price as a filled value', async () => {
+  it('omits content-driven legacy flags from hidden-items summary and keeps price controls', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue({
       ...makeProfile(),
       intro_price: '0.00',
@@ -1195,18 +1193,18 @@ describe('TherapistProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Ознайомча вартість заповнена, але не показується клієнтам.')).toBeInTheDocument()
-    expect(screen.getByText('Фото завантажене, але не показується клієнтам.')).toBeInTheDocument()
+    expect(screen.queryByText('Фото завантажене, але не показується клієнтам.')).not.toBeInTheDocument()
     expect(screen.queryByText('Додатковий телефон заповнений, але не показується клієнтам.')).not.toBeInTheDocument()
     expect(screen.getByDisplayValue('0.00')).toBeInTheDocument()
 
     const finalCheck = screen.getByTestId('hidden-filled-final-check')
     expect(within(finalCheck).getByText('Заповнені, але приховані дані')).toBeInTheDocument()
-    expect(within(finalCheck).getByText('Фото')).toBeInTheDocument()
+    expect(within(finalCheck).queryByText('Фото')).not.toBeInTheDocument()
     expect(within(finalCheck).getByText('Ознайомча вартість')).toBeInTheDocument()
     expect(screen.getByText('6 з 6')).toBeInTheDocument()
   })
 
-  it('explains unavailable video visibility without enabling it automatically', async () => {
+  it('does not render a video visibility control when no video is uploaded', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue({
       ...makeProfile(),
       video_url: '',
@@ -1215,9 +1213,8 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    const videoControl = await screen.findByTestId('profile-video-visibility-control')
-    expect(within(videoControl).getByText('Спочатку додайте відеовізитку.')).toBeInTheDocument()
-    expect(within(videoControl).queryByRole('button', { name: /Показувати клієнтам/ })).not.toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Фото та відео' })
+    expect(screen.queryByTestId('profile-video-visibility-control')).not.toBeInTheDocument()
     expect(screen.queryByText('Відеовізитка завантажена, але не показується клієнтам.')).not.toBeInTheDocument()
   })
 
@@ -1407,10 +1404,15 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Пошук Pro Consult' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Поява в пошуку Pro Consult' })).toBeInTheDocument()
     expect(
-      screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
+      screen.getByLabelText('Показувати мою сторінку в пошуку')
     ).toBeChecked()
+    expect(
+      screen.getByText(
+        'Дозвольте клієнтам знаходити вашу сторінку через пошук спеціалістів у Pro Consult.'
+      )
+    ).toBeInTheDocument()
     expect(
       screen.getByText(
         'Клієнти можуть знайти сторінку через пошук спеціалістів.'
@@ -1427,7 +1429,7 @@ describe('TherapistProfileView', () => {
 
     const { unmount } = renderView()
 
-    const disableSearchCheckbox = await screen.findByLabelText('Показувати сторінку в пошуку Pro Consult')
+    const disableSearchCheckbox = await screen.findByLabelText('Показувати мою сторінку в пошуку')
     await fireEvent.click(disableSearchCheckbox)
 
     expect(screen.getByText('Показ у пошуку буде вимкнено після збереження.')).toBeInTheDocument()
@@ -1442,7 +1444,7 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    const enableSearchCheckbox = await screen.findByLabelText('Показувати сторінку в пошуку Pro Consult')
+    const enableSearchCheckbox = await screen.findByLabelText('Показувати мою сторінку в пошуку')
     expect(
       screen.getByText('Сторінка залишається доступною за прямим посиланням, але не відображається в пошуку.')
     ).toBeInTheDocument()
@@ -1728,6 +1730,7 @@ describe('TherapistProfileView', () => {
 
     expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
       expect.objectContaining({
+        public_visibility_contract_version: 2,
         public_profile_enabled: true,
         offers_online: true,
         offers_offline: true,
@@ -1750,9 +1753,16 @@ describe('TherapistProfileView', () => {
         show_email: true,
         show_messenger: true,
         show_telegram: true,
-        show_photo: true,
       })
     )
+    const savedPayload = mockedUpdateSpecialistProfile.mock.calls[0]?.[0] as Record<string, unknown>
+    expect(savedPayload).not.toHaveProperty('show_photo')
+    expect(savedPayload).not.toHaveProperty('show_video')
+    expect(savedPayload).not.toHaveProperty('show_bio_about')
+    expect(savedPayload).not.toHaveProperty('show_bio_work')
+    expect(savedPayload).not.toHaveProperty('show_bio_approach')
+    expect(savedPayload).not.toHaveProperty('show_bio_for_whom')
+    expect(savedPayload).not.toHaveProperty('show_bio_other')
     const successMessage = await screen.findByText('Зміни збережено')
     expect(successMessage).toBeInTheDocument()
     expect(successMessage).toHaveClass('profile-save-feedback--success')

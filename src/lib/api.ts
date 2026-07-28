@@ -249,6 +249,7 @@ export type ProfileNotice = {
 
 export type TherapistProfile = {
   id: number
+  public_visibility_contract_version?: number
   public_profile_enabled: boolean
   is_search_visible: boolean
   public_profile_readiness?: PublicProfileReadiness | null

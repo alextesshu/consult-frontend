@@ -51,6 +51,21 @@ Rules:
 - If a saved profile is still live while local unpublish is pending, public
   copy/open actions may remain available until save.
 
+### Content-driven section policy
+
+The approved target rule for content sections is: filled/uploaded content is
+displayed; cleared/deleted content is not displayed. Photo, video, the five
+`bio_*` sections, valid profile documents, and valid FAQ do not have separate
+frontend visibility controls. Deprecated backend flags may remain in
+compatibility responses during rollout, but the frontend neither edits nor
+resubmits them.
+
+Explicit controls remain for individual prices, individual contacts, exact
+location, whole-page publication, and voluntary search visibility. Generic
+Messenger is not automatically activated. Non-FAQ journal categories keep
+their `is_published` control. Search visibility never publishes the page or its
+content by itself.
+
 ## Publication Readiness
 
 Hard publication requirements are:

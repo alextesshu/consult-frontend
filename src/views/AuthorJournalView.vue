@@ -181,11 +181,14 @@
               </div>
             </div>
 
-            <label class="check field--full">
+            <label v-if="journalForm.category !== 'FAQ'" class="check field--full">
               <input v-model="journalForm.is_published" type="checkbox" />
               <span>Опублікувати</span>
               <span class="muted">— допис стане видимим у публічному профілі</span>
             </label>
+            <p v-else class="muted field--full">
+              Заповнене FAQ відображається у публічному профілі. Щоб прибрати його, видаліть FAQ.
+            </p>
           </div>
 
           <div class="actions">
@@ -359,10 +362,13 @@
                 </div>
               </div>
 
-              <label class="check">
+              <label v-if="editForm.category !== 'FAQ'" class="check">
                 <input v-model="editForm.is_published" type="checkbox" />
                 <span>Опублікувати</span>
               </label>
+              <p v-else class="muted">
+                Заповнене FAQ відображається у публічному профілі. Щоб прибрати його, видаліть FAQ.
+              </p>
 
               <div class="field-row">
                 <button class="btn" type="button" :disabled="editSaving" @click="saveInlineEdit(post.id)">
@@ -1174,7 +1180,7 @@ async function onSaveJournal() {
       title: journalForm.title,
       summary: journalForm.summary,
       body: journalForm.body,
-      is_published: journalForm.is_published,
+      is_published: journalForm.category === 'FAQ' ? true : journalForm.is_published,
     }
     if (coverChanged.value) {
       payload.cover_image_url = journalForm.cover_image_url
@@ -1238,7 +1244,7 @@ async function saveInlineEdit(postId: number) {
       title: editForm.title,
       summary: editForm.summary,
       body: editForm.body,
-      is_published: editForm.is_published,
+      is_published: editForm.category === 'FAQ' ? true : editForm.is_published,
     }
     if (editForm.coverChanged) {
       payload.cover_image_url = editForm.cover_image_url
