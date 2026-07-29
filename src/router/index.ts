@@ -263,6 +263,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
+    path: '/cabinet/journal/:postId/preview/:postSlug?',
+    name: 'cabinet-journal-preview',
+    component: PublicJournalPostView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
     path: '/client',
     name: 'client-dashboard',
     component: ClientDashboardView,

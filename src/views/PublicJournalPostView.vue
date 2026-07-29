@@ -2,7 +2,9 @@
   <section class="public-post">
     <header class="post-hero">
       <div>
-        <div class="badge badge--soft">Власний блог</div>
+        <div class="badge badge--soft">
+          {{ isOwnerPreview ? 'Попередній перегляд у кабінеті' : 'Власний блог' }}
+        </div>
         <h1 class="title post-title">{{ post?.title || 'Стаття' }}</h1>
         <p class="muted post-subtitle">
           <span v-if="post">
@@ -13,10 +15,15 @@
         </p>
       </div>
       <div class="post-hero__actions">
-        <RouterLink class="btn btn--ghost" :to="backTo">← Назад</RouterLink>
-        <RouterLink class="btn btn--ghost" :to="`/t/${slug}`">До профілю</RouterLink>
-        <RouterLink class="btn btn--ghost" :to="`/t/${slug}/journal`">До блогу</RouterLink>
-        <button class="btn btn--ghost btn--sm" type="button" :disabled="shareBusy" @click="onShare">
+        <RouterLink v-if="isOwnerPreview" class="btn btn--ghost" to="/cabinet/journal">
+          До редактора
+        </RouterLink>
+        <template v-else>
+          <RouterLink class="btn btn--ghost" :to="backTo">← Назад</RouterLink>
+          <RouterLink class="btn btn--ghost" :to="`/s/${slug}`">До профілю</RouterLink>
+          <RouterLink class="btn btn--ghost" :to="`/s/${slug}/journal`">До блогу</RouterLink>
+        </template>
+        <button v-if="!isOwnerPreview" class="btn btn--ghost btn--sm" type="button" :disabled="shareBusy" @click="onShare">
           {{ shareDone ? 'Скопійовано ✓' : (shareBusy ? '...' : 'Поділитися') }}
         </button>
         <span v-if="shareError" class="muted">{{ shareError }}</span>
@@ -127,11 +134,17 @@ import { useRoute } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { getApiErrorMessage } from '../lib/errors'
-import { fetchPublicAuthorJournalPostDetail, type PublicAuthorJournalPostDetail } from '../lib/api'
+import {
+  fetchAuthorJournalPost,
+  fetchPublicAuthorJournalPostDetail,
+  type PublicAuthorJournalPostDetail,
+} from '../lib/api'
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug || '').trim())
 const postSlug = computed(() => String(route.params.postSlug || '').trim())
+const isOwnerPreview = computed(() => route.name === 'cabinet-journal-preview')
+const previewPostId = computed(() => Number(route.params.postId || 0))
 
 const backTo = computed(() => {
   const from = String(route.query.from || 'profile')
@@ -216,15 +229,35 @@ function categoryColor(cat?: string) {
 }
 
 async function load() {
-  if (!slug.value || !postSlug.value) return
+  if (isOwnerPreview.value) {
+    if (!Number.isInteger(previewPostId.value) || previewPostId.value <= 0) return
+  } else if (!slug.value || !postSlug.value) {
+    return
+  }
   loading.value = true
   error.value = ''
   try {
-    post.value = await fetchPublicAuthorJournalPostDetail(slug.value, postSlug.value)
-    applySeo()
+    if (isOwnerPreview.value) {
+      const previewPost = await fetchAuthorJournalPost(previewPostId.value)
+      post.value = {
+        ...previewPost,
+        slug: previewPost.slug || '',
+        collection: null,
+      }
+    } else {
+      post.value = await fetchPublicAuthorJournalPostDetail(slug.value, postSlug.value)
+      applySeo()
+    }
   } catch (err) {
     post.value = null
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити статтю.')
+    const status = Number((err as { response?: { status?: number } })?.response?.status || 0)
+    if (status === 404) {
+      error.value = isOwnerPreview.value
+        ? 'Не вдалося знайти цей допис у вашому журналі.'
+        : 'Не вдалося знайти профіль або статтю.'
+    } else {
+      error.value = getApiErrorMessage(err, 'Не вдалося завантажити статтю.')
+    }
   } finally {
     loading.value = false
   }
@@ -332,7 +365,7 @@ function applySeo() {
   if (image) upsertTwitterMeta('twitter:image', image)
 }
 
-watch([slug, postSlug], () => {
+watch([slug, postSlug, previewPostId, isOwnerPreview], () => {
   post.value = null
   load()
 })

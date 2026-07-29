@@ -2191,6 +2191,11 @@ export async function fetchAuthorJournalPosts(): Promise<AuthorJournalPost[]> {
   return resp.data
 }
 
+export async function fetchAuthorJournalPost(postId: number): Promise<AuthorJournalPost> {
+  const resp = await http.get<AuthorJournalPost>(`/cabinet/journal/${postId}/`)
+  return resp.data
+}
+
 export async function fetchCabinetJournalCollections(): Promise<CabinetJournalCollection[]> {
   const resp = await http.get<CabinetJournalCollection[]>('/cabinet/journal/collections/')
   return resp.data

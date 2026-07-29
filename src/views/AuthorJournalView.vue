@@ -62,13 +62,20 @@
           <label class="field">
             <span class="label">Назва</span>
             <input
+              ref="titleInput"
               v-model.trim="journalForm.title"
               class="input"
-                type="text"
-                placeholder="Напр. Як підготуватись до першої сесії"
-                autocomplete="off"
-              />
-            </label>
+              :aria-describedby="journalFieldErrors.title ? 'journal-title-error' : undefined"
+              :aria-invalid="Boolean(journalFieldErrors.title)"
+              type="text"
+              placeholder="Напр. Як підготуватись до першої сесії"
+              autocomplete="off"
+              @input="clearJournalFieldError('title')"
+            />
+            <span v-if="journalFieldErrors.title" id="journal-title-error" class="field-error" role="alert">
+              {{ journalFieldErrors.title }}
+            </span>
+          </label>
 
             <label class="field">
               <span class="label">Короткий опис</span>
@@ -121,8 +128,15 @@
               class="input input--area"
               rows="10"
               placeholder="Основний текст (підтримується Markdown: **жирний**, _курсив_, списки, посилання)"
+              :aria-describedby="journalFieldErrors.body ? 'journal-body-error' : undefined"
+              :aria-invalid="Boolean(journalFieldErrors.body)"
               @focus="activeMdField = 'body'"
+              @input="clearJournalFieldError('body')"
             />
+
+            <span v-if="journalFieldErrors.body" id="journal-body-error" class="field-error" role="alert">
+              {{ journalFieldErrors.body }}
+            </span>
 
             <div class="muted md-hint">
               Підтримується Markdown. Приклад: <code>**жирний**</code>, <code>_курсив_</code>,
@@ -260,7 +274,23 @@
 
             <label class="field">
               <span class="label">Назва</span>
-              <input v-model.trim="editForm.title" class="input" type="text" />
+              <input
+                :ref="setEditTitleInput"
+                v-model.trim="editForm.title"
+                class="input"
+                :aria-describedby="editJournalFieldErrors.title ? 'journal-edit-title-error' : undefined"
+                :aria-invalid="Boolean(editJournalFieldErrors.title)"
+                type="text"
+                @input="clearEditJournalFieldError('title')"
+              />
+              <span
+                v-if="editJournalFieldErrors.title"
+                id="journal-edit-title-error"
+                class="field-error"
+                role="alert"
+              >
+                {{ editJournalFieldErrors.title }}
+              </span>
             </label>
 
               <label class="field">
@@ -314,18 +344,29 @@
                   class="input input--area"
                   rows="10"
                   placeholder="Основний текст"
+                  :aria-describedby="editJournalFieldErrors.body ? 'journal-edit-body-error' : undefined"
+                  :aria-invalid="Boolean(editJournalFieldErrors.body)"
                   @focus="updateEditSelection"
+                  @input="clearEditJournalFieldError('body')"
                   @select="updateEditSelection"
                   @keyup="updateEditSelection"
                   @mouseup="updateEditSelection"
                 />
+                <span
+                  v-if="editJournalFieldErrors.body"
+                  id="journal-edit-body-error"
+                  class="field-error"
+                  role="alert"
+                >
+                  {{ editJournalFieldErrors.body }}
+                </span>
               </label>
 
               <div class="field">
                 <span class="label">Обкладинка</span>
                 <div class="cover-row">
                   <input
-                    ref="editCoverInput"
+                    :ref="setEditCoverInput"
                     class="cover-file-input"
                     type="file"
                     accept="image/*"
@@ -360,6 +401,7 @@
                 <div v-if="editForm.coverPreviewUrl" class="cover-preview">
                   <img :src="editForm.coverPreviewUrl" alt="Обкладинка допису" />
                 </div>
+                <div v-if="journalError" class="form-error" role="alert">{{ journalError }}</div>
               </div>
 
               <label v-if="editForm.category !== 'FAQ'" class="check">
@@ -792,15 +834,18 @@ const collectionSuccessMessage = ref('')
 const journalPosts = ref<AuthorJournalPost[]>([])
 const collections = ref<CabinetJournalCollection[]>([])
 const profileSlug = ref('')
+const publicProfileEnabled = ref(false)
 const createOpen = ref(false)
 const editingPostId = ref<number | null>(null)
 const editSaving = ref(false)
 const editCoverInput = ref<HTMLInputElement | null>(null)
+const editTitleInput = ref<HTMLInputElement | null>(null)
 const editBodyInput = ref<HTMLTextAreaElement | null>(null)
 const editSelStart = ref(0)
 const editSelEnd = ref(0)
 const editCoverUploading = ref(false)
 const editCoverFileName = ref('')
+const titleInput = ref<HTMLInputElement | null>(null)
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
@@ -824,6 +869,14 @@ const journalForm = reactive({
   body: '',
   cover_image_url: '',
   is_published: false,
+})
+const journalFieldErrors = reactive({
+  title: '',
+  body: '',
+})
+const editJournalFieldErrors = reactive({
+  title: '',
+  body: '',
 })
 const collectionForm = reactive({
   title: '',
@@ -850,6 +903,8 @@ const journalDeleteModal = useConfirmModal()
 let collectionSuccessTimer: number | null = null
 const AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE =
   'Власний блог недоступний на вашому тарифі. Перейдіть на Pro або Leader, щоб створювати дописи.'
+const JOURNAL_COVER_MAX_BYTES = 10 * 1024 * 1024
+const JOURNAL_COVER_ACCEPTED_TYPE_PREFIX = 'image/'
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 
 const planCode = computed<PlanCode | null>(() => {
@@ -893,9 +948,11 @@ async function loadCollections() {
 async function loadProfileSlug() {
   try {
     const profile = await fetchSpecialistProfile()
-    profileSlug.value = String(profile.slug || profile.public_slug || '').trim()
+    profileSlug.value = String(profile.slug || '').trim()
+    publicProfileEnabled.value = Boolean(profile.public_profile_enabled)
   } catch {
     profileSlug.value = ''
+    publicProfileEnabled.value = false
   }
 }
 
@@ -910,6 +967,94 @@ function resetJournalForm() {
   coverPreviewUrl.value = ''
   coverFileName.value = ''
   coverChanged.value = false
+  journalError.value = ''
+  clearJournalFieldErrors()
+}
+
+function clearJournalFieldError(field: 'title' | 'body') {
+  journalFieldErrors[field] = ''
+}
+
+function clearEditJournalFieldError(field: 'title' | 'body') {
+  editJournalFieldErrors[field] = ''
+}
+
+function clearJournalFieldErrors() {
+  clearJournalRequiredFieldErrors(journalFieldErrors)
+}
+
+function clearEditJournalFieldErrors() {
+  clearJournalRequiredFieldErrors(editJournalFieldErrors)
+}
+
+type JournalRequiredFields = { title: string; body: string }
+
+function clearJournalRequiredFieldErrors(errors: JournalRequiredFields) {
+  errors.title = ''
+  errors.body = ''
+}
+
+function focusFirstJournalFieldError(
+  errors: JournalRequiredFields,
+  titleElement: HTMLInputElement | null,
+  bodyElement: HTMLTextAreaElement | null
+) {
+  if (errors.title) {
+    titleElement?.focus()
+    return
+  }
+  if (errors.body) {
+    bodyElement?.focus()
+  }
+}
+
+function validateJournalRequiredFields(
+  values: JournalRequiredFields,
+  errors: JournalRequiredFields,
+  titleElement: HTMLInputElement | null,
+  bodyElement: HTMLTextAreaElement | null
+): boolean {
+  clearJournalRequiredFieldErrors(errors)
+  if (!values.title.trim()) {
+    errors.title = 'Додайте заголовок допису'
+  }
+  if (!values.body.trim()) {
+    errors.body = 'Додайте текст допису'
+  }
+  if (!errors.title && !errors.body) return true
+
+  focusFirstJournalFieldError(errors, titleElement, bodyElement)
+  return false
+}
+
+function localizeJournalValidationError(
+  err: unknown,
+  errors: JournalRequiredFields,
+  titleElement: HTMLInputElement | null,
+  bodyElement: HTMLTextAreaElement | null,
+  fallback: string
+): string {
+  const data = (err as { response?: { data?: unknown } })?.response?.data
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return fallback
+  }
+
+  const validation = data as Record<string, unknown>
+  let hasFieldError = false
+  if (validation.title) {
+    errors.title = 'Додайте заголовок допису'
+    hasFieldError = true
+  }
+  if (validation.body) {
+    errors.body = 'Додайте текст допису'
+    hasFieldError = true
+  }
+  if (hasFieldError) {
+    focusFirstJournalFieldError(errors, titleElement, bodyElement)
+    return 'Перевірте заповнення обов’язкових полів.'
+  }
+
+  return fallback
 }
 
 function resetCollectionForm() {
@@ -1172,8 +1317,10 @@ async function onSaveJournal() {
     journalError.value = AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE
     return
   }
-  journalSaving.value = true
   journalError.value = ''
+  if (!validateJournalRequiredFields(journalForm, journalFieldErrors, titleInput.value, bodyInput.value)) return
+
+  journalSaving.value = true
   try {
     const payload: Partial<AuthorJournalPost> = {
       category: journalForm.category,
@@ -1193,7 +1340,13 @@ async function onSaveJournal() {
     if (isAuthorJournalEntitlementError(err)) {
       journalError.value = AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE
     } else {
-      journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти допис')
+      journalError.value = localizeJournalValidationError(
+        err,
+        journalFieldErrors,
+        titleInput.value,
+        bodyInput.value,
+        'Не вдалося зберегти допис. Перевірте дані та спробуйте ще раз.'
+      )
     }
   } finally {
     journalSaving.value = false
@@ -1210,6 +1363,8 @@ function isAuthorJournalEntitlementError(err: unknown): boolean {
 
 function startInlineEdit(post: AuthorJournalPost) {
   createOpen.value = false
+  journalError.value = ''
+  clearEditJournalFieldErrors()
   editingPostId.value = post.id
   editForm.category = (post.category || 'EXPLAIN') as 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
   editForm.title = post.title || ''
@@ -1233,11 +1388,21 @@ function cancelInlineEdit() {
   editForm.coverPreviewUrl = ''
   editForm.coverChanged = false
   editCoverFileName.value = ''
+  clearEditJournalFieldErrors()
 }
 
 async function saveInlineEdit(postId: number) {
-  editSaving.value = true
   journalError.value = ''
+  if (
+    !validateJournalRequiredFields(
+      editForm,
+      editJournalFieldErrors,
+      editTitleInput.value,
+      editBodyInput.value
+    )
+  ) return
+
+  editSaving.value = true
   try {
     const payload: Partial<AuthorJournalPost> = {
       category: editForm.category,
@@ -1249,11 +1414,18 @@ async function saveInlineEdit(postId: number) {
     if (editForm.coverChanged) {
       payload.cover_image_url = editForm.cover_image_url
     }
-    await updateAuthorJournalPost(postId, payload)
+    const updatedPost = await updateAuthorJournalPost(postId, payload)
+    journalPosts.value = journalPosts.value.map((post) => (post.id === postId ? updatedPost : post))
     await loadJournal()
     cancelInlineEdit()
   } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося оновити допис')
+    journalError.value = localizeJournalValidationError(
+      err,
+      editJournalFieldErrors,
+      editTitleInput.value,
+      editBodyInput.value,
+      'Не вдалося оновити допис. Перевірте дані та спробуйте ще раз.'
+    )
   } finally {
     editSaving.value = false
   }
@@ -1291,12 +1463,32 @@ function triggerEditCoverSelect() {
   editCoverInput.value?.click()
 }
 
+function setEditCoverInput(el: unknown) {
+  editCoverInput.value = el instanceof HTMLInputElement ? el : null
+}
+
+function getJournalCoverValidationError(file: File): string | null {
+  if (!file.type.startsWith(JOURNAL_COVER_ACCEPTED_TYPE_PREFIX)) {
+    return 'Оберіть файл зображення для обкладинки.'
+  }
+  if (file.size > JOURNAL_COVER_MAX_BYTES) {
+    return 'Розмір обкладинки не може перевищувати 10 МБ.'
+  }
+  return null
+}
+
 async function onEditCoverSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
 
   journalError.value = ''
+  const validationError = getJournalCoverValidationError(file)
+  if (validationError) {
+    journalError.value = validationError
+    input.value = ''
+    return
+  }
   editCoverFileName.value = file.name
   editCoverUploading.value = true
   try {
@@ -1322,8 +1514,14 @@ function clearEditCover() {
 
 function previewPost(post: AuthorJournalPost) {
   const specialistSlug = profileSlug.value
-  if (!specialistSlug || !post.slug) return
-  router.push(`/s/${specialistSlug}/journal/${post.slug}`)
+  if (post.is_published && publicProfileEnabled.value && specialistSlug && post.slug) {
+    router.push(`/s/${specialistSlug}/journal/${post.slug}`)
+    return
+  }
+  router.push({
+    name: 'cabinet-journal-preview',
+    params: { postId: String(post.id), postSlug: post.slug || undefined },
+  })
 }
 
 function requestDeleteJournal(post: AuthorJournalPost) {
@@ -1414,11 +1612,18 @@ function updateEditSelection() {
 }
 
 function setEditBodyInput(el: Element | { $el?: Element } | null) {
-  if (!el) return
+  if (!el) {
+    editBodyInput.value = null
+    return
+  }
   const target = '$el' in el ? el.$el : el
   if (target instanceof HTMLTextAreaElement) {
     editBodyInput.value = target
   }
+}
+
+function setEditTitleInput(el: unknown) {
+  editTitleInput.value = el instanceof HTMLInputElement ? el : null
 }
 
 function prepareEditSelection() {
@@ -1612,6 +1817,12 @@ async function onCoverSelected(event: Event) {
   const file = input.files?.[0]
   if (!file) return
   journalError.value = ''
+  const validationError = getJournalCoverValidationError(file)
+  if (validationError) {
+    journalError.value = validationError
+    input.value = ''
+    return
+  }
   coverFileName.value = file.name
   coverUploading.value = true
   try {
@@ -2236,6 +2447,8 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .cover-file-input {
@@ -2256,12 +2469,26 @@ onMounted(() => {
   overflow: hidden;
   border: 1px solid var(--line);
   background: #fff;
+  width: min(320px, 100%);
   max-width: 320px;
 }
 
 .cover-preview img {
   width: 100%;
+  max-width: 100%;
+  height: auto;
   display: block;
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--danger, #b42318);
+  font-size: 0.875rem;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--danger, #b42318);
 }
 
 .inline-edit {
