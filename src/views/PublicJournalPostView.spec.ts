@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import PublicJournalPostView from './PublicJournalPostView.vue'
@@ -89,6 +89,10 @@ describe('PublicJournalPostView routes and owner preview', () => {
     mockedRoute.query = {}
     mockedFetchPublicPost.mockResolvedValue(buildPublicPost())
     mockedFetchAuthorJournalPost.mockResolvedValue(buildDraft())
+    window.history.replaceState({}, '', '/s/canonical-specialist/journal/article-slug?from=cabinet#share')
+    document.querySelectorAll('link[rel="canonical"], meta[property^="og:"], meta[name^="twitter:"]').forEach(
+      (element) => element.remove()
+    )
   })
 
   it('loads a published article by canonical slug and uses it for profile and blog links', async () => {
@@ -104,6 +108,56 @@ describe('PublicJournalPostView routes and owner preview', () => {
       'data-to',
       '/s/canonical-specialist/journal'
     )
+    const shareButton = screen.getByRole('button', { name: 'Поділитися дописом' })
+    expect(shareButton).toHaveClass('btn', 'post-share-cta')
+    expect(shareButton).not.toHaveClass('btn--ghost')
+  })
+
+  it('opens the custom dialog with a canonical URL that excludes query and hash', async () => {
+    renderView()
+    const shareButton = await screen.findByRole('button', { name: 'Поділитися дописом' })
+
+    await fireEvent.click(shareButton)
+
+    expect(screen.getByRole('dialog', { name: 'Поділитися дописом' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Telegram' })).toHaveAttribute(
+      'href',
+      expect.stringContaining(
+        encodeURIComponent(`${window.location.origin}/s/canonical-specialist/journal/article-slug`)
+      )
+    )
+    expect(screen.getByRole('link', { name: 'Telegram' }).getAttribute('href')).not.toContain(
+      encodeURIComponent('?from=cabinet')
+    )
+  })
+
+  it('closes the dialog with Escape and its button, returning focus to the CTA', async () => {
+    renderView()
+    const shareButton = await screen.findByRole('button', { name: 'Поділитися дописом' })
+    await fireEvent.click(shareButton)
+
+    await fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(shareButton).toHaveFocus()
+
+    await fireEvent.click(shareButton)
+    await fireEvent.click(screen.getByRole('button', { name: 'Закрити' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(shareButton).toHaveFocus()
+  })
+
+  it('sets the absolute generic social image when the article has no cover', async () => {
+    renderView()
+    await screen.findByText('Тестова стаття')
+
+    expect(document.querySelector('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      `${window.location.origin}/og-image.png?v=20260707`
+    )
+    expect(document.querySelector('meta[name="twitter:image"]')).toHaveAttribute(
+      'content',
+      `${window.location.origin}/og-image.png?v=20260707`
+    )
   })
 
   it('loads an owner draft only through the authenticated cabinet endpoint', async () => {
@@ -118,7 +172,7 @@ describe('PublicJournalPostView routes and owner preview', () => {
       'data-to',
       '/cabinet/journal'
     )
-    expect(screen.queryByRole('button', { name: 'Поділитися' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Поділитися дописом' })).not.toBeInTheDocument()
   })
 
   it('shows a Ukrainian not-found state instead of the raw API message', async () => {

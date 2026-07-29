@@ -23,10 +23,18 @@
           <RouterLink class="btn btn--ghost" :to="`/s/${slug}`">До профілю</RouterLink>
           <RouterLink class="btn btn--ghost" :to="`/s/${slug}/journal`">До блогу</RouterLink>
         </template>
-        <button v-if="!isOwnerPreview" class="btn btn--ghost btn--sm" type="button" :disabled="shareBusy" @click="onShare">
-          {{ shareDone ? 'Скопійовано ✓' : (shareBusy ? '...' : 'Поділитися') }}
+        <button
+          v-if="canShare"
+          ref="shareButtonRef"
+          class="btn post-share-cta"
+          type="button"
+          @click="shareDialogOpen = true"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M18 8a3 3 0 1 0-2.83-4A3 3 0 0 0 15 5c0 .2.02.39.06.57L8.9 9.08A3 3 0 0 0 7 8.4a3 3 0 1 0 1.9 5.52l6.16 3.51A3 3 0 0 0 15 18a3 3 0 1 0 .83-2.07l-6.1-3.48c.17-.52.17-.98 0-1.5l6.1-3.48A3 3 0 0 0 18 8Z" fill="currentColor" />
+          </svg>
+          Поділитися дописом
         </button>
-        <span v-if="shareError" class="muted">{{ shareError }}</span>
       </div>
     </header>
 
@@ -125,15 +133,23 @@
         </div>
       </div>
     </article>
+
+    <ArticleShareDialog
+      :open="shareDialogOpen"
+      :canonical-url="canonicalShareUrl"
+      :title="post?.title || 'Стаття'"
+      @close="closeShareDialog"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { getApiErrorMessage } from '../lib/errors'
+import ArticleShareDialog from '../components/ArticleShareDialog.vue'
 import {
   fetchAuthorJournalPost,
   fetchPublicAuthorJournalPostDetail,
@@ -158,10 +174,15 @@ const backTo = computed(() => {
 const loading = ref(false)
 const error = ref('')
 const post = ref<PublicAuthorJournalPostDetail | null>(null)
-
-const shareBusy = ref(false)
-const shareDone = ref(false)
-const shareError = ref('')
+const shareDialogOpen = ref(false)
+const shareButtonRef = ref<HTMLButtonElement | null>(null)
+const canonicalShareUrl = computed(() => {
+  if (isOwnerPreview.value || !slug.value || !postSlug.value) return ''
+  return `${window.location.origin}/s/${slug.value}/journal/${postSlug.value}`
+})
+const canShare = computed(
+  () => !isOwnerPreview.value && Boolean(post.value) && Boolean(canonicalShareUrl.value)
+)
 
 const collectionNav = computed(() => {
   const currentPost = post.value
@@ -263,39 +284,10 @@ async function load() {
   }
 }
 
-async function onShare() {
-  if (shareBusy.value) return
-  shareBusy.value = true
-  shareDone.value = false
-  shareError.value = ''
-  try {
-    const url = window.location.href
-    const title = post.value?.title || document.title
-    const text = post.value?.summary || ''
-    const nav: any = navigator
-    if (nav?.share) {
-      await nav.share({ title, text, url })
-      shareDone.value = true
-      return
-    }
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(url)
-      shareDone.value = true
-      return
-    }
-    window.prompt('Скопіюйте посилання:', url)
-    shareDone.value = true
-  } catch (e: any) {
-    const msg = String(e?.message || '')
-    if (!msg.toLowerCase().includes('abort')) {
-      shareError.value = 'Не вдалося поділитися посиланням.'
-    }
-  } finally {
-    shareBusy.value = false
-    if (shareDone.value) {
-      window.setTimeout(() => (shareDone.value = false), 1600)
-    }
-  }
+async function closeShareDialog() {
+  shareDialogOpen.value = false
+  await nextTick()
+  shareButtonRef.value?.focus()
 }
 
 function upsertMeta(name: string, content: string) {
@@ -349,7 +341,7 @@ function applySeo() {
   const url = window.location.origin + window.location.pathname
   upsertCanonical(url)
 
-  const image = post.value?.cover_image_url || ''
+  const image = post.value?.cover_image_url || `${window.location.origin}/og-image.png?v=20260707`
 
   upsertPropertyMeta('og:type', 'article')
   upsertPropertyMeta('og:title', document.title)
@@ -357,12 +349,12 @@ function applySeo() {
   upsertPropertyMeta('og:url', url)
   upsertPropertyMeta('og:site_name', 'Pro Consult')
   upsertPropertyMeta('og:locale', 'uk_UA')
-  if (image) upsertPropertyMeta('og:image', image)
+  upsertPropertyMeta('og:image', image)
 
   upsertTwitterMeta('twitter:card', image ? 'summary_large_image' : 'summary')
   upsertTwitterMeta('twitter:title', document.title)
   upsertTwitterMeta('twitter:description', summary || 'Авторська стаття спеціаліста.')
-  if (image) upsertTwitterMeta('twitter:image', image)
+  upsertTwitterMeta('twitter:image', image)
 }
 
 watch([slug, postSlug, previewPostId, isOwnerPreview], () => {
@@ -402,6 +394,16 @@ onMounted(load)
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.post-share-cta {
+  min-height: 44px;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.post-share-cta svg {
+  flex: 0 0 auto;
 }
 
 .post-card {
@@ -650,6 +652,11 @@ onMounted(load)
 
   .post-card__grid {
     grid-template-columns: 1fr;
+  }
+
+  .post-hero__actions,
+  .post-share-cta {
+    width: 100%;
   }
 
   .collection-card__head {
