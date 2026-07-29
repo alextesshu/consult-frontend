@@ -47,7 +47,12 @@
         </button>
       </div>
 
-      <div class="article-share-dialog__feedback" aria-live="polite" aria-atomic="true">
+      <div
+        v-if="feedbackMessage || threadsPopupBlocked"
+        class="article-share-dialog__feedback"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <p v-if="feedbackMessage" :class="feedbackTone === 'error' ? 'is-error' : 'is-success'">
           <span v-if="feedbackTone === 'success'" aria-hidden="true">✓</span>
           {{ feedbackMessage }}
@@ -262,7 +267,6 @@ watch(
 }
 
 .article-share-dialog__feedback {
-  min-height: 44px;
   margin-top: 14px;
   overflow-wrap: anywhere;
 }

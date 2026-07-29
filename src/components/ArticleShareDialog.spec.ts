@@ -155,5 +155,6 @@ describe('ArticleShareDialog', () => {
     expect(container.querySelector('.article-share-dialog__panel')).toBeInTheDocument()
     expect(container.querySelector('.article-share-dialog__actions')).toBeInTheDocument()
     expect(container.querySelectorAll('.article-share-dialog__target')).toHaveLength(3)
+    expect(container.querySelector('.article-share-dialog__feedback')).not.toBeInTheDocument()
   })
 })
