@@ -2189,6 +2189,95 @@ describe('PublicProfileView', () => {
     )
   })
 
+  it('keeps the chosen request option visible and editable without clearing the request draft', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 90,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockClientPageData()
+    mockedApiPost.mockResolvedValue({ request: { id: 507, status: 'PENDING', created_at: '2026-04-07T10:00:00Z', next_step: null } })
+
+    const { container } = renderView()
+
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    const modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    await fireEvent.click(within(modal).getByRole('button', { name: /Ознайомча сесія/i }))
+
+    const summary = within(modal).getByLabelText('Обраний варіант запиту')
+    expect(summary).toHaveTextContent('Ознайомча сесія')
+    expect(within(modal).queryByRole('button', { name: /Парна консультація/i })).not.toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.update(screen.getByRole('textbox', { name: /Опишіть запит/ }), 'Потрібна підтримка.')
+
+    const changeButton = within(summary).getByRole('button', { name: 'Змінити' })
+    changeButton.focus()
+    expect(changeButton).toHaveFocus()
+    await fireEvent.click(changeButton)
+
+    const introOption = within(modal).getByRole('button', { name: /Ознайомча сесія/i })
+    expect(introOption).toHaveFocus()
+    expect(introOption).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.click(within(modal).getByRole('button', { name: /Парна консультація/i }))
+
+    expect(within(modal).getByLabelText('Обраний варіант запиту')).toHaveTextContent('Парна консультація')
+    expect(screen.getByLabelText('Ім’я')).toHaveValue('Ірина')
+    expect(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?')).toHaveValue('iryna@example.com')
+    expect(screen.getByRole('textbox', { name: /Опишіть запит/ })).toHaveValue('Потрібна підтримка.')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({ offer_type: 'couple' })
+    )
+  })
+
+  it('keeps the selected request option on dialog reopen and resets it after success', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockClientPageData()
+    mockedApiPost.mockResolvedValue({ request: { id: 509, status: 'PENDING', created_at: '2026-04-07T10:00:00Z', next_step: null } })
+
+    const { container } = renderView()
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    let modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    await fireEvent.click(within(modal).getByRole('button', { name: /Ознайомча сесія/i }))
+    await fireEvent.click(within(modal).getByRole('button', { name: 'Закрити' }))
+
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    expect(within(modal).getByLabelText('Обраний варіант запиту')).toHaveTextContent('Ознайомча сесія')
+
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+    expect(await screen.findByText('Запит надіслано')).toBeInTheDocument()
+
+    await fireEvent.click(within(modal).getByRole('button', { name: 'Закрити' }))
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    expect(within(modal).getByText('Тип консультації')).toBeInTheDocument()
+    expect(within(modal).queryByLabelText('Обраний варіант запиту')).not.toBeInTheDocument()
+    expect(within(modal).getByRole('button', { name: /^Консультація/i })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('submits couple offer_type only when couple offer is public', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({

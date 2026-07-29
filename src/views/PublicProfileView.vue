@@ -624,6 +624,7 @@
 
             <section
               v-if="showGuestOfferSelector"
+              ref="guestOfferSelectorRef"
               class="guest-offer-selector"
               aria-labelledby="guestOfferSelectorTitle"
             >
@@ -648,6 +649,26 @@
               <p v-if="guestOfferCompatibilityMessage" class="guest-offer-selector__hint">
                 {{ guestOfferCompatibilityMessage }}
               </p>
+            </section>
+
+            <section
+              v-else-if="showGuestOfferSummary"
+              class="guest-offer-summary"
+              aria-label="Обраний варіант запиту"
+            >
+              <div class="guest-offer-summary__copy">
+                <span class="guest-offer-summary__eyebrow">Обраний варіант</span>
+                <strong>{{ selectedGuestBookingOffer?.label }}</strong>
+                <span class="guest-offer-summary__meta">{{ selectedGuestBookingOffer?.meta }}</span>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="guestBookingSubmitting"
+                @click="startChangingGuestBookingOffer"
+              >
+                Змінити
+              </button>
             </section>
 
             <label class="setting-label" for="guestBookingName">
@@ -1176,6 +1197,9 @@ const guestBookingFieldErrors = ref<Record<'guest_name' | 'contact_value', strin
 })
 const guestBookingNameInputRef = ref<HTMLInputElement | null>(null)
 const guestBookingContactValueInputRef = ref<HTMLInputElement | null>(null)
+const guestOfferSelectorRef = ref<HTMLElement | null>(null)
+const guestOfferSelectionEditing = ref(false)
+const guestOfferSelectionConfirmed = ref(false)
 const selectedGuestRequestTopics = ref<GuestRequestTopicOption[]>([])
 const bookingRulesAccepting = ref(false)
 const pendingClientBookingSlotId = ref<number | null>(null)
@@ -2289,8 +2313,22 @@ const compatibleGuestRequestOffers = computed(() =>
   availableGuestRequestOffers.value.filter((offer) => isOfferCompatibleWithSelectedSlot(offer))
 )
 
+const selectedGuestBookingOffer = computed(() => {
+  const selectedOfferType = guestBookingForm.value.offer_type
+  return availableGuestRequestOffers.value.find((offer) => offer.type === selectedOfferType) || null
+})
+
 const showGuestOfferSelector = computed(
-  () => availableGuestRequestOffers.value.length > 1 && !selectedPublicOfferType.value
+  () =>
+    availableGuestRequestOffers.value.length > 1 &&
+    (!guestOfferSelectionConfirmed.value || guestOfferSelectionEditing.value)
+)
+
+const showGuestOfferSummary = computed(
+  () =>
+    availableGuestRequestOffers.value.length > 1 &&
+    guestOfferSelectionConfirmed.value &&
+    Boolean(selectedGuestBookingOffer.value)
 )
 
 const defaultGuestBookingOfferType = computed<ConsultationOfferType>(() => {
@@ -3764,6 +3802,18 @@ function selectGuestBookingOffer(offerType: ConsultationOfferType) {
   if (!offer || !isOfferCompatibleWithSelectedSlot(offer)) return
   selectedPublicOfferType.value = offerType
   guestBookingForm.value.offer_type = offerType
+  guestOfferSelectionConfirmed.value = true
+  guestOfferSelectionEditing.value = false
+}
+
+async function startChangingGuestBookingOffer() {
+  if (guestBookingSubmitting.value) return
+  guestOfferSelectionEditing.value = true
+  await nextTick()
+  const selectedOption = guestOfferSelectorRef.value?.querySelector<HTMLButtonElement>(
+    '.guest-offer-option[aria-pressed="true"]'
+  )
+  selectedOption?.focus()
 }
 
 function resolveGuestBookingOfferType() {
@@ -3818,6 +3868,8 @@ function closeGuestBookingModal() {
   guestBookingSubmitting.value = false
   guestBookingSubmitSlotId.value = null
   guestBookingRulesAccepted.value = false
+  guestOfferSelectionEditing.value = false
+  guestOfferSelectionConfirmed.value = false
   resetGuestBookingFieldErrors()
   resetGuestBookingForm()
 }
@@ -3838,6 +3890,8 @@ function openGuestBookingModal(slotId?: number) {
   guestBookingSuccess.value = null
   guestBookingSubmitSlotId.value = selectedSlot?.id || null
   guestBookingRulesAccepted.value = false
+  guestOfferSelectionEditing.value = false
+  guestOfferSelectionConfirmed.value = Boolean(selectedPublicOfferType.value)
   resetGuestBookingFieldErrors()
   resetGuestBookingForm()
   showGuestBookingModal.value = true
@@ -4068,6 +4122,10 @@ async function submitGuestBookingRequest() {
     }
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
     guestBookingSuccess.value = response.request
+    selectedPublicOfferType.value = null
+    guestOfferSelectionEditing.value = false
+    guestOfferSelectionConfirmed.value = false
+    resetGuestBookingForm()
     toast.success(isGuestBookingSlotRequest.value ? GUEST_BOOKING_SLOT_SUCCESS_TITLE : GUEST_BOOKING_GENERIC_SUCCESS_TITLE)
   } catch (err: any) {
     guestBookingError.value = getGuestBookingErrorMessage(err)
@@ -6363,6 +6421,37 @@ onBeforeUnmount(() => {
   .guest-offer-selector {
     display: grid;
     gap: 7px;
+    min-width: 0;
+  }
+
+  .guest-offer-summary {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 11px;
+    border: 1px solid color-mix(in srgb, var(--deep) 34%, var(--line));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+  }
+
+  .guest-offer-summary__copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .guest-offer-summary__eyebrow,
+  .guest-offer-summary__meta {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .guest-offer-summary strong,
+  .guest-offer-summary__meta {
+    overflow-wrap: anywhere;
   }
 
   .guest-offer-selector__title {
@@ -6376,6 +6465,7 @@ onBeforeUnmount(() => {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 7px;
+    min-width: 0;
   }
 
   .guest-offer-option {
@@ -6404,6 +6494,13 @@ onBeforeUnmount(() => {
     border-color: color-mix(in srgb, var(--deep) 48%, var(--line));
     background: color-mix(in srgb, var(--accent) 16%, #ffffff);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--deep) 16%, transparent);
+  }
+
+  @media (max-width: 480px) {
+    .guest-offer-summary {
+      align-items: flex-start;
+      flex-direction: column;
+    }
   }
 
   .guest-offer-option:disabled {
