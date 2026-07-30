@@ -8,6 +8,11 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-52 adds stable `proconsult-metadata` markers to `index.html` and keeps runtime profile
+and article metadata synchronized during Vue navigation. The backend replaces
+only the marked block for canonical public initial HTML; hashed frontend assets
+and the SPA mounting flow remain unchanged.
+
 The public-profile content-driven visibility transition is implemented locally
 and is not committed, pushed, or deployed:
 

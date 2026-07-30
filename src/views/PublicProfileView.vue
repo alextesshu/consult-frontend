@@ -971,6 +971,12 @@ import ScrollToTopButton from '../components/ScrollToTopButton.vue'
 import ShareDialog from '../components/ShareDialog.vue'
 import { getApiErrorMessage } from '../lib/errors'
 import {
+  applyPublicPageMetadata,
+  normalizeClientMetadataText,
+  resetPublicPageMetadata,
+  resolveClientMetadataImage,
+} from '../lib/publicMetadata'
+import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
   BOOKING_UI_MESSAGES,
@@ -2058,6 +2064,34 @@ const PROFESSIONAL_FOCUS_LABELS: Record<string, string> = {
   consulting_practice: 'Консультаційна практика',
   teaching_practice: 'Викладацька практика',
   other: 'Практика спеціаліста',
+}
+
+function applyProfileRuntimeMetadata() {
+  if (!profile.value || !canonicalProfileShareUrl.value || !publicName.value) {
+    resetPublicPageMetadata()
+    return
+  }
+  const focus = PROFESSIONAL_FOCUS_LABELS[String(profile.value.professional_focus || '')] || ''
+  const title = focus
+    ? `${publicName.value} — ${focus} | Pro Consult`
+    : `${publicName.value} | Pro Consult`
+  const description = normalizeClientMetadataText(
+    profile.value.public_profile_summary ||
+      profile.value.bio_about ||
+      profile.value.bio_work ||
+      profile.value.bio_approach ||
+      profile.value.bio_for_whom ||
+      profile.value.bio_other ||
+      profile.value.bio
+  ) || `Профіль спеціаліста ${publicName.value} у Pro Consult.`
+  applyPublicPageMetadata({
+    title,
+    description,
+    canonicalUrl: canonicalProfileShareUrl.value,
+    ogType: 'profile',
+    imageUrl: resolveClientMetadataImage(profile.value.photo_url),
+    imageAlt: profile.value.photo_url ? `Фото профілю ${publicName.value}` : 'Pro Consult',
+  })
 }
 
 const heroRoleLine = computed(() => {
@@ -3406,8 +3440,10 @@ async function loadProfile() {
     profile.value = await fetchPublicSpecialistProfile(slug.value)
     if (profile.value) {
       saveViewedSpecialist(profile.value)
+      applyProfileRuntimeMetadata()
     }
   } catch (err: any) {
+    resetPublicPageMetadata()
     const status = Number((err as { response?: { status?: number } })?.response?.status || 0)
     if (status === 404) {
       const hasOwnerRole = (auth.me?.user.roles || auth.user?.roles || []).some((role) =>
@@ -4549,6 +4585,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  resetPublicPageMetadata()
   clearContactActionFallbackTimer()
   if (copiedContactTimer !== null) {
     window.clearTimeout(copiedContactTimer)

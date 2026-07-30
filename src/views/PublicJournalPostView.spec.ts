@@ -158,6 +158,34 @@ describe('PublicJournalPostView routes and owner preview', () => {
       'content',
       `${window.location.origin}/og-image.png?v=20260707`
     )
+    expect(document.querySelector('meta[property="og:image:alt"]')).toHaveAttribute(
+      'content',
+      'Pro Consult'
+    )
+    expect(document.querySelector('meta[name="twitter:image:alt"]')).toHaveAttribute(
+      'content',
+      'Pro Consult'
+    )
+  })
+
+  it('cleans article metadata after leaving the public article route', async () => {
+    const view = renderView()
+    await screen.findByText('Тестова стаття')
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'article'
+    )
+
+    view.unmount()
+
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'website'
+    )
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${window.location.origin}/`
+    )
   })
 
   it('loads an owner draft only through the authenticated cabinet endpoint', async () => {
@@ -173,6 +201,10 @@ describe('PublicJournalPostView routes and owner preview', () => {
       '/cabinet/journal'
     )
     expect(screen.queryByRole('button', { name: 'Поділитися дописом' })).not.toBeInTheDocument()
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'website'
+    )
   })
 
   it('shows a Ukrainian not-found state instead of the raw API message', async () => {

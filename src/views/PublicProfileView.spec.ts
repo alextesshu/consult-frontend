@@ -499,9 +499,22 @@ describe('PublicProfileView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    renderView()
+    const view = renderView()
 
     const shareButton = await screen.findByRole('button', { name: 'Поділитися профілем' })
+    expect(document.title).toBe('Олена | Pro Consult')
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${window.location.origin}/s/specialist-2`
+    )
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'profile'
+    )
+    expect(document.querySelector('meta[property="og:image:alt"]')).toHaveAttribute(
+      'content',
+      'Фото профілю Олена'
+    )
     const bookingCard = screen.getByTestId('public-profile-booking-card')
     expect(within(bookingCard).getByRole('button', { name: 'Поділитися профілем' })).toBe(shareButton)
     expect(shareButton).toHaveClass('btn', 'public-profile-share-cta')
@@ -538,6 +551,12 @@ describe('PublicProfileView', () => {
     await fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(shareButton).toHaveFocus()
+
+    view.unmount()
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'website'
+    )
   })
 
   it('keeps the desktop sidebar viewport-bounded and restores normal page flow at the single-column breakpoint', () => {

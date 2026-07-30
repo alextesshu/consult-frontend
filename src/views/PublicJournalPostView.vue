@@ -146,12 +146,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { getApiErrorMessage } from '../lib/errors'
 import ShareDialog from '../components/ShareDialog.vue'
+import {
+  applyPublicPageMetadata,
+  normalizeClientMetadataText,
+  resetPublicPageMetadata,
+  resolveClientMetadataImage,
+} from '../lib/publicMetadata'
 import {
   fetchAuthorJournalPost,
   fetchPublicAuthorJournalPostDetail,
@@ -261,6 +267,7 @@ async function load() {
   error.value = ''
   try {
     if (isOwnerPreview.value) {
+      resetPublicPageMetadata()
       const previewPost = await fetchAuthorJournalPost(previewPostId.value)
       post.value = {
         ...previewPost,
@@ -273,6 +280,7 @@ async function load() {
     }
   } catch (err) {
     post.value = null
+    resetPublicPageMetadata()
     const status = Number((err as { response?: { status?: number } })?.response?.status || 0)
     if (status === 404) {
       error.value = isOwnerPreview.value
@@ -292,71 +300,22 @@ async function closeShareDialog() {
   shareButtonRef.value?.focus()
 }
 
-function upsertMeta(name: string, content: string) {
-  if (!content) return
-  let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute('name', name)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
-
-function upsertCanonical(href: string) {
-  let el = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null
-  if (!el) {
-    el = document.createElement('link')
-    el.setAttribute('rel', 'canonical')
-    document.head.appendChild(el)
-  }
-  el.setAttribute('href', href)
-}
-
-function upsertPropertyMeta(property: string, content: string) {
-  if (!content) return
-  let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute('property', property)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
-
-function upsertTwitterMeta(name: string, content: string) {
-  if (!content) return
-  let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute('name', name)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
-
 function applySeo() {
   const title = post.value?.title?.trim() || 'Стаття'
-  document.title = title
-  const summary = (post.value?.summary || '').replace(/\s+/g, ' ').trim().slice(0, 160)
-  upsertMeta('description', summary || 'Авторська стаття спеціаліста.')
-  const url = window.location.origin + window.location.pathname
-  upsertCanonical(url)
-
-  const image = post.value?.cover_image_url || `${window.location.origin}/og-image.png?v=20260707`
-
-  upsertPropertyMeta('og:type', 'article')
-  upsertPropertyMeta('og:title', document.title)
-  upsertPropertyMeta('og:description', summary || 'Авторська стаття спеціаліста.')
-  upsertPropertyMeta('og:url', url)
-  upsertPropertyMeta('og:site_name', 'Pro Consult')
-  upsertPropertyMeta('og:locale', 'uk_UA')
-  upsertPropertyMeta('og:image', image)
-
-  upsertTwitterMeta('twitter:card', image ? 'summary_large_image' : 'summary')
-  upsertTwitterMeta('twitter:title', document.title)
-  upsertTwitterMeta('twitter:description', summary || 'Авторська стаття спеціаліста.')
-  upsertTwitterMeta('twitter:image', image)
+  const description =
+    normalizeClientMetadataText(post.value?.summary || post.value?.body) ||
+    'Авторська стаття спеціаліста.'
+  const image = resolveClientMetadataImage(post.value?.cover_image_url)
+  applyPublicPageMetadata({
+    title,
+    description,
+    canonicalUrl: canonicalShareUrl.value,
+    ogType: 'article',
+    imageUrl: image,
+    imageAlt: post.value?.cover_image_url ? `Обкладинка допису «${title}»` : 'Pro Consult',
+    articleAuthorUrl: `${window.location.origin}/s/${slug.value}`,
+    articlePublishedTime: post.value?.published_at || undefined,
+  })
 }
 
 watch([slug, postSlug, previewPostId, isOwnerPreview], () => {
@@ -365,6 +324,7 @@ watch([slug, postSlug, previewPostId, isOwnerPreview], () => {
 })
 
 onMounted(load)
+onBeforeUnmount(resetPublicPageMetadata)
 </script>
 
 <style scoped>
