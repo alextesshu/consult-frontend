@@ -120,34 +120,44 @@ describe('ShareDialog', () => {
     )
   })
 
-  it('opens Threads from the user action, copies prepared text, and shows instructions', async () => {
+  it('prepares Threads text first and opens Threads only from the explicit follow-up action', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     setClipboard(writeText)
     renderDialog()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Threads' }))
 
+    expect(window.open).not.toHaveBeenCalled()
+    expect(writeText).toHaveBeenCalledTimes(1)
+    expect(writeText).toHaveBeenCalledWith(`${articleTitle}\n${canonicalUrl}`)
+    expect(
+      await screen.findByText('Текст скопійовано. Відкрийте Threads і вставте його в новий допис.')
+    ).toBeInTheDocument()
+    const openThreads = screen.getByRole('button', { name: 'Відкрити Threads' })
+
+    await fireEvent.click(openThreads)
+
     expect(window.open).toHaveBeenCalledWith(
       'https://www.threads.com/',
       '_blank',
       'noopener,noreferrer'
     )
-    expect(writeText).toHaveBeenCalledWith(`${articleTitle}\n${canonicalUrl}`)
-    expect(
-      await screen.findByText('Текст скопійовано. Вставте його у новий допис Threads')
-    ).toBeInTheDocument()
+    expect(writeText).toHaveBeenCalledTimes(1)
   })
 
-  it('offers a second-step Threads link when the popup is blocked', async () => {
-    vi.mocked(window.open).mockReturnValueOnce(null)
+  it('does not offer or open Threads when preparing the clipboard text fails', async () => {
+    setClipboard(vi.fn().mockRejectedValue(new Error('Permission denied')))
+    setExecCommand(() => false)
     renderDialog()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Threads' }))
 
-    expect(await screen.findByRole('link', { name: 'Відкрити Threads' })).toHaveAttribute(
-      'href',
-      'https://www.threads.com/'
-    )
+    expect(window.open).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Відкрити Threads' })).not.toBeInTheDocument()
+    expect(
+      await screen.findByText('Не вдалося підготувати текст для Threads. Скопіюйте посилання окремо.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Текст скопійовано/)).not.toBeInTheDocument()
   })
 
   it('uses viewport-bounded panel and single-column mobile action classes', async () => {

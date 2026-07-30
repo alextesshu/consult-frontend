@@ -48,7 +48,7 @@
       </div>
 
       <div
-        v-if="feedbackMessage || threadsPopupBlocked"
+        v-if="feedbackMessage"
         class="article-share-dialog__feedback"
         aria-live="polite"
         aria-atomic="true"
@@ -57,15 +57,14 @@
           <span v-if="feedbackTone === 'success'" aria-hidden="true">✓</span>
           {{ feedbackMessage }}
         </p>
-        <a
-          v-if="threadsPopupBlocked"
-          class="article-share-dialog__threads-fallback"
-          href="https://www.threads.com/"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          v-if="threadsReady"
+          class="btn article-share-dialog__threads-open"
+          type="button"
+          @click="openThreads"
         >
           Відкрити Threads
-        </a>
+        </button>
       </div>
     </section>
   </div>
@@ -90,7 +89,7 @@ const dialogRef = ref<HTMLElement | null>(null)
 const copyButtonRef = ref<HTMLButtonElement | null>(null)
 const feedbackMessage = ref('')
 const feedbackTone = ref<'success' | 'error'>('success')
-const threadsPopupBlocked = ref(false)
+const threadsReady = ref(false)
 
 const encodedUrl = computed(() => encodeURIComponent(props.canonicalUrl))
 const encodedTitle = computed(() => encodeURIComponent(props.title))
@@ -163,7 +162,7 @@ async function copyText(value: string): Promise<boolean> {
 }
 
 async function copyLink() {
-  threadsPopupBlocked.value = false
+  threadsReady.value = false
   const copied = await copyText(props.canonicalUrl)
   feedbackTone.value = copied ? 'success' : 'error'
   feedbackMessage.value = copied
@@ -174,25 +173,26 @@ async function copyLink() {
 }
 
 async function shareToThreads() {
-  threadsPopupBlocked.value = false
+  threadsReady.value = false
+  const copied = await copyText(`${props.title}\n${props.canonicalUrl}`)
+  if (!copied) {
+    feedbackTone.value = 'error'
+    feedbackMessage.value = 'Не вдалося підготувати текст для Threads. Скопіюйте посилання окремо.'
+    return
+  }
+
+  feedbackTone.value = 'success'
+  feedbackMessage.value = 'Текст скопійовано. Відкрийте Threads і вставте його в новий допис.'
+  threadsReady.value = true
+}
+
+function openThreads() {
   const threadsWindow = window.open(
     'https://www.threads.com/',
     '_blank',
     'noopener,noreferrer'
   )
   if (threadsWindow) threadsWindow.opener = null
-
-  const copied = await copyText(`${props.title}\n${props.canonicalUrl}`)
-  if (!copied) {
-    feedbackTone.value = 'error'
-    feedbackMessage.value = 'Не вдалося підготувати текст для Threads. Скопіюйте посилання окремо.'
-    threadsPopupBlocked.value = !threadsWindow
-    return
-  }
-
-  feedbackTone.value = 'success'
-  feedbackMessage.value = 'Текст скопійовано. Вставте його у новий допис Threads'
-  threadsPopupBlocked.value = !threadsWindow
 }
 
 watch(
@@ -201,7 +201,7 @@ watch(
     if (!isOpen) return
     feedbackMessage.value = ''
     feedbackTone.value = 'success'
-    threadsPopupBlocked.value = false
+    threadsReady.value = false
     await nextTick()
     copyButtonRef.value?.focus()
   },
@@ -286,11 +286,9 @@ watch(
   color: #b3261e;
 }
 
-.article-share-dialog__threads-fallback {
-  display: inline-flex;
+.article-share-dialog__threads-open {
   margin-top: 10px;
-  color: var(--primary);
-  font-weight: 700;
+  min-height: 42px;
 }
 
 @media (max-width: 560px) {
