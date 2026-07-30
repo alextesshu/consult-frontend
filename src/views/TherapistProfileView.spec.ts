@@ -522,7 +522,10 @@ describe('TherapistProfileView', () => {
   })
 
   it('renders a compact public profile summary with the active public CTA', async () => {
-    const profile = makeProfile()
+    const profile = {
+      ...makeProfile(),
+      public_slug: 'b7d6276f-5688-4e37-a4c3-9c8a18a7b312',
+    }
     const writeText = vi.fn().mockResolvedValue(undefined)
     setClipboard(writeText)
     mockedFetchSpecialistProfile.mockResolvedValue(profile)
@@ -565,6 +568,26 @@ describe('TherapistProfileView', () => {
     const publicProfileCta = within(summary).getByRole('link', { name: 'Переглянути сторінку' })
     expect(publicProfileCta).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(publicProfileCta).toHaveAttribute('target', '_blank')
+    const shareProfileButton = within(summary).getByRole('button', { name: 'Поділитися профілем' })
+    expect(shareProfileButton).toHaveClass('btn--ghost', 'profile-summary-card__share-action')
+    const publicActions = summary.querySelector('.profile-summary-card__public-actions') as HTMLElement
+    expect(within(publicActions).getByRole('link', { name: 'Переглянути сторінку' })).toBe(publicProfileCta)
+    expect(within(publicActions).getByRole('button', { name: 'Поділитися профілем' })).toBe(shareProfileButton)
+    await fireEvent.click(shareProfileButton)
+    const shareDialog = screen.getByRole('dialog', { name: 'Поділитися профілем' })
+    expect(shareDialog).toBeInTheDocument()
+    await fireEvent.click(within(shareDialog).getByRole('button', { name: 'Копіювати посилання' }))
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
+    expect(screen.getByRole('link', { name: 'Telegram' })).toHaveAttribute(
+      'href',
+      `https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/s/specialist-anna`)}&text=${encodeURIComponent('Анна — Pro Consult')}`
+    )
+    expect(screen.getByRole('link', { name: 'Telegram' }).getAttribute('href')).not.toContain(
+      'b7d6276f'
+    )
+    await fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(shareProfileButton).toHaveFocus()
     expect(within(summary).getByText('Відкриється сторінка, яку бачать клієнти.')).toBeInTheDocument()
     expect(within(summary).getByRole('button', { name: 'Зняти з публікації' })).toBeInTheDocument()
     expect(screen.queryByText('Відкрити як клієнт')).not.toBeInTheDocument()
@@ -620,6 +643,49 @@ describe('TherapistProfileView', () => {
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
     expect(await within(linkCallout).findByText('Посилання скопійовано')).toBeInTheDocument()
     expect(screen.getAllByText('Переглянути сторінку')).toHaveLength(2)
+  })
+
+  it('keeps profile sharing available when the published profile is hidden from search', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_slug: 'b7d6276f-5688-4e37-a4c3-9c8a18a7b312',
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Поділитися профілем' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Переглянути сторінку' })).not.toHaveLength(0)
+    expect(screen.getByLabelText('Показувати мою сторінку в пошуку')).not.toBeChecked()
+  })
+
+  it('does not offer profile sharing for an unpublished profile', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_profile_enabled: false,
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Опублікувати сторінку' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Поділитися профілем' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer profile sharing without a valid public slug', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      slug: '',
+      public_slug: 'b7d6276f-5688-4e37-a4c3-9c8a18a7b312',
+      public_profile_path: '',
+      public_profile_url: '',
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Сторінка доступна за посиланням')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Поділитися профілем' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
   })
 
   it('confirms disabling an active public profile and keeps the change in the save flow', async () => {

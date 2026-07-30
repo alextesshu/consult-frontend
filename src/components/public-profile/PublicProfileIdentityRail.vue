@@ -176,6 +176,10 @@
         </RouterLink>
       </div>
 
+      <div v-if="$slots['share-action']" class="identity-rail__share-action">
+        <slot name="share-action" />
+      </div>
+
       <section class="identity-rail__contacts" v-if="showContactActions">
         <div class="identity-rail__contacts-title">Мої контакти</div>
         <div class="identity-rail__contact-list">
@@ -387,6 +391,46 @@ defineEmits<{
   gap: 8px;
   padding-top: 12px;
   border-top: 1px solid color-mix(in srgb, var(--line) 82%, #ffffff);
+}
+
+.identity-rail__share-action {
+  display: grid;
+  min-width: 0;
+}
+
+.identity-rail__share-action :slotted(.public-profile-share-cta) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  gap: 8px;
+  border: 1.5px solid var(--pc-navy-800);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(18, 52, 90, 0.08);
+  color: var(--pc-navy-900);
+  font-weight: 700;
+  white-space: normal;
+}
+
+.identity-rail__share-action :slotted(.public-profile-share-cta:hover) {
+  border-color: var(--pc-navy-950);
+  background: color-mix(in srgb, var(--pc-navy-900) 7%, #ffffff);
+  box-shadow: 0 6px 14px rgba(18, 52, 90, 0.14);
+  color: var(--pc-navy-950);
+}
+
+.identity-rail__share-action :slotted(.public-profile-share-cta:active) {
+  border-color: var(--pc-navy-950);
+  background: color-mix(in srgb, var(--pc-navy-900) 12%, #ffffff);
+  box-shadow: 0 2px 6px rgba(18, 52, 90, 0.12);
+  transform: translateY(0);
+}
+
+.identity-rail__share-action :slotted(.public-profile-share-cta:focus-visible) {
+  border-color: var(--pc-navy-950);
+  outline: 3px solid color-mix(in srgb, var(--pc-navy-800) 28%, transparent);
+  outline-offset: 2px;
 }
 
 .identity-rail__actions .btn {

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+import { readFileSync } from 'node:fs'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import PublicProfileView from './PublicProfileView.vue'
@@ -358,6 +359,7 @@ describe('PublicProfileView', () => {
     mockRoute.query = {}
     mockRoute.path = '/s/olena'
     mockRoute.hash = ''
+    window.history.replaceState({}, '', '/s/olena')
     mockRouter.push.mockReset()
     mockRouter.replace.mockReset()
     mockAuth.accessToken = ''
@@ -473,6 +475,87 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Тривога, Вигорання · Київ')).not.toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
     expect(screen.getByText('Правила потрібно підтвердити один раз для цього спеціаліста.')).toBeInTheDocument()
+  })
+
+  it('shares the published profile with its canonical URL and returns focus to the secondary CTA', async () => {
+    mockRoute.params.slug = 'specialist-2'
+    mockRoute.path = '/s/specialist-2'
+    window.history.replaceState({}, '', '/s/specialist-2?intent=request#slots')
+    mockAuth.accessToken = 'token'
+    mockAuth.user = { id: 12, roles: ['SPECIALIST'] }
+    mockAuth.me = { user: { id: 12, roles: ['SPECIALIST'] } }
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        slug: 'specialist-2',
+        public_slug: 'b7d6276f-5688-4e37-a4c3-9c8a18a7b312',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/specialist-2/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const shareButton = await screen.findByRole('button', { name: 'Поділитися профілем' })
+    const bookingCard = screen.getByTestId('public-profile-booking-card')
+    expect(within(bookingCard).getByRole('button', { name: 'Поділитися профілем' })).toBe(shareButton)
+    expect(shareButton).toHaveClass('btn', 'public-profile-share-cta')
+    expect(shareButton).not.toHaveClass('btn--ghost', 'btn--primary')
+    const reviewsLink = within(bookingCard).getByRole('link', { name: 'Мої відгуки' })
+    const contactsHeading = within(bookingCard).getByText('Мої контакти')
+    expect(
+      Boolean(reviewsLink.compareDocumentPosition(shareButton) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+    expect(
+      Boolean(shareButton.compareDocumentPosition(contactsHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+    await fireEvent.click(shareButton)
+
+    expect(screen.getByRole('dialog', { name: 'Поділитися профілем' })).toBeInTheDocument()
+    const canonicalUrl = `${window.location.origin}/s/specialist-2`
+    await fireEvent.click(screen.getByRole('button', { name: 'Копіювати посилання' }))
+    expect(clipboardWriteTextSpy).toHaveBeenCalledWith(canonicalUrl)
+    expect(screen.getByRole('link', { name: 'Telegram' })).toHaveAttribute(
+      'href',
+      `https://t.me/share/url?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent('Олена — Pro Consult')}`
+    )
+    expect(screen.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
+      'href',
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`
+    )
+    expect(screen.getByRole('link', { name: 'Telegram' }).getAttribute('href')).not.toContain('b7d6276f')
+    expect(canonicalUrl).not.toContain('?intent=request')
+    expect(canonicalUrl).not.toContain('#slots')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Threads' }))
+    expect(clipboardWriteTextSpy).toHaveBeenCalledWith(`Олена — Pro Consult\n${canonicalUrl}`)
+
+    await fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(shareButton).toHaveFocus()
+  })
+
+  it('keeps the desktop sidebar viewport-bounded and restores normal page flow at the single-column breakpoint', () => {
+    const source = readFileSync('src/views/PublicProfileView.vue', 'utf-8')
+    const desktopSidebar = source.match(/\.public__sidebar\s*\{([^}]*)\}/)?.[1] || ''
+
+    expect(desktopSidebar).toMatch(/position:\s*sticky/)
+    expect(desktopSidebar).toMatch(/top:\s*var\(--public-sidebar-sticky-top\)/)
+    expect(desktopSidebar).toMatch(/max-block-size:\s*calc\([\s\S]*100dvh/)
+    expect(desktopSidebar).toMatch(/overflow-y:\s*auto/)
+    expect(desktopSidebar).toMatch(/overscroll-behavior-y:\s*auto/)
+    expect(desktopSidebar).toMatch(/scrollbar-gutter:\s*stable/)
+    expect(source).toMatch(
+      /@media \(max-width: 1100px\)[\s\S]*?\.public__sidebar\s*\{[^}]*position:\s*static;[^}]*max-height:\s*none;[^}]*overflow:\s*visible;/
+    )
+    expect(source).toMatch(
+      /@media \(max-width: 640px\)[\s\S]*?\.public\s*\{[^}]*padding-bottom:\s*max\(64px, calc\(env\(safe-area-inset-bottom\) \+ 64px\)\);/
+    )
   })
 
   it('renders the exact public display name without automatic shortening', async () => {
@@ -1979,6 +2062,7 @@ describe('PublicProfileView', () => {
       screen.getByText('Публічний профіль ще не опубліковано. Заповніть профіль і увімкніть його для перегляду.')
     ).toBeInTheDocument()
     expect(screen.getByText('Перейти до налаштувань профілю')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Поділитися профілем' })).not.toBeInTheDocument()
     expect(screen.queryByText('Profile not found.')).not.toBeInTheDocument()
   })
 

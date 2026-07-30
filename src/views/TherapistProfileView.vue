@@ -64,15 +64,32 @@
           >
             {{ profilePrimaryActionLabel }}
           </button>
-          <a
-            v-else-if="profilePrimaryActionKind === 'open'"
-            class="btn profile-summary-card__primary-action"
-            :href="publicUrl"
-            target="_blank"
-            rel="noreferrer"
+          <div
+            v-if="profilePrimaryActionKind === 'open' || canSharePublicProfile"
+            class="profile-summary-card__public-actions"
           >
-            {{ profilePrimaryActionLabel }}
-          </a>
+            <a
+              v-if="profilePrimaryActionKind === 'open'"
+              class="btn profile-summary-card__primary-action"
+              :href="publicUrl"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {{ profilePrimaryActionLabel }}
+            </a>
+            <button
+              v-if="canSharePublicProfile"
+              ref="profileShareButtonRef"
+              class="btn btn--ghost profile-summary-card__share-action"
+              type="button"
+              @click="profileShareDialogOpen = true"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M18 8a3 3 0 1 0-2.83-4A3 3 0 0 0 15 5c0 .2.02.39.06.57L8.9 9.08A3 3 0 0 0 7 8.4a3 3 0 1 0 1.9 5.52l6.16 3.51A3 3 0 0 0 15 18a3 3 0 1 0 .83-2.07l-6.1-3.48c.17-.52.17-.98 0-1.5l6.1-3.48A3 3 0 0 0 18 8Z" fill="currentColor" />
+              </svg>
+              Поділитися профілем
+            </button>
+          </div>
           <p v-if="profilePrimaryActionKind === 'open'" class="profile-summary-card__action-helper">
             Відкриється сторінка, яку бачать клієнти.
           </p>
@@ -1393,6 +1410,15 @@
       @cancel="documentPendingDelete = null"
     />
 
+    <ShareDialog
+      :open="profileShareDialogOpen"
+      :canonical-url="canonicalProfileShareUrl"
+      :title="profileShareTitle"
+      heading="Поділитися профілем"
+      copy-label="Копіювати посилання"
+      @close="closeProfileShareDialog"
+    />
+
     <div v-if="cropperOpen" class="cropper-overlay">
       <div class="cropper-modal">
         <div class="cropper-header">
@@ -1443,6 +1469,7 @@ import {
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ProfileVisibilityControl from '../components/ProfileVisibilityControl.vue'
+import ShareDialog from '../components/ShareDialog.vue'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 import {
@@ -1467,6 +1494,8 @@ const saving = ref(false)
 const error = ref('')
 const success = ref('')
 const copyStatus = ref('')
+const profileShareDialogOpen = ref(false)
+const profileShareButtonRef = ref<HTMLButtonElement | null>(null)
 const showDisablePublicProfileConfirm = ref(false)
 const secondaryPhoneExpanded = ref(false)
 const secondaryPhoneServerError = ref('')
@@ -2380,7 +2409,7 @@ function extractCanonicalSlug(pathOrUrl: string | null | undefined): string {
 }
 
 const resolvedSlug = computed(() => {
-  const direct = String(profile.slug || profile.public_slug || '').trim()
+  const direct = String(profile.slug || '').trim()
   if (direct) return direct
   const fromPath = extractCanonicalSlug(profile.public_profile_path)
   if (fromPath) return fromPath
@@ -2526,6 +2555,29 @@ const slugPreviewPath = computed(() => {
 })
 
 const isPublicProfilePublished = computed(() => Boolean(persistedPublicProfileEnabled.value && publicUrl.value))
+const canonicalPublicProfileSlug = computed(() => String(profile.slug || '').trim())
+const canonicalProfileShareUrl = computed(() =>
+  canonicalPublicProfileSlug.value
+    ? `${window.location.origin}/s/${canonicalPublicProfileSlug.value}`
+    : ''
+)
+const profileShareTitle = computed(() =>
+  `${String(profile.public_display_name || profile.display_name || 'Спеціаліст').trim()} — Pro Consult`
+)
+const canSharePublicProfile = computed(() =>
+  Boolean(
+      profile.public_profile_enabled &&
+      persistedPublicProfileEnabled.value &&
+      canonicalPublicProfileSlug.value &&
+      canonicalProfileShareUrl.value
+  )
+)
+
+async function closeProfileShareDialog() {
+  profileShareDialogOpen.value = false
+  await nextTick()
+  profileShareButtonRef.value?.focus()
+}
 const publicationStatusText = computed(() => {
   if (isPendingPublication.value) {
     return 'Сторінку буде опубліковано після збереження'
@@ -3207,7 +3259,7 @@ async function onDeleteVideo() {
 }
 
 function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
-  const canonicalSlug = String(data.slug || data.public_slug || '').trim()
+  const canonicalSlug = String(data.slug || '').trim()
   const canonicalPath =
     normalizePublicProfilePath(data.public_profile_path) ||
     (canonicalSlug ? `/s/${canonicalSlug}` : '')
@@ -3664,6 +3716,25 @@ onBeforeUnmount(() => {
   justify-self: end;
   gap: 8px;
   min-width: 0;
+}
+
+.profile-summary-card__public-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.profile-summary-card__share-action {
+  min-width: 180px;
+  gap: 8px;
+  white-space: normal;
+  text-align: center;
+}
+
+.profile-summary-card__share-action svg {
+  flex: 0 0 auto;
 }
 
 .profile-summary-card__primary-action {
@@ -4781,7 +4852,12 @@ onBeforeUnmount(() => {
     justify-content: flex-start;
   }
 
+  .profile-summary-card__public-actions {
+    justify-content: flex-start;
+  }
+
   .profile-summary-card__primary-action,
+  .profile-summary-card__share-action,
   .profile-summary-card__secondary-action {
     min-width: min(240px, 100%);
   }
@@ -4835,7 +4911,13 @@ onBeforeUnmount(() => {
     align-items: stretch;
   }
 
+  .profile-summary-card__public-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
   .profile-summary-card__primary-action,
+  .profile-summary-card__share-action,
   .profile-summary-card__secondary-action {
     width: 100%;
     min-width: 0;

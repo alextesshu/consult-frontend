@@ -10,11 +10,11 @@
       class="article-share-dialog__panel"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="article-share-dialog-title"
+      aria-labelledby="share-dialog-title"
       @keydown="trapFocus"
     >
       <header class="article-share-dialog__header">
-        <h2 id="article-share-dialog-title">Поділитися дописом</h2>
+        <h2 id="share-dialog-title">{{ heading }}</h2>
         <button class="btn btn--ghost btn--sm" type="button" @click="emit('close')">
           Закрити
         </button>
@@ -23,7 +23,7 @@
       <div class="article-share-dialog__actions">
         <button ref="copyButtonRef" class="btn article-share-dialog__copy" type="button" @click="copyLink">
           <span aria-hidden="true">⧉</span>
-          Скопіювати посилання
+          {{ copyLabel }}
         </button>
 
         <a
@@ -78,6 +78,8 @@ const props = defineProps<{
   open: boolean
   canonicalUrl: string
   title: string
+  heading: string
+  copyLabel: string
 }>()
 
 const emit = defineEmits<{

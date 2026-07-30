@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import ArticleShareDialog from './ArticleShareDialog.vue'
+import ShareDialog from './ShareDialog.vue'
 
 const canonicalUrl = 'https://proconsult.space/s/canonical-specialist/journal/article-slug'
 const articleTitle = 'Як підготуватися до першої консультації'
@@ -21,16 +21,18 @@ function setExecCommand(implementation: () => boolean) {
 }
 
 function renderDialog() {
-  return render(ArticleShareDialog, {
+  return render(ShareDialog, {
     props: {
       open: true,
       canonicalUrl,
       title: articleTitle,
+      heading: 'Поділитися дописом',
+      copyLabel: 'Скопіювати посилання',
     },
   })
 }
 
-describe('ArticleShareDialog', () => {
+describe('ShareDialog', () => {
   beforeEach(() => {
     setClipboard(vi.fn().mockResolvedValue(undefined))
     setExecCommand(() => true)
@@ -156,5 +158,20 @@ describe('ArticleShareDialog', () => {
     expect(container.querySelector('.article-share-dialog__actions')).toBeInTheDocument()
     expect(container.querySelectorAll('.article-share-dialog__target')).toHaveLength(3)
     expect(container.querySelector('.article-share-dialog__feedback')).not.toBeInTheDocument()
+  })
+
+  it('renders content-specific profile heading and copy label', async () => {
+    render(ShareDialog, {
+      props: {
+        open: true,
+        canonicalUrl: 'https://proconsult.space/s/olena',
+        title: 'Олена — Pro Consult',
+        heading: 'Поділитися профілем',
+        copyLabel: 'Копіювати посилання',
+      },
+    })
+
+    expect(await screen.findByRole('dialog', { name: 'Поділитися профілем' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Копіювати посилання' })).toHaveFocus()
   })
 })

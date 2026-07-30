@@ -73,7 +73,22 @@
           @inquiry-action="scrollToInquiry"
           @copy-contact-action="copyPublicContactValue"
           @select-offer="selectPublicOffer"
-        />
+        >
+          <template #share-action>
+            <button
+              v-if="canShareProfile"
+              ref="profileShareButtonRef"
+              class="btn public-profile-share-cta"
+              type="button"
+              @click="profileShareDialogOpen = true"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M18 8a3 3 0 1 0-2.83-4A3 3 0 0 0 15 5c0 .2.02.39.06.57L8.9 9.08A3 3 0 0 0 7 8.4a3 3 0 1 0 1.9 5.52l6.16 3.51A3 3 0 0 0 15 18a3 3 0 1 0 .83-2.07l-6.1-3.48c.17-.52.17-.98 0-1.5l6.1-3.48A3 3 0 0 0 18 8Z" fill="currentColor" />
+              </svg>
+              Поділитися профілем
+            </button>
+          </template>
+        </PublicProfileIdentityRail>
       </aside>
 
       <section class="public__grid">
@@ -926,6 +941,14 @@
         </div>
       </div>
     </div>
+    <ShareDialog
+      :open="profileShareDialogOpen"
+      :canonical-url="canonicalProfileShareUrl"
+      :title="profileShareTitle"
+      heading="Поділитися профілем"
+      copy-label="Копіювати посилання"
+      @close="closeProfileShareDialog"
+    />
     <ScrollToTopButton />
 
   </section>
@@ -945,6 +968,7 @@ import PublicProfileJournalPreviewSection from '../components/public-profile/Pub
 import PublicProfileMediaSection from '../components/public-profile/PublicProfileMediaSection.vue'
 import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
 import ScrollToTopButton from '../components/ScrollToTopButton.vue'
+import ShareDialog from '../components/ShareDialog.vue'
 import { getApiErrorMessage } from '../lib/errors'
 import {
   BOOKING_ERROR_FALLBACKS,
@@ -1155,6 +1179,8 @@ const router = useRouter()
 const auth = useAuthStore()
 const toast = useToast()
 const profile = ref<PublicSpecialistProfile | null>(null)
+const profileShareDialogOpen = ref(false)
+const profileShareButtonRef = ref<HTMLButtonElement | null>(null)
 const slots = ref<PublicSlot[]>([])
 const monthSlots = ref<PublicSlot[]>([])
 const horizonSlots = ref<PublicSlot[]>([])
@@ -1631,6 +1657,24 @@ function normalizeCompetenceItemList(value: unknown): string[] {
 const publicName = computed(() =>
   firstFilledText(profile.value?.public_display_name, profile.value?.display_name)
 )
+const canonicalProfileSlug = computed(() =>
+  String(profile.value?.slug || slug.value).trim()
+)
+const canonicalProfileShareUrl = computed(() =>
+  canonicalProfileSlug.value
+    ? `${window.location.origin}/s/${canonicalProfileSlug.value}`
+    : ''
+)
+const profileShareTitle = computed(() => `${publicName.value || 'Спеціаліст'} — Pro Consult`)
+const canShareProfile = computed(
+  () => Boolean(profile.value && canonicalProfileShareUrl.value && !ownerUnpublishedProfile.value)
+)
+
+async function closeProfileShareDialog() {
+  profileShareDialogOpen.value = false
+  await nextTick()
+  profileShareButtonRef.value?.focus()
+}
 
 const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: string | null } | null>(() => {
   if (!profile.value) return null
@@ -4546,13 +4590,46 @@ onBeforeUnmount(() => {
 }
 
 .public__sidebar {
+  --public-sidebar-sticky-top: 24px;
+  --public-sidebar-bottom-gap: 24px;
   grid-column: 2;
   grid-row: 1 / span 2;
   position: sticky;
-  top: 24px;
+  top: var(--public-sidebar-sticky-top);
   height: fit-content;
+  max-block-size: calc(
+    100dvh - var(--public-sidebar-sticky-top) - var(--public-sidebar-bottom-gap)
+  );
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: var(--pc-navy-800) color-mix(in srgb, var(--pc-border) 55%, transparent);
   align-self: start;
   min-width: 0;
+}
+
+.public__sidebar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.public__sidebar::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--pc-border) 55%, transparent);
+  border-radius: var(--radius-pill);
+}
+
+.public__sidebar::-webkit-scrollbar-thumb {
+  border: 2px solid color-mix(in srgb, var(--pc-border) 55%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--pc-navy-800);
+}
+
+.public__sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--pc-navy-900);
+}
+
+.public-profile-share-cta svg {
+  flex: 0 0 auto;
 }
 
 .hero-cta__actions {
@@ -6734,6 +6811,10 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 640px) {
+  .public {
+    padding-bottom: max(64px, calc(env(safe-area-inset-bottom) + 64px));
+  }
+
   .setting-modal {
     align-items: stretch;
     padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));

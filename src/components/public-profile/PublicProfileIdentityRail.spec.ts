@@ -2,7 +2,12 @@ import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import PublicProfileIdentityRail from './PublicProfileIdentityRail.vue'
 
-function renderRail({ showBlogCta = false, showOwnerReviewsCta = false } = {}) {
+function renderRail({
+  showBlogCta = false,
+  showOwnerReviewsCta = false,
+  showContacts = false,
+  withShare = false,
+} = {}) {
   return render(PublicProfileIdentityRail, {
     props: {
       profile: {},
@@ -16,12 +21,28 @@ function renderRail({ showBlogCta = false, showOwnerReviewsCta = false } = {}) {
       standardSessionDurationLabel: '',
       couplePriceDisplay: '',
       coupleDurationLabel: '',
-      showContactActions: false,
-      contactActions: [],
+      showContactActions: showContacts,
+      contactActions: showContacts
+        ? [
+            {
+              id: 'telegram',
+              channel: 'TELEGRAM',
+              channelLabel: 'Telegram',
+              valueText: '@olena',
+              actionUrl: 'https://t.me/olena',
+              actionScheme: 'https',
+            },
+          ]
+        : [],
       showBlogCta,
       blogLink: { name: 'public-journal', params: { slug: 'olena' } },
       showOwnerReviewsCta,
     },
+    slots: withShare
+      ? {
+          'share-action': '<button class="btn public-profile-share-cta">Поділитися профілем</button>',
+        }
+      : {},
     global: {
       stubs: {
         RouterLink: {
@@ -64,5 +85,25 @@ describe('PublicProfileIdentityRail', () => {
 
     const hidden = renderRail()
     expect(hidden.container.querySelector('.identity-rail__context-actions')).toBeNull()
+  })
+
+  it('places the full-width profile share action after owner context links and before contacts', () => {
+    const { container } = renderRail({
+      showOwnerReviewsCta: true,
+      showContacts: true,
+      withShare: true,
+    })
+
+    const reviewsLink = screen.getByRole('link', { name: 'Мої відгуки' })
+    const shareButton = screen.getByRole('button', { name: 'Поділитися профілем' })
+    const contacts = screen.getByText('Мої контакти')
+    expect(shareButton).toHaveClass('public-profile-share-cta')
+    expect(container.querySelector('.identity-rail__share-action')).toContainElement(shareButton)
+    expect(
+      Boolean(reviewsLink.compareDocumentPosition(shareButton) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+    expect(
+      Boolean(shareButton.compareDocumentPosition(contacts) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
   })
 })

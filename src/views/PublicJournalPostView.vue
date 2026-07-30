@@ -134,10 +134,12 @@
       </div>
     </article>
 
-    <ArticleShareDialog
+    <ShareDialog
       :open="shareDialogOpen"
       :canonical-url="canonicalShareUrl"
       :title="post?.title || 'Стаття'"
+      heading="Поділитися дописом"
+      copy-label="Скопіювати посилання"
       @close="closeShareDialog"
     />
   </section>
@@ -149,7 +151,7 @@ import { useRoute } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { getApiErrorMessage } from '../lib/errors'
-import ArticleShareDialog from '../components/ArticleShareDialog.vue'
+import ShareDialog from '../components/ShareDialog.vue'
 import {
   fetchAuthorJournalPost,
   fetchPublicAuthorJournalPostDetail,
