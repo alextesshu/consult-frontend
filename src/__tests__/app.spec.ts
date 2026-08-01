@@ -96,6 +96,7 @@ async function renderWithProviders(options?: {
   meOverrides?: Partial<ReturnType<typeof buildMePayload>>
   notifications?: NotificationFeedItem[]
   notificationsState?: { current: NotificationFeedItem[] }
+  notificationUnreadCount?: number
   upcomingSessions?: any[]
   workQueue?: Record<string, unknown>
   publicProfileComponent?: Component
@@ -171,6 +172,8 @@ async function renderWithProviders(options?: {
   mockedFetchMe.mockResolvedValue(mePayload as Awaited<ReturnType<typeof fetchMe>>)
   mockedFetchNotifications.mockImplementation(async () => ({
     count: notificationsState.current.length,
+    unread_count:
+      options?.notificationUnreadCount ?? notificationsState.current.filter((item) => !item.read_at).length,
     results: notificationsState.current,
   }))
   mockedFetchPublicSpecialists.mockResolvedValue({
@@ -185,10 +188,15 @@ async function renderWithProviders(options?: {
     source_kind: payload.source_kind,
     source_id: payload.source_id,
     read_at: '2026-03-12T10:00:00Z',
+    unread_count: Math.max(
+      0,
+      (options?.notificationUnreadCount ?? notificationsState.current.filter((item) => !item.read_at).length) - 1,
+    ),
   }))
   mockedMarkAllNotificationsRead.mockResolvedValue({
     ok: true,
     marked_count: notificationsState.current.filter((item) => !item.read_at).length,
+    unread_count: 0,
   })
   mockedApiGet.mockImplementation(async (url, config) => {
     if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
@@ -1010,6 +1018,63 @@ describe('App shell', () => {
     expect(screen.queryByText('Додано нову сесію')).not.toBeInTheDocument()
   })
 
+  it('uses the server global unread count when the loaded page is partial', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notificationUnreadCount: 27,
+      workQueue: {
+        pending_guest_requests_count: 4,
+        pending_slotless_guest_requests_count: 2,
+      },
+      notifications: [
+        buildNotification({ source_id: 201, id: 'session_event:201' }),
+        buildNotification({ source_id: 202, id: 'session_event:202' }),
+      ],
+    })
+
+    const notificationsButton = screen.getByRole('button', { name: /Сповіщення/i })
+    const requestsLink = screen.getByRole('link', { name: /Запити/i })
+    await waitFor(() => expect(notificationsButton).toHaveTextContent('27'))
+    expect(requestsLink).toHaveTextContent('4')
+
+    await fireEvent.click(notificationsButton)
+    const notification = (await screen.findAllByText('Перенесення: новий час сесії підтверджено'))[0]!
+    await fireEvent.click(notification.closest('a') as HTMLAnchorElement)
+
+    await waitFor(() => expect(notificationsButton).toHaveTextContent('26'))
+    expect(requestsLink).toHaveTextContent('4')
+  })
+
+  it('renders proposed-time acceptance copy and routes to the canonical session target', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'session_event:303',
+          source_id: 303,
+          code: 'PROPOSED_TIME_ACCEPTED',
+          session_id: 88,
+          client_id: null,
+          client_name: null,
+          client_email: null,
+          title: 'Клієнт прийняв запропонований час',
+          body: 'Нову сесію створено. Відкрийте її, щоб переглянути деталі.',
+          target_url: '/cabinet/sessions/88',
+        }),
+      ],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
+    const title = await screen.findByText('Клієнт прийняв запропонований час')
+    expect(screen.getByText('Нову сесію створено. Відкрийте її, щоб переглянути деталі.')).toBeInTheDocument()
+    expect(title.closest('a')).toHaveAttribute('href', '/cabinet/sessions/88')
+
+    await fireEvent.click(title.closest('a') as HTMLAnchorElement)
+    await waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/cabinet/sessions/88'))
+  })
+
   it('keeps read-all and unknown fallback behavior for reminder events', async () => {
     await renderWithProviders({
       initialPath: '/client',
@@ -1638,6 +1703,7 @@ describe('App shell', () => {
       return {
         ok: true,
         marked_count: 1,
+        unread_count: 0,
       }
     })
 

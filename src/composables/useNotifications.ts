@@ -31,6 +31,7 @@ export function useNotifications({
   const toast = useToast()
 
   const feed = ref<NotificationFeedItem[]>([])
+  const serverUnreadCount = ref(0)
   const loaded = ref(false)
   const loading = ref(false)
   const readAllPending = ref(false)
@@ -103,6 +104,9 @@ export function useNotifications({
   function notificationText(item: NotificationFeedItem) {
     const clientLabel = notificationClientLabel(item)
     const counterpartyLabel = notificationCounterpartyLabel(item)
+    if (item.code === 'PROPOSED_TIME_ACCEPTED') {
+      return item.title?.trim() || 'Клієнт прийняв запропонований час'
+    }
     if (isAdminInboxItem(item)) {
       return item.title?.trim() || 'Адміністративне сповіщення'
     }
@@ -158,6 +162,9 @@ export function useNotifications({
   function notificationHint(item: NotificationFeedItem) {
     const email = item.client_email ? ` · ${item.client_email}` : ''
     const time = formatDateTime(item.slot_start_at || item.scheduled_for)
+    if (item.code === 'PROPOSED_TIME_ACCEPTED') {
+      return item.body?.trim() || 'Нову сесію створено. Відкрийте її, щоб переглянути деталі.'
+    }
     if (isAdminInboxItem(item)) {
       return item.body?.trim() || 'Відкрийте чергу роботи, щоб переглянути деталі.'
     }
@@ -205,6 +212,9 @@ export function useNotifications({
   }
 
   function notificationTarget(item: NotificationFeedItem) {
+    if (item.target_url?.trim()) {
+      return item.target_url.trim()
+    }
     if (isAdminInboxItem(item)) {
       return item.target_url?.trim() || '/admin/work-queue'
     }
@@ -243,13 +253,14 @@ export function useNotifications({
     }))
   )
 
-  const unreadCount = computed(() => items.value.filter((n) => n.unread).length)
+  const unreadCount = computed(() => serverUnreadCount.value)
 
   async function refresh() {
     loading.value = true
     try {
       const resp = await fetchNotifications({ limit: 20 })
       feed.value = resp.results || []
+      serverUnreadCount.value = Math.max(0, Number(resp.unread_count) || 0)
       loaded.value = true
     } catch {
       if (!loaded.value) {
@@ -266,12 +277,16 @@ export function useNotifications({
     feed.value = feed.value.map((entry) =>
       entry.id === item.id ? { ...entry, read_at: entry.read_at || new Date().toISOString() } : entry
     )
+    if (item.unread) {
+      serverUnreadCount.value = Math.max(0, serverUnreadCount.value - 1)
+    }
     pendingIds.value = new Set(pendingIds.value).add(item.id)
     try {
       const resp = await markNotificationReadApi({
         source_kind: item.source_kind,
         source_id: item.source_id,
       })
+      serverUnreadCount.value = Math.max(0, Number(resp.unread_count) || 0)
       feed.value = feed.value.map((entry) =>
         entry.source_kind === resp.source_kind && entry.source_id === resp.source_id
           ? { ...entry, read_at: resp.read_at }
@@ -295,6 +310,7 @@ export function useNotifications({
       ...entry,
       read_at: entry.read_at || optimisticReadAt,
     }))
+    serverUnreadCount.value = 0
     try {
       await markAllNotificationsReadApi()
       await refresh()
@@ -322,6 +338,7 @@ export function useNotifications({
 
   function reset() {
     feed.value = []
+    serverUnreadCount.value = 0
     loaded.value = false
   }
 

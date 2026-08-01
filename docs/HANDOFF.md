@@ -102,6 +102,16 @@ bell renders localized copy and routes to `/client/sessions/{id}`; self-booking,
 email delivery, notification preferences, and historical backfill are
 unchanged.
 
+KAN-55 keeps notification counters intentionally separate: the bell uses the
+backend-provided global `unread_count`, `Запити` counts only pending guest
+requests that require specialist action, and `Сесії` reflects session state.
+Alternative-time acceptance appears as `Клієнт прийняв запропонований час` and
+opens `/cabinet/sessions/{id}`. Marking a bell item read changes only its read
+overlay. Specialist self-cancellation is not rendered as a client action;
+client-initiated cancellation remains visible. Staging smoke must cover a list
+larger than the page limit, one-item read decrement, refresh consistency, the
+accepted-time target, and both cancellation actors.
+
 Client profile saving treats the photo as optional: the profile response may
 contain `photo_url: null`, while ordinary name/contact saves omit `photo_url`
 and preserve any existing uploaded photo.

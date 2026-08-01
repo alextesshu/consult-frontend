@@ -382,6 +382,7 @@ export type NotificationFeedItem = {
 
 export type NotificationFeedResponse = {
   count: number
+  unread_count: number
   results: NotificationFeedItem[]
 }
 
@@ -390,11 +391,13 @@ export type NotificationReadResponse = {
   source_kind: string
   source_id: number
   read_at: string
+  unread_count: number
 }
 
 export type NotificationReadAllResponse = {
   ok: true
   marked_count: number
+  unread_count: number
 }
 
 export type BillingAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
