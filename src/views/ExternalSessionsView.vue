@@ -313,17 +313,17 @@
                 <div v-if="needsAlternativeTime(request) && !hasActiveTimeProposal(request)" class="request-card__helper request-card__helper--warning">
                   Потрібно запропонувати інший час
                 </div>
-                <div v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request)" class="request-card__helper">
+                <div v-if="hasActiveTimeProposal(request)" class="request-card__helper">
                   {{ activeTimeProposalSummary(request) }}
                 </div>
                 <div
-                  v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request) && activeTimeProposalHelper(request)"
+                  v-if="hasActiveTimeProposal(request) && activeTimeProposalHelper(request)"
                   class="request-card__helper"
                 >
                   {{ activeTimeProposalHelper(request) }}
                 </div>
                 <button
-                  v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request) && shouldShowActiveTimeProposalCopyButton(request)"
+                  v-if="hasActiveTimeProposal(request) && shouldShowActiveTimeProposalCopyButton(request)"
                   class="btn btn--ghost btn--sm"
                   type="button"
                   @click="copyActiveTimeProposalUrl(request)"
@@ -334,15 +334,15 @@
                   Посилання скопійовано.
                 </div>
                 <button
-                  v-if="needsAlternativeTime(request)"
+                  v-if="canProposeAlternativeTime(request)"
                   class="btn btn--ghost btn--sm"
                   type="button"
                   :disabled="isRequestActionLoading(request.id, 'proposal')"
                   @click="openTimeProposalModal(request)"
                 >
-                  {{ hasActiveTimeProposal(request) ? 'Створити нову пропозицію' : 'Запропонувати інший час' }}
+                  Запропонувати інший час
                 </button>
-                <label v-if="!needsAlternativeTime(request) && request.session_format === 'online'" class="field request-meeting-field">
+                <label v-if="canApproveOriginalTime(request) && request.session_format === 'online'" class="field request-meeting-field">
                   <span>Посилання на онлайн-зустріч</span>
                   <input
                     v-model="approveMeetingUrls[request.id]"
@@ -356,7 +356,7 @@
                   Щоб погодити онлайн-запит, додайте посилання на зустріч.
                 </div>
                 <button
-                  v-if="!needsAlternativeTime(request)"
+                  v-if="canApproveOriginalTime(request)"
                   class="btn btn--ghost btn--sm"
                   type="button"
                   :disabled="isApproveRequestDisabled(request)"
@@ -981,7 +981,7 @@ function requestStatusLabel(request: GuestBookingRequestRecord) {
     const notificationStatus = activeTimeProposalNotificationStatus(request)
     if (notificationStatus === 'sent') return 'Очікує відповідь клієнта'
     if (notificationStatus === 'failed' || notificationStatus === 'manual_required') return 'Потрібно надіслати посилання'
-    return isEmailContactRequest(request) ? 'Пропозицію створено' : 'Потрібно надіслати посилання'
+    return 'Очікує відповідь клієнта'
   }
   if (normalized === 'approved') return 'Погоджено'
   if (normalized === 'declined') return 'Відхилено'
@@ -1058,6 +1058,14 @@ function hasActiveTimeProposal(request: GuestBookingRequestRecord) {
   return Boolean(request.active_time_proposal_id && String(request.active_time_proposal_status || '').toLowerCase() === 'sent')
 }
 
+function canProposeAlternativeTime(request: GuestBookingRequestRecord) {
+  return isPendingRequest(request.status) && !isSlotlessRequest(request) && !hasActiveTimeProposal(request)
+}
+
+function canApproveOriginalTime(request: GuestBookingRequestRecord) {
+  return isPendingRequest(request.status) && !isSlotlessRequest(request) && !needsAlternativeTime(request) && !hasActiveTimeProposal(request)
+}
+
 function activeTimeProposalExpiresLabel(request: GuestBookingRequestRecord) {
   const raw = String(request.active_time_proposal_expires_at || '').trim()
   if (!raw) return ''
@@ -1100,12 +1108,12 @@ function activeTimeProposalHelper(request: GuestBookingRequestRecord) {
   const notificationStatus = activeTimeProposalNotificationStatus(request)
   if (notificationStatus === 'failed') return 'Скопіюйте посилання й надішліть клієнту вручну.'
   if (isEmailContactRequest(request) && !notificationStatus) {
-    return 'Якщо клієнт не отримав лист, створіть нову пропозицію й надішліть посилання вручну одразу після створення.'
+    return 'Активна пропозиція очікує відповіді клієнта.'
   }
   if (!requiresManualTimeProposalDelivery(request)) return ''
   return activeTimeProposalUrl(request)
     ? 'Скопіюйте посилання й надішліть клієнту через обраний канал.'
-    : 'Посилання доступне одразу після створення пропозиції. Якщо ви не встигли його надіслати, створіть нову пропозицію.'
+    : 'Активна пропозиція очікує відповіді клієнта.'
 }
 
 function shouldShowActiveTimeProposalCopyButton(request: GuestBookingRequestRecord) {
@@ -1374,17 +1382,14 @@ function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
 }
 
 function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
-  if (isSlotlessRequest(request)) return true
-  if (needsAlternativeTime(request)) return true
+  if (!canApproveOriginalTime(request)) return true
   if (isRequestActionLoading(request.id, 'approve')) return true
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
 
 function shouldShowApproveMeetingHint(request: GuestBookingRequestRecord) {
-  if (!isPendingRequest(request.status)) return false
-  if (isSlotlessRequest(request)) return false
-  if (needsAlternativeTime(request)) return false
+  if (!canApproveOriginalTime(request)) return false
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
@@ -1844,6 +1849,10 @@ async function approveRequest(request: GuestBookingRequestRecord) {
   }
   if (needsAlternativeTime(request)) {
     setRequestActionError(request.id, 'Цей час уже зайнятий. Запропонуйте клієнту інший час.')
+    return
+  }
+  if (hasActiveTimeProposal(request)) {
+    setRequestActionError(request.id, 'Очікуємо відповідь клієнта на активну пропозицію часу.')
     return
   }
   setRequestActionError(request.id, '')

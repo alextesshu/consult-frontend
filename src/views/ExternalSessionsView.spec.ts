@@ -710,6 +710,7 @@ describe('ExternalSessionsView', () => {
     expect(requestCard).toHaveTextContent(/Створено:\s*\d{2}\.\d{2}\.2099, \d{2}:00/)
     const meetingInput = await screen.findByLabelText('Посилання на онлайн-зустріч')
     const approveButton = screen.getByRole('button', { name: 'Погодити' })
+    expect(screen.getByRole('button', { name: 'Запропонувати інший час' })).toBeInTheDocument()
     expect(approveButton).toBeDisabled()
     expect(await screen.findByText('Щоб погодити онлайн-запит, додайте посилання на зустріч.')).toBeInTheDocument()
 
@@ -1031,6 +1032,7 @@ describe('ExternalSessionsView', () => {
     expect(within(card as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(within(card as HTMLElement).getByRole('button', { name: 'Відхилити запит' })).toBeInTheDocument()
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Запропонувати інший час' })).not.toBeInTheDocument()
     expect(card).not.toHaveTextContent('Запитаний час:')
 
     await fireEvent.click(within(card as HTMLElement).getByRole('button', { name: 'Показати деталі' }))
@@ -1073,16 +1075,14 @@ describe('ExternalSessionsView', () => {
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
       buildGuestRequest({
         id: 64,
-        guest_name: 'Sibling Guest',
+        guest_name: 'Pending Guest',
         contact_channel: 'telegram',
-        contact_value: '@sibling_guest',
-        needs_alternative_time: true,
-        requested_slot_is_occupied: true,
+        contact_value: '@pending_guest',
       }),
     ] as any)
 
     renderView()
-    await screen.findByText('Sibling Guest')
+    await screen.findByText('Pending Guest')
     await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
@@ -1111,16 +1111,14 @@ describe('ExternalSessionsView', () => {
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
       buildGuestRequest({
         id: 64,
-        guest_name: 'Sibling Guest',
+        guest_name: 'Pending Guest',
         contact_channel: 'telegram',
-        contact_value: '@sibling_guest',
-        needs_alternative_time: true,
-        requested_slot_is_occupied: true,
+        contact_value: '@pending_guest',
       }),
     ] as any)
 
     renderView()
-    await screen.findByText('Sibling Guest')
+    await screen.findByText('Pending Guest')
     await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
@@ -1147,8 +1145,8 @@ describe('ExternalSessionsView', () => {
     expect(dialog).toHaveTextContent('Скопіюйте посилання й надішліть клієнту через обраний канал.')
     expect(dialog).not.toHaveTextContent('Надішліть це посилання клієнту у зручному для вас каналі.')
 
-    const card = getGuestRequestCardByText('Sibling Guest')
-    expect(card).toHaveTextContent(/Статус:\s*Потрібно надіслати посилання/)
+    const card = getGuestRequestCardByText('Pending Guest')
+    expect(card).toHaveTextContent(/Статус:\s*Очікує відповідь клієнта/)
     expect(card).toHaveTextContent('Пропозицію часу створено')
     expect(card).toHaveTextContent('Скопіюйте посилання й надішліть клієнту через обраний канал.')
     expect(card).not.toHaveTextContent('Посилання доступне одразу після створення пропозиції.')
@@ -1158,6 +1156,8 @@ describe('ExternalSessionsView', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       'https://proconsult.test/guest/booking-time-proposal/proposal-token'
     )
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Запропонувати інший час' })).not.toBeInTheDocument()
   })
 
   it('renders sent email delivery state after creating proposal', async () => {
@@ -1366,8 +1366,6 @@ describe('ExternalSessionsView', () => {
       buildGuestRequest({
         id: 64,
         guest_name: 'Sibling Guest',
-        needs_alternative_time: true,
-        requested_slot_is_occupied: true,
         active_time_proposal_id: 77,
         active_time_proposal_status: 'sent',
         active_time_proposal_options_count: 2,
@@ -1379,18 +1377,17 @@ describe('ExternalSessionsView', () => {
     await screen.findByText('Sibling Guest')
 
     const card = getGuestRequestCardByText('Sibling Guest')
-    expect(card).toHaveTextContent(/Статус:\s*Пропозицію створено/)
+    expect(card).toHaveTextContent(/Статус:\s*Очікує відповідь клієнта/)
     expect(card).not.toHaveTextContent('Потрібно запропонувати інший час')
     expect(card).not.toHaveTextContent('очікує рішення')
     expect(card).toHaveTextContent('Пропозицію часу створено для email-контакту.')
-    expect(card).toHaveTextContent(
-      'Якщо клієнт не отримав лист, створіть нову пропозицію й надішліть посилання вручну одразу після створення.'
-    )
+    expect(card).toHaveTextContent('Активна пропозиція очікує відповіді клієнта.')
     expect(card).not.toHaveTextContent('Пропозицію часу надіслано')
     expect(card).not.toHaveTextContent('Потрібно надіслати посилання')
     expect(card).toHaveTextContent('Варіантів: 2')
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
-    expect(within(card as HTMLElement).getByRole('button', { name: 'Створити нову пропозицію' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Запропонувати інший час' })).not.toBeInTheDocument()
   })
 
   it('renders manual-send state for active non-email time proposal', async () => {
@@ -1413,14 +1410,14 @@ describe('ExternalSessionsView', () => {
     await screen.findByText('Telegram Guest')
 
     const card = getGuestRequestCardByText('Telegram Guest')
-    expect(card).toHaveTextContent(/Статус:\s*Потрібно надіслати посилання/)
+    expect(card).toHaveTextContent(/Статус:\s*Очікує відповідь клієнта/)
     expect(card).toHaveTextContent('Пропозицію часу створено')
-    expect(card).toHaveTextContent(
-      'Посилання доступне одразу після створення пропозиції. Якщо ви не встигли його надіслати, створіть нову пропозицію.'
-    )
+    expect(card).toHaveTextContent('Активна пропозиція очікує відповіді клієнта.')
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
     expect(card).not.toHaveTextContent('Пропозицію часу надіслано')
     expect(card).not.toHaveTextContent('Потрібно запропонувати інший час')
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Запропонувати інший час' })).not.toBeInTheDocument()
   })
 
   it('creates manual session from slot-less guest request and refreshes data', async () => {
