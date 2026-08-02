@@ -248,4 +248,25 @@ describe('PublicGuestBookingTimeProposalView', () => {
       await screen.findByText('Цей час уже недоступний. Оновіть сторінку або зв’яжіться зі спеціалістом.')
     ).toBeInTheDocument()
   })
+
+  it('shows a safe Ukrainian error instead of raw client-record ambiguity detail', async () => {
+    mockedAcceptPublicGuestBookingTimeProposal.mockRejectedValueOnce({
+      response: {
+        data: {
+          code: 'CLIENT_RECORD_CONTACT_AMBIGUITY',
+          detail: 'Several active client records match this guest contact.',
+        },
+      },
+    })
+
+    renderView()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Обрати цей час' }))
+
+    expect(
+      await screen.findByText(
+        'Не вдалося підтвердити цей час через проблему з даними запиту. Зв’яжіться зі спеціалістом, щоб узгодити запис.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Several active client records match this guest contact.')).not.toBeInTheDocument()
+  })
 })

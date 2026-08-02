@@ -1631,6 +1631,9 @@ function closeTimeProposalModal() {
 
 function localizeTimeProposalError(err: unknown) {
   const code = getApiErrorCode(err)
+  if (code === 'CLIENT_RECORD_CONTACT_AMBIGUITY') {
+    return 'Не вдалося однозначно визначити картку клієнта: у списку є кілька активних карток із цим контактом. Перевірте дублікати перед надсиланням пропозиції часу.'
+  }
   if (code === 'PROPOSED_SLOT_UNAVAILABLE') {
     return 'Одне з обраних вікон уже недоступне. Оновіть список і оберіть інший час.'
   }

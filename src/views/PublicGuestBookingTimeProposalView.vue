@@ -174,6 +174,9 @@ async function loadProposal() {
 function acceptErrorMessage(err: unknown) {
   const data = (err as { response?: { data?: { code?: unknown } } })?.response?.data
   const code = typeof data?.code === 'string' ? data.code : ''
+  if (code === 'CLIENT_RECORD_CONTACT_AMBIGUITY') {
+    return 'Не вдалося підтвердити цей час через проблему з даними запиту. Зв’яжіться зі спеціалістом, щоб узгодити запис.'
+  }
   if (code === 'PROPOSED_SLOT_UNAVAILABLE') {
     return 'Цей час уже недоступний. Оновіть сторінку або зв’яжіться зі спеціалістом.'
   }

@@ -1160,6 +1160,51 @@ describe('ExternalSessionsView', () => {
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Запропонувати інший час' })).not.toBeInTheDocument()
   })
 
+  it('shows a safe Ukrainian client-record ambiguity error when proposal creation is blocked', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64,
+        guest_name: 'Ambiguous Guest',
+        contact_channel: 'email',
+        contact_value: 'ambiguous@example.com',
+      }),
+    ] as any)
+    mockedCreateCabinetGuestBookingTimeProposal.mockRejectedValueOnce({
+      response: {
+        data: {
+          code: 'CLIENT_RECORD_CONTACT_AMBIGUITY',
+          detail: 'Several active client records match this guest contact.',
+        },
+      },
+    })
+
+    renderView()
+    await screen.findByText('Ambiguous Guest')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    await fireEvent.update(
+      modal.getByLabelText('Посилання на онлайн-зустріч'),
+      'https://meet.example.com/ambiguous'
+    )
+    await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    const expectedMessage =
+      'Не вдалося однозначно визначити картку клієнта: у списку є кілька активних карток із цим контактом. Перевірте дублікати перед надсиланням пропозиції часу.'
+    expect(await modal.findByText(expectedMessage)).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('Several active client records match this guest contact.')
+    expect(mockedGetApiErrorMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        response: expect.objectContaining({
+          data: expect.objectContaining({ code: 'CLIENT_RECORD_CONTACT_AMBIGUITY' }),
+        }),
+      }),
+      expect.any(String)
+    )
+  })
+
   it('renders sent email delivery state after creating proposal', async () => {
     mockedCreateCabinetGuestBookingTimeProposal.mockResolvedValueOnce(
       buildTimeProposalResponse({ client_notification_status: 'sent' }) as any
