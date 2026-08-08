@@ -26,11 +26,15 @@ describe('legal and support pages', () => {
     const text = container.textContent || ''
 
     expect(screen.getAllByText('support@proconsult.space').length).toBeGreaterThan(0)
-    expect(text).toContain('Останнє оновлення: 21.06.2026')
+    expect(text).toContain('Останнє оновлення: 08.08.2026')
     expect(text).toContain('Приватний зошит спеціаліста не відображається в клієнтському кабінеті')
     expect(text).toContain('Підтримка не читає приватні нотатки для звичайної роботи сервісу')
     expect(text).toContain('Pro Consult не є медичною інформаційною системою')
     expect(text).toContain('не призначений для ведення медичної документації, діагнозів')
+    expect(screen.getByRole('heading', { name: '10. Файли cookie та аналітика' })).toBeInTheDocument()
+    expect(text).toContain('PostHog EU Cloud')
+    expect(text).toContain('Ми не використовуємо session replay, запис екрана або теплові карти')
+    expect(text).toContain('Відмова не обмежує функції Pro Consult.')
     expect(screen.getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute('href', '/faq')
     expect(text).not.toContain('абсолютної технічної недоторканності')
     expect(text).not.toContain('витік')

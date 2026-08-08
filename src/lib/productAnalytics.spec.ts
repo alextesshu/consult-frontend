@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   browserAttributionForAnalytics,
   getProductAnalyticsConfig,
@@ -7,6 +7,7 @@ import {
   sanitizeProviderEvent,
   type ProductAnalyticsProvider,
 } from './productAnalytics'
+import { analyticsConsentStorageKey } from './analyticsConsent'
 
 function createProvider(): ProductAnalyticsProvider {
   return {
@@ -24,12 +25,16 @@ const enabledConfig = {
 }
 
 describe('ProductAnalytics', () => {
+  afterEach(() => {
+    window.localStorage.clear()
+  })
+
   it('is a no-op without explicit enabled EU configuration', () => {
     const provider = createProvider()
     const analytics = new ProductAnalytics()
 
-    expect(analytics.initialize({ ...enabledConfig, enabled: false }, provider)).toBe(false)
-    expect(analytics.capture('signup_started')).toBe(true)
+    expect(analytics.initialize({ ...enabledConfig, enabled: false }, provider, 'allowed')).toBe(false)
+    expect(analytics.capture('signup_started')).toBe(false)
     expect(provider.init).not.toHaveBeenCalled()
     expect(provider.capture).not.toHaveBeenCalled()
   })
@@ -41,7 +46,7 @@ describe('ProductAnalytics', () => {
     })
     const analytics = new ProductAnalytics()
 
-    expect(analytics.initialize(enabledConfig, provider)).toBe(false)
+    expect(analytics.initialize(enabledConfig, provider, 'allowed')).toBe(false)
     expect(() => analytics.capture('signup_started')).not.toThrow()
     expect(provider.capture).not.toHaveBeenCalled()
   })
@@ -50,7 +55,7 @@ describe('ProductAnalytics', () => {
     const provider = createProvider()
     const analytics = new ProductAnalytics()
 
-    expect(analytics.initialize(enabledConfig, provider)).toBe(true)
+    expect(analytics.initialize(enabledConfig, provider, 'allowed')).toBe(true)
     expect(provider.init).toHaveBeenCalledWith(
       'test-public-token',
       expect.objectContaining({
@@ -76,7 +81,7 @@ describe('ProductAnalytics', () => {
   it('rejects unknown events and arbitrary, PII-like, raw URL properties', () => {
     const provider = createProvider()
     const analytics = new ProductAnalytics()
-    analytics.initialize(enabledConfig, provider)
+    analytics.initialize(enabledConfig, provider, 'allowed')
 
     expect(analytics.capture('signup_started', { button_text: 'Register' })).toBe(false)
     expect(analytics.capture('landing_viewed', { landing_route: 'home', email: 'name@example.com' })).toBe(false)
@@ -116,7 +121,7 @@ describe('ProductAnalytics', () => {
   it('uses private specialist context, excludes manual source text, and resets on logout', () => {
     const provider = createProvider()
     const analytics = new ProductAnalytics()
-    analytics.initialize(enabledConfig, provider)
+    analytics.initialize(enabledConfig, provider, 'allowed')
 
     analytics.identify({
       subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
@@ -133,7 +138,7 @@ describe('ProductAnalytics', () => {
   it('limits readiness, publication, search, and share properties to their approved enums', () => {
     const provider = createProvider()
     const analytics = new ProductAnalytics()
-    analytics.initialize(enabledConfig, provider)
+    analytics.initialize(enabledConfig, provider, 'allowed')
 
     expect(analytics.capture('readiness_item_completed', { item: 'public_name' })).toBe(true)
     expect(analytics.capture('readiness_item_completed', { item: 'photo' })).toBe(false)
@@ -195,5 +200,52 @@ describe('ProductAnalytics', () => {
         VITE_POSTHOG_API_HOST: 'https://us.i.posthog.com',
       })
     ).toMatchObject({ enabled: false })
+  })
+
+  it('does not initialize or capture while consent is unknown or denied', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+
+    expect(analytics.initialize(enabledConfig, provider, 'unknown')).toBe(false)
+    expect(analytics.capture('signup_started')).toBe(false)
+    expect(analytics.setConsentPreference('denied', enabledConfig, provider)).toBe(false)
+    expect(provider.init).not.toHaveBeenCalled()
+    expect(provider.capture).not.toHaveBeenCalled()
+  })
+
+  it('reads a persisted explicit choice before initializing the provider', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+
+    window.localStorage.setItem(analyticsConsentStorageKey, JSON.stringify({ version: 1, preference: 'denied' }))
+    expect(analytics.initialize(enabledConfig, provider)).toBe(false)
+    expect(provider.init).not.toHaveBeenCalled()
+
+    window.localStorage.setItem(analyticsConsentStorageKey, JSON.stringify({ version: 1, preference: 'allowed' }))
+    expect(analytics.initialize(enabledConfig, provider)).toBe(true)
+    expect(provider.init).toHaveBeenCalledOnce()
+  })
+
+  it('initializes only after allow, identifies the current specialist, and resets immediately on revoke', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+    const context = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: { source_type: 'direct' as const },
+    }
+
+    analytics.identify(context)
+    expect(analytics.setConsentPreference('allowed', enabledConfig, provider)).toBe(true)
+    expect(provider.init).toHaveBeenCalledOnce()
+    expect(provider.identify).toHaveBeenCalledWith(context.subject_id)
+    expect(analytics.capture('profile_setup_opened')).toBe(true)
+
+    expect(analytics.setConsentPreference('denied', enabledConfig, provider)).toBe(false)
+    expect(provider.reset).toHaveBeenCalledOnce()
+    expect(analytics.capture('profile_setup_opened')).toBe(false)
+
+    expect(analytics.setConsentPreference('allowed', enabledConfig, provider)).toBe(true)
+    expect(provider.init).toHaveBeenCalledTimes(2)
+    expect(provider.identify).toHaveBeenCalledTimes(2)
   })
 })

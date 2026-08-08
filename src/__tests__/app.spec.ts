@@ -18,6 +18,7 @@ import {
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { analyticsConsentStorageKey } from '../lib/analyticsConsent'
 
 const mockToast = {
   show: vi.fn(),
@@ -235,6 +236,7 @@ async function renderWithProviders(options?: {
 describe('App shell', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
     sessionStorage.clear()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
@@ -253,6 +255,20 @@ describe('App shell', () => {
     expect(
       screen.queryByRole('link', { name: 'Спробувати безкоштовно' })
     ).not.toBeInTheDocument()
+  })
+
+  it('keeps analytics off by default and lets a visitor change the saved choice from the footer', async () => {
+    await renderWithProviders()
+
+    expect(screen.getByRole('region', { name: 'Файли cookie та аналітика' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Лише необхідні' }))
+
+    expect(screen.queryByRole('region', { name: 'Файли cookie та аналітика' })).not.toBeInTheDocument()
+    expect(window.localStorage.getItem(analyticsConsentStorageKey)).toContain('denied')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Налаштування конфіденційності' }))
+    expect(screen.getByText('Поточний вибір аналітики: вимкнено.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Дозволити аналітику' })).toBeEnabled()
   })
 
   it('keeps a public profile mounted when only its query changes', async () => {

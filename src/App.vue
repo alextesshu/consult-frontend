@@ -381,6 +381,13 @@
     </main>
     <ScrollToTopButton v-if="showGlobalScrollTopButton" />
     <ToastHost />
+    <AnalyticsConsentBanner
+      :open="showAnalyticsConsent"
+      :preference="analyticsConsentPreference"
+      :error="analyticsConsentError"
+      @select="saveAnalyticsConsent"
+      @close="showAnalyticsConsent = false"
+    />
     <footer
       v-if="!useMinimalShell"
       :class="[
@@ -407,6 +414,9 @@
         <div class="footer__legal footer__legal--compact">
           <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
           <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+          <button class="footer__link footer__link--button" type="button" @click="openAnalyticsConsent">
+            Налаштування конфіденційності
+          </button>
           <RouterLink class="footer__link" to="/faq">Питання та відповіді</RouterLink>
           <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка</RouterLink>
         </div>
@@ -447,6 +457,9 @@
             <h2 id="footer-legal-title" class="footer__column-title">Правова інформація</h2>
             <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
             <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+            <button class="footer__link footer__link--button" type="button" @click="openAnalyticsConsent">
+              Налаштування конфіденційності
+            </button>
             <RouterLink class="footer__link" to="/disclaimer">Дисклеймер</RouterLink>
             <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
           </section>
@@ -484,6 +497,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
+import AnalyticsConsentBanner from './components/AnalyticsConsentBanner.vue'
 import { apiGet, fetchChatUnreadCount } from './lib/api'
 import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
 import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from './lib/entitlementReconcile'
@@ -491,6 +505,11 @@ import { resolveDjangoAdminUrl, spaRouteTargetPath } from './lib/navigationTarge
 import { useToast } from './composables/useToast'
 import { useNotifications, type BellNotification } from './composables/useNotifications'
 import type { ToastAction } from './stores/toast'
+import {
+  getAnalyticsConsentPreference,
+  saveAnalyticsConsentPreference,
+  type AnalyticsConsentPreference,
+} from './lib/analyticsConsent'
 
 const route = useRoute()
 const router = useRouter()
@@ -532,6 +551,26 @@ const buildMarkerText = computed(() => {
 const showMinimalShellDeployMarker = computed(
   () => showStagingDeployMarker.value && useMinimalShell.value
 )
+const analyticsConsentPreference = ref<AnalyticsConsentPreference>(getAnalyticsConsentPreference())
+const showAnalyticsConsent = ref(analyticsConsentPreference.value === 'unknown')
+const analyticsConsentError = ref('')
+
+function openAnalyticsConsent() {
+  analyticsConsentPreference.value = getAnalyticsConsentPreference()
+  analyticsConsentError.value = ''
+  showAnalyticsConsent.value = true
+}
+
+function saveAnalyticsConsent(preference: Exclude<AnalyticsConsentPreference, 'unknown'>) {
+  if (!saveAnalyticsConsentPreference(preference)) {
+    analyticsConsentError.value = 'Не вдалося зберегти вибір у браузері. Аналітика залишається вимкненою.'
+    analyticsConsentPreference.value = 'unknown'
+    return
+  }
+  analyticsConsentPreference.value = preference
+  analyticsConsentError.value = ''
+  showAnalyticsConsent.value = false
+}
 
 watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
@@ -2342,6 +2381,15 @@ watch(isChatCapable, (value) => {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--text) 55%, transparent);
   text-underline-offset: 2px;
+}
+
+.footer__link--button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .footer__link:hover {

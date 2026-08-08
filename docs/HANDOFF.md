@@ -8,6 +8,16 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-82 adds the browser-only consent gate required before KAN-80 product
+analytics can initialize: `unknown` is the safe default, only an explicit
+`allowed` choice plus valid deployment configuration can initialize PostHog,
+and `denied` resets/disables it immediately. The preference is the non-PII
+`proconsult.product_analytics_consent.v1` local-storage record and can be
+changed through the global footer. KAN-5 first-touch attribution remains a
+separate first-party 30-day registration flow and is not disabled by this
+preference. Production analytics remains off until a separately approved
+configuration/deployment.
+
 KAN-52 adds stable `proconsult-metadata` markers to `index.html` and keeps runtime profile
 and article metadata synchronized during Vue navigation. The backend replaces
 only the marked block for canonical public initial HTML; hashed frontend assets

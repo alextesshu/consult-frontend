@@ -1,5 +1,9 @@
 import posthog from 'posthog-js/dist/module.no-external'
 import type { RegistrationAttributionPayload } from './registrationAttribution'
+import {
+  getAnalyticsConsentPreference,
+  type AnalyticsConsentPreference,
+} from './analyticsConsent'
 
 export type ProductAnalyticsEvent =
   | 'landing_viewed'
@@ -326,9 +330,11 @@ export class ProductAnalytics {
 
   initialize(
     config = getProductAnalyticsConfig(),
-    provider: ProductAnalyticsProvider = posthog as unknown as ProductAnalyticsProvider
+    provider: ProductAnalyticsProvider = posthog as unknown as ProductAnalyticsProvider,
+    preference: AnalyticsConsentPreference = getAnalyticsConsentPreference()
   ): boolean {
-    if (!config.enabled || this.initialized) return this.initialized
+    if (preference !== 'allowed' || !config.enabled) return false
+    if (this.initialized) return true
     try {
       provider.init(config.projectToken, {
         api_host: POSTHOG_EU_INGESTION_HOST,
@@ -373,6 +379,7 @@ export class ProductAnalytics {
   }
 
   capture(event: ProductAnalyticsEvent, properties: ProductAnalyticsProperties = {}): boolean {
+    if (!this.initialized || !this.provider) return false
     const mergedProperties = {
       ...(this.specialistContext?.attribution || {}),
       ...properties,
@@ -380,7 +387,7 @@ export class ProductAnalytics {
     const sanitized = sanitizeEventProperties(event, mergedProperties)
     if (!sanitized) return false
     try {
-      this.provider?.capture(event, sanitized)
+      this.provider.capture(event, sanitized)
       return true
     } catch {
       return false
@@ -389,10 +396,29 @@ export class ProductAnalytics {
 
   reset(): void {
     this.specialistContext = null
+    this.disableProvider()
+  }
+
+  setConsentPreference(
+    preference: AnalyticsConsentPreference,
+    config = getProductAnalyticsConfig(),
+    provider: ProductAnalyticsProvider = posthog as unknown as ProductAnalyticsProvider
+  ): boolean {
+    if (preference !== 'allowed') {
+      this.disableProvider()
+      return false
+    }
+    return this.initialize(config, provider, preference)
+  }
+
+  private disableProvider(): void {
+    const provider = this.provider
+    this.provider = null
+    this.initialized = false
     try {
-      this.provider?.reset()
+      provider?.reset()
     } catch {
-      // Logout must succeed even if the analytics SDK fails.
+      // Consent changes and logout must not affect product actions.
     }
   }
 }
