@@ -8,10 +8,18 @@ RUN npm ci
 
 COPY . .
 
-# VITE_API_BASE_URL is injected at build time (becomes part of compiled JS).
-# Fallback to /api when build arg is missing or empty.
+# Vite values are injected at build time and become part of the compiled JS.
+# Explicit process environment values take precedence over any .env files in
+# the build context, so staging and production remain independently configured.
 ARG VITE_API_BASE_URL
-RUN VITE_API_BASE_URL="${VITE_API_BASE_URL:-/api}" npm run build
+ARG VITE_PRODUCT_ANALYTICS_ENABLED=false
+ARG VITE_POSTHOG_PROJECT_TOKEN=
+ARG VITE_POSTHOG_API_HOST=https://eu.i.posthog.com
+RUN VITE_API_BASE_URL="${VITE_API_BASE_URL:-/api}" \
+    VITE_PRODUCT_ANALYTICS_ENABLED="${VITE_PRODUCT_ANALYTICS_ENABLED:-false}" \
+    VITE_POSTHOG_PROJECT_TOKEN="${VITE_POSTHOG_PROJECT_TOKEN:-}" \
+    VITE_POSTHOG_API_HOST="${VITE_POSTHOG_API_HOST:-https://eu.i.posthog.com}" \
+    npm run build
 
 # Stage 2 — Serve the compiled app with nginx
 FROM nginx:stable-alpine
