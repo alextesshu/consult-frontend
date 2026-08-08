@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
 import type { ActiveClientEntitlement } from '../lib/api'
+import {
+  clearSpecialistRegistrationAttribution,
+  getSpecialistRegistrationAttribution,
+} from '../lib/registrationAttribution'
 
 type AuthUser = {
   id: number
@@ -127,7 +131,13 @@ export const useAuthStore = defineStore('auth', {
       this.error = ''
       this.clearAuthState()
       try {
-        const tokens = await signupSpecialist(email, password, passwordConfirm)
+        const tokens = await signupSpecialist(
+          email,
+          password,
+          passwordConfirm,
+          getSpecialistRegistrationAttribution()
+        )
+        clearSpecialistRegistrationAttribution()
         if (!this.isEpochActive(epoch)) return
         this.setToken(tokens.access)
         const me = await fetchMe(tokens.access)

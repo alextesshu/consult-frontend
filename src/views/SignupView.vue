@@ -140,6 +140,10 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { enableSpecialist, getApiErrorMessage } from '../lib/api'
+import {
+  clearSpecialistRegistrationAttribution,
+  getSpecialistRegistrationAttribution,
+} from '../lib/registrationAttribution'
 
 const email = ref('')
 const password = ref('')
@@ -161,7 +165,8 @@ async function onEnableSpecialist() {
   dualRoleError.value = ''
   dualRoleLoading.value = true
   try {
-    await enableSpecialist()
+    await enableSpecialist(getSpecialistRegistrationAttribution())
+    clearSpecialistRegistrationAttribution()
     await auth.loadMe()
     router.push('/cabinet')
   } catch (err) {

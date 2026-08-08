@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import SignupView from './SignupView.vue'
 import { enableSpecialist } from '../lib/api'
+import {
+  clearSpecialistRegistrationAttribution,
+  getSpecialistRegistrationAttribution,
+} from '../lib/registrationAttribution'
 
 const mockPush = vi.fn()
 const mockSignup = vi.fn()
@@ -37,7 +41,14 @@ vi.mock('../lib/api', async () => {
   }
 })
 
+vi.mock('../lib/registrationAttribution', () => ({
+  clearSpecialistRegistrationAttribution: vi.fn(),
+  getSpecialistRegistrationAttribution: vi.fn(),
+}))
+
 const mockedEnableSpecialist = vi.mocked(enableSpecialist)
+const mockedClearSpecialistRegistrationAttribution = vi.mocked(clearSpecialistRegistrationAttribution)
+const mockedGetSpecialistRegistrationAttribution = vi.mocked(getSpecialistRegistrationAttribution)
 
 function renderView() {
   return render(SignupView, {
@@ -58,6 +69,8 @@ describe('SignupView dual-role enable flow', () => {
     mockSignup.mockReset()
     mockLoadMe.mockReset()
     mockedEnableSpecialist.mockReset()
+    mockedClearSpecialistRegistrationAttribution.mockReset()
+    mockedGetSpecialistRegistrationAttribution.mockReturnValue({ utm_source: 'threads', first_landing_path: '/' })
     loadingRef.value = false
     mockMe.value = null
     mockUser.value = null
@@ -81,7 +94,8 @@ describe('SignupView dual-role enable flow', () => {
     await fireEvent.click(enableButton)
 
     await waitFor(() => {
-      expect(mockedEnableSpecialist).toHaveBeenCalledTimes(1)
+      expect(mockedEnableSpecialist).toHaveBeenCalledWith({ utm_source: 'threads', first_landing_path: '/' })
+      expect(mockedClearSpecialistRegistrationAttribution).toHaveBeenCalledTimes(1)
       expect(mockLoadMe).toHaveBeenCalledTimes(1)
       expect(mockPush).toHaveBeenCalledWith('/cabinet')
     })

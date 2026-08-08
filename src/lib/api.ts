@@ -1,6 +1,7 @@
 import { http } from './http'
 import type { AxiosRequestConfig } from 'axios'
 import type { ProfessionalFocus } from '../constants/professionalFocus'
+import type { RegistrationAttributionPayload } from './registrationAttribution'
 
 type TokenResponse = {
   access: string
@@ -79,13 +80,15 @@ export async function loginWithIdentifier(
 export async function signupTherapist(
   email: string,
   password: string,
-  passwordConfirm: string
+  passwordConfirm: string,
+  acquisition?: RegistrationAttributionPayload
 ): Promise<SignupResponse> {
   try {
     const resp = await http.post<SignupResponse>('/auth/signup/', {
       email,
       password,
       password_confirm: passwordConfirm,
+      ...(acquisition ? { acquisition } : {}),
     })
     return resp.data
   } catch (err: any) {
@@ -96,9 +99,10 @@ export async function signupTherapist(
 export async function signupSpecialist(
   email: string,
   password: string,
-  passwordConfirm: string
+  passwordConfirm: string,
+  acquisition?: RegistrationAttributionPayload
 ): Promise<SignupResponse> {
-  return signupTherapist(email, password, passwordConfirm)
+  return signupTherapist(email, password, passwordConfirm, acquisition)
 }
 
 export async function fetchMe(accessToken: string) {
@@ -219,8 +223,8 @@ export async function logoutSession(): Promise<void> {
   await http.post('/auth/logout/', {})
 }
 
-export async function enableSpecialist(): Promise<void> {
-  await http.post('/auth/enable-specialist/', {})
+export async function enableSpecialist(acquisition?: RegistrationAttributionPayload): Promise<void> {
+  await http.post('/auth/enable-specialist/', acquisition ? { acquisition } : {})
 }
 
 export type PublicProfileReadinessItem = {

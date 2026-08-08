@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from './auth'
 import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
+import {
+  clearSpecialistRegistrationAttribution,
+  getSpecialistRegistrationAttribution,
+} from '../lib/registrationAttribution'
 
 vi.mock('../lib/api', () => ({
   fetchMe: vi.fn(),
@@ -12,12 +16,19 @@ vi.mock('../lib/api', () => ({
   signupSpecialist: vi.fn(),
 }))
 
+vi.mock('../lib/registrationAttribution', () => ({
+  clearSpecialistRegistrationAttribution: vi.fn(),
+  getSpecialistRegistrationAttribution: vi.fn(),
+}))
+
 const mockedFetchMe = vi.mocked(fetchMe)
 const mockedLoginWithIdentifier = vi.mocked(loginWithIdentifier)
 const mockedLogoutSession = vi.mocked(logoutSession)
 const mockedRefreshToken = vi.mocked(refreshToken)
 const mockedSignupClient = vi.mocked(signupClient)
 const mockedSignupSpecialist = vi.mocked(signupSpecialist)
+const mockedClearSpecialistRegistrationAttribution = vi.mocked(clearSpecialistRegistrationAttribution)
+const mockedGetSpecialistRegistrationAttribution = vi.mocked(getSpecialistRegistrationAttribution)
 
 function deferred<T>() {
   let resolve!: (value: T) => void
@@ -52,6 +63,10 @@ describe('auth store cookie-based flow', () => {
       user: { id: 1, username: 'u', email: null, role: 'SPECIALIST', roles: ['SPECIALIST'] },
     })
     mockedLogoutSession.mockResolvedValue()
+    mockedGetSpecialistRegistrationAttribution.mockReturnValue({
+      utm_source: 'threads',
+      first_landing_path: '/',
+    })
   })
 
   it('keeps tokens in memory only and uses cookie refresh without refresh payload', async () => {
@@ -253,5 +268,17 @@ describe('auth store cookie-based flow', () => {
     expect(resolved).toBe(true)
     expect(auth.user?.role).toBe('ADMIN')
     expect(mockedFetchMe).toHaveBeenCalledWith('active-token')
+  })
+
+  it('persists first-touch attribution with specialist signup and retires it only after success', async () => {
+    const auth = useAuthStore()
+
+    await auth.signup('specialist@example.com', 'password123', 'password123')
+
+    expect(mockedSignupSpecialist).toHaveBeenCalledWith('specialist@example.com', 'password123', 'password123', {
+      utm_source: 'threads',
+      first_landing_path: '/',
+    })
+    expect(mockedClearSpecialistRegistrationAttribution).toHaveBeenCalledTimes(1)
   })
 })
