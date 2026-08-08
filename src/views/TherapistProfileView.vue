@@ -23,7 +23,11 @@
 
             <form v-else class="profile-grid" @submit.prevent="onSave">
       <div v-if="error && !isDirty" class="form-error">{{ error }}</div>
-      <section class="profile-summary-card" aria-label="Стан публічної сторінки">
+      <section
+        class="profile-summary-card"
+        aria-label="Стан публічної сторінки"
+        @focusin="trackProfileSectionOpened('publication')"
+      >
         <div class="profile-summary-card__group profile-summary-card__group--publication">
           <div class="profile-summary-card__eyebrow">Публічна сторінка</div>
           <div class="profile-summary-card__status">
@@ -193,7 +197,11 @@
               {{ copyStatus }}
             </div>
           </section>
-          <section class="profile-search-visibility" aria-labelledby="profile-search-visibility-title">
+          <section
+            class="profile-search-visibility"
+            aria-labelledby="profile-search-visibility-title"
+            @focusin="trackProfileSectionOpened('search_visibility')"
+          >
             <div class="profile-search-visibility__eyebrow">Добровільна видимість</div>
             <h3 id="profile-search-visibility-title">Поява в пошуку Pro Consult</h3>
             <p>
@@ -212,7 +220,7 @@
         </div>
       </section>
 
-      <section class="panel" id="journal">
+      <section class="panel" id="journal" @focusin="trackProfileSectionOpened('basics')">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Основні дані</h2>
@@ -592,7 +600,7 @@
         </div>
       </section>
 
-      <section class="panel" data-readiness-key="photo">
+      <section class="panel" data-readiness-key="photo" @focusin="trackProfileSectionOpened('media')">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Фото та відео</h2>
@@ -716,7 +724,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" @focusin="trackProfileSectionOpened('public_sections')">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Секції публічного профілю</h2>
@@ -934,7 +942,7 @@
         </div>
       </section>
 
-      <section class="panel" data-readiness-key="first_contact">
+      <section class="panel" data-readiness-key="first_contact" @focusin="trackProfileSectionOpened('contacts')">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Контакти</h2>
@@ -1122,7 +1130,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" @focusin="trackProfileSectionOpened('documents')">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Документи та сертифікати</h2>
@@ -1417,6 +1425,7 @@
       heading="Поділитися профілем"
       copy-label="Копіювати посилання"
       @close="closeProfileShareDialog"
+      @shared="trackProfileShare"
     />
 
     <div v-if="cropperOpen" class="cropper-overlay">
@@ -1470,6 +1479,7 @@ import {
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ProfileVisibilityControl from '../components/ProfileVisibilityControl.vue'
 import ShareDialog from '../components/ShareDialog.vue'
+import { productAnalytics, type ProductAnalyticsProperties } from '../lib/productAnalytics'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 import {
@@ -2495,6 +2505,101 @@ const canChangeSearchVisibility = computed(() =>
 
 const persistedPublicProfileEnabled = ref(false)
 const persistedSearchVisible = ref(false)
+const openedProfileAnalyticsSections = new Set<string>()
+const profileSetupOpened = ref(false)
+const publicationCtaViewed = ref(false)
+const searchVisibilityCtaViewed = ref(false)
+
+type ProfileAnalyticsSnapshot = {
+  publicProfileEnabled: boolean
+  searchVisible: boolean
+  readiness: PublicProfileReadiness
+}
+
+const readinessAnalyticsItemByKey: Record<string, string> = {
+  display_name: 'public_name',
+  about: 'short_description',
+  topics: 'topics',
+  work_format: 'work_format',
+  price_decision: 'base_price',
+  first_contact: 'first_contact_mode',
+}
+
+function trackProfileSectionOpened(section: ProductAnalyticsProperties['section']) {
+  if (openedProfileAnalyticsSections.has(section)) return
+  openedProfileAnalyticsSections.add(section)
+  productAnalytics.capture('profile_section_opened', { section })
+}
+
+function profileAnalyticsSnapshot(): ProfileAnalyticsSnapshot {
+  const readiness = publicProfileReadiness.value
+  return {
+    publicProfileEnabled: persistedPublicProfileEnabled.value,
+    searchVisible: persistedSearchVisible.value,
+    readiness: {
+      ...readiness,
+      items: readiness.items.map((item) => ({ ...item })),
+    },
+  }
+}
+
+function trackReadinessTransitions(
+  previousReadiness: PublicProfileReadiness,
+  nextReadiness: PublicProfileReadiness
+) {
+  const previousByKey = new Map(previousReadiness.items.map((item) => [item.key, item.complete]))
+  for (const item of nextReadiness.items) {
+    const analyticsItem = readinessAnalyticsItemByKey[item.key]
+    if (analyticsItem && previousByKey.get(item.key) === false && item.complete) {
+      productAnalytics.capture('readiness_item_completed', { item: analyticsItem })
+    }
+  }
+  if (!previousReadiness.is_ready && nextReadiness.is_ready) {
+    productAnalytics.capture('profile_became_ready')
+  }
+}
+
+function trackProfileSaveTransitions(previous: ProfileAnalyticsSnapshot) {
+  const nextReadiness = publicProfileReadiness.value
+  trackReadinessTransitions(previous.readiness, nextReadiness)
+  if (!previous.publicProfileEnabled && persistedPublicProfileEnabled.value) {
+    productAnalytics.capture('profile_publish_succeeded')
+  }
+  if (previous.searchVisible !== persistedSearchVisible.value) {
+    productAnalytics.capture(
+      persistedSearchVisible.value ? 'search_visibility_enabled' : 'search_visibility_disabled'
+    )
+  }
+  trackEligibleProfileCtaViews()
+}
+
+function trackEligibleProfileCtaViews() {
+  if (publicProfileReadiness.value.is_ready && !persistedPublicProfileEnabled.value && !publicationCtaViewed.value) {
+    publicationCtaViewed.value = true
+    productAnalytics.capture('publish_cta_viewed')
+  }
+  if (publicProfileReadiness.value.is_ready && persistedPublicProfileEnabled.value && !searchVisibilityCtaViewed.value) {
+    searchVisibilityCtaViewed.value = true
+    productAnalytics.capture('search_visibility_cta_viewed')
+  }
+}
+
+function trackInitialProfileAnalytics() {
+  if (!profileSetupOpened.value) {
+    profileSetupOpened.value = true
+    productAnalytics.capture('profile_setup_opened')
+  }
+  trackEligibleProfileCtaViews()
+}
+
+function profilePublicationErrorCode(errorValue: unknown): ProductAnalyticsProperties['error_code'] {
+  const response = (errorValue as { response?: { status?: number; data?: { code?: string } } })?.response
+  if (response?.data?.code === 'PROFILE_NOT_READY') return 'not_ready'
+  if (!response) return 'network'
+  if (response.status && response.status >= 500) return 'server'
+  if (response.status && response.status >= 400) return 'validation'
+  return 'unknown'
+}
 
 function syncPersistedVisibilityStateFromSavedSnapshot() {
   const savedSnapshot = dirtySnapshot.getSavedSnapshot()
@@ -2577,6 +2682,10 @@ async function closeProfileShareDialog() {
   profileShareDialogOpen.value = false
   await nextTick()
   profileShareButtonRef.value?.focus()
+}
+
+function trackProfileShare(destination: ProductAnalyticsProperties['destination']) {
+  productAnalytics.capture('share_profile_clicked', { destination })
 }
 const publicationStatusText = computed(() => {
   if (isPendingPublication.value) {
@@ -2697,6 +2806,9 @@ function togglePublicProfileEnabled() {
     success.value = ''
     error.value = buildProfileNotReadyMessage()
     return
+  }
+  if (!profile.public_profile_enabled) {
+    productAnalytics.capture('publish_cta_clicked')
   }
   profile.public_profile_enabled = true
 }
@@ -3005,6 +3117,7 @@ async function loadProfile() {
     selectedWorkBoundariesSuggestionCategory.value = null
     dirtySnapshot.markSaved()
     syncPersistedVisibilityStateFromSavedSnapshot()
+    trackInitialProfileAnalytics()
     setPreviewUrl(photoPreviewUrl, null)
     setPreviewUrl(videoPreviewUrl, null)
     resetDocumentForm()
@@ -3033,28 +3146,42 @@ async function loadProfile() {
 }
 
 async function onSave() {
+  const analyticsPrevious = profileAnalyticsSnapshot()
+  const publicationAttempted = isPendingPublication.value
   saving.value = true
   success.value = ''
   error.value = ''
   if (!profile.offers_online && !profile.offers_offline) {
     error.value = 'Оберіть щонайменше один формат консультацій: онлайн або офлайн.'
     saving.value = false
+    if (publicationAttempted) {
+      productAnalytics.capture('profile_publish_failed', { error_code: 'validation' })
+    }
     return
   }
   if (profile.couple_session_enabled && !isPositiveDecimalValue(profile.couple_session_price)) {
     error.value = 'Вкажіть додатну вартість парної консультації.'
     saving.value = false
+    if (publicationAttempted) {
+      productAnalytics.capture('profile_publish_failed', { error_code: 'validation' })
+    }
     return
   }
   if (profile.couple_session_enabled && !profile.couple_session_duration_minutes) {
     error.value = 'Оберіть тривалість парної консультації.'
     saving.value = false
+    if (publicationAttempted) {
+      productAnalytics.capture('profile_publish_failed', { error_code: 'validation' })
+    }
     return
   }
   secondaryPhoneServerError.value = ''
   if (secondaryPhoneClientError.value) {
     error.value = secondaryPhoneClientError.value
     saving.value = false
+    if (publicationAttempted) {
+      productAnalytics.capture('profile_publish_failed', { error_code: 'validation' })
+    }
     return
   }
   try {
@@ -3078,8 +3205,14 @@ async function onSave() {
     slugDraft.value = resolvedSlug.value
     dirtySnapshot.markSaved()
     syncPersistedVisibilityStateFromSavedSnapshot()
+    trackProfileSaveTransitions(analyticsPrevious)
     success.value = data.profile_notice?.detail || PROFILE_SAVE_SUCCESS_MESSAGE
   } catch (err) {
+    if (publicationAttempted) {
+      productAnalytics.capture('profile_publish_failed', {
+        error_code: profilePublicationErrorCode(err),
+      })
+    }
     const payload = (err as { response?: { data?: any } })?.response?.data
     if (payload?.code === 'PROFILE_NOT_READY') {
       if (payload.readiness) {

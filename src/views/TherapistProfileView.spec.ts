@@ -15,6 +15,7 @@ import {
   uploadProfilePhoto,
   uploadProfileVideo,
 } from '../lib/api'
+import { productAnalytics } from '../lib/productAnalytics'
 
 const routerMocks = vi.hoisted(() => ({
   onBeforeRouteLeave: vi.fn(),
@@ -71,6 +72,12 @@ vi.mock('../lib/api', () => ({
   updateSpecialistProfile: vi.fn(),
   uploadProfilePhoto: vi.fn(),
   uploadProfileVideo: vi.fn(),
+}))
+
+vi.mock('../lib/productAnalytics', () => ({
+  productAnalytics: {
+    capture: vi.fn(),
+  },
 }))
 
 const mockedCreateProfileDocument = vi.mocked(createProfileDocument)
@@ -279,6 +286,7 @@ describe('TherapistProfileView', () => {
     mockRoute.query = {}
     setClipboard()
     vi.restoreAllMocks()
+    vi.mocked(productAnalytics.capture).mockReset()
     mockRouter.push.mockReset()
     mockRouter.replace.mockReset()
     scrollIntoViewSpy.mockReset()
@@ -333,6 +341,22 @@ describe('TherapistProfileView', () => {
     expect(finalOpenLink).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(finalOpenLink).toHaveAttribute('target', '_blank')
     expect(finalOpenLink).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('records only semantic cabinet setup, CTA, and section events', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const publicName = await screen.findByDisplayValue('Анна')
+    expect(productAnalytics.capture).toHaveBeenCalledWith('profile_setup_opened')
+    expect(productAnalytics.capture).toHaveBeenCalledWith('search_visibility_cta_viewed')
+    expect(productAnalytics.capture).not.toHaveBeenCalledWith('profile_became_ready')
+
+    await fireEvent.focusIn(publicName)
+    expect(productAnalytics.capture).toHaveBeenCalledWith('profile_section_opened', {
+      section: 'basics',
+    })
   })
 
   it('validates profile document files before upload', async () => {
@@ -1031,6 +1055,7 @@ describe('TherapistProfileView', () => {
     const publishButton = await screen.findByRole('button', {
       name: 'Опублікувати сторінку',
     })
+    expect(productAnalytics.capture).toHaveBeenCalledWith('publish_cta_viewed')
     expect(screen.getAllByText('Опублікувати сторінку')).toHaveLength(1)
     expect(screen.getByText('Сторінка не опублікована')).toBeInTheDocument()
     expect(screen.getByText('6 з 6')).toBeInTheDocument()
@@ -1044,6 +1069,10 @@ describe('TherapistProfileView', () => {
     ).toBeInTheDocument()
 
     await fireEvent.click(publishButton)
+    expect(productAnalytics.capture).toHaveBeenCalledWith('publish_cta_clicked')
+    expect(
+      vi.mocked(productAnalytics.capture).mock.calls.filter(([event]) => event === 'publish_cta_viewed')
+    ).toHaveLength(1)
     expect(screen.getByText('Сторінку буде опубліковано після збереження')).toBeInTheDocument()
     expect(
       screen.getByText('Збережіть зміни, щоб сторінка стала доступною клієнтам за прямим посиланням.')
@@ -1071,6 +1100,7 @@ describe('TherapistProfileView', () => {
     )
     expect(screen.getAllByText('Переглянути сторінку')).toHaveLength(2)
     expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('profile_publish_succeeded')
   })
 
   it('keeps pending publication state when saving publication fails', async () => {
@@ -1102,6 +1132,57 @@ describe('TherapistProfileView', () => {
     expect(screen.getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
     expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
     expect(screen.getByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('profile_publish_failed', {
+      error_code: 'server',
+    })
+  })
+
+  it('emits canonical readiness transitions only after a successful saved response', async () => {
+    const incomplete = makeProfileWithSingleMissingReadinessItem('topics', 'Спеціалізації')
+    incomplete.public_profile_enabled = false
+    mockedFetchSpecialistProfile.mockResolvedValue(incomplete)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_profile_enabled: false,
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    const publicName = await screen.findByLabelText('Публічне ім’я')
+    await fireEvent.update(publicName, 'Анна оновлена')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(productAnalytics.capture).toHaveBeenCalledWith('readiness_item_completed', {
+        item: 'topics',
+      })
+      expect(productAnalytics.capture).toHaveBeenCalledWith('profile_became_ready')
+      expect(productAnalytics.capture).toHaveBeenCalledWith('publish_cta_viewed')
+    })
+  })
+
+  it('emits search visibility only after the backend confirms the saved transition', async () => {
+    const publishedNotSearchVisible = {
+      ...makeProfile(),
+      is_search_visible: false,
+    }
+    mockedFetchSpecialistProfile.mockResolvedValue(publishedNotSearchVisible)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...publishedNotSearchVisible,
+      is_search_visible: true,
+    })
+
+    renderView()
+
+    const searchCheckbox = await screen.findByLabelText('Показувати мою сторінку в пошуку')
+    await fireEvent.click(searchCheckbox)
+    expect(productAnalytics.capture).not.toHaveBeenCalledWith('search_visibility_enabled')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(productAnalytics.capture).toHaveBeenCalledWith('search_visibility_enabled')
+    })
   })
 
   it('shows missing readiness items when backend rejects activation', async () => {

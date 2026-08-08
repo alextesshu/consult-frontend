@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
@@ -144,6 +144,7 @@ import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
 } from '../lib/registrationAttribution'
+import { productAnalytics } from '../lib/productAnalytics'
 
 const email = ref('')
 const password = ref('')
@@ -168,6 +169,7 @@ async function onEnableSpecialist() {
     await enableSpecialist(getSpecialistRegistrationAttribution())
     clearSpecialistRegistrationAttribution()
     await auth.loadMe()
+    productAnalytics.capture('specialist_activated')
     router.push('/cabinet')
   } catch (err) {
     dualRoleError.value = getApiErrorMessage(
@@ -200,6 +202,10 @@ async function onSubmit() {
     error.value = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
   }
 }
+
+onMounted(() => {
+  productAnalytics.capture('signup_started')
+})
 </script>
 
 <style scoped>

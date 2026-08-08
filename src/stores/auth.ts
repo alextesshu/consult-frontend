@@ -5,6 +5,7 @@ import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
 } from '../lib/registrationAttribution'
+import { productAnalytics, type SpecialistAnalyticsContext } from '../lib/productAnalytics'
 
 type AuthUser = {
   id: number
@@ -38,6 +39,7 @@ type MePayload = {
   effective_entitlements: Entitlements | null
   counts: Counts | null
   onboarding_summary?: unknown
+  analytics_context?: SpecialistAnalyticsContext | null
   server_time: string
 }
 
@@ -82,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
       return epoch === this.authEpoch
     },
     clearAuthState() {
+      productAnalytics.reset()
       this.accessToken = ''
       this.user = null
       this.me = null
@@ -102,6 +105,7 @@ export const useAuthStore = defineStore('auth', {
       this.me = payload
       this.user = payload ? payload.user : null
       this.authResolved = true
+      productAnalytics.identify(payload?.analytics_context)
     },
     async login(identifier: string, password: string) {
       const epoch = this.beginAuthEpoch()
@@ -143,6 +147,7 @@ export const useAuthStore = defineStore('auth', {
         const me = await fetchMe(tokens.access)
         if (!this.isEpochActive(epoch)) return
         this.setMe(me)
+        productAnalytics.capture('signup_completed')
       } catch (err) {
         if (!this.isEpochActive(epoch)) return
         this.error = err instanceof Error ? err.message : 'Не вдалося зареєструватися'

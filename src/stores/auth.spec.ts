@@ -6,6 +6,7 @@ import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
 } from '../lib/registrationAttribution'
+import { productAnalytics } from '../lib/productAnalytics'
 
 vi.mock('../lib/api', () => ({
   fetchMe: vi.fn(),
@@ -19,6 +20,14 @@ vi.mock('../lib/api', () => ({
 vi.mock('../lib/registrationAttribution', () => ({
   clearSpecialistRegistrationAttribution: vi.fn(),
   getSpecialistRegistrationAttribution: vi.fn(),
+}))
+
+vi.mock('../lib/productAnalytics', () => ({
+  productAnalytics: {
+    capture: vi.fn(),
+    identify: vi.fn(),
+    reset: vi.fn(),
+  },
 }))
 
 const mockedFetchMe = vi.mocked(fetchMe)
@@ -280,5 +289,29 @@ describe('auth store cookie-based flow', () => {
       first_landing_path: '/',
     })
     expect(mockedClearSpecialistRegistrationAttribution).toHaveBeenCalledTimes(1)
+    expect(productAnalytics.capture).toHaveBeenCalledWith('signup_completed')
+  })
+
+  it('identifies only the private analytics context and resets it on logout', () => {
+    const auth = useAuthStore()
+    auth.setMe({
+      user: { id: 1, username: 'specialist', email: 'specialist@example.com', roles: ['SPECIALIST'] },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      analytics_context: {
+        subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+        attribution: { source_type: 'campaign', utm_source: 'threads' },
+      },
+      server_time: '2026-08-08T10:00:00Z',
+    })
+
+    expect(productAnalytics.identify).toHaveBeenCalledWith({
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: { source_type: 'campaign', utm_source: 'threads' },
+    })
+
+    auth.logout()
+    expect(productAnalytics.reset).toHaveBeenCalledOnce()
   })
 })

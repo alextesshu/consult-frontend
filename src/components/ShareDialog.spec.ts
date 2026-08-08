@@ -79,6 +79,21 @@ describe('ShareDialog', () => {
     expect(feedback.closest('[aria-live="polite"]')).not.toBeNull()
   })
 
+  it('emits only approved semantic destinations for profile sharing actions', async () => {
+    const result = renderDialog()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Скопіювати посилання' }))
+    await fireEvent.click(screen.getByRole('link', { name: 'Telegram' }))
+    await fireEvent.click(screen.getByRole('link', { name: 'Facebook' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Threads' }))
+
+    expect(result.emitted('shared')).toEqual([
+      ['copy_link'],
+      ['telegram'],
+      ['facebook'],
+      ['threads'],
+    ])
+  })
+
   it('uses execCommand when Clipboard API is unavailable and always removes its textarea', async () => {
     setClipboard()
     const execCommand = vi.fn(() => true)

@@ -948,6 +948,7 @@
       heading="Поділитися профілем"
       copy-label="Копіювати посилання"
       @close="closeProfileShareDialog"
+      @shared="trackProfileShare"
     />
     <ScrollToTopButton />
 
@@ -969,6 +970,7 @@ import PublicProfileMediaSection from '../components/public-profile/PublicProfil
 import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
 import ScrollToTopButton from '../components/ScrollToTopButton.vue'
 import ShareDialog from '../components/ShareDialog.vue'
+import { productAnalytics, type ProductAnalyticsProperties } from '../lib/productAnalytics'
 import { getApiErrorMessage } from '../lib/errors'
 import {
   applyPublicPageMetadata,
@@ -1680,6 +1682,10 @@ async function closeProfileShareDialog() {
   profileShareDialogOpen.value = false
   await nextTick()
   profileShareButtonRef.value?.focus()
+}
+
+function trackProfileShare(destination: ProductAnalyticsProperties['destination']) {
+  productAnalytics.capture('share_profile_clicked', { destination })
 }
 
 const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: string | null } | null>(() => {

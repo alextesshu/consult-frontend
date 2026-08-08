@@ -31,6 +31,7 @@
           :href="telegramUrl"
           target="_blank"
           rel="noopener noreferrer"
+          @click="emit('shared', 'telegram')"
         >
           Telegram
         </a>
@@ -39,6 +40,7 @@
           :href="facebookUrl"
           target="_blank"
           rel="noopener noreferrer"
+          @click="emit('shared', 'facebook')"
         >
           Facebook
         </a>
@@ -83,6 +85,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
+  shared: [destination: 'copy_link' | 'telegram' | 'facebook' | 'threads']
 }>()
 
 const dialogRef = ref<HTMLElement | null>(null)
@@ -168,6 +171,7 @@ async function copyLink() {
   feedbackMessage.value = copied
     ? 'Посилання скопійовано'
     : 'Не вдалося скопіювати посилання. Спробуйте ще раз.'
+  if (copied) emit('shared', 'copy_link')
   await nextTick()
   copyButtonRef.value?.focus()
 }
@@ -184,6 +188,7 @@ async function shareToThreads() {
   feedbackTone.value = 'success'
   feedbackMessage.value = 'Текст скопійовано. Відкрийте Threads і вставте його в новий допис.'
   threadsReady.value = true
+  emit('shared', 'threads')
 }
 
 function openThreads() {

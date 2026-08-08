@@ -7,6 +7,7 @@ import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
 } from '../lib/registrationAttribution'
+import { productAnalytics } from '../lib/productAnalytics'
 
 const mockPush = vi.fn()
 const mockSignup = vi.fn()
@@ -46,6 +47,12 @@ vi.mock('../lib/registrationAttribution', () => ({
   getSpecialistRegistrationAttribution: vi.fn(),
 }))
 
+vi.mock('../lib/productAnalytics', () => ({
+  productAnalytics: {
+    capture: vi.fn(),
+  },
+}))
+
 const mockedEnableSpecialist = vi.mocked(enableSpecialist)
 const mockedClearSpecialistRegistrationAttribution = vi.mocked(clearSpecialistRegistrationAttribution)
 const mockedGetSpecialistRegistrationAttribution = vi.mocked(getSpecialistRegistrationAttribution)
@@ -71,6 +78,7 @@ describe('SignupView dual-role enable flow', () => {
     mockedEnableSpecialist.mockReset()
     mockedClearSpecialistRegistrationAttribution.mockReset()
     mockedGetSpecialistRegistrationAttribution.mockReturnValue({ utm_source: 'threads', first_landing_path: '/' })
+    vi.mocked(productAnalytics.capture).mockReset()
     loadingRef.value = false
     mockMe.value = null
     mockUser.value = null
@@ -98,6 +106,7 @@ describe('SignupView dual-role enable flow', () => {
       expect(mockedClearSpecialistRegistrationAttribution).toHaveBeenCalledTimes(1)
       expect(mockLoadMe).toHaveBeenCalledTimes(1)
       expect(mockPush).toHaveBeenCalledWith('/cabinet')
+      expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_activated')
     })
   })
 
@@ -140,6 +149,11 @@ describe('SignupView dual-role enable flow', () => {
     await waitFor(() => {
       expect(mockSignup).toHaveBeenCalledWith('specialist@example.com', 'password123', 'password123')
     })
+  })
+
+  it('records only the semantic signup form start on mount', () => {
+    renderView()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('signup_started')
   })
 
   it('toggles password fields without submitting signup', async () => {
