@@ -13,18 +13,7 @@
         Ми використовуємо необхідні технології для роботи Pro Consult. За вашим дозволом можемо також збирати
         обмежену статистику використання, щоб покращувати сервіс.
       </p>
-      <p>Ми не передаємо в аналітику чутливі дані або інформацію, яку ви вводите у профілі, формах, запитах чи консультаціях.</p>
-      <p class="analytics-consent__hint">Аналітика не впливає на роботу Pro Consult. Свій вибір можна змінити будь-коли.</p>
-      <div class="analytics-consent__categories">
-        <div class="analytics-consent__category">
-          <strong>Необхідні технології</strong>
-          <span>Завжди активні для входу, безпеки та нормальної роботи сервісу.</span>
-        </div>
-        <div class="analytics-consent__category">
-          <strong>Продуктова аналітика</strong>
-          <span>Необов’язкова; працює лише після вашого дозволу.</span>
-        </div>
-      </div>
+      <p class="analytics-consent__reassurance">Ми не передаємо в аналітику чутливі дані або інформацію, яку ви вводите у Pro Consult.</p>
       <p v-if="preference !== 'unknown'" class="analytics-consent__current" aria-live="polite">
         Поточний вибір аналітики: {{ preference === 'allowed' ? 'дозволено' : 'вимкнено' }}.
       </p>
@@ -33,12 +22,12 @@
         <button class="btn btn--ghost analytics-consent__action" type="button" @click="emit('select', 'denied')">
           Лише необхідні
         </button>
-        <button class="btn btn--ghost analytics-consent__action" type="button" @click="emit('select', 'allowed')">
+        <button class="btn btn--primary analytics-consent__action analytics-consent__action--primary" type="button" @click="emit('select', 'allowed')">
           Дозволити аналітику
         </button>
       </div>
       <RouterLink class="analytics-consent__privacy-link" to="/privacy" @click="emit('close')">
-        Налаштування та детальніше
+        Налаштування конфіденційності
       </RouterLink>
     </div>
     <button
@@ -95,73 +84,57 @@ watch(
   right: max(16px, env(safe-area-inset-right));
   bottom: max(16px, env(safe-area-inset-bottom));
   left: max(16px, env(safe-area-inset-left));
-  display: flex;
-  gap: 16px;
-  width: min(620px, calc(100vw - 32px));
+  width: min(440px, calc(100vw - 32px));
   margin-left: auto;
-  padding: 18px;
-  border: 1px solid color-mix(in srgb, var(--ink, #17324d) 22%, transparent);
-  border-radius: 16px;
-  background: var(--surface, #fffdf8);
-  box-shadow: 0 16px 40px rgb(20 38 58 / 22%);
-  color: var(--text, #17324d);
+  max-block-size: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 20px;
+  border: 1px solid var(--pc-border, #e6e0d8);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--pc-bg-card, #ffffff);
+  box-shadow: var(--shadow-2, 0 12px 30px rgb(17 64 54 / 14%));
+  color: var(--pc-text-main, #12233a);
 }
 
 .analytics-consent:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent, #d9a441) 70%, white);
+  outline: 3px solid color-mix(in srgb, var(--pc-primary, #12345a) 42%, white);
   outline-offset: 3px;
 }
 
 .analytics-consent__content {
   min-width: 0;
+  padding-right: 44px;
 }
 
 .analytics-consent__eyebrow,
-.analytics-consent__hint,
 .analytics-consent__current,
-.analytics-consent__error {
+.analytics-consent__error,
+.analytics-consent__reassurance {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 13px;
   line-height: 1.45;
 }
 
-.analytics-consent__categories {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.analytics-consent__category {
-  display: grid;
-  gap: 2px;
-  padding: 9px 10px;
-  border: 1px solid color-mix(in srgb, var(--ink, #17324d) 14%, transparent);
-  border-radius: 10px;
-  font-size: 0.88rem;
-  line-height: 1.4;
-}
-
-.analytics-consent__category span {
-  color: var(--muted, #5e6b76);
-}
-
 .analytics-consent__eyebrow {
-  color: var(--muted, #5e6b76);
+  color: var(--pc-text-muted, #657287);
+  font-size: 12px;
   font-weight: 700;
 }
 
 .analytics-consent h2 {
-  margin: 4px 0 8px;
-  font-size: 1.12rem;
+  margin: 3px 0 10px;
+  color: var(--pc-navy-950, #0e2d52);
+  font-size: 18px;
+  line-height: 1.25;
 }
 
 .analytics-consent p:not(.analytics-consent__eyebrow) {
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
-.analytics-consent__hint,
 .analytics-consent__current {
-  color: var(--muted, #5e6b76);
+  color: var(--pc-text-muted, #657287);
+  font-size: 13px;
 }
 
 .analytics-consent__error {
@@ -173,36 +146,46 @@ watch(
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 18px;
 }
 
 .analytics-consent__action {
-  min-width: 152px;
-  border-color: var(--ink, #17324d);
-  color: var(--ink, #17324d);
+  min-width: 0;
+  flex: 1 1 170px;
+  font-size: 13px;
 }
 
-.analytics-consent__action:hover,
-.analytics-consent__action:focus-visible {
-  background: color-mix(in srgb, var(--ink, #17324d) 8%, transparent);
+.analytics-consent__action.btn--ghost {
+  border-color: var(--pc-border-strong, #d4ccc2);
+  color: var(--pc-navy-900, #12345a);
+}
+
+.analytics-consent__action.btn--ghost:hover {
+  background: var(--pc-blue-soft, #eef4fa);
+  border-color: var(--pc-navy-800, #183e68);
+}
+
+.analytics-consent__action--primary {
+  border-color: var(--pc-primary, #12345a);
 }
 
 .analytics-consent__privacy-link {
   display: inline-block;
-  margin-top: 14px;
-  color: inherit;
-  font-size: 0.9rem;
+  margin-top: 12px;
+  color: var(--pc-primary, #12345a);
+  font-size: 12px;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .analytics-consent__close {
-  flex: 0 0 auto;
-  align-self: flex-start;
+  position: absolute;
+  top: 14px;
+  right: 16px;
   border: 0;
   padding: 4px;
   background: transparent;
-  color: inherit;
+  color: var(--pc-text-muted, #657287);
   cursor: pointer;
   font: inherit;
   text-decoration: underline;
@@ -215,8 +198,8 @@ watch(
     bottom: max(10px, env(safe-area-inset-bottom));
     left: max(10px, env(safe-area-inset-left));
     width: calc(100vw - 20px);
-    gap: 10px;
-    padding: 15px;
+    max-block-size: calc(100dvh - 20px);
+    padding: 17px;
   }
 
   .analytics-consent__actions {
@@ -226,6 +209,7 @@ watch(
 
   .analytics-consent__action {
     width: 100%;
+    flex-basis: auto;
   }
 }
 </style>

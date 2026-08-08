@@ -5,7 +5,7 @@ import AnalyticsConsentBanner from './AnalyticsConsentBanner.vue'
 function renderBanner(preference: 'unknown' | 'allowed' | 'denied' = 'unknown') {
   return render(AnalyticsConsentBanner, {
     props: { open: true, preference, error: '' },
-    global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } },
+    global: { stubs: { RouterLink: { template: '<a href="/privacy"><slot /></a>' } } },
   })
 }
 
@@ -14,11 +14,10 @@ describe('AnalyticsConsentBanner', () => {
     renderBanner()
 
     expect(screen.getByRole('heading', { name: 'Файли cookie та аналітика' })).toBeInTheDocument()
-    expect(screen.getByText('Необхідні технології')).toBeInTheDocument()
-    expect(screen.getByText('Продуктова аналітика')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Лише необхідні' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Дозволити аналітику' })).toBeEnabled()
-    expect(screen.getByText('Аналітика не впливає на роботу Pro Consult. Свій вибір можна змінити будь-коли.')).toBeInTheDocument()
+    expect(screen.getByText('Ми не передаємо в аналітику чутливі дані або інформацію, яку ви вводите у Pro Consult.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Налаштування конфіденційності' })).toBeInTheDocument()
   })
 
   it('emits an explicit choice and focuses the opened panel', async () => {
