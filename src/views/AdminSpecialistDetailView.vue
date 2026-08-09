@@ -285,6 +285,9 @@
             <div v-if="detail.tariff_access.trial.active" class="muted">
               {{ detail.tariff_access.trial.trial_plan || '—' }} ·
               {{ formatDate(detail.tariff_access.trial.starts_at) }} → {{ formatDate(detail.tariff_access.trial.ends_at) }}
+              <template v-if="detail.tariff_access.trial.source">
+                · <span data-testid="trial-source">{{ trialSourceLabel(detail.tariff_access.trial.source) }}</span>
+              </template>
             </div>
           </div>
           <div>
@@ -310,6 +313,9 @@
             <strong>Тестовий доступ:</strong>
             <template v-if="detail.tariff_access.trial.active">
               {{ planLabel(detail.tariff_access.trial.trial_plan || '—') }} до {{ formatDate(detail.tariff_access.trial.ends_at) }}
+              <template v-if="detail.tariff_access.trial.source">
+                (<span data-testid="trial-source-summary">{{ trialSourceLabel(detail.tariff_access.trial.source) }}</span>)
+              </template>
             </template>
             <template v-else>немає</template>
           </div>
@@ -1068,6 +1074,15 @@ function eventLabel(eventType: string) {
     REQUEST_REJECTED: 'Запит відхилено',
   }
   return mapping[eventType] || eventType
+}
+
+function trialSourceLabel(source: string) {
+  const labels: Record<string, string> = {
+    MANUAL: 'Ручне надання',
+    SIGNUP_COMPLIMENTARY: 'Автоматично після реєстрації',
+    BETA_POLICY_MIGRATION: 'Історична beta-політика',
+  }
+  return labels[source] || source
 }
 
 function beforeAfterSummary(item: AdminSpecialistAccessHistoryItem) {

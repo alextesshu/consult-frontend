@@ -817,6 +817,7 @@ export type AdminSpecialistDetailResponse = {
     trial: {
       active: boolean
       trial_plan: string | null
+      source?: 'MANUAL' | 'SIGNUP_COMPLIMENTARY' | 'BETA_POLICY_MIGRATION' | null
       starts_at: string | null
       ends_at: string | null
       reason: string | null

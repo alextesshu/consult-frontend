@@ -121,6 +121,7 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
       trial: {
         active: false,
         trial_plan: null,
+        source: null,
         starts_at: null,
         ends_at: null,
         reason: null,
@@ -222,6 +223,7 @@ function activeAccessDetail() {
       trial: {
         active: true,
         trial_plan: 'PRO',
+        source: 'SIGNUP_COMPLIMENTARY',
         starts_at: '2026-06-06T08:06:00Z',
         ends_at: '2026-06-13T08:06:00Z',
         reason: 'Beta demo',
@@ -261,6 +263,13 @@ describe('AdminSpecialistDetailView', () => {
     }
     expect(panel.textContent || '').not.toMatch(/Фото|Основні запити|Теми й запити|Запити/)
     expect(within(panel).queryByText(/Не вистачає:/)).not.toBeInTheDocument()
+  })
+
+  it('shows the immutable source of an active automatic trial', async () => {
+    await renderView(activeAccessDetail())
+
+    expect(await screen.findByTestId('trial-source')).toHaveTextContent('Автоматично після реєстрації')
+    expect(screen.getByTestId('trial-source-summary')).toHaveTextContent('Автоматично після реєстрації')
   })
 
   it('renders incomplete canonical readiness and missing summary from backend labels', async () => {

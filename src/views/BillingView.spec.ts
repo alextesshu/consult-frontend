@@ -596,54 +596,6 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getByText(/Ручне налаштування діє до:/)).toBeInTheDocument()
   })
 
-  it('shows beta default Pro as primary access state and supports switch to Start action', async () => {
-    setCurrentPlan('START', {
-      plan: 'PRO',
-      base_plan: 'START',
-      effective_plan: 'PRO',
-      access_source: 'beta_default_pro',
-      access_label: 'Pro-доступ під час beta',
-      access_message:
-        'Під час beta вам відкрито Pro-доступ. Базовий тариф залишається Start, але можливості Pro доступні до завершення beta або доки ви самі не перейдете на Start.',
-    })
-    mockedCreateBillingAccessRequest.mockResolvedValue({
-      has_pending_request: true,
-      request: {
-        id: 501,
-        therapist: 77,
-        requested_plan: 'START',
-        status: 'PENDING',
-        note: 'switch_to_start_from_beta_default_pro',
-        admin_note: '',
-        created_at: '2026-05-06T10:00:00Z',
-        updated_at: '2026-05-06T10:00:00Z',
-        decided_at: null,
-        decided_by: null,
-      },
-    })
-    renderView()
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Pro-доступ під час beta').length).toBeGreaterThan(0)
-    })
-    expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Перейти на Start' })).toBeInTheDocument()
-    expect(
-      screen.getAllByText(
-        'Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.'
-      ).length
-    ).toBeGreaterThan(0)
-
-    await fireEvent.click(screen.getByRole('button', { name: 'Перейти на Start' }))
-
-    await waitFor(() => {
-      expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
-        requested_plan: 'START',
-        note: 'upgrade_from:PRO',
-      })
-    })
-  })
-
   it('disables duplicate tariff actions when current request is pending', async () => {
     setCurrentPlan('START', {
       current_request: {

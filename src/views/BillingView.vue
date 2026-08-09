@@ -115,22 +115,10 @@
         <button class="btn btn--ghost" type="button" :disabled="isRefreshing" @click="refreshBillingState">
           {{ isRefreshing ? 'Оновлюємо…' : 'Оновити стан плану' }}
         </button>
-        <button
-          v-if="showSwitchToStartAction"
-          class="btn btn--ghost"
-          type="button"
-          :disabled="isRequesting || hasPendingRequest"
-          @click="switchToStart"
-        >
-          Перейти на Start
-        </button>
         <div v-if="primaryStatus" class="muted">{{ primaryStatus }}</div>
       </div>
       <p class="muted billing__limits-helper">
         Активні клієнти — це клієнти, які враховуються в ліміті вашого тарифу. Сесії без реєстрації рахуються окремо.
-      </p>
-      <p v-if="showSwitchToStartAction" class="muted">
-        Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
       </p>
     </section>
 
@@ -226,7 +214,7 @@ import SettingsSubnav from '../components/SettingsSubnav.vue'
 import { useToast } from '../composables/useToast'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
-type AccessSource = 'base_plan' | 'trial' | 'override' | 'billing' | 'beta_default_pro' | string
+type AccessSource = 'base_plan' | 'trial' | 'override' | 'billing' | string
 type BillingSummaryRequest = {
   id: number
   requested_plan: PlanCode
@@ -460,17 +448,7 @@ const accessLabel = computed(() => {
 })
 
 const accessSource = computed(() => accessSummary.value?.access_source || 'base_plan')
-const isBetaDefaultProAccess = computed(
-  () => accessSource.value === 'beta_default_pro' && currentPlan.value === 'PRO'
-)
-const showSwitchToStartAction = computed(
-  () => isBetaDefaultProAccess.value && basePlan.value === 'START'
-)
-
 const mainAccessDescription = computed(() => {
-  if (isBetaDefaultProAccess.value) {
-    return 'Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.'
-  }
   if (accessSource.value === 'trial') {
     return `Вам відкрито тестовий доступ до можливостей тарифу ${currentPlanLabel.value}.`
   }
@@ -487,9 +465,6 @@ const mainAccessDescription = computed(() => {
 })
 
 const secondaryAccessNote = computed(() => {
-  if (isBetaDefaultProAccess.value && basePlan.value === 'START') {
-    return 'Основний тариф може залишатися Start, але на час beta вам відкрито можливості Pro.'
-  }
   return ''
 })
 
@@ -892,13 +867,9 @@ async function startSelfServeUpgrade() {
   await requestAccess(nextPlan.value)
 }
 
-async function switchToStart() {
-  await requestAccess('START')
-}
-
 async function requestAccess(planCode: string) {
   if (!planOrder.includes(planCode as PlanCode)) return
-  if (!isSpecialistSelectablePlan(planCode) && !(showSwitchToStartAction.value && planCode === 'START')) return
+  if (!isSpecialistSelectablePlan(planCode)) return
   if (requestingPlan.value) return
   if (hasPendingRequest.value) {
     const pendingPlan = activeRequest.value?.requested_plan
