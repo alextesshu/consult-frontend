@@ -747,9 +747,30 @@ export type AdminCrmClientEntry = {
   windows_attention_required?: boolean | null
 }
 
+export type AdminCrmOnboardingDelivery = {
+  status?: string | null
+  template_version?: string | null
+  variant?: string | null
+  source?: string | null
+  attempt_count?: number | null
+  created_at?: string | null
+  scheduled_for?: string | null
+  claimed_at?: string | null
+  provider_accepted_at?: string | null
+  next_attempt_at?: string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  provider_message_id?: string | null
+  suppression_reason?: string | null
+  cancellation_reason?: string | null
+  outcome_unknown?: boolean | null
+  automatic_retry_possible?: boolean | null
+}
+
 export type AdminCrmTemplateA = {
   sent?: boolean | null
   sent_at?: string | null
+  delivery?: AdminCrmOnboardingDelivery | null
 }
 
 export type AdminCrmTemplateB = {
@@ -757,11 +778,20 @@ export type AdminCrmTemplateB = {
   sent_at?: string | null
   variant?: string | null
   variant_label?: string | null
+  delivery?: AdminCrmOnboardingDelivery | null
+}
+
+export type AdminCrmTemplateC = {
+  sent?: boolean | null
+  sent_at?: string | null
+  variant?: string | null
+  delivery?: AdminCrmOnboardingDelivery | null
 }
 
 export type AdminCrmOnboarding = {
   template_a?: AdminCrmTemplateA | null
   template_b?: AdminCrmTemplateB | null
+  template_c?: AdminCrmTemplateC | null
 }
 
 export type AdminCrmState = {

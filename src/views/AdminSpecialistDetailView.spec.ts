@@ -101,6 +101,11 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
           variant: null,
           variant_label: null,
         },
+        template_c: {
+          sent: false,
+          sent_at: null,
+          variant: null,
+        },
       },
     },
     role_state: {
@@ -446,6 +451,11 @@ describe('AdminSpecialistDetailView', () => {
             variant: 'B4_READY_PUBLIC_FEEDBACK',
             variant_label: 'Опубліковано за прямим посиланням',
           },
+          template_c: {
+            sent: true,
+            sent_at: '2026-06-09T15:51:10Z',
+            variant: 'C1_DIRECT_LINK_REQUEST_ONLY',
+          },
         },
       },
     }))
@@ -457,6 +467,10 @@ describe('AdminSpecialistDetailView', () => {
     const templateB = within(panel).getByRole('region', { name: 'Другий лист спеціалісту' })
     expect(within(templateB).getByText('Опубліковано за прямим посиланням')).toBeInTheDocument()
     expect(within(templateB).getByText('Код варіанта: B4_READY_PUBLIC_FEEDBACK')).toBeInTheDocument()
+    const templateC = within(panel).getByRole('region', { name: 'Третій лист спеціалісту' })
+    expect(within(templateC).getByText('Третій онбординг-лист спеціалісту надіслано.')).toBeInTheDocument()
+    expect(within(templateC).getByText(/Надіслано:/)).toHaveTextContent('2026')
+    expect(within(templateC).getByText('Код варіанта: C1_DIRECT_LINK_REQUEST_ONLY')).toBeInTheDocument()
   })
 
   it('renders Template B fallback label, absent state, and legacy B5 label safely', async () => {
@@ -485,6 +499,7 @@ describe('AdminSpecialistDetailView', () => {
         onboarding: {
           template_a: { sent: false, sent_at: null },
           template_b: { sent: false, sent_at: null, variant: null, variant_label: null },
+          template_c: { sent: false, sent_at: null, variant: null },
         },
       },
     }))
@@ -492,6 +507,9 @@ describe('AdminSpecialistDetailView', () => {
     panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
     expect(within(panel).getByText('Надсилання першого листа не зафіксовано.')).toBeInTheDocument()
     expect(within(panel).getByText('Надсилання другого листа ще не зафіксовано.')).toBeInTheDocument()
+    const templateC = within(panel).getByRole('region', { name: 'Третій лист спеціалісту' })
+    expect(within(templateC).getByText('Надсилання третього листа ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(templateC).getByText('Надіслано: —')).toBeInTheDocument()
 
     cleanup()
     await renderView(buildDetail({

@@ -188,6 +188,29 @@
                 <div class="muted">Надіслано: —</div>
               </template>
             </section>
+
+            <section class="onboarding-card" aria-label="Третій лист спеціалісту">
+              <div class="onboarding-card__header">
+                <h3>Третій лист спеціалісту</h3>
+                <span class="status-pill" :class="templateC.sent ? 'status-pill--ok' : 'status-pill--muted'">
+                  {{ templateC.sent ? 'Надіслано' : 'Не зафіксовано' }}
+                </span>
+              </div>
+              <template v-if="templateC.sent">
+                <p>Третій онбординг-лист спеціалісту надіслано.</p>
+                <div class="muted">Надіслано: {{ templateC.sentAtText }}</div>
+                <div v-if="templateC.variant" class="muted">
+                  Код варіанта: {{ templateC.variant }}
+                </div>
+              </template>
+              <template v-else>
+                <p>Надсилання третього листа ще не зафіксовано.</p>
+                <div class="muted">Надіслано: —</div>
+                <div v-if="templateC.variant" class="muted">
+                  Код варіанта: {{ templateC.variant }}
+                </div>
+              </template>
+            </section>
           </div>
         </article>
       </section>
@@ -959,6 +982,18 @@ const templateB = computed(() => {
     sentAtText: formatDate(sentAt),
     variant,
     displayLabel: variantLabel || (variant ? `Зафіксовано варіант: ${variant}` : 'Другий лист спеціалісту надіслано.'),
+  }
+})
+const templateC = computed(() => {
+  const crmTemplate = crmOnboarding.value?.template_c
+  const sent = Boolean(crmTemplate?.sent)
+  const sentAt = crmTemplate?.sent_at || null
+  const variant = String(crmTemplate?.variant || '').trim()
+  return {
+    sent,
+    sentAt,
+    sentAtText: formatDate(sentAt),
+    variant,
   }
 })
 const onboardingUnavailable = computed(
