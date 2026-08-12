@@ -3,6 +3,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AdminSpecialistDetailView from './AdminSpecialistDetailView.vue'
 import {
+  applyAdminSpecialistOnboardingSuppressionAction,
   applyAdminSpecialistOverrideAction,
   applyAdminSpecialistTrialAction,
   fetchAdminSpecialistAccessHistory,
@@ -23,6 +24,7 @@ vi.mock('../lib/api', async () => {
   return {
     ...actual,
     applyAdminSpecialistOverrideAction: vi.fn(),
+    applyAdminSpecialistOnboardingSuppressionAction: vi.fn(),
     applyAdminSpecialistTrialAction: vi.fn(),
     fetchAdminSpecialistAccessHistory: vi.fn(),
     fetchAdminSpecialistDetail: vi.fn(),
@@ -30,6 +32,7 @@ vi.mock('../lib/api', async () => {
 })
 
 const mockedApplyAdminSpecialistOverrideAction = vi.mocked(applyAdminSpecialistOverrideAction)
+const mockedApplyAdminSpecialistOnboardingSuppressionAction = vi.mocked(applyAdminSpecialistOnboardingSuppressionAction)
 const mockedApplyAdminSpecialistTrialAction = vi.mocked(applyAdminSpecialistTrialAction)
 const mockedFetchAdminSpecialistAccessHistory = vi.mocked(fetchAdminSpecialistAccessHistory)
 const mockedFetchAdminSpecialistDetail = vi.mocked(fetchAdminSpecialistDetail)
@@ -255,6 +258,7 @@ describe('AdminSpecialistDetailView', () => {
     vi.clearAllMocks()
     mockedApplyAdminSpecialistOverrideAction.mockResolvedValue({} as any)
     mockedApplyAdminSpecialistTrialAction.mockResolvedValue({} as any)
+    mockedApplyAdminSpecialistOnboardingSuppressionAction.mockResolvedValue({} as any)
   })
 
   it('renders canonical readiness from admin_crm_state', async () => {
@@ -471,6 +475,225 @@ describe('AdminSpecialistDetailView', () => {
     expect(within(templateC).getByText('Третій онбординг-лист спеціалісту надіслано.')).toBeInTheDocument()
     expect(within(templateC).getByText(/Надіслано:/)).toHaveTextContent('2026')
     expect(within(templateC).getByText('Код варіанта: C1_DIRECT_LINK_REQUEST_ONLY')).toBeInTheDocument()
+  })
+
+  it('renders neutral and active canonical onboarding suppression state with history', async () => {
+    await renderView()
+
+    const panel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    expect(within(panel).getByText('Онбординг не зупинено')).toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Зупинити онбординг' })).toBeInTheDocument()
+
+    cleanup()
+    await renderView(buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          ...buildDetail().admin_crm_state!.onboarding!,
+          suppression: {
+            suppressed: true,
+            reason: 'HARD_BOUNCE',
+            source: 'PROVIDER_WEBHOOK',
+            occurred_at: '2026-08-12T12:30:00Z',
+            recorded_at: '2026-08-12T12:31:00Z',
+            revoked_at: null,
+          },
+          suppression_history: [
+            {
+              active: true,
+              reason: 'HARD_BOUNCE',
+              source: 'PROVIDER_WEBHOOK',
+              occurred_at: '2026-08-12T12:30:00Z',
+              recorded_at: '2026-08-12T12:31:00Z',
+              revoked_at: null,
+            },
+            {
+              active: false,
+              reason: 'REPLY',
+              source: 'OPERATOR',
+              occurred_at: '2026-08-01T12:30:00Z',
+              recorded_at: '2026-08-01T12:31:00Z',
+              revoked_at: '2026-08-02T12:30:00Z',
+            },
+          ],
+        },
+      },
+    }))
+
+    const activePanel = screen.getByRole('heading', { name: 'Онбординг' }).closest('article') as HTMLElement
+    expect(within(activePanel).getByText('Онбординг зупинено')).toBeInTheDocument()
+    expect(within(activePanel).getAllByText('Недійсна / недоступна адреса')).toHaveLength(2)
+    expect(within(activePanel).getAllByText('Webhook провайдера')).toHaveLength(2)
+    await fireEvent.click(within(activePanel).getByText('Історія зупинень (2)'))
+    expect(within(activePanel).getByText('Відновлено')).toBeInTheDocument()
+    expect(within(activePanel).getByText('Відповідь спеціаліста')).toBeInTheDocument()
+  })
+
+  it('requires a STOP reason, confirms it, and refreshes canonical state after success', async () => {
+    const stopped = buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          ...buildDetail().admin_crm_state!.onboarding!,
+          suppression: {
+            suppressed: true,
+            reason: 'MANUAL_STOP',
+            source: 'OPERATOR',
+            occurred_at: '2026-08-12T12:30:00Z',
+            recorded_at: '2026-08-12T12:30:00Z',
+            revoked_at: null,
+          },
+          suppression_history: [],
+        },
+      },
+    })
+    await renderView()
+    mockedFetchAdminSpecialistDetail.mockResolvedValue(stopped)
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зупинити онбординг' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Керування онбордингом' })
+    expect(within(dialog).getByText(/Майбутні onboarding-листи для цього спеціаліста буде заблоковано/)).toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+    expect(await within(dialog).findByText('Оберіть причину зупинення.')).toBeInTheDocument()
+    expect(mockedApplyAdminSpecialistOnboardingSuppressionAction).not.toHaveBeenCalled()
+
+    await fireEvent.update(within(dialog).getByLabelText('Причина'), 'MANUAL_STOP')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+    await waitFor(() => {
+      expect(mockedApplyAdminSpecialistOnboardingSuppressionAction).toHaveBeenCalledWith(2, {
+        action: 'STOP',
+        reason: 'MANUAL_STOP',
+      })
+    })
+    await waitFor(() => expect(screen.getByText('Онбординг зупинено')).toBeInTheDocument())
+  })
+
+  it('warns before RESUME for bounce or complaint and preserves history after refresh', async () => {
+    const active = buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          ...buildDetail().admin_crm_state!.onboarding!,
+          suppression: {
+            suppressed: true,
+            reason: 'COMPLAINT',
+            source: 'PROVIDER_WEBHOOK',
+            occurred_at: '2026-08-12T12:30:00Z',
+            recorded_at: '2026-08-12T12:30:00Z',
+            revoked_at: null,
+          },
+          suppression_history: [{
+            active: true,
+            reason: 'COMPLAINT',
+            source: 'PROVIDER_WEBHOOK',
+            occurred_at: '2026-08-12T12:30:00Z',
+            recorded_at: '2026-08-12T12:30:00Z',
+            revoked_at: null,
+          }],
+        },
+      },
+    })
+    const resumed = buildDetail({
+      admin_crm_state: {
+        ...active.admin_crm_state!,
+        onboarding: {
+          ...active.admin_crm_state!.onboarding!,
+          suppression: { suppressed: false, reason: null, source: null, occurred_at: null, recorded_at: null, revoked_at: null },
+          suppression_history: [{
+            ...active.admin_crm_state!.onboarding!.suppression_history![0],
+            active: false,
+            revoked_at: '2026-08-13T12:30:00Z',
+          }],
+        },
+      },
+    })
+    await renderView(active)
+    mockedFetchAdminSpecialistDetail.mockResolvedValue(resumed)
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Відновити онбординг' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Керування онбордингом' })
+    expect(within(dialog).getByText(/може знову дозволити майбутні onboarding-листи/)).toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+    await waitFor(() => {
+      expect(mockedApplyAdminSpecialistOnboardingSuppressionAction).toHaveBeenCalledWith(2, { action: 'RESUME' })
+    })
+    await waitFor(() => expect(screen.getByText('Онбординг не зупинено')).toBeInTheDocument())
+    await fireEvent.click(screen.getByText('Історія зупинень (1)'))
+    expect(screen.getByText('Відновлено')).toBeInTheDocument()
+  })
+
+  it('shows the same explicit RESUME warning for HARD_BOUNCE', async () => {
+    await renderView(buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          ...buildDetail().admin_crm_state!.onboarding!,
+          suppression: {
+            suppressed: true,
+            reason: 'HARD_BOUNCE',
+            source: 'PROVIDER_WEBHOOK',
+            occurred_at: '2026-08-12T12:30:00Z',
+            recorded_at: '2026-08-12T12:30:00Z',
+            revoked_at: null,
+          },
+          suppression_history: [],
+        },
+      },
+    }))
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Відновити онбординг' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Керування онбордингом' })
+    expect(within(dialog).getByText(/може знову дозволити майбутні onboarding-листи/)).toBeInTheDocument()
+  })
+
+  it('prevents a second rapid suppression submission while the first is pending', async () => {
+    let resolveRequest: (() => void) | undefined
+    mockedApplyAdminSpecialistOnboardingSuppressionAction.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveRequest = () => resolve({} as any)
+    }))
+    await renderView()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зупинити онбординг' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Керування онбордингом' })
+    await fireEvent.update(within(dialog).getByLabelText('Причина'), 'OPT_OUT')
+    const confirm = within(dialog).getByRole('button', { name: 'Підтвердити' })
+    await fireEvent.click(confirm)
+    await fireEvent.click(confirm)
+
+    expect(mockedApplyAdminSpecialistOnboardingSuppressionAction).toHaveBeenCalledTimes(1)
+    resolveRequest?.()
+  })
+
+  it('shows an inline suppression error without changing the displayed state and allows retry', async () => {
+    const active = buildDetail({
+      admin_crm_state: {
+        ...buildDetail().admin_crm_state!,
+        onboarding: {
+          ...buildDetail().admin_crm_state!.onboarding!,
+          suppression: {
+            suppressed: true,
+            reason: 'REPLY',
+            source: 'OPERATOR',
+            occurred_at: '2026-08-12T12:30:00Z',
+            recorded_at: '2026-08-12T12:30:00Z',
+            revoked_at: null,
+          },
+          suppression_history: [],
+        },
+      },
+    })
+    await renderView(active)
+    mockedApplyAdminSpecialistOnboardingSuppressionAction.mockRejectedValueOnce({ response: { data: { detail: 'Action failed' } } })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Відновити онбординг' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Керування онбордингом' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+    expect(await within(dialog).findByText('Action failed')).toBeInTheDocument()
+    expect(screen.getByText('Онбординг зупинено')).toBeInTheDocument()
+
+    mockedApplyAdminSpecialistOnboardingSuppressionAction.mockResolvedValueOnce({} as any)
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+    await waitFor(() => expect(mockedApplyAdminSpecialistOnboardingSuppressionAction).toHaveBeenCalledTimes(2))
   })
 
   it('renders Template B fallback label, absent state, and legacy B5 label safely', async () => {

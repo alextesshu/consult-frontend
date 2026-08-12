@@ -788,10 +788,32 @@ export type AdminCrmTemplateC = {
   delivery?: AdminCrmOnboardingDelivery | null
 }
 
+export type AdminOnboardingSuppressionReason =
+  | 'REPLY'
+  | 'HARD_BOUNCE'
+  | 'OPT_OUT'
+  | 'MANUAL_STOP'
+  | 'COMPLAINT'
+
+export type AdminCrmOnboardingSuppression = {
+  suppressed?: boolean | null
+  reason?: AdminOnboardingSuppressionReason | string | null
+  source?: string | null
+  occurred_at?: string | null
+  recorded_at?: string | null
+  revoked_at?: string | null
+}
+
+export type AdminCrmOnboardingSuppressionHistoryItem = AdminCrmOnboardingSuppression & {
+  active?: boolean | null
+}
+
 export type AdminCrmOnboarding = {
   template_a?: AdminCrmTemplateA | null
   template_b?: AdminCrmTemplateB | null
   template_c?: AdminCrmTemplateC | null
+  suppression?: AdminCrmOnboardingSuppression | null
+  suppression_history?: AdminCrmOnboardingSuppressionHistoryItem[] | null
 }
 
 export type AdminCrmState = {
@@ -972,6 +994,15 @@ export type SpecialistProfileDocument = {
   sort_order: number
   uploaded_at: string
   source: string
+}
+
+export type AdminSpecialistOnboardingSuppressionActionPayload =
+  | { action: 'STOP'; reason: AdminOnboardingSuppressionReason }
+  | { action: 'RESUME' }
+
+export type AdminSpecialistOnboardingSuppressionActionResponse = {
+  specialist_id: number
+  onboarding_suppression: AdminCrmOnboardingSuppression
 }
 
 export type PublicSpecialistProfileDocument = {
@@ -1933,6 +1964,17 @@ export async function applyAdminSpecialistOverrideAction(
 ): Promise<AdminSpecialistPlanActionResponse> {
   const resp = await http.post<AdminSpecialistPlanActionResponse>(
     `/admin/specialists/${specialistId}/access/override/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function applyAdminSpecialistOnboardingSuppressionAction(
+  specialistId: number,
+  payload: AdminSpecialistOnboardingSuppressionActionPayload
+): Promise<AdminSpecialistOnboardingSuppressionActionResponse> {
+  const resp = await http.post<AdminSpecialistOnboardingSuppressionActionResponse>(
+    `/admin/specialists/${specialistId}/onboarding-suppression/`,
     payload
   )
   return resp.data

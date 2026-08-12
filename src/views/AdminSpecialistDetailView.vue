@@ -211,6 +211,43 @@
                 </div>
               </template>
             </section>
+
+            <section v-if="crmOnboarding" class="onboarding-suppression" aria-label="Керування онбордингом">
+              <div class="onboarding-card__header">
+                <div>
+                  <h3>Керування онбордингом</h3>
+                  <p class="muted">Зупинення блокує лише майбутні onboarding-листи.</p>
+                </div>
+                <span class="status-pill" :class="onboardingSuppressionActive ? 'status-pill--warn' : 'status-pill--ok'">
+                  {{ onboardingSuppressionActive ? 'Онбординг зупинено' : 'Онбординг не зупинено' }}
+                </span>
+              </div>
+              <template v-if="onboardingSuppressionActive">
+                <div><span class="muted">Причина:</span> {{ suppressionReasonLabel(onboardingSuppression?.reason) }}</div>
+                <div><span class="muted">Джерело:</span> {{ suppressionSourceLabel(onboardingSuppression?.source) }}</div>
+                <div><span class="muted">Сталося:</span> {{ formatDate(onboardingSuppression?.occurred_at) }}</div>
+                <div v-if="onboardingSuppression?.recorded_at"><span class="muted">Зафіксовано:</span> {{ formatDate(onboardingSuppression.recorded_at) }}</div>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="suppressionSaving" @click="openSuppressionModal('RESUME')">
+                  Відновити онбординг
+                </button>
+              </template>
+              <template v-else>
+                <div class="muted">Майбутні onboarding-листи не заблоковані.</div>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="suppressionSaving" @click="openSuppressionModal('STOP')">
+                  Зупинити онбординг
+                </button>
+              </template>
+
+              <details v-if="onboardingSuppressionHistory.length" class="onboarding-suppression__history">
+                <summary>Історія зупинень ({{ onboardingSuppressionHistory.length }})</summary>
+                <div v-for="(item, index) in onboardingSuppressionHistory" :key="`${item.occurred_at || ''}-${index}`" class="onboarding-suppression__history-item">
+                  <strong>{{ item.active ? 'Зупинено' : 'Відновлено' }}</strong>
+                  <span>{{ suppressionReasonLabel(item.reason) }}</span>
+                  <span>{{ suppressionSourceLabel(item.source) }}</span>
+                  <span>{{ formatDate(item.occurred_at) }}</span>
+                </div>
+              </details>
+            </section>
           </div>
         </article>
       </section>
@@ -638,6 +675,40 @@
         </div>
       </section>
     </div>
+
+    <div v-if="suppressionModalOpen" class="setting-modal" @keydown.esc="closeSuppressionModal">
+      <div class="setting-modal__backdrop" @click="closeSuppressionModal"></div>
+      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Керування онбордингом">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">{{ suppressionAction === 'STOP' ? 'Зупинити онбординг' : 'Відновити онбординг' }}</h2>
+            <p v-if="suppressionAction === 'STOP'" class="muted modal-helper">
+              Майбутні onboarding-листи для цього спеціаліста буде заблоковано до дії «Відновити онбординг».
+            </p>
+            <p v-else-if="suppressionRequiresRiskWarning" class="muted modal-helper">
+              Увага: відновлення може знову дозволити майбутні onboarding-листи попри попередню недійсну адресу або скаргу на лист.
+            </p>
+            <p v-else class="muted modal-helper">
+              Майбутня eligibility для onboarding може знову стати доступною за звичайними lifecycle-правилами.
+            </p>
+          </div>
+        </div>
+        <label v-if="suppressionAction === 'STOP'" class="field">
+          <span>Причина</span>
+          <select v-model="suppressionReason">
+            <option value="">Оберіть причину</option>
+            <option v-for="option in suppressionReasonOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+        <p v-if="suppressionFormError" class="form-error">{{ suppressionFormError }}</p>
+        <div class="setting-modal__footer">
+          <button class="btn" type="button" :disabled="suppressionSaving" @click="submitSuppressionAction">
+            {{ suppressionSaving ? 'Зберігаємо…' : 'Підтвердити' }}
+          </button>
+          <button class="btn btn--ghost" type="button" :disabled="suppressionSaving" @click="closeSuppressionModal">Скасувати</button>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
 
@@ -646,6 +717,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from '../composables/useToast'
 import {
+  applyAdminSpecialistOnboardingSuppressionAction,
   applyAdminSpecialistOverrideAction,
   applyAdminSpecialistPlanAction,
   applyAdminSpecialistTrialAction,
@@ -653,6 +725,7 @@ import {
   fetchAdminSpecialistDetail,
   getApiErrorMessage,
   type AdminCrmReadinessItem,
+  type AdminOnboardingSuppressionReason,
   type AdminSpecialistAccessHistoryItem,
   type AdminSpecialistDetailResponse,
 } from '../lib/api'
@@ -660,6 +733,7 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type TrialAction = 'START' | 'END'
 type OverrideAction = 'ENABLE' | 'UPDATE' | 'DISABLE'
+type OnboardingSuppressionAction = 'STOP' | 'RESUME'
 type DateTimeParts = { date: string; time: string }
 type DateTimeParseResult = { iso: string | null; error: string }
 type ReadinessCheck = { key: string; label: string; missingLabel: string; pass: boolean }
@@ -725,6 +799,19 @@ const overrideForm = ref<{
   reason: '',
 })
 
+const suppressionModalOpen = ref(false)
+const suppressionSaving = ref(false)
+const suppressionFormError = ref('')
+const suppressionAction = ref<OnboardingSuppressionAction>('STOP')
+const suppressionReason = ref<AdminOnboardingSuppressionReason | ''>('')
+const suppressionReasonOptions: { value: AdminOnboardingSuppressionReason; label: string }[] = [
+  { value: 'REPLY', label: 'Відповідь спеціаліста' },
+  { value: 'HARD_BOUNCE', label: 'Недійсна / недоступна адреса' },
+  { value: 'OPT_OUT', label: 'Відмова від онбординг-листів' },
+  { value: 'MANUAL_STOP', label: 'Зупинено вручну' },
+  { value: 'COMPLAINT', label: 'Скарга на лист' },
+]
+
 const specialistId = computed(() => Number(route.params.id))
 const publicProfileSlug = computed(() =>
   String(detail.value?.identity.slug || detail.value?.identity.public_slug || '').trim()
@@ -734,6 +821,13 @@ const crmReadiness = computed(() => adminCrmState.value?.readiness || null)
 const crmVisibility = computed(() => adminCrmState.value?.visibility || null)
 const crmClientEntry = computed(() => adminCrmState.value?.client_entry || null)
 const crmOnboarding = computed(() => adminCrmState.value?.onboarding || null)
+const onboardingSuppression = computed(() => crmOnboarding.value?.suppression || null)
+const onboardingSuppressionHistory = computed(() => crmOnboarding.value?.suppression_history || [])
+const onboardingSuppressionActive = computed(() => Boolean(onboardingSuppression.value?.suppressed))
+const suppressionRequiresRiskWarning = computed(() => {
+  const reason = String(onboardingSuppression.value?.reason || '').trim()
+  return reason === 'HARD_BOUNCE' || reason === 'COMPLAINT'
+})
 const normalizedVisibilityState = computed(() =>
   String(crmVisibility.value?.state || '').trim()
 )
@@ -1006,6 +1100,18 @@ function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
 
+function suppressionReasonLabel(reason: string | null | undefined) {
+  return suppressionReasonOptions.find((option) => option.value === reason)?.label || reason || '—'
+}
+
+function suppressionSourceLabel(source: string | null | undefined) {
+  const labels: Record<string, string> = {
+    OPERATOR: 'Оператор',
+    PROVIDER_WEBHOOK: 'Webhook провайдера',
+  }
+  return labels[String(source || '').trim()] || source || '—'
+}
+
 function padDatePart(num: number) {
   return String(num).padStart(2, '0')
 }
@@ -1202,6 +1308,47 @@ function openPlanModal() {
 function closePlanModal() {
   if (planSaving.value) return
   planModalOpen.value = false
+}
+
+function openSuppressionModal(action: OnboardingSuppressionAction) {
+  suppressionAction.value = action
+  suppressionReason.value = ''
+  suppressionFormError.value = ''
+  suppressionModalOpen.value = true
+}
+
+function closeSuppressionModal() {
+  if (suppressionSaving.value) return
+  suppressionModalOpen.value = false
+}
+
+async function submitSuppressionAction() {
+  if (suppressionSaving.value) return
+
+  if (suppressionAction.value === 'STOP' && !suppressionReason.value) {
+    suppressionFormError.value = 'Оберіть причину зупинення.'
+    return
+  }
+
+  suppressionSaving.value = true
+  suppressionFormError.value = ''
+  try {
+    if (suppressionAction.value === 'STOP') {
+      await applyAdminSpecialistOnboardingSuppressionAction(specialistId.value, {
+        action: 'STOP',
+        reason: suppressionReason.value as AdminOnboardingSuppressionReason,
+      })
+    } else {
+      await applyAdminSpecialistOnboardingSuppressionAction(specialistId.value, { action: 'RESUME' })
+    }
+    suppressionModalOpen.value = false
+    await loadDetail()
+    toast.success(suppressionAction.value === 'STOP' ? 'Онбординг зупинено' : 'Онбординг відновлено')
+  } catch (err) {
+    suppressionFormError.value = getApiErrorMessage(err, 'Не вдалося оновити стан онбордингу')
+  } finally {
+    suppressionSaving.value = false
+  }
 }
 
 async function submitPlanAction() {
@@ -1525,6 +1672,26 @@ watch(
   margin: 0;
 }
 
+.onboarding-suppression {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 8px;
+  grid-column: 1 / -1;
+  padding: 10px;
+}
+
+.onboarding-suppression__history {
+  display: grid;
+  gap: 8px;
+}
+
+.onboarding-suppression__history-item {
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .operational-counts {
   display: grid;
   gap: 8px;
@@ -1705,6 +1872,10 @@ watch(
 
   .crm-grid,
   .onboarding-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-suppression__history-item {
     grid-template-columns: 1fr;
   }
 
