@@ -1,9 +1,14 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import HomeView from './HomeView.vue'
 import { useAuthStore } from '../stores/auth'
+import { productAnalytics } from '../lib/productAnalytics'
+
+vi.mock('../lib/productAnalytics', () => ({
+  productAnalytics: { capture: vi.fn(), identify: vi.fn(), reset: vi.fn() },
+}))
 
 async function renderHome(options?: { authenticated?: boolean; roles?: string[] }) {
   const routes = [
@@ -56,6 +61,18 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
 }
 
 describe('HomeView', () => {
+  it('captures the client discovery CTA once without properties', async () => {
+    const { container } = await renderHome()
+    const hero = container.querySelector('.home-hero') as HTMLElement
+    const cta = within(hero).getByRole('link', { name: 'Знайти спеціаліста' })
+
+    await fireEvent.click(cta)
+    await fireEvent.click(cta)
+
+    expect(productAnalytics.capture).toHaveBeenCalledTimes(1)
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_entry_cta_clicked')
+  })
+
   it('renders the polished homepage with the rich hero composition', async () => {
     const { container } = await renderHome()
 

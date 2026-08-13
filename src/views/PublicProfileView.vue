@@ -1425,6 +1425,9 @@ const guestBookingSubmitDisabled = computed(
     (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value)
 )
 const guestRequestTopicLimitReached = computed(() => selectedGuestRequestTopics.value.length >= 3)
+const trackedContactModes = new Set<'request_only' | 'direct_booking'>()
+let specialistProfileOpenedTracked = false
+let profileLoadSequence = 0
 const requestTopicOptions: Array<{ value: GuestRequestTopicOption; label: string }> = [
   ...REQUEST_TOPIC_OPTIONS,
   { value: 'other', label: 'Інше' },
@@ -3441,20 +3444,30 @@ function isMyInquiryMessage(senderId: number) {
 }
 
 async function loadProfile() {
-  if (!slug.value) {
+  const requestedSlug = slug.value
+  if (!requestedSlug) {
     error.value = 'Потрібен slug профілю.'
     return
   }
+  const sequence = ++profileLoadSequence
+  const isCurrentLoad = () => sequence === profileLoadSequence && requestedSlug === slug.value
   loading.value = true
   error.value = ''
   ownerUnpublishedProfile.value = false
   try {
-    profile.value = await fetchPublicSpecialistProfile(slug.value)
-    if (profile.value) {
-      saveViewedSpecialist(profile.value)
+    const loadedProfile = await fetchPublicSpecialistProfile(requestedSlug)
+    if (!isCurrentLoad()) return
+    profile.value = loadedProfile
+    if (loadedProfile) {
+      if (!specialistProfileOpenedTracked) {
+        specialistProfileOpenedTracked = true
+        productAnalytics.capture('specialist_profile_opened')
+      }
+      saveViewedSpecialist(loadedProfile)
       applyProfileRuntimeMetadata()
     }
   } catch (err: any) {
+    if (!isCurrentLoad()) return
     resetPublicPageMetadata()
     const status = Number((err as { response?: { status?: number } })?.response?.status || 0)
     if (status === 404) {
@@ -3464,8 +3477,9 @@ async function loadProfile() {
       if (auth.accessToken && hasOwnerRole) {
         try {
           const ownProfile = await fetchSpecialistProfile()
+          if (!isCurrentLoad()) return
           const ownProfileSlug = String(ownProfile?.slug || ownProfile?.public_slug || '').trim()
-          if (ownProfileSlug === slug.value && ownProfile?.public_profile_enabled === false) {
+          if (ownProfileSlug === requestedSlug && ownProfile?.public_profile_enabled === false) {
             ownerUnpublishedProfile.value = true
             profile.value = null
             error.value = ''
@@ -3478,7 +3492,7 @@ async function loadProfile() {
     }
     error.value = getApiErrorMessage(err, '\u041f\u0440\u043e\u0444\u0456\u043b\u044c \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.')
   } finally {
-    loading.value = false
+    if (isCurrentLoad()) loading.value = false
   }
 }
 
@@ -3975,6 +3989,7 @@ function openGuestBookingModal(slotId?: number) {
     bookingError.value = SLOT_UNAVAILABLE_MESSAGE
     return
   }
+  trackClientContactCtaEngaged()
   bookingError.value = ''
   bookingSuccess.value = ''
   guestBookingSlot.value = selectedSlot
@@ -4005,10 +4020,21 @@ function openClientBookingConfirmModal(slotId: number) {
     bookingError.value = SLOT_UNAVAILABLE_MESSAGE
     return
   }
+  trackClientContactCtaEngaged('direct_booking')
   bookingError.value = ''
   bookingSuccess.value = ''
   clientBookingConfirmSlotId.value = slotId
   showClientBookingConfirmModal.value = true
+}
+
+function currentContactMode(): 'request_only' | 'direct_booking' {
+  return profile.value?.public_booking_mode === 'direct_booking' ? 'direct_booking' : 'request_only'
+}
+
+function trackClientContactCtaEngaged(contactMode = currentContactMode()) {
+  if (trackedContactModes.has(contactMode)) return
+  trackedContactModes.add(contactMode)
+  productAnalytics.capture('client_contact_cta_engaged', { contact_mode: contactMode })
 }
 
 function isClientBookingUnavailableError(err: unknown): boolean {
@@ -4216,6 +4242,7 @@ async function submitGuestBookingRequest() {
     if (acquisition) payload.acquisition = acquisition
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
     clearClientAcquisitionContext()
+    productAnalytics.capture('client_request_succeeded', { contact_mode: currentContactMode() })
     guestBookingSuccess.value = response.request
     selectedPublicOfferType.value = null
     guestOfferSelectionEditing.value = false
@@ -4347,6 +4374,7 @@ async function bookSlot(slotId: number): Promise<boolean> {
     }
     await apiPost('/booking/sessions/', payload)
     clearClientAcquisitionContext()
+    productAnalytics.capture('client_booking_succeeded', { contact_mode: 'direct_booking' })
     bookingSuccess.value = BOOKING_SUCCESS_MESSAGES.sessionBooked
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot
@@ -4498,6 +4526,8 @@ watch(slug, () => {
   requestIntentConsumedFor.value = ''
   requestIntentOpeningFor.value = ''
   requestIntentOpenedFor.value = ''
+  trackedContactModes.clear()
+  specialistProfileOpenedTracked = false
   didAutoShiftToFirstAvailableMonth.value = false
   monthSlotsCache.clear()
   selectedPublicOfferType.value = null
@@ -4603,6 +4633,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  profileLoadSequence += 1
   resetPublicPageMetadata()
   clearContactActionFallbackTimer()
   if (copiedContactTimer !== null) {

@@ -22,6 +22,13 @@ export type ProductAnalyticsEvent =
   | 'search_visibility_enabled'
   | 'search_visibility_disabled'
   | 'share_profile_clicked'
+  | 'client_entry_cta_clicked'
+  | 'specialist_discovery_opened'
+  | 'specialist_discovery_results_viewed'
+  | 'specialist_profile_opened'
+  | 'client_contact_cta_engaged'
+  | 'client_request_succeeded'
+  | 'client_booking_succeeded'
 
 export type AnalyticsAttribution = {
   source_type?: 'direct' | 'campaign' | 'referral' | 'manual'
@@ -89,6 +96,13 @@ const EVENT_PROPERTY_ALLOWLIST: Record<ProductAnalyticsEvent, readonly string[]>
   search_visibility_enabled: ['source_type', ...UTM_PROPERTY_KEYS],
   search_visibility_disabled: ['source_type', ...UTM_PROPERTY_KEYS],
   share_profile_clicked: ['destination', 'source_type', ...UTM_PROPERTY_KEYS],
+  client_entry_cta_clicked: [],
+  specialist_discovery_opened: [],
+  specialist_discovery_results_viewed: [],
+  specialist_profile_opened: [],
+  client_contact_cta_engaged: ['contact_mode'],
+  client_request_succeeded: ['contact_mode'],
+  client_booking_succeeded: ['contact_mode'],
 }
 
 const LANDING_ROUTES = new Set(['home', 'specialist_signup'])
@@ -118,6 +132,7 @@ const SHARE_DESTINATIONS = new Set([
   'threads',
   'other_approved',
 ])
+const CONTACT_MODES = new Set(['request_only', 'direct_booking'])
 const SOURCE_TYPES = new Set(['direct', 'campaign', 'referral', 'manual'])
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f-\u009f]/g
 const EMAIL_PATTERN = /\b[^\s@]+@[^\s@]+\.[^\s@]+\b/
@@ -207,6 +222,7 @@ function isApprovedPropertyValue(key: string, value: unknown): value is string {
   if (key === 'item') return READINESS_ITEMS.has(value)
   if (key === 'error_code') return PUBLICATION_ERROR_CODES.has(value)
   if (key === 'destination') return SHARE_DESTINATIONS.has(value)
+  if (key === 'contact_mode') return CONTACT_MODES.has(value)
   if (key === 'source_type') return SOURCE_TYPES.has(value)
   if (key === 'referrer_origin') return Boolean(normalizeReferrerOrigin(value))
   if (key === 'first_landing_path') return Boolean(normalizeLandingPath(value))

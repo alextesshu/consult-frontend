@@ -148,6 +148,23 @@ describe('ProductAnalytics', () => {
     expect(analytics.capture('share_profile_clicked', { destination: 'mailto:secret@example.com' })).toBe(false)
   })
 
+  it('allows only the reviewed KAN-89 client funnel events and contact modes', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+    analytics.initialize(enabledConfig, provider, 'allowed')
+
+    expect(analytics.capture('client_entry_cta_clicked')).toBe(true)
+    expect(analytics.capture('specialist_discovery_opened')).toBe(true)
+    expect(analytics.capture('specialist_discovery_results_viewed')).toBe(true)
+    expect(analytics.capture('specialist_profile_opened')).toBe(true)
+    expect(analytics.capture('client_contact_cta_engaged', { contact_mode: 'request_only' })).toBe(true)
+    expect(analytics.capture('client_request_succeeded', { contact_mode: 'direct_booking' })).toBe(true)
+    expect(analytics.capture('client_booking_succeeded', { contact_mode: 'direct_booking' })).toBe(true)
+    expect(analytics.capture('client_contact_cta_engaged', { contact_mode: 'email' })).toBe(false)
+    expect(analytics.capture('client_request_succeeded', { contact_mode: 'request_only', slug: 'olena' })).toBe(false)
+    expect(provider.capture).toHaveBeenCalledWith('client_entry_cta_clicked', {})
+  })
+
   it('normalizes only meaningful route names and safe KAN-5 dimensions', () => {
     expect(normalizedLandingRoute('/')).toBe('home')
     expect(normalizedLandingRoute('/signup?token=secret')).toBe('specialist_signup')

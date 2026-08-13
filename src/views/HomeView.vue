@@ -21,7 +21,9 @@
               Створити свій простір
               <span class="btn__arrow" aria-hidden="true">→</span>
             </RouterLink>
-            <RouterLink class="btn btn--ghost" to="/specialists">Знайти спеціаліста</RouterLink>
+            <RouterLink class="btn btn--ghost" to="/specialists" @click="trackClientEntryCta">
+              Знайти спеціаліста
+            </RouterLink>
           </div>
           <p class="home-hero__client-path">
             Шукаєте спеціаліста? Відкрийте пошук спеціалістів і залиште запит без реєстрації.
@@ -343,6 +345,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { productAnalytics } from '../lib/productAnalytics'
 import heroSpecialistDemo from '../assets/home/hero-specialist-demo.webp'
 
 type IconKey =
@@ -362,6 +365,13 @@ const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const billingCycle = ref<'monthly' | 'yearly'>('monthly')
+let clientEntryCtaTracked = false
+
+function trackClientEntryCta() {
+  if (clientEntryCtaTracked) return
+  clientEntryCtaTracked = true
+  productAnalytics.capture('client_entry_cta_clicked')
+}
 
 const iconPaths: Record<IconKey, string[]> = {
   profile: ['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M4 20a8 8 0 0 1 16 0'],

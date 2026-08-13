@@ -131,15 +131,19 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
 import PublicSpecialistCard from '../components/PublicSpecialistCard.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { DIRECTION_OPTIONS, REQUEST_GROUP_OPTIONS, useSpecialistDiscovery } from '../composables/useSpecialistDiscovery'
 import { markClientAcquisitionDiscoveryUsed } from '../lib/clientAcquisitionAttribution'
+import { productAnalytics } from '../lib/productAnalytics'
 
 const discovery = useSpecialistDiscovery()
+const route = useRoute()
 markClientAcquisitionDiscoveryUsed()
+productAnalytics.capture('specialist_discovery_opened')
 const { mode, queryDraft, requestGroup, direction, format, response, loading, fieldError, requestError, hasActiveSearch, focusResultsAfterPagination, isPendingDirection, submitQuery, setMode, setRequestGroup, setDirection, setFormat, setPage, reset, retry, consumeFocusResultsAfterPagination } = discovery
 const resultsHeading = ref<HTMLElement | null>(null)
 const legacyQuery = ref('')
@@ -151,6 +155,7 @@ const legacyLastQuery = ref('')
 const legacyResults = ref<PublicSpecialistProfile[]>([])
 
 const visibleGroups = computed(() => (response.value?.groups || []).filter((group) => group.items.length > 0))
+const trackedDiscoveryResultStates = new Set<string>()
 const activeSearchSummary = computed(() => {
   if (mode.value === 'direction') return direction.value ? 'Пошук за професійним напрямом' : format.value ? 'Активний фільтр формату' : ''
   if (queryDraft.value || requestGroup.value) return 'Активний пошук за запитом'
@@ -221,6 +226,14 @@ watch(focusResultsAfterPagination, async (shouldFocus) => {
   resultsHeading.value?.focus()
   resultsHeading.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   consumeFocusResultsAfterPagination()
+})
+
+watch(response, (nextResponse) => {
+  if (!nextResponse || !nextResponse.groups.some((group) => group.items.length > 0)) return
+  const stateKey = route.fullPath
+  if (trackedDiscoveryResultStates.has(stateKey)) return
+  trackedDiscoveryResultStates.add(stateKey)
+  productAnalytics.capture('specialist_discovery_results_viewed')
 })
 </script>
 

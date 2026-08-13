@@ -3,11 +3,16 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fetchPublicSpecialistDiscovery, fetchPublicSpecialists, getPublicSpecialistDiscoveryError } from '../lib/api'
 import PublicTherapistsView from './PublicTherapistsView.vue'
+import { productAnalytics } from '../lib/productAnalytics'
 
 vi.mock('../lib/api', () => ({
   fetchPublicSpecialistDiscovery: vi.fn(),
   fetchPublicSpecialists: vi.fn(),
   getPublicSpecialistDiscoveryError: vi.fn(),
+}))
+
+vi.mock('../lib/productAnalytics', () => ({
+  productAnalytics: { capture: vi.fn() },
 }))
 
 const discovery = vi.mocked(fetchPublicSpecialistDiscovery)
@@ -65,6 +70,38 @@ describe('PublicTherapistsView', () => {
     legacy.mockReset()
     discoveryError.mockReset()
     discoveryError.mockReturnValue(null)
+    vi.mocked(productAnalytics.capture).mockReset()
+  })
+
+  it('captures the discovery open and each non-empty route state without filter properties', async () => {
+    discovery.mockReset()
+    discovery.mockResolvedValueOnce(response()).mockResolvedValueOnce(response())
+    const { router } = await renderView('/specialists?q=тривога')
+
+    await waitFor(() => expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_discovery_opened'))
+    await waitFor(() => expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_discovery_results_viewed'))
+    expect(productAnalytics.capture).toHaveBeenCalledTimes(2)
+
+    await router.replace('/specialists?q=тривога')
+    expect(productAnalytics.capture).toHaveBeenCalledTimes(2)
+
+    await router.push('/specialists?format=online')
+    await waitFor(() => expect(productAnalytics.capture).toHaveBeenCalledTimes(3))
+    expect(productAnalytics.capture).toHaveBeenLastCalledWith('specialist_discovery_results_viewed')
+  })
+
+  it('does not capture results for empty or failed discovery responses', async () => {
+    discovery.mockResolvedValueOnce(response({ total: 1, total_pages: 1, groups: [{ code: 'all_specialists', label: 'All', total: 1, items: [] }] }))
+    await renderView()
+    await waitFor(() => expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_discovery_opened'))
+    expect(productAnalytics.capture).not.toHaveBeenCalledWith('specialist_discovery_results_viewed')
+
+    vi.mocked(productAnalytics.capture).mockReset()
+    discovery.mockRejectedValueOnce(new Error('network'))
+    await renderView()
+    await waitFor(() => expect(screen.getByText('Не вдалося завантажити спеціалістів')).toBeInTheDocument())
+    expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_discovery_opened')
+    expect(productAnalytics.capture).not.toHaveBeenCalledWith('specialist_discovery_results_viewed')
   })
 
   it('renders native desktop radios and a mobile request-group select with canonical values', async () => {

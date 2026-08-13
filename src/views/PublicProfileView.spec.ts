@@ -20,13 +20,14 @@ import {
   type InquiryState,
   type PublicSpecialistProfile,
 } from '../lib/api'
+import { productAnalytics } from '../lib/productAnalytics'
 
-const mockRoute = {
+const mockRoute = reactive({
   params: { slug: 'olena' },
   query: {},
   path: '/s/olena',
   hash: '',
-}
+})
 
 const mockRouter = {
   push: vi.fn(),
@@ -98,6 +99,10 @@ vi.mock('../lib/api', () => ({
   sendInquiryMessage: vi.fn(),
 }))
 
+vi.mock('../lib/productAnalytics', () => ({
+  productAnalytics: { capture: vi.fn() },
+}))
+
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedAcceptBookingRules = vi.mocked(acceptBookingRules)
@@ -120,6 +125,14 @@ async function flushAsyncUpdates() {
   await Promise.resolve()
   await Promise.resolve()
   await Promise.resolve()
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve
+  })
+  return { promise, resolve }
 }
 
 function buildProfile(
@@ -384,6 +397,7 @@ describe('PublicProfileView', () => {
     mockedFetchPublicAuthorJournalPosts.mockReset()
     mockedFetchPublicJournalCollections.mockReset()
     mockedSendInquiryMessage.mockReset()
+    vi.mocked(productAnalytics.capture).mockReset()
     scrollIntoViewSpy.mockClear()
     mockedFetchInquiryMessages.mockResolvedValue([])
     windowOpenSpy.mockClear()
@@ -440,6 +454,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Загальна інформація')).toBeInTheDocument()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_profile_opened')
     expect(screen.queryByText('Профіль спеціаліста')).not.toBeInTheDocument()
     expect(screen.queryByText('Швидкий огляд')).not.toBeInTheDocument()
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
@@ -476,6 +491,32 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Тривога, Вигорання · Київ')).not.toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
     expect(screen.getByText('Правила потрібно підтвердити один раз для цього спеціаліста.')).toBeInTheDocument()
+  })
+
+  it('ignores a stale profile response after the slug changes and records only the current view', async () => {
+    const firstLoad = deferred<PublicSpecialistProfile>()
+    const secondLoad = deferred<PublicSpecialistProfile>()
+    mockedFetchPublicSpecialistProfile.mockImplementation((requestedSlug) =>
+      requestedSlug === 'olena' ? firstLoad.promise : secondLoad.promise
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockClientPageData()
+
+    renderView()
+    await waitFor(() => expect(mockedFetchPublicSpecialistProfile).toHaveBeenCalledWith('olena'))
+
+    mockRoute.params.slug = 'ivan'
+    mockRoute.path = '/s/ivan'
+    await waitFor(() => expect(mockedFetchPublicSpecialistProfile).toHaveBeenCalledWith('ivan'))
+
+    firstLoad.resolve(buildProfile({ public_slug: 'olena', display_name: 'Olena' }))
+    await flushAsyncUpdates()
+    expect(productAnalytics.capture).not.toHaveBeenCalledWith('specialist_profile_opened')
+
+    secondLoad.resolve(buildProfile({ public_slug: 'ivan', display_name: 'Ivan' }))
+    await waitFor(() => expect(productAnalytics.capture).toHaveBeenCalledTimes(1))
+    expect(productAnalytics.capture).toHaveBeenCalledWith('specialist_profile_opened')
   })
 
   it('shares the published profile with its canonical URL and returns focus to the secondary CTA', async () => {
@@ -2228,6 +2269,12 @@ describe('PublicProfileView', () => {
     expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
     expect(screen.getByLabelText('Канал зв’язку')).toBeInTheDocument()
     expect(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?')).toBeInTheDocument()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_contact_cta_engaged', {
+      contact_mode: 'direct_booking',
+    })
+
+    await fireEvent.click(slotButton)
+    expect(vi.mocked(productAnalytics.capture).mock.calls.filter(([event]) => event === 'client_contact_cta_engaged')).toHaveLength(1)
   })
 
   it('shows consultation offer selector and submits standard offer_type by default', async () => {
@@ -2373,6 +2420,12 @@ describe('PublicProfileView', () => {
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
     expect(await screen.findByText('Запит надіслано')).toBeInTheDocument()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_contact_cta_engaged', {
+      contact_mode: 'request_only',
+    })
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_request_succeeded', {
+      contact_mode: 'request_only',
+    })
 
     await fireEvent.click(within(modal).getByRole('button', { name: 'Закрити' }))
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
@@ -2767,6 +2820,9 @@ describe('PublicProfileView', () => {
       }
     )
     expect(sessionStorage.getItem('proconsult.client_acquisition_first_touch.v1')).toBeNull()
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_request_succeeded', {
+      contact_mode: 'direct_booking',
+    })
     expect(await screen.findByText('Запит на обраний час надіслано')).toBeInTheDocument()
     expect(
       await screen.findByText('Спеціаліст підтвердить сесію або запропонує інший час.')
@@ -3185,6 +3241,12 @@ describe('PublicProfileView', () => {
         setting_accepted: true,
       })
     )
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_contact_cta_engaged', {
+      contact_mode: 'direct_booking',
+    })
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_booking_succeeded', {
+      contact_mode: 'direct_booking',
+    })
   })
 
   it('renders only platform booking rules section when only platform item is pending', async () => {
