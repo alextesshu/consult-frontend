@@ -61,20 +61,20 @@ describe('HomeView', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Профіль, запити й календар для приватної консультаційної практики',
+        name: 'Консультаційна практика — в одному спокійному просторі',
       })
     ).toBeInTheDocument()
-    expect(screen.getByText(/Створіть сторінку спеціаліста/)).toBeInTheDocument()
-    expect(screen.getByText(/звернення без реєстрації клієнта/)).toBeInTheDocument()
-    expect(screen.getByText(/ведіть сесії, календар, приватні нотатки й клієнтські матеріали/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Створити безкоштовний профіль' })).toHaveAttribute(
+    expect(screen.getByText(/Публічна сторінка, запити від клієнтів, сесії, календар і робочі матеріали/)).toBeInTheDocument()
+    const hero = container.querySelector('.home-hero') as HTMLElement
+    expect(within(hero).getByRole('link', { name: 'Створити свій простір' })).toHaveAttribute(
       'href',
       '/signup'
     )
-    expect(screen.getByRole('link', { name: 'Подивитися приклад профілю' })).toHaveAttribute(
+    expect(within(hero).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute(
       'href',
-      '/s/proconsult'
+      '/specialists'
     )
+    expect(screen.getByText(/Шукаєте спеціаліста\? Відкрийте пошук спеціалістів/)).toBeInTheDocument()
     expect(container.querySelector('.home-hero a[href="/tour"]')).not.toBeInTheDocument()
 
     expect(screen.getByText('Кабінет спеціаліста')).toBeInTheDocument()
@@ -96,15 +96,6 @@ describe('HomeView', () => {
     expect(screen.getByText('Консультація з клієнтом')).toBeInTheDocument()
     expect(screen.getByText('Підтверджено')).toBeInTheDocument()
 
-    expect(
-      screen.getByText(
-        /Для клієнтів: знайдіть спеціаліста за своїм запитом або відкрийте профіль за іменем чи прямим посиланням/
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute(
-      'href',
-      '/specialists'
-    )
     expect(
       screen.getByRole('heading', {
         name: 'Профіль для презентації себе і робочий кабінет для розвитку практики',
@@ -237,11 +228,13 @@ describe('HomeView', () => {
     expect(screen.queryByText('24 900 грн/рік')).not.toBeInTheDocument()
   })
 
-  it('routes authenticated primary cta to cabinet', async () => {
+  it('routes authenticated specialist primary cta to cabinet without a signup cta', async () => {
     const { container, router } = await renderHome({ authenticated: true, roles: ['SPECIALIST'] })
     const hero = container.querySelector('.home-hero') as HTMLElement
 
-    const heroButton = within(hero).getByRole('button', { name: /Перейти в кабінет/ })
+    const heroButton = within(hero).getByRole('button', { name: 'Перейти до кабінету' })
+    expect(within(hero).queryByRole('link', { name: 'Створити свій простір' })).not.toBeInTheDocument()
+    expect(within(hero).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
 
     await fireEvent.click(heroButton)
 

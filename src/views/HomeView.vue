@@ -6,23 +6,26 @@
         <span class="home-hero__wash home-hero__wash--peach" aria-hidden="true"></span>
         <div class="home-hero__content">
           <h1 id="home-hero-title" class="home-hero__title">
-            Профіль, запити й календар для приватної консультаційної практики
+            Консультаційна практика — в одному спокійному просторі
           </h1>
           <p class="home-hero__subtitle">
-            Створіть сторінку спеціаліста, приймайте звернення без реєстрації клієнта, ведіть сесії, календар,
-            приватні нотатки й клієнтські матеріали в одному кабінеті. Без комісій з консультацій.
+            Публічна сторінка, запити від клієнтів, сесії, календар і робочі матеріали — для ведення практики без
+            комісій з консультацій.
           </p>
           <div class="home-hero__actions">
             <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">
-              Перейти в кабінет
+              Перейти до кабінету
               <span class="btn__arrow" aria-hidden="true">→</span>
             </button>
             <RouterLink v-else class="btn" to="/signup">
-              Створити безкоштовний профіль
+              Створити свій простір
               <span class="btn__arrow" aria-hidden="true">→</span>
             </RouterLink>
-            <RouterLink class="btn btn--ghost" to="/s/proconsult">Подивитися приклад профілю</RouterLink>
+            <RouterLink class="btn btn--ghost" to="/specialists">Знайти спеціаліста</RouterLink>
           </div>
+          <p class="home-hero__client-path">
+            Шукаєте спеціаліста? Відкрийте пошук спеціалістів і залиште запит без реєстрації.
+          </p>
         </div>
 
         <div class="home-hero__visual" aria-hidden="true">
@@ -208,16 +211,6 @@
 
       <section class="trust-strip reveal" aria-label="Безпека старту в Pro Consult">
         <span v-for="item in trustItems" :key="item">{{ item }}</span>
-      </section>
-
-      <section class="client-note reveal" aria-label="Пояснення для клієнтів">
-        <p class="client-note__text">
-          Для клієнтів: знайдіть спеціаліста за своїм запитом або відкрийте профіль за іменем чи
-          прямим посиланням. Запит можна залишити без реєстрації.
-        </p>
-        <RouterLink class="btn btn--ghost btn--sm client-note__link" to="/specialists">
-          Знайти спеціаліста
-        </RouterLink>
       </section>
 
       <section id="features" class="value-section reveal" aria-labelledby="value-title">
@@ -611,9 +604,9 @@ onBeforeUnmount(() => {
   color: var(--muted);
 }
 
-.home-hero__support {
+.home-hero__client-path {
   margin: 0;
-  max-width: 52ch;
+  max-width: 54ch;
   line-height: 1.45;
   color: color-mix(in srgb, var(--pc-navy-900) 82%, #38515f);
   font-weight: 650;
@@ -2564,30 +2557,11 @@ onBeforeUnmount(() => {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(245, 247, 242, 0.78));
 }
 
-.client-note,
 .blog-section {
   border: 1px solid color-mix(in srgb, var(--pc-border) 86%, #fff);
   border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.72);
   box-shadow: var(--pc-shadow-soft);
-}
-
-.client-note {
-  padding: 16px 18px;
-  color: color-mix(in srgb, var(--pc-navy-900) 84%, #3d5662);
-  line-height: 1.55;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.client-note__text {
-  margin: 0;
-}
-
-.client-note__link {
-  flex: 0 0 auto;
 }
 
 .blog-section {
@@ -3382,11 +3356,6 @@ onBeforeUnmount(() => {
 
   .home-hero {
     padding: 20px 16px;
-  }
-
-  .client-note {
-    flex-direction: column;
-    align-items: flex-start;
   }
 
   .home-hero__title {
