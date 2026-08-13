@@ -360,6 +360,7 @@ describe('PublicProfileView', () => {
     mockRoute.path = '/s/olena'
     mockRoute.hash = ''
     window.history.replaceState({}, '', '/s/olena')
+    sessionStorage.clear()
     mockRouter.push.mockReset()
     mockRouter.replace.mockReset()
     mockAuth.accessToken = ''
@@ -2740,6 +2741,10 @@ describe('PublicProfileView', () => {
         next_step: 'Request sent. Specialist will review and contact you soon.',
       },
     })
+    sessionStorage.setItem(
+      'proconsult.client_acquisition_first_touch.v1',
+      JSON.stringify({ utm_source: 'instagram', first_landing_path: '/' })
+    )
 
     renderView()
 
@@ -2758,8 +2763,10 @@ describe('PublicProfileView', () => {
         contact_channel: 'email',
         contact_value: 'iryna@example.com',
         request_topics: [],
+        acquisition: { utm_source: 'instagram', first_landing_path: '/' },
       }
     )
+    expect(sessionStorage.getItem('proconsult.client_acquisition_first_touch.v1')).toBeNull()
     expect(await screen.findByText('Запит на обраний час надіслано')).toBeInTheDocument()
     expect(
       await screen.findByText('Спеціаліст підтвердить сесію або запропонує інший час.')
@@ -2940,6 +2947,10 @@ describe('PublicProfileView', () => {
     mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
     mockBookingPageDataWithSingleSlot()
     mockedApiPost.mockResolvedValue({})
+    sessionStorage.setItem(
+      'proconsult.client_acquisition_first_touch.v1',
+      JSON.stringify({ used_proconsult_discovery: true, first_landing_path: '/specialists' })
+    )
 
     renderView()
 
@@ -2962,8 +2973,10 @@ describe('PublicProfileView', () => {
       expect.objectContaining({
         slot_id: 100,
         setting_accepted: true,
+        acquisition: { used_proconsult_discovery: true, first_landing_path: '/specialists' },
       })
     )
+    expect(sessionStorage.getItem('proconsult.client_acquisition_first_touch.v1')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Запит на сесію' })).not.toBeInTheDocument()
   })
 

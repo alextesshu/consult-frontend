@@ -13,6 +13,7 @@ import {
   normalizedLandingRoute,
   productAnalytics,
 } from './lib/productAnalytics'
+import { captureClientAcquisitionContext } from './lib/clientAcquisitionAttribution'
 import {
   getAnalyticsConsentPreference,
   onAnalyticsConsentPreferenceChange,
@@ -26,6 +27,7 @@ app.use(router)
 const authStore = useAuthStore(pinia)
 captureSpecialistRegistrationFirstTouch()
 productAnalytics.setConsentPreference(getAnalyticsConsentPreference())
+captureClientAcquisitionContext()
 onAnalyticsConsentPreferenceChange((preference) => {
   productAnalytics.setConsentPreference(preference)
 })

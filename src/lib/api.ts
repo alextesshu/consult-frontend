@@ -1387,6 +1387,7 @@ export type PracticeBoardMovePayload = {
 export type BookingSessionCreatePayload = {
   slot_id: number
   setting_accepted?: boolean
+  acquisition?: import('./clientAcquisitionAttribution').ClientAcquisitionPayload
   session_format?: SessionFormat
 }
 

@@ -1041,6 +1041,11 @@ import {
 } from '../lib/publicBookingRecovery'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
+import {
+  clearClientAcquisitionContext,
+  getClientAcquisitionContext,
+  type ClientAcquisitionPayload,
+} from '../lib/clientAcquisitionAttribution'
 
 type PublicSlot = {
   id: number
@@ -1057,6 +1062,7 @@ type PublicGuestBookingRequestPayload = {
   contact_value: string
   request_topics: PublicGuestRequestTopic[]
   message?: string
+  acquisition?: ClientAcquisitionPayload
 }
 
 type PublicGuestBookingRequestResponse = {
@@ -4206,7 +4212,10 @@ async function submitGuestBookingRequest() {
     if (showGuestOfferSelector.value || selectedPublicOfferType.value || offerType !== 'standard') {
       payload.offer_type = offerType
     }
+    const acquisition = getClientAcquisitionContext()
+    if (acquisition) payload.acquisition = acquisition
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
+    clearClientAcquisitionContext()
     guestBookingSuccess.value = response.request
     selectedPublicOfferType.value = null
     guestOfferSelectionEditing.value = false
@@ -4331,10 +4340,13 @@ async function bookSlot(slotId: number): Promise<boolean> {
       slot_id: slotId,
       setting_accepted: true,
     }
+    const acquisition = getClientAcquisitionContext()
+    if (acquisition) payload.acquisition = acquisition
     if (resolvedSessionFormat.value) {
       payload.session_format = resolvedSessionFormat.value
     }
     await apiPost('/booking/sessions/', payload)
+    clearClientAcquisitionContext()
     bookingSuccess.value = BOOKING_SUCCESS_MESSAGES.sessionBooked
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot

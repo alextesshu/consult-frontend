@@ -136,8 +136,10 @@ import PublicSpecialistCard from '../components/PublicSpecialistCard.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { DIRECTION_OPTIONS, REQUEST_GROUP_OPTIONS, useSpecialistDiscovery } from '../composables/useSpecialistDiscovery'
+import { markClientAcquisitionDiscoveryUsed } from '../lib/clientAcquisitionAttribution'
 
 const discovery = useSpecialistDiscovery()
+markClientAcquisitionDiscoveryUsed()
 const { mode, queryDraft, requestGroup, direction, format, response, loading, fieldError, requestError, hasActiveSearch, focusResultsAfterPagination, isPendingDirection, submitQuery, setMode, setRequestGroup, setDirection, setFormat, setPage, reset, retry, consumeFocusResultsAfterPagination } = discovery
 const resultsHeading = ref<HTMLElement | null>(null)
 const legacyQuery = ref('')
