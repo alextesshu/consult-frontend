@@ -339,7 +339,7 @@ export type NotificationSettings = {
 
 export type NotificationFeedItem = {
   id: string
-  kind:
+  kind?:
   | 'session_event'
   | 'reminder_event'
   | 'reschedule_request'
@@ -360,28 +360,14 @@ export type NotificationFeedItem = {
   title?: string | null
   body?: string | null
   target_url?: string | null
-  session_id: number | null
-  client_id: number | null
-  client_name: string | null
-  client_email: string | null
-  specialist_id?: number | null
-  specialist_name?: string | null
-  counterparty_id?: number | null
   counterparty_name?: string | null
-  thread_id?: number | null
-  message_id?: number | null
   preview?: string | null
-  slot_start_at: string | null
+  slot_start_at?: string | null
   meeting_url?: string | null
-  meeting_provider?: string | null
   created_at: string
-  scheduled_for: string | null
-  delivered_at: string | null
+  scheduled_for?: string | null
+  delivered_at?: string | null
   read_at: string | null
-  target_type?: string | null
-  target_id?: number | null
-  focus?: string | null
-  request_topics?: PublicGuestRequestTopic[] | null
 }
 
 export type NotificationFeedResponse = {

@@ -43,16 +43,12 @@ export function useNotifications({
   }
 
   function notificationClientLabel(item: NotificationFeedItem) {
-    if (item.client_name) return item.client_name
-    if (item.client_id !== null && item.client_id !== undefined) return `#${item.client_id}`
+    if (item.counterparty_name) return item.counterparty_name
     return 'клієнта'
   }
 
   function notificationCounterpartyLabel(item: NotificationFeedItem) {
     if (item.counterparty_name) return item.counterparty_name
-    if (item.counterparty_id !== null && item.counterparty_id !== undefined) return `#${item.counterparty_id}`
-    if (item.specialist_name) return item.specialist_name
-    if (item.client_name) return item.client_name
     return isClient.value ? 'спеціаліста' : 'клієнта'
   }
 
@@ -69,14 +65,12 @@ export function useNotifications({
 
   function isPublicGuestRequest(item: NotificationFeedItem) {
     return (
-      item.source_kind === 'public_guest_request' ||
-      item.kind === 'public_guest_request' ||
-      item.code === 'PUBLIC_GUEST_REQUEST_SLOTLESS_CREATED'
+      item.source_kind === 'public_guest_request' || item.code === 'PUBLIC_GUEST_REQUEST_SLOTLESS_CREATED'
     )
   }
 
   function isAdminInboxItem(item: NotificationFeedItem) {
-    return item.source_kind === 'admin_inbox_item' || item.kind === 'admin_inbox_item'
+    return item.source_kind === 'admin_inbox_item'
   }
 
   function notificationJoinUrl(item: NotificationFeedItem) {
@@ -160,7 +154,6 @@ export function useNotifications({
   }
 
   function notificationHint(item: NotificationFeedItem) {
-    const email = item.client_email ? ` · ${item.client_email}` : ''
     const time = formatDateTime(item.slot_start_at || item.scheduled_for)
     if (item.code === 'PROPOSED_TIME_ACCEPTED') {
       return item.body?.trim() || 'Нову сесію створено. Відкрийте її, щоб переглянути деталі.'
@@ -183,7 +176,7 @@ export function useNotifications({
         : '\u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u0434\u0435\u0442\u0430\u043B\u0456 \u0441\u0435\u0441\u0456\u0457 \u0442\u0430 \u043D\u0430\u0434\u0456\u0448\u043B\u0456\u0442\u044C \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438.'
     }
     if (item.code === 'SESSION_MEETING_LINK_UPDATED') {
-      return time ? `Сесія: ${time}${email}` : `Перевірте оновлене посилання на зустріч${email}`
+      return time ? `Сесія: ${time}` : 'Перевірте оновлене посилання на зустріч'
     }
     if (item.code === 'SESSION_CREATED_BY_SPECIALIST') {
       return time
@@ -191,24 +184,24 @@ export function useNotifications({
         : 'Спеціаліст додав нову сесію.'
     }
     if (item.code === 'PAYMENT_PROOF_SUBMITTED') {
-      return time ? `Сесія: ${time}${email}` : `Перевірте деталі оплати${email}`
+      return time ? `Сесія: ${time}` : 'Перевірте деталі оплати'
     }
     if (item.code === 'PAYMENT_CONFIRMED') {
-      return time ? `Сесія: ${time}${email}` : `Підтвердження оплати збережено${email}`
+      return time ? `Сесія: ${time}` : 'Підтвердження оплати збережено'
     }
     if (item.code === 'PAYMENT_CLARIFICATION_REQUESTED') {
-      return time ? `Сесія: ${time}${email}` : `Відкрийте деталі та уточніть інформацію про оплату${email}`
+      return time ? `Сесія: ${time}` : 'Відкрийте деталі та уточніть інформацію про оплату'
     }
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
-      return time ? `Запитаний час: ${time}${email}` : `Перевірте деталі запиту на перенесення${email}`
+      return time ? `Запитаний час: ${time}` : 'Перевірте деталі запиту на перенесення'
     }
     if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') {
-      return time ? `Новий час: ${time}${email}` : `Перевірте оновлений час сесії${email}`
+      return time ? `Новий час: ${time}` : 'Перевірте оновлений час сесії'
     }
     if (item.source_kind === 'session_event') {
-      return time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`
+      return time ? `Сесія: ${time}` : 'Перевірте деталі сесії'
     }
-    return time ? `Час сесії: ${time}${email}` : `Перевірте деталі сесії${email}`
+    return time ? `Час сесії: ${time}` : 'Перевірте деталі сесії'
   }
 
   function notificationTarget(item: NotificationFeedItem) {
@@ -221,22 +214,7 @@ export function useNotifications({
     if (isPublicGuestRequest(item)) {
       return item.target_url?.trim() || '/cabinet/external-sessions'
     }
-    if (item.target_type === 'session_detail' && typeof item.target_id === 'number') {
-      const focusSuffix = item.focus ? `?focus=${encodeURIComponent(String(item.focus).trim())}` : ''
-      if (isClient.value) return `/client/sessions/${item.target_id}${focusSuffix}`
-      return `/cabinet/sessions/${item.target_id}${focusSuffix}`
-    }
-    if (item.source_kind === 'inquiry_message') {
-      if (isClient.value) {
-        return item.specialist_id ? `/client/inquiries/${item.specialist_id}` : '/specialists'
-      }
-      const query = item.thread_id ? `?thread_id=${item.thread_id}` : ''
-      return `/cabinet/inquiries${query}`
-    }
-    if (isClient.value) {
-      return item.session_id ? `/client/sessions/${item.session_id}` : '/client'
-    }
-    return item.session_id ? `/cabinet/sessions/${item.session_id}` : '/cabinet/sessions'
+    return isClient.value ? '/client' : '/cabinet/sessions'
   }
 
   const items = computed<BellNotification[]>(() =>
