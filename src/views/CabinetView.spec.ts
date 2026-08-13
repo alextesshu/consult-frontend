@@ -380,7 +380,7 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Нотатки до завершення')
   })
 
-  it('shows a compact attention row for one pending no-registration request', async () => {
+  it('shows a slotless-only pending guest request as an attention row', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/work-queue/') {
         return createWorkQueuePayload({
@@ -433,6 +433,72 @@ describe('CabinetView', () => {
     expect(attentionRow).toHaveTextContent('Запити без обраного часу')
     expect(attentionRow).toHaveTextContent('3 запити очікують рішення')
     expect(attentionRow).toHaveTextContent('Опрацювати запити')
+  })
+
+  it('shows all slot-based pending guest requests with the neutral attention title', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          pending_guest_requests_count: 2,
+          pending_slotless_guest_requests_count: 0,
+          guest_requests_preview: [
+            {
+              id: 702,
+              request_topics: ['stress'],
+            },
+          ],
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')).toBeInTheDocument()
+    })
+
+    const attentionRow = view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')
+    expect(attentionRow).toHaveTextContent('Запити без реєстрації')
+    expect(attentionRow).toHaveTextContent('2 запити очікують рішення')
+    expect(attentionRow).not.toHaveTextContent('Запити без обраного часу')
+    expect(attentionRow?.querySelector('.attention-row__topics')).not.toBeInTheDocument()
+  })
+
+  it('uses the total pending guest request count and neutral title for mixed requests', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          pending_guest_requests_count: 5,
+          pending_slotless_guest_requests_count: 3,
+          guest_requests_preview: [
+            {
+              id: 703,
+              request_topics: ['relationships'],
+            },
+          ],
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')).toBeInTheDocument()
+    })
+
+    const attentionRow = view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')
+    expect(attentionRow).toHaveTextContent('Запити без реєстрації')
+    expect(attentionRow).toHaveTextContent('5 запитів очікують рішення')
+    expect(attentionRow).not.toHaveTextContent('Запити без обраного часу')
+    expect(attentionRow?.querySelector('.attention-row__topics')).not.toBeInTheDocument()
   })
 
   it('does not surface notes reminders as a prominent dashboard block', async () => {

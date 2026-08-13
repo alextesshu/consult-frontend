@@ -999,10 +999,11 @@ const nearestUpcomingSession = computed(() => todaySessions.value[0] || null)
 
 const pendingGuestRequestsCount = computed(() => workQueue.value.pendingGuestRequestsCount)
 const pendingSlotlessGuestRequestsCount = computed(() => workQueue.value.pendingSlotlessGuestRequestsCount)
-const visiblePendingGuestRequestsCount = computed(() =>
-  pendingSlotlessGuestRequestsCount.value > 0 ? pendingSlotlessGuestRequestsCount.value : pendingGuestRequestsCount.value
+const hasOnlyPendingSlotlessGuestRequests = computed(
+  () =>
+    pendingGuestRequestsCount.value > 0 &&
+    pendingSlotlessGuestRequestsCount.value === pendingGuestRequestsCount.value
 )
-const hasPendingSlotlessGuestRequests = computed(() => pendingSlotlessGuestRequestsCount.value > 0)
 
 const firstGuestRequestPreview = computed(() => workQueue.value.guestRequestsPreview[0] || null)
 
@@ -1011,20 +1012,23 @@ function guestRequestTopicLabels(request: WorkQueueGuestRequestPreviewItem | nul
 }
 
 const firstGuestRequestTopicLabels = computed(() => guestRequestTopicLabels(firstGuestRequestPreview.value))
+const guestRequestAttentionTopics = computed(() =>
+  hasOnlyPendingSlotlessGuestRequests.value ? firstGuestRequestTopicLabels.value : []
+)
 
 const pendingGuestRequestsCta = computed(() => {
   return 'Опрацювати запити'
 })
 
 const pendingGuestRequestsTitle = computed(() => {
-  if (hasPendingSlotlessGuestRequests.value) {
+  if (hasOnlyPendingSlotlessGuestRequests.value) {
     return 'Запити без обраного часу'
   }
   return 'Запити без реєстрації'
 })
 
 const pendingGuestRequestsSummary = computed(() => {
-  const count = visiblePendingGuestRequestsCount.value
+  const count = pendingGuestRequestsCount.value
   if (count <= 0) return ''
   if (count === 1) return '1 запит очікує рішення'
   const lastDigit = count % 10
@@ -1079,7 +1083,7 @@ const attentionItems = computed<AttentionItem[]>(() => {
     })
   }
 
-  if (visiblePendingGuestRequestsCount.value > 0) {
+  if (pendingGuestRequestsCount.value > 0) {
     items.push({
       key: 'guest-requests',
       title: pendingGuestRequestsTitle.value,
@@ -1087,7 +1091,7 @@ const attentionItems = computed<AttentionItem[]>(() => {
       label: pendingGuestRequestsCta.value,
       to: '/cabinet/external-sessions#guest-requests',
       tone: 'warning',
-      topics: firstGuestRequestTopicLabels.value,
+      topics: guestRequestAttentionTopics.value,
     })
   }
 
