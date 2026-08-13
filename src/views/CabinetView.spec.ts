@@ -6,6 +6,11 @@ import CabinetView from './CabinetView.vue'
 
 function createMePayload() {
   return {
+    user: {
+      id: 1,
+      username: 'specialist-login',
+      email: 'specialist@example.com',
+    },
     access_state: 'OK',
     effective_entitlements: {
       plan: 'START',
@@ -182,11 +187,31 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.getByRole('heading', { name: 'Робоча панель' })).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.')
+      expect(view.container).toHaveTextContent('Огляд вашої практики на сьогодні.')
       expect(view.container.querySelector('.panel--attention')).not.toBeInTheDocument()
       expect(view.container.querySelector('.panel--onboarding')).toHaveTextContent('Готовність до звернень')
       expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
     })
+  })
+
+  it('keeps the stable heading for the canonical auth.me user shape', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      user: {
+        id: 1,
+        username: 'opaque-specialist-login',
+        email: 'specialist@example.com',
+      },
+    } as any
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.getByRole('heading', { name: 'Робоча панель' })).toBeInTheDocument()
+    })
+    expect(view.container).not.toHaveTextContent('Вітаємо, opaque-specialist-login')
+    expect(view.container).not.toHaveTextContent('specialist@example.com')
   })
 
   it('shows create session CTA on dashboard', async () => {
@@ -195,11 +220,11 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.getByRole('link', { name: 'Створити сесію' })).toHaveAttribute(
+      expect(view.getAllByRole('link', { name: 'Створити сесію' })[0]).toHaveAttribute(
         'href',
         '/cabinet/slots?action=create-session'
       )
-      expect(view.getAllByRole('link', { name: 'Створити сесію' })).toHaveLength(1)
+      expect(view.getAllByRole('link', { name: 'Створити сесію' }).length).toBeGreaterThanOrEqual(1)
     })
   })
 
@@ -513,10 +538,8 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
-      expect(view.container.querySelector('.panel--tomorrow')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--tomorrow')).not.toBeInTheDocument()
       expect(view.container).toHaveTextContent('Сесій сьогодні немає.')
-      expect(view.container).toHaveTextContent('Завтра')
-      expect(view.container).toHaveTextContent('На завтра сесій немає.')
       expect(view.container).toHaveTextContent('Можна перейти до розкладу або створити сесію з верхньої дії.')
     })
 
@@ -527,7 +550,7 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('[data-kind="guest-requests"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('Нотатки не потребують уваги.')
-    expect(view.container).not.toHaveTextContent('Додати клієнта')
+    expect(view.getByRole('link', { name: 'Додати клієнта' })).toHaveAttribute('href', '/cabinet/clients')
     expect(view.container.querySelector('.work-queue-list__empty')).not.toBeInTheDocument()
   })
 
@@ -1619,5 +1642,97 @@ describe('CabinetView', () => {
       const panelText = view.container.querySelector('.panel--onboarding')?.textContent || ''
       expect(panelText).not.toMatch(/маркетплейс|рейтинг|топ|рекомендован|верифікован/i)
     })
+  })
+
+  it('keeps the nearest session out of the work-queue preview and preserves other rows in chronological order', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          today_sessions: [
+            { id: 70, client_display_name: 'Найближчий клієнт', status: 'CONFIRMED', session_format: 'online', slot_start_at: sessionIsoForDay(0, 8, 0) },
+            { id: 72, client_display_name: 'Пізній клієнт', status: 'CONFIRMED', session_format: 'online', slot_start_at: '2099-06-05T11:00:00Z' },
+            { id: 71, client_display_name: 'Ранній клієнт', status: 'SCHEDULED', session_format: 'offline', slot_start_at: '2099-06-05T09:00:00Z' },
+          ],
+        })
+      }
+      if (url === '/cabinet/practice-analytics/') {
+        return { sessions: { completed: 4, cancelled: 2, no_show: 1 }, acquisition: { guest_booking_requests: 3 } } as any
+      }
+      if (config?.params?.upcoming === true) return [{ id: 70, status: 'CONFIRMED', client: 91, client_display_name: 'Найближчий клієнт', session_format: 'online', slot_start_at: sessionIsoForDay(0, 8, 0) }] as any
+      if (config?.params?.upcoming === false) return []
+      return {}
+    })
+    const view = renderView()
+    await waitFor(() => expect(view.container.querySelectorAll('.today-session-row')).toHaveLength(2))
+    const rows = view.container.querySelectorAll('.today-session-row')
+    expect(rows[0]).toHaveAttribute('href', '/cabinet/sessions/71')
+    expect(rows[1]).toHaveAttribute('href', '/cabinet/sessions/72')
+    expect(view.container).toHaveTextContent('Інші сесії сьогодні')
+  })
+
+  it('renders the normal work-queue today list when there is no nearest session', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') return createWorkQueuePayload({ today_sessions: [{ id: 71, client_display_name: 'Клієнт', status: 'CONFIRMED', session_format: 'online', slot_start_at: '2099-06-05T09:00:00Z' }] })
+      if (url === '/cabinet/practice-analytics/') return { sessions: { completed: 0, cancelled: 0, no_show: 0 }, acquisition: { guest_booking_requests: 0 } } as any
+      if (config?.params?.upcoming === true || config?.params?.upcoming === false) return []
+      return {}
+    })
+    const view = renderView()
+    await waitFor(() => expect(view.container.querySelector('.today-session-row')).toHaveAttribute('href', '/cabinet/sessions/71'))
+    expect(view.container).toHaveTextContent('Сесії сьогодні')
+    expect(view.container).not.toHaveTextContent('Інші сесії сьогодні')
+  })
+
+  it('omits an empty Tomorrow panel but keeps it when tomorrow has sessions', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/practice-analytics/') return { sessions: { completed: 0, cancelled: 0, no_show: 0 }, acquisition: { guest_booking_requests: 0 } } as any
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return createWorkQueuePayload()
+    })
+    const emptyView = renderView()
+    await waitFor(() => expect(emptyView.container.querySelector('.panel--tomorrow')).not.toBeInTheDocument())
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/practice-analytics/') return { sessions: { completed: 0, cancelled: 0, no_show: 0 }, acquisition: { guest_booking_requests: 0 } } as any
+      if (config?.params?.upcoming === true) return [{ id: 82, status: 'CONFIRMED', client: 91, client_display_name: 'Завтрашній клієнт', session_format: 'online', slot_start_at: sessionIsoForDay(1, 10, 0) }] as any
+      if (config?.params?.upcoming === false) return []
+      return createWorkQueuePayload()
+    })
+    const tomorrowView = renderView()
+    await waitFor(() => expect(tomorrowView.container.querySelector('.panel--tomorrow')).toBeInTheDocument())
+  })
+
+  it('loads canonical 30d practice analytics and switches only its range', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/practice-analytics/') {
+        return { sessions: { completed: 4, cancelled: 2, no_show: 1 }, acquisition: { guest_booking_requests: 3 } } as any
+      }
+      if (config?.params?.upcoming === true || config?.params?.upcoming === false) return []
+      return createWorkQueuePayload()
+    })
+    const view = renderView()
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/practice-analytics/', { params: { range: '30d' } }))
+    expect(view.container).toHaveTextContent('Завершено сесій')
+    expect(view.container).toHaveTextContent('4')
+    await fireEvent.click(view.getByRole('button', { name: '7 днів' }))
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/practice-analytics/', { params: { range: '7d' } }))
+    await fireEvent.click(view.getByRole('button', { name: '90 днів' }))
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/practice-analytics/', { params: { range: '90d' } }))
+    expect(view.container.textContent).not.toMatch(/дохід|борг|графік/i)
+  })
+
+  it('isolates practice analytics failures and retries without reloading work queue', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/practice-analytics/') throw new Error('analytics unavailable')
+      if (config?.params?.upcoming === true || config?.params?.upcoming === false) return []
+      return createWorkQueuePayload()
+    })
+    const view = renderView()
+    await waitFor(() => expect(view.container).toHaveTextContent('Не вдалося завантажити підсумок практики.'))
+    const workQueueCalls = mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/work-queue/').length
+    await fireEvent.click(view.getAllByRole('button', { name: 'Повторити' }).at(-1)!)
+    await waitFor(() => expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/practice-analytics/').length).toBeGreaterThan(1))
+    expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/work-queue/')).toHaveLength(workQueueCalls)
   })
 })

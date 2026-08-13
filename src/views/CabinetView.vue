@@ -4,7 +4,7 @@
       <div>
         <h1 class="title cabinet__title">Робоча панель</h1>
         <p class="muted cabinet__subtitle">
-          Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.
+          Огляд вашої практики на сьогодні.
         </p>
       </div>
       <div v-if="heroSessionsLoading" class="hero-status hero-status--loading">
@@ -157,10 +157,25 @@
                 </div>
               </template>
             </section>
+
+            <section v-if="todayPreviewSessions.length" class="today-card today-card--soft" aria-label="Сесії сьогодні">
+              <h3 class="today-card__title">{{ nearestUpcomingSession ? 'Інші сесії сьогодні' : 'Сесії сьогодні' }}</h3>
+              <RouterLink
+                v-for="session in todayPreviewSessions"
+                :key="workQueueSessionId(session)"
+                class="today-session-row"
+                :to="`/cabinet/sessions/${workQueueSessionId(session)}`"
+              >
+                <span>{{ workQueueSessionTime(session) }}</span>
+                <strong>{{ workQueueSessionClientLabel(session) }}</strong>
+                <span>{{ workQueueSessionFormatLabel(session) }} · {{ workQueueSessionStatusLabel(session) }}</span>
+              </RouterLink>
+              <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">Переглянути всі сесії</RouterLink>
+            </section>
           </div>
         </section>
 
-        <section class="panel panel--tomorrow">
+        <section v-if="heroSessionsLoading || heroSessionsError || tomorrowSessions.length" class="panel panel--tomorrow">
           <div class="panel__header">
             <div>
               <h2 class="panel__title">Завтра</h2>
@@ -189,6 +204,44 @@
           <p v-else class="muted tomorrow-empty">На завтра сесій немає.</p>
         </section>
       </div>
+      <section class="panel panel--wide panel--practice-summary" aria-label="Підсумок практики">
+        <div class="panel__header">
+          <h2 class="panel__title panel__title--compact">Підсумок практики</h2>
+          <div class="practice-summary__ranges" aria-label="Період підсумку">
+            <button
+              v-for="range in practiceAnalyticsRanges"
+              :key="range"
+              type="button"
+              class="btn btn--ghost btn--sm"
+              :class="{ 'practice-summary__range--active': practiceAnalyticsRange === range }"
+              :disabled="practiceAnalyticsLoading"
+              @click="setPracticeAnalyticsRange(range)"
+            >
+              {{ practiceAnalyticsRangeLabel(range) }}
+            </button>
+          </div>
+        </div>
+        <div v-if="practiceAnalyticsLoading" class="today-panel__state today-panel__state--loading">Завантаження підсумку практики...</div>
+        <div v-else-if="practiceAnalyticsError" class="today-panel__state today-panel__state--error">
+          <span>{{ practiceAnalyticsError }}</span>
+          <button class="btn btn--ghost btn--sm" type="button" @click="loadPracticeAnalytics">Повторити</button>
+        </div>
+        <div v-else-if="practiceAnalytics" class="practice-summary__metrics">
+          <div><span>Завершено сесій</span><strong>{{ practiceAnalytics.sessions.completed }}</strong></div>
+          <div><span>Скасовано</span><strong>{{ practiceAnalytics.sessions.cancelled }}</strong></div>
+          <div><span>Неявки</span><strong>{{ practiceAnalytics.sessions.no_show }}</strong></div>
+          <div><span>Нові запити</span><strong>{{ practiceAnalytics.acquisition.guest_booking_requests }}</strong></div>
+        </div>
+      </section>
+      <section class="panel panel--wide panel--quick-actions" aria-label="Швидкі дії">
+        <h2 class="panel__title panel__title--compact">Швидкі дії</h2>
+        <div class="quick-actions">
+          <RouterLink to="/cabinet/slots?action=create-session">Створити сесію</RouterLink>
+          <RouterLink to="/cabinet/clients">Додати клієнта</RouterLink>
+          <RouterLink to="/cabinet/slots?tab=availability">Налаштувати розклад</RouterLink>
+          <RouterLink to="/cabinet/analytics">Переглянути аналітику</RouterLink>
+        </div>
+      </section>
       <section v-if="shouldShowOnboardingBlock" class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
@@ -485,6 +538,13 @@ type CabinetWorkQueue = {
   guestRequestsPreview: WorkQueueGuestRequestPreviewItem[]
 }
 
+type PracticeAnalyticsRange = '7d' | '30d' | '90d'
+
+type PracticeAnalyticsPayload = {
+  sessions: { completed: number; cancelled: number; no_show: number }
+  acquisition: { guest_booking_requests: number }
+}
+
 function createEmptyWorkQueue(): CabinetWorkQueue {
   return {
     todaySessionsCount: 0,
@@ -504,6 +564,11 @@ const workQueue = ref<CabinetWorkQueue>(createEmptyWorkQueue())
 const workQueueLoading = ref(false)
 const workQueueError = ref('')
 const workQueueLoaded = ref(false)
+const practiceAnalyticsRange = ref<PracticeAnalyticsRange>('30d')
+const practiceAnalytics = ref<PracticeAnalyticsPayload | null>(null)
+const practiceAnalyticsLoading = ref(false)
+const practiceAnalyticsError = ref('')
+const practiceAnalyticsRanges: PracticeAnalyticsRange[] = ['7d', '30d', '90d']
 const heroSessionsLoading = ref(false)
 const heroSessionsError = ref('')
 const profileLoading = ref(false)
@@ -673,6 +738,48 @@ function normalizeWorkQueuePayload(payload: unknown): CabinetWorkQueue {
     notesRemindersPreview: normalizePreviewList<WorkQueueNoteReminderPreviewItem>(source.notes_reminders_preview, 3),
     guestRequestsPreview: normalizePreviewList<WorkQueueGuestRequestPreviewItem>(source.guest_requests_preview, 3),
   }
+}
+
+function workQueueSessionId(session: WorkQueueSessionPreviewItem) {
+  return Number(session.session_id || session.id || 0)
+}
+
+function workQueueSessionStart(session: WorkQueueSessionPreviewItem) {
+  return session.slot_start_at || session.starts_at || session.scheduled_at || ''
+}
+
+const workQueueTodaySessions = computed(() => {
+  return workQueue.value.todaySessions
+    .filter((session) => workQueueSessionId(session) > 0)
+    .slice()
+    .sort((left, right) => workQueueSessionStart(left).localeCompare(workQueueSessionStart(right)))
+})
+
+const todayPreviewSessions = computed(() => {
+  const nearestId = nearestUpcomingSession.value?.id
+  return workQueueTodaySessions.value.filter((session) => workQueueSessionId(session) !== nearestId)
+})
+
+function workQueueSessionTime(session: WorkQueueSessionPreviewItem) {
+  return formatDateTime(workQueueSessionStart(session))
+}
+
+function workQueueSessionClientLabel(session: WorkQueueSessionPreviewItem) {
+  return normalizeClientName(session.client_display_name) || fullName(session.client_first_name, session.client_last_name) || 'Клієнт'
+}
+
+function workQueueSessionFormatLabel(session: WorkQueueSessionPreviewItem) {
+  return session.session_format === 'offline' || session.meeting_mode === 'OFFLINE' ? 'Офлайн' : 'Онлайн'
+}
+
+function workQueueSessionStatusLabel(session: WorkQueueSessionPreviewItem) {
+  if (session.status === 'SCHEDULED') return 'Потребує підтвердження'
+  if (session.status === 'CONFIRMED') return 'Підтверджено'
+  return 'Сесія'
+}
+
+function practiceAnalyticsRangeLabel(range: PracticeAnalyticsRange) {
+  return `${range.replace('d', '')} днів`
 }
 
 function preferredSessionClientName(session: CabinetSession) {
@@ -1166,6 +1273,28 @@ async function loadWorkQueue() {
   }
 }
 
+async function loadPracticeAnalytics() {
+  if (!auth.accessToken) return
+  practiceAnalyticsLoading.value = true
+  practiceAnalyticsError.value = ''
+  try {
+    const payload = await apiGet<PracticeAnalyticsPayload>('/cabinet/practice-analytics/', {
+      params: { range: practiceAnalyticsRange.value },
+    })
+    practiceAnalytics.value = payload?.sessions && payload?.acquisition ? payload : null
+  } catch {
+    practiceAnalyticsError.value = 'Не вдалося завантажити підсумок практики.'
+  } finally {
+    practiceAnalyticsLoading.value = false
+  }
+}
+
+function setPracticeAnalyticsRange(range: PracticeAnalyticsRange) {
+  if (practiceAnalyticsRange.value === range) return
+  practiceAnalyticsRange.value = range
+  void loadPracticeAnalytics()
+}
+
 function retryCabinetDataLoad() {
   void Promise.all([ensureCabinetData(), loadCabinetEntitlementsSnapshot(), loadWorkQueue()])
 }
@@ -1219,6 +1348,7 @@ onMounted(async () => {
     loadOnboardingState(),
     loadCabinetEntitlementsSnapshot(),
     loadWorkQueue(),
+    loadPracticeAnalytics(),
   ])
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
@@ -1572,6 +1702,78 @@ onBeforeUnmount(() => {
 
 .today-card--soft {
   background: rgba(255, 255, 255, 0.86);
+}
+
+.today-session-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 4px 12px;
+  border-top: 1px solid var(--pc-border);
+  padding: 9px 0;
+  color: var(--pc-navy-900);
+  text-decoration: none;
+}
+
+.today-session-row span:last-child {
+  grid-column: 2;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+}
+
+.today-session-row:hover,
+.today-session-row:focus-visible {
+  color: var(--pc-navy-900);
+  text-decoration: underline;
+}
+
+.practice-summary__ranges,
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.practice-summary__range--active {
+  border-color: var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #fff;
+}
+
+.practice-summary__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.practice-summary__metrics > div {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  padding: 12px;
+}
+
+.practice-summary__metrics span {
+  color: var(--pc-text-muted);
+  font-size: 13px;
+}
+
+.practice-summary__metrics strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.quick-actions a {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  padding: 9px 12px;
+  color: var(--pc-navy-900);
+  text-decoration: none;
+}
+
+.quick-actions a:hover,
+.quick-actions a:focus-visible {
+  border-color: var(--pc-navy-900);
 }
 
 .today-card__title-row {
@@ -2093,6 +2295,10 @@ onBeforeUnmount(() => {
 
   .today-panel {
     grid-template-columns: 1fr;
+  }
+
+  .practice-summary__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .attention-row {
