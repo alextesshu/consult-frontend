@@ -62,6 +62,26 @@ describe('router specialist session routes', () => {
     expect(resolved.meta.minimalShell).toBe(true)
   })
 
+  it('matches the public account email confirmation route', () => {
+    const resolved = router.resolve('/account/email-change/confirm/verification-token')
+
+    expect(resolved.name).toBe('account-email-change-confirm')
+    expect(resolved.params).toEqual({ token: 'verification-token' })
+    expect(resolved.meta.requiresAuth).toBeUndefined()
+  })
+
+  it('allows anonymous navigation to the account email confirmation route', async () => {
+    const auth = useAuthStore()
+    expect(auth.accessToken).toBe('')
+
+    await router.push('/account/email-change/confirm/verification-token')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('account-email-change-confirm')
+    expect(router.currentRoute.value.params).toEqual({ token: 'verification-token' })
+    expect(router.currentRoute.value.name).not.toBe('login')
+  })
+
   it('matches client materials route and requires client role', () => {
     const resolved = router.resolve('/client/materials')
     expect(resolved.name).toBe('client-materials')

@@ -53,6 +53,67 @@
 
       <div v-if="dataDeletionLoading" class="muted">Завантаження...</div>
       <div v-else class="account-data-panel__body">
+        <section class="account-email-change" aria-labelledby="account-email-change-title">
+          <div>
+            <h3 id="account-email-change-title" class="account-email-change__title">Email акаунта</h3>
+            <dl class="account-email-change__identity">
+              <div>
+                <dt>Email акаунта</dt>
+                <dd>{{ accountEmail || 'Не вказано' }}</dd>
+              </div>
+              <div>
+                <dt>Логін</dt>
+                <dd>{{ accountUsername || 'Не вказано' }}</dd>
+              </div>
+            </dl>
+            <p class="muted account-email-change__copy">
+              Email акаунта, логін і публічна адреса сторінки — окремі речі.
+            </p>
+          </div>
+
+          <p v-if="emailChangeSuccess" class="account-email-change__success">
+            Лист підтвердження надіслано. Поточний email залишатиметься активним, доки ви не підтвердите нову адресу.
+          </p>
+
+          <form v-else-if="emailChangeOpen" class="account-email-change__form" @submit.prevent="submitEmailChange">
+            <label class="field">
+              <span class="muted">Новий email</span>
+              <input
+                v-model="emailChangeForm.newEmail"
+                class="input"
+                type="email"
+                autocomplete="email"
+                :disabled="emailChangeLoading"
+                required
+              />
+            </label>
+            <label class="field">
+              <span class="muted">Поточний пароль</span>
+              <input
+                v-model="emailChangeForm.currentPassword"
+                class="input"
+                type="password"
+                autocomplete="current-password"
+                :disabled="emailChangeLoading"
+                required
+              />
+            </label>
+            <p v-if="emailChangeError" class="form-error">{{ emailChangeError }}</p>
+            <div class="account-email-change__actions">
+              <button class="btn btn--sm" type="submit" :disabled="emailChangeLoading">
+                {{ emailChangeLoading ? 'Надсилаємо...' : 'Надіслати підтвердження' }}
+              </button>
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="emailChangeLoading" @click="closeEmailChange">
+                Скасувати
+              </button>
+            </div>
+          </form>
+
+          <button v-else class="btn btn--ghost btn--sm" type="button" @click="openEmailChange">
+            Змінити email
+          </button>
+        </section>
+
         <div v-if="dataDeletionError" class="form-error">{{ dataDeletionError }}</div>
         <ul v-if="dataDeletionBlockerLabels.length" class="account-data-blockers">
           <li v-for="label in dataDeletionBlockerLabels" :key="label">{{ label }}</li>
@@ -340,6 +401,7 @@ import {
   fetchCurrentDataDeletionRequest,
   fetchCabinetPaymentDetails,
   getApiErrorMessage,
+  initiateAccountEmailChange,
   updateCabinetPaymentDetails,
   type DataDeletionRequest,
   type SpecialistPaymentDetails,
@@ -388,6 +450,14 @@ const dataDeletionError = ref('')
 const dataDeletionBlockerLabels = ref<string[]>([])
 const dataDeletionRequest = ref<DataDeletionRequest | null>(null)
 const dataDeletionConfirmOpen = ref(false)
+const emailChangeOpen = ref(false)
+const emailChangeLoading = ref(false)
+const emailChangeError = ref('')
+const emailChangeSuccess = ref(false)
+const emailChangeForm = reactive({
+  newEmail: '',
+  currentPassword: '',
+})
 
 const details = ref<SpecialistPaymentDetails>(createEmptyDetails())
 const forms = reactive<Record<CanonicalMethodType, SpecialistPaymentMethodDetails>>({
@@ -407,6 +477,8 @@ const activeTab = computed<'hub' | 'payment-details'>(() =>
   route.query.tab === PAYMENT_DETAILS_TAB ? PAYMENT_DETAILS_TAB : 'hub'
 )
 const isPaymentDetailsTab = computed(() => activeTab.value === PAYMENT_DETAILS_TAB)
+const accountEmail = computed(() => String(auth.me?.user?.email || auth.user?.email || '').trim())
+const accountUsername = computed(() => String(auth.me?.user?.username || auth.user?.username || '').trim())
 const canSubmitDataDeletionRequest = computed(() =>
   !dataDeletionRequest.value ||
   ['REJECTED', 'CANCELLED', 'EXECUTED'].includes(dataDeletionRequest.value.status)
@@ -632,6 +704,44 @@ function openDataDeletionConfirm() {
 
 function closeDataDeletionConfirm() {
   dataDeletionConfirmOpen.value = false
+}
+
+function openEmailChange() {
+  emailChangeSuccess.value = false
+  emailChangeError.value = ''
+  emailChangeOpen.value = true
+}
+
+function closeEmailChange() {
+  emailChangeError.value = ''
+  emailChangeForm.newEmail = ''
+  emailChangeForm.currentPassword = ''
+  emailChangeOpen.value = false
+}
+
+async function submitEmailChange() {
+  const newEmail = emailChangeForm.newEmail.trim()
+  if (!newEmail || !emailChangeForm.currentPassword) {
+    emailChangeError.value = 'Вкажіть новий email і поточний пароль.'
+    return
+  }
+
+  emailChangeLoading.value = true
+  emailChangeError.value = ''
+  try {
+    await initiateAccountEmailChange(newEmail, emailChangeForm.currentPassword)
+    emailChangeSuccess.value = true
+    emailChangeOpen.value = false
+    emailChangeForm.newEmail = ''
+    emailChangeForm.currentPassword = ''
+  } catch (err) {
+    emailChangeError.value = getApiErrorMessage(
+      err,
+      'Не вдалося надіслати лист підтвердження. Спробуйте ще раз.'
+    )
+  } finally {
+    emailChangeLoading.value = false
+  }
 }
 
 async function confirmCreateDataDeletionRequest() {
@@ -919,6 +1029,63 @@ onMounted(() => {
 .account-data-panel__body {
   display: grid;
   gap: 12px;
+}
+
+.account-email-change {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.account-email-change__title {
+  margin: 0 0 8px;
+  color: var(--pc-navy-900);
+  font-size: 16px;
+}
+
+.account-email-change__identity {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.account-email-change__identity div {
+  display: grid;
+  gap: 2px;
+}
+
+.account-email-change__identity dt {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.account-email-change__identity dd {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-weight: 700;
+}
+
+.account-email-change__copy,
+.account-email-change__success {
+  margin: 10px 0 0;
+}
+
+.account-email-change__success {
+  color: var(--pc-success-text);
+}
+
+.account-email-change__form {
+  display: grid;
+  gap: 10px;
+  max-width: 440px;
+}
+
+.account-email-change__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .account-data-request {

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
+import AccountEmailChangeConfirmView from '../views/AccountEmailChangeConfirmView.vue'
 import SignupView from '../views/SignupView.vue'
 import ClientSignupView from '../views/ClientSignupView.vue'
 import ClientRecordAccountInviteView from '../views/ClientRecordAccountInviteView.vue'
@@ -67,6 +68,11 @@ const routes = [
   { path: '/tour', name: 'tour', redirect: { path: '/', hash: '#how-it-works' } },
   { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
+  {
+    path: '/account/email-change/confirm/:token',
+    name: 'account-email-change-confirm',
+    component: AccountEmailChangeConfirmView,
+  },
   { path: '/signup', name: 'signup', component: SignupView },
   { path: '/signup-client', name: 'signup-client', component: ClientSignupView },
   {

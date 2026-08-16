@@ -112,6 +112,32 @@ export async function fetchMe(accessToken: string) {
   return resp.data
 }
 
+export type AccountEmailChangeInitiationResponse = {
+  status: 'verification_sent'
+}
+
+export type AccountEmailChangeConfirmationResponse = {
+  status: 'email_changed'
+}
+
+export async function initiateAccountEmailChange(
+  newEmail: string,
+  currentPassword: string
+): Promise<AccountEmailChangeInitiationResponse> {
+  return apiPost<AccountEmailChangeInitiationResponse>('/account/email-change/', {
+    new_email: newEmail,
+    current_password: currentPassword,
+  })
+}
+
+export async function confirmAccountEmailChange(
+  token: string
+): Promise<AccountEmailChangeConfirmationResponse> {
+  return apiPost<AccountEmailChangeConfirmationResponse>(
+    `/account/email-change/confirm/${encodeURIComponent(token)}/`
+  )
+}
+
 export type OnboardingMissingItem = {
   code: string
   default_message?: string | null

@@ -7,6 +7,7 @@ import {
   createDataDeletionRequest,
   fetchCabinetPaymentDetails,
   fetchCurrentDataDeletionRequest,
+  initiateAccountEmailChange,
   updateCabinetPaymentDetails,
   type DataDeletionRequest,
 } from '../lib/api'
@@ -34,6 +35,13 @@ const mockRouter = {
 
 const mockAuthStore = {
   logout: vi.fn(),
+  me: {
+    user: {
+      username: 'specialist-login',
+      email: 'specialist@example.test',
+    },
+  },
+  user: null,
 }
 
 vi.mock('vue-router', async () => {
@@ -58,6 +66,7 @@ vi.mock('../lib/api', () => ({
   createDataDeletionRequest: vi.fn(),
   fetchCabinetPaymentDetails: vi.fn(),
   fetchCurrentDataDeletionRequest: vi.fn(),
+  initiateAccountEmailChange: vi.fn(),
   updateCabinetPaymentDetails: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.response?.data?.detail || fallback),
 }))
@@ -66,6 +75,7 @@ const mockedCancelDataDeletionRequest = vi.mocked(cancelDataDeletionRequest)
 const mockedCreateDataDeletionRequest = vi.mocked(createDataDeletionRequest)
 const mockedFetchCabinetPaymentDetails = vi.mocked(fetchCabinetPaymentDetails)
 const mockedFetchCurrentDataDeletionRequest = vi.mocked(fetchCurrentDataDeletionRequest)
+const mockedInitiateAccountEmailChange = vi.mocked(initiateAccountEmailChange)
 const mockedUpdateCabinetPaymentDetails = vi.mocked(updateCabinetPaymentDetails)
 
 function paymentDetailsFixture(overrides: Record<string, unknown> = {}) {
@@ -89,6 +99,14 @@ function dataDeletionFixture(overrides: Partial<DataDeletionRequest> = {}): Data
     cancelled_at: null,
     ...overrides,
   }
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((promiseResolve) => {
+    resolve = promiseResolve
+  })
+  return { promise, resolve }
 }
 
 function renderView() {
@@ -123,9 +141,17 @@ describe('SettingsHubView dual payment methods', () => {
     mockRouter.replace.mockClear()
     mockRouter.push.mockReset()
     mockAuthStore.logout.mockReset()
+    mockAuthStore.me = {
+      user: {
+        username: 'specialist-login',
+        email: 'specialist@example.test',
+      },
+    }
+    mockAuthStore.user = null
 
     mockedFetchCabinetPaymentDetails.mockReset()
     mockedFetchCurrentDataDeletionRequest.mockReset()
+    mockedInitiateAccountEmailChange.mockReset()
     mockedUpdateCabinetPaymentDetails.mockReset()
     mockedCreateDataDeletionRequest.mockReset()
     mockedCancelDataDeletionRequest.mockReset()
@@ -169,6 +195,106 @@ describe('SettingsHubView dual payment methods', () => {
     expect(await screen.findByRole('heading', { name: 'Акаунт і дані' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Видалити акаунт' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Скасувати видалення' })).not.toBeInTheDocument()
+  })
+
+  it('keeps account email and login separate from the public-page address', async () => {
+    const view = renderView()
+
+    const identity = await waitFor(() => {
+      expect(mockedFetchCurrentDataDeletionRequest).toHaveBeenCalled()
+      const currentIdentity = view.container.querySelector('.account-email-change__identity')
+      if (!currentIdentity) throw new Error('Account email identity not rendered')
+      return currentIdentity
+    })
+    expect(identity).toHaveTextContent('specialist@example.test')
+    expect(identity).toHaveTextContent('Email акаунта')
+    expect(identity).toHaveTextContent('Логін')
+    expect(identity).toHaveTextContent('specialist-login')
+    expect(identity.querySelectorAll('dd')).toHaveLength(2)
+    expect(identity.parentElement).toHaveTextContent(
+      'Email акаунта, логін і публічна адреса сторінки — окремі речі.'
+    )
+  })
+
+  it('requires a new email and current password before initiating the change', async () => {
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Змінити email' }))
+    expect(screen.getByLabelText('Новий email')).toBeInTheDocument()
+    expect(screen.getByLabelText('Поточний пароль')).toBeInTheDocument()
+    const form = screen.getByRole('button', { name: 'Надіслати підтвердження' }).closest('form')
+    if (!form) throw new Error('Email-change form not found')
+    await fireEvent.submit(form)
+
+    expect(await screen.findByText('Вкажіть новий email і поточний пароль.')).toBeInTheDocument()
+    expect(mockedInitiateAccountEmailChange).not.toHaveBeenCalled()
+  })
+
+  it('keeps the current email visible until verification succeeds', async () => {
+    mockedInitiateAccountEmailChange.mockResolvedValue({ status: 'verification_sent' })
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Змінити email' }))
+    await fireEvent.update(screen.getByLabelText('Новий email'), 'new-address@example.test')
+    await fireEvent.update(screen.getByLabelText('Поточний пароль'), 'TestPass123!')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати підтвердження' }))
+
+    await waitFor(() => {
+      expect(mockedInitiateAccountEmailChange).toHaveBeenCalledWith('new-address@example.test', 'TestPass123!')
+    })
+    expect(screen.getByText('Лист підтвердження надіслано. Поточний email залишатиметься активним, доки ви не підтвердите нову адресу.')).toBeInTheDocument()
+    expect(screen.getByText('specialist@example.test')).toBeInTheDocument()
+    expect(screen.queryByText('new-address@example.test')).not.toBeInTheDocument()
+  })
+
+  it('locks the email-change form until the initiation request resolves', async () => {
+    const request = deferred<{ status: 'verification_sent' }>()
+    mockedInitiateAccountEmailChange.mockReturnValue(request.promise)
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Змінити email' }))
+    const newEmail = screen.getByLabelText('Новий email')
+    const currentPassword = screen.getByLabelText('Поточний пароль')
+    const submit = screen.getByRole('button', { name: 'Надіслати підтвердження' })
+    const cancel = screen.getByRole('button', { name: 'Скасувати' })
+    await fireEvent.update(newEmail, 'new-address@example.test')
+    await fireEvent.update(currentPassword, 'TestPass123!')
+    await fireEvent.click(submit)
+
+    await waitFor(() => {
+      expect(mockedInitiateAccountEmailChange).toHaveBeenCalledWith(
+        'new-address@example.test',
+        'TestPass123!'
+      )
+    })
+    expect(newEmail).toBeDisabled()
+    expect(currentPassword).toBeDisabled()
+    expect(submit).toBeDisabled()
+    expect(cancel).toBeDisabled()
+
+    expect(mockedInitiateAccountEmailChange).toHaveBeenCalledTimes(1)
+    expect(screen.getByLabelText('Новий email')).toBeInTheDocument()
+
+    request.resolve({ status: 'verification_sent' })
+    expect(
+      await screen.findByText(
+        'Лист підтвердження надіслано. Поточний email залишатиметься активним, доки ви не підтвердите нову адресу.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('shows a safe API error when email-change initiation fails', async () => {
+    mockedInitiateAccountEmailChange.mockRejectedValue({
+      response: { data: { detail: 'Не вдалося використати цей email.' } },
+    })
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Змінити email' }))
+    await fireEvent.update(screen.getByLabelText('Новий email'), 'new-address@example.test')
+    await fireEvent.update(screen.getByLabelText('Поточний пароль'), 'TestPass123!')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати підтвердження' }))
+
+    expect(await screen.findByText('Не вдалося використати цей email.')).toBeInTheDocument()
   })
 
   it('executes account deletion from confirm modal, clears auth, and redirects', async () => {
