@@ -36,7 +36,10 @@
           Спеціалісти
         </RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Пошук профілю</RouterLink>
-        <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/signup">
+        <RouterLink v-if="showGuestCatalogNav" class="nav__guest-catalog" to="/specialists">
+          Знайти спеціаліста
+        </RouterLink>
+        <RouterLink v-if="isAuthenticated && isClient && !isSpecialist && !isSpecialistOwnedSurface" class="nav__desktop-only" to="/signup">
           Стати спеціалістом
         </RouterLink>
         <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/client/materials">
@@ -50,14 +53,11 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="nav__guest-cta" to="/signup">
-          <span v-if="isPublicProfilePage">Для спеціалістів</span>
-          <template v-else>
-            <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
-            <span class="nav__guest-cta-short">Спробувати</span>
-          </template>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" to="/signup">
+          <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
+          <span class="nav__guest-cta-short">Спробувати</span>
         </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
@@ -252,7 +252,7 @@
             Публічний профіль (перегляд)
           </RouterLink>
           <RouterLink
-            v-if="isClient && !isSpecialist"
+            v-if="isClient && !isSpecialist && !isSpecialistOwnedSurface"
             class="mobile-menu__item"
             to="/signup"
             @click="closeMobileMenu"
@@ -394,7 +394,8 @@
         'footer',
         {
           'footer--cabinet': isCabinetRoute,
-          'footer--public': !isCabinetRoute,
+          'footer--public': !isCabinetRoute && !isSpecialistOwnedSurface,
+          'footer--specialist-owned': isSpecialistOwnedSurface,
           'footer--home': isHome,
         },
       ]"
@@ -418,6 +419,26 @@
             Налаштування конфіденційності
           </button>
           <RouterLink class="footer__link" to="/faq">Питання та відповіді</RouterLink>
+          <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка</RouterLink>
+        </div>
+      </template>
+      <template v-else-if="isSpecialistOwnedSurface">
+        <div class="footer__specialist-brand">
+          <span class="footer__brand-lockup">
+            <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <span class="footer__name footer__text-fallback">Pro Consult</span>
+          </span>
+        </div>
+        <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
+          <span class="footer__deploy-env">Staging</span>
+          <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
+        </div>
+        <div class="footer__legal footer__legal--compact">
+          <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
+          <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+          <button class="footer__link footer__link--button" type="button" @click="openAnalyticsConsent">
+            Налаштування конфіденційності
+          </button>
           <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка</RouterLink>
         </div>
       </template>
@@ -519,6 +540,7 @@ const isHome = computed(() => route.path === '/')
 const isTour = computed(() => route.path === '/tour')
 const isCabinetRoute = computed(() => route.path.startsWith('/cabinet'))
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
+const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
 )
@@ -647,7 +669,10 @@ const cabinetLabel = computed(() => {
   if (isClient.value) return 'Кабінет'
   return 'Кабінет'
 })
-const showCatalogNav = computed(() => isClient.value)
+const showCatalogNav = computed(() => isClient.value && !isSpecialistOwnedSurface.value)
+const showGuestCatalogNav = computed(
+  () => !isAuthenticated.value && route.meta?.publicSurface === 'neutral'
+)
 const chatRoute = computed(() => (isSpecialist.value ? '/cabinet/chat' : '/client/chat'))
 const isPublicProfilePage = computed(
   () => route.name === 'public-profile' || route.name === 'public-redirect'
@@ -2183,6 +2208,15 @@ watch(isChatCapable, (value) => {
   padding-bottom: 14px;
 }
 
+.footer--specialist-owned {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+}
+
 .footer__intro {
   display: grid;
   gap: 12px;
@@ -2251,6 +2285,11 @@ watch(isChatCapable, (value) => {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.footer__specialist-brand {
+  display: flex;
+  align-items: center;
 }
 
 .footer__brand-lockup {

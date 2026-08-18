@@ -64,9 +64,14 @@ import {
 } from '../lib/entitlementReconcile'
 
 const routes = [
-  { path: '/', name: 'home', component: HomeView },
+  { path: '/', name: 'home', component: HomeView, meta: { publicSurface: 'neutral' } },
   { path: '/tour', name: 'tour', redirect: { path: '/', hash: '#how-it-works' } },
-  { path: '/public', name: 'public-redirect', component: PublicProfileView },
+  {
+    path: '/public',
+    name: 'public-redirect',
+    component: PublicProfileView,
+    meta: { publicSurface: 'specialist-owned' },
+  },
   { path: '/login', name: 'login', component: LoginView },
   {
     path: '/account/email-change/confirm/:token',
@@ -333,25 +338,28 @@ const routes = [
     name: 'specialist-feedback',
     component: ClientFeedbackView,
     alias: ['/specialist/:slug/feedback'],
-    meta: {},
+    meta: { publicSurface: 'specialist-owned' },
   },
   {
     path: '/s/:slug',
     name: 'public-profile',
     component: PublicProfileView,
     alias: ['/t/:slug', '/specialist/:slug'],
+    meta: { publicSurface: 'specialist-owned' },
   },
   {
     path: '/s/:slug/journal',
     name: 'public-journal',
     component: PublicJournalView,
     alias: ['/t/:slug/journal', '/specialist/:slug/journal'],
+    meta: { publicSurface: 'specialist-owned' },
   },
   {
     path: '/s/:slug/journal/:postSlug',
     name: 'public-journal-post',
     component: PublicJournalPostView,
     alias: ['/:slug/journal/:postSlug', '/t/:slug/journal/:postSlug', '/specialist/:slug/journal/:postSlug'],
+    meta: { publicSurface: 'specialist-owned' },
   },
   {
     path: '/s/:specialist_slug/journal/collections/:collection_slug',
@@ -362,11 +370,13 @@ const routes = [
       '/t/:specialist_slug/journal/collections/:collection_slug',
       '/specialist/:specialist_slug/journal/collections/:collection_slug',
     ],
+    meta: { publicSurface: 'specialist-owned' },
   },
   {
     path: '/specialists',
     name: 'public-specialists',
     component: PublicSpecialistsView,
+    meta: { publicSurface: 'neutral' },
   },
   { path: '/therapists', redirect: { name: 'public-specialists' } },
   { path: '/public/therapists', redirect: { name: 'public-specialists' } },

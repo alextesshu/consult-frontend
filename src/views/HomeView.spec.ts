@@ -64,10 +64,12 @@ describe('HomeView', () => {
   it('captures the client discovery CTA once without properties', async () => {
     const { container } = await renderHome()
     const hero = container.querySelector('.home-hero') as HTMLElement
-    const cta = within(hero).getByRole('link', { name: 'Знайти спеціаліста' })
+    const heroCta = within(hero).getByRole('link', { name: 'Знайти спеціаліста' })
+    const clientEntryCta = container.querySelector('.client-entry-section a[href="/specialists"]') as HTMLAnchorElement
 
-    await fireEvent.click(cta)
-    await fireEvent.click(cta)
+    expect(clientEntryCta).toBeInTheDocument()
+    await fireEvent.click(heroCta)
+    await fireEvent.click(clientEntryCta)
 
     expect(productAnalytics.capture).toHaveBeenCalledTimes(1)
     expect(productAnalytics.capture).toHaveBeenCalledWith('client_entry_cta_clicked')
@@ -93,6 +95,17 @@ describe('HomeView', () => {
     )
     expect(screen.getByText(/Шукаєте спеціаліста\? Відкрийте пошук спеціалістів/)).toBeInTheDocument()
     expect(container.querySelector('.home-hero a[href="/tour"]')).not.toBeInTheDocument()
+    const clientEntry = container.querySelector('.client-entry-section') as HTMLElement
+    expect(within(clientEntry).getByRole('heading', { name: 'Шукаєте спеціаліста?' })).toBeInTheDocument()
+    expect(
+      within(clientEntry).getByText(
+        /Оберіть напрям або опишіть свій запит, перегляньте публічні сторінки спеціалістів і залиште запит без реєстрації/
+      )
+    ).toBeInTheDocument()
+    expect(within(clientEntry).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute(
+      'href',
+      '/specialists'
+    )
 
     expect(screen.getByText('Кабінет спеціаліста')).toBeInTheDocument()
     expect(screen.getByText('Нових запитів')).toBeInTheDocument()

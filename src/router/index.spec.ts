@@ -82,6 +82,25 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.name).not.toBe('login')
   })
 
+  it('classifies neutral and specialist-owned public surfaces explicitly', () => {
+    expect(router.resolve('/').meta.publicSurface).toBe('neutral')
+    expect(router.resolve('/specialists').meta.publicSurface).toBe('neutral')
+
+    for (const path of [
+      '/public',
+      '/s/olena',
+      '/s/olena/feedback',
+      '/s/olena/journal',
+      '/s/olena/journal/article',
+      '/s/olena/journal/collections/featured',
+      '/t/olena',
+      '/specialist/olena/feedback',
+      '/t/olena/journal/article',
+    ]) {
+      expect(router.resolve(path).meta.publicSurface).toBe('specialist-owned')
+    }
+  })
+
   it('matches client materials route and requires client role', () => {
     const resolved = router.resolve('/client/materials')
     expect(resolved.name).toBe('client-materials')

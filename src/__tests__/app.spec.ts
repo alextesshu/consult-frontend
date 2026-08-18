@@ -102,7 +102,7 @@ async function renderWithProviders(options?: {
   publicProfileComponent?: Component
 }) {
   const routes = [
-    { path: '/', component: { template: '<div>Home</div>' } },
+    { path: '/', component: { template: '<div>Home</div>' }, meta: { publicSurface: 'neutral' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
@@ -135,7 +135,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/settings', component: { template: '<div>Cabinet Settings</div>' } },
     { path: '/cabinet/settings/notifications', component: { template: '<div>Cabinet Notifications</div>' } },
     { path: '/public', component: { template: '<div>Public Redirect</div>' } },
-    { path: '/specialists', component: { template: '<div>Public Specialists</div>' } },
+    { path: '/specialists', component: { template: '<div>Public Specialists</div>' }, meta: { publicSurface: 'neutral' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/client/materials', component: { template: '<div>Client Materials</div>' } },
     { path: '/client/chat', component: { template: '<div>Client Chat</div>' } },
@@ -151,6 +151,36 @@ async function renderWithProviders(options?: {
       path: '/s/:slug',
       name: 'public-profile',
       component: options?.publicProfileComponent ?? { template: '<div>Public Profile</div>' },
+      alias: ['/t/:slug', '/specialist/:slug'],
+      meta: { publicSurface: 'specialist-owned' },
+    },
+    {
+      path: '/s/:slug/feedback',
+      component: { template: '<div>Specialist Feedback</div>' },
+      alias: ['/specialist/:slug/feedback'],
+      meta: { publicSurface: 'specialist-owned' },
+    },
+    {
+      path: '/s/:slug/journal',
+      component: { template: '<div>Specialist Journal</div>' },
+      alias: ['/t/:slug/journal', '/specialist/:slug/journal'],
+      meta: { publicSurface: 'specialist-owned' },
+    },
+    {
+      path: '/s/:slug/journal/:postSlug',
+      component: { template: '<div>Specialist Article</div>' },
+      alias: ['/:slug/journal/:postSlug', '/t/:slug/journal/:postSlug', '/specialist/:slug/journal/:postSlug'],
+      meta: { publicSurface: 'specialist-owned' },
+    },
+    {
+      path: '/s/:specialist_slug/journal/collections/:collection_slug',
+      component: { template: '<div>Specialist Collection</div>' },
+      alias: [
+        '/:specialist_slug/journal/collections/:collection_slug',
+        '/t/:specialist_slug/journal/collections/:collection_slug',
+        '/specialist/:specialist_slug/journal/collections/:collection_slug',
+      ],
+      meta: { publicSurface: 'specialist-owned' },
     },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ]
@@ -244,16 +274,58 @@ describe('App shell', () => {
     mockToast.info.mockReset()
   })
 
-  it('uses specialist-focused header CTA copy on public specialist profiles', async () => {
+  it('removes catalog and product promotion from a guest specialist profile header', async () => {
     await renderWithProviders({ initialPath: '/s/olena' })
 
-    expect(screen.getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute(
-      'href',
-      '/signup'
-    )
-    expect(
-      screen.queryByRole('link', { name: 'Спробувати безкоштовно' })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Знайти спеціаліста' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Пошук профілю' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Тарифи' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Для спеціалістів' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Спробувати безкоштовно' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
+  })
+
+  it('shows the catalog link to guests on neutral pages without desktop-only hiding', async () => {
+    await renderWithProviders()
+
+    const catalogLink = screen.getByRole('link', { name: 'Знайти спеціаліста' })
+    expect(catalogLink).toHaveAttribute('href', '/specialists')
+    expect(catalogLink).toHaveClass('nav__guest-catalog')
+    expect(catalogLink).not.toHaveClass('nav__desktop-only')
+  })
+
+  it.each([
+    '/s/olena/journal',
+    '/s/olena/journal/article',
+    '/s/olena/journal/collections/featured',
+    '/s/olena/feedback',
+    '/t/olena',
+  ])('keeps catalog and product promotion off specialist-owned surface %s', async (initialPath) => {
+    await renderWithProviders({ initialPath })
+
+    expect(screen.queryByRole('link', { name: 'Знайти спеціаліста' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Тарифи' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Спробувати безкоштовно' })).not.toBeInTheDocument()
+  })
+
+  it('keeps catalog and specialist signup off an authenticated client specialist profile mobile menu', async () => {
+    await renderWithProviders({ initialPath: '/s/olena', roles: ['CLIENT'] })
+
+    expect(screen.queryByRole('link', { name: 'Пошук профілю' })).not.toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню' }))
+
+    const mobileMenu = document.querySelector('.mobile-menu') as HTMLElement
+    expect(mobileMenu).toBeInTheDocument()
+    expect(within(mobileMenu).queryByRole('link', { name: 'Стати спеціалістом' })).not.toBeInTheDocument()
+  })
+
+  it('keeps specialist signup available in the authenticated client mobile menu on neutral pages', async () => {
+    await renderWithProviders({ roles: ['CLIENT'] })
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню' }))
+
+    const mobileMenu = document.querySelector('.mobile-menu') as HTMLElement
+    expect(mobileMenu).toBeInTheDocument()
+    expect(within(mobileMenu).getByRole('link', { name: 'Стати спеціалістом' })).toHaveAttribute('href', '/signup')
   })
 
   it('keeps analytics off by default and lets a visitor change the saved choice from the footer', async () => {
@@ -344,6 +416,49 @@ describe('App shell', () => {
       '/support-and-data-requests'
     )
     expect(footer?.textContent || '').not.toContain('вашої справи')
+  })
+
+  it('renders only the neutral legal footer on specialist-owned pages', async () => {
+    await renderWithProviders({ initialPath: '/s/olena' })
+
+    const footer = document.querySelector('footer.footer--specialist-owned') as HTMLElement | null
+    expect(footer).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByText('Pro Consult')).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Умови користування' })).toHaveAttribute(
+      'href',
+      '/terms'
+    )
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Політика конфіденційності' })).toHaveAttribute(
+      'href',
+      '/privacy'
+    )
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка' })).toHaveAttribute(
+      'href',
+      '/support-and-data-requests'
+    )
+    expect(within(footer as HTMLElement).queryByRole('link', { name: 'Тарифи' })).not.toBeInTheDocument()
+    expect(within(footer as HTMLElement).queryByRole('link', { name: 'Створити простір' })).not.toBeInTheDocument()
+    expect(within(footer as HTMLElement).queryByRole('link', { name: 'Знайти спеціаліста' })).not.toBeInTheDocument()
+    expect(footer?.querySelector('a[href="/specialists"]')).not.toBeInTheDocument()
+    expect(footer?.querySelector('a[href="/signup"]')).not.toBeInTheDocument()
+    expect(footer?.querySelector('a[href="/pricing"]')).not.toBeInTheDocument()
+    expect(within(footer as HTMLElement).queryByText('Продукт')).not.toBeInTheDocument()
+  })
+
+  it('renders the staging deploy marker in the specialist-owned footer without marketing links', async () => {
+    vi.stubEnv('VITE_DEPLOY_ENV', 'staging')
+    try {
+      await renderWithProviders({ initialPath: '/s/olena' })
+
+      const footer = document.querySelector('footer.footer--specialist-owned') as HTMLElement | null
+      expect(footer).toBeInTheDocument()
+      expect(within(footer as HTMLElement).getByLabelText('staging-deploy-marker')).toBeInTheDocument()
+      expect(footer?.querySelector('a[href="/specialists"]')).not.toBeInTheDocument()
+      expect(footer?.querySelector('a[href="/signup"]')).not.toBeInTheDocument()
+      expect(footer?.querySelector('a[href="/pricing"]')).not.toBeInTheDocument()
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
 
   it('keeps the public home header in normal document flow', async () => {

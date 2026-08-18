@@ -95,6 +95,13 @@ describe('ClientFeedbackView', () => {
     ).toBeInTheDocument()
   })
 
+  it('does not link from a specialist feedback page to the specialist catalog', async () => {
+    renderView()
+
+    expect(await screen.findByText('Політика відгуків')).toBeInTheDocument()
+    expect(screen.queryByText('Пошук профілю спеціаліста')).not.toBeInTheDocument()
+  })
+
   it('consent checkbox is unchecked by default', async () => {
     renderView()
     await screen.findByPlaceholderText('Опишіть свій досвід співпраці.')

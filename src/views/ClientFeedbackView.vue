@@ -10,7 +10,6 @@
       </div>
       <div class="feedback__actions">
         <RouterLink class="btn btn--ghost" to="/policy/feedback">Політика відгуків</RouterLink>
-        <RouterLink class="btn btn--ghost" to="/specialists">Пошук профілю спеціаліста</RouterLink>
       </div>
     </header>
 

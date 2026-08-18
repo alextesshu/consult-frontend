@@ -195,6 +195,17 @@
         </div>
       </section>
 
+      <section class="client-entry-section reveal" aria-labelledby="client-entry-title">
+        <div>
+          <h2 id="client-entry-title" class="section-head__title">Шукаєте спеціаліста?</h2>
+          <p>
+            Оберіть напрям або опишіть свій запит, перегляньте публічні сторінки спеціалістів і залиште запит без
+            реєстрації.
+          </p>
+        </div>
+        <RouterLink class="btn" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+      </section>
+
       <section class="workflow-section reveal" aria-labelledby="workflow-title">
         <div class="section-head section-head--center">
           <h2 id="workflow-title" class="section-head__title">Як це працює</h2>
@@ -654,6 +665,28 @@ onBeforeUnmount(() => {
   border-color: var(--pc-border-strong);
   color: var(--pc-navy-900);
   box-shadow: none;
+}
+
+.client-entry-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 26px 0 48px;
+  padding: 28px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: var(--pc-radius-card);
+  background: linear-gradient(135deg, var(--pc-bg-card), color-mix(in srgb, var(--pc-teal-soft) 70%, #ffffff));
+}
+
+.client-entry-section .section-head__title {
+  margin: 0;
+}
+
+.client-entry-section p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--pc-text-muted);
 }
 
 .plan-card .btn {
@@ -3362,6 +3395,14 @@ onBeforeUnmount(() => {
   .home-lite__container {
     width: min(100% - 24px, var(--pc-container-wide));
     gap: 30px;
+  }
+
+  .client-entry-section {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    margin: 16px 0 30px;
+    padding: 22px;
   }
 
   .home-hero {
