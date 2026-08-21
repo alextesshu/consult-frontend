@@ -601,6 +601,45 @@ describe('PublicProfileView', () => {
     )
   })
 
+  it('keeps profile metadata when a published profile has no display name', async () => {
+    mockRoute.params.slug = 'profile-without-name'
+    mockRoute.path = '/s/profile-without-name'
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        slug: 'profile-without-name',
+        public_display_name: '',
+        display_name: '',
+        public_profile_summary: '',
+        bio_about: '',
+        bio_work: '',
+        bio_approach: '',
+        bio_for_whom: '',
+        bio_other: '',
+        bio: '',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockResolvedValue([])
+
+    renderView()
+
+    await waitFor(() => expect(document.title).toBe('Профіль спеціаліста | Pro Consult'))
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${window.location.origin}/s/profile-without-name`
+    )
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'profile'
+    )
+    expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Публічна сторінка спеціаліста у Pro Consult.'
+    )
+  })
+
   it('keeps the desktop sidebar viewport-bounded and restores normal page flow at the single-column breakpoint', () => {
     const source = readFileSync('src/views/PublicProfileView.vue', 'utf-8')
     const desktopSidebar = source.match(/\.public__sidebar\s*\{([^}]*)\}/)?.[1] || ''

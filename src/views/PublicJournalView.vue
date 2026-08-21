@@ -292,7 +292,7 @@
 
 <script setup lang="ts">
 
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { useRoute, useRouter } from 'vue-router'
 
@@ -301,6 +301,7 @@ import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 
 import { getApiErrorMessage } from '../lib/errors'
+import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
 
 import {
 
@@ -562,6 +563,14 @@ async function loadJournal() {
 
     journalPosts.value = await fetchPublicAuthorJournalPosts(slug.value)
     collections.value = await fetchPublicJournalCollections(slug.value)
+    applyPublicPageMetadata({
+      title: publicName.value ? `Журнал — ${publicName.value} | Pro Consult` : 'Журнал спеціаліста | Pro Consult',
+      description: publicName.value ? `Публікації спеціаліста ${publicName.value} у Pro Consult.` : 'Публікації спеціаліста у Pro Consult.',
+      canonicalUrl: `${window.location.origin}/s/${slug.value}/journal`,
+      ogType: 'website',
+      imageUrl: `${window.location.origin}/og-image.png?v=20260707`,
+      imageAlt: 'Pro Consult',
+    })
 
   } catch (err) {
 
@@ -614,6 +623,8 @@ onMounted(async () => {
   await loadJournal()
 
 })
+
+onBeforeUnmount(resetPublicPageMetadata)
 
 </script>
 

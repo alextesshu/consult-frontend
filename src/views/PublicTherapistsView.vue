@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
 import PublicSpecialistCard from '../components/PublicSpecialistCard.vue'
@@ -139,6 +139,7 @@ import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { DIRECTION_OPTIONS, REQUEST_GROUP_OPTIONS, useSpecialistDiscovery } from '../composables/useSpecialistDiscovery'
 import { markClientAcquisitionDiscoveryUsed } from '../lib/clientAcquisitionAttribution'
 import { productAnalytics } from '../lib/productAnalytics'
+import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
 
 const discovery = useSpecialistDiscovery()
 const route = useRoute()
@@ -153,6 +154,23 @@ const legacySearched = ref(false)
 const legacyValidation = ref('')
 const legacyLastQuery = ref('')
 const legacyResults = ref<PublicSpecialistProfile[]>([])
+
+function applyDirectoryMetadata() {
+  const filtered = ['q', 'request_group', 'direction', 'format', 'mode', 'page'].some((key) => {
+    const value = route.query[key]
+    return Array.isArray(value) ? value.some(Boolean) : Boolean(value)
+  })
+  const origin = window.location.origin
+  applyPublicPageMetadata({
+    title: 'Знайти спеціаліста | Pro Consult',
+    description: 'Знайдіть спеціаліста за запитом або професійним напрямом.',
+    canonicalUrl: `${origin}/specialists`,
+    ogType: 'website',
+    imageUrl: `${origin}/og-image.png?v=20260707`,
+    imageAlt: 'Pro Consult',
+    robots: filtered ? 'noindex, follow' : undefined,
+  })
+}
 
 const visibleGroups = computed(() => (response.value?.groups || []).filter((group) => group.items.length > 0))
 const trackedDiscoveryResultStates = new Set<string>()
@@ -235,6 +253,9 @@ watch(response, (nextResponse) => {
   trackedDiscoveryResultStates.add(stateKey)
   productAnalytics.capture('specialist_discovery_results_viewed')
 })
+
+watch(() => route.fullPath, applyDirectoryMetadata, { immediate: true })
+onBeforeUnmount(resetPublicPageMetadata)
 </script>
 
 <style scoped>

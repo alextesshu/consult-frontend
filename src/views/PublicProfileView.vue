@@ -2082,14 +2082,16 @@ const PROFESSIONAL_FOCUS_LABELS: Record<string, string> = {
 }
 
 function applyProfileRuntimeMetadata() {
-  if (!profile.value || !canonicalProfileShareUrl.value || !publicName.value) {
+  if (!profile.value || !canonicalProfileShareUrl.value) {
     resetPublicPageMetadata()
     return
   }
   const focus = PROFESSIONAL_FOCUS_LABELS[String(profile.value.professional_focus || '')] || ''
-  const title = focus
+  const title = publicName.value && focus
     ? `${publicName.value} — ${focus} | Pro Consult`
-    : `${publicName.value} | Pro Consult`
+    : publicName.value
+      ? `${publicName.value} | Pro Consult`
+      : 'Профіль спеціаліста | Pro Consult'
   const description = normalizeClientMetadataText(
     profile.value.public_profile_summary ||
       profile.value.bio_about ||
@@ -2098,14 +2100,16 @@ function applyProfileRuntimeMetadata() {
       profile.value.bio_for_whom ||
       profile.value.bio_other ||
       profile.value.bio
-  ) || `Профіль спеціаліста ${publicName.value} у Pro Consult.`
+  ) || (publicName.value
+    ? `Профіль спеціаліста ${publicName.value} у Pro Consult.`
+    : 'Публічна сторінка спеціаліста у Pro Consult.')
   applyPublicPageMetadata({
     title,
     description,
     canonicalUrl: canonicalProfileShareUrl.value,
     ogType: 'profile',
     imageUrl: resolveClientMetadataImage(profile.value.photo_url),
-    imageAlt: profile.value.photo_url ? `Фото профілю ${publicName.value}` : 'Pro Consult',
+    imageAlt: profile.value.photo_url && publicName.value ? `Фото профілю ${publicName.value}` : 'Pro Consult',
   })
 }
 

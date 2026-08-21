@@ -5,6 +5,7 @@ export type PublicPageMetadata = {
   ogType: 'profile' | 'article' | 'website'
   imageUrl: string
   imageAlt: string
+  robots?: string
   articleAuthorUrl?: string
   articlePublishedTime?: string
 }
@@ -64,10 +65,14 @@ function upsertCanonical(href: string) {
   element.href = href
 }
 
-export function applyPublicPageMetadata(metadata: PublicPageMetadata) {
+export function removeManagedStructuredData() {
   document.head
-    .querySelectorAll('meta[name="robots"][data-proconsult-meta="managed"]')
+    .querySelectorAll('script[type="application/ld+json"][data-proconsult-meta="managed"]')
     .forEach((element) => element.remove())
+}
+
+export function applyPublicPageMetadata(metadata: PublicPageMetadata) {
+  document.head.querySelectorAll('meta[name="robots"][data-proconsult-meta="managed"]').forEach((element) => element.remove())
   document.title = metadata.title
   upsertMeta('meta[name="description"]', 'name', 'description', metadata.description)
   upsertCanonical(metadata.canonicalUrl)
@@ -84,6 +89,7 @@ export function applyPublicPageMetadata(metadata: PublicPageMetadata) {
   upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', metadata.description)
   upsertMeta('meta[name="twitter:image"]', 'name', 'twitter:image', metadata.imageUrl)
   upsertMeta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', metadata.imageAlt)
+  if (metadata.robots) upsertMeta('meta[name="robots"]', 'name', 'robots', metadata.robots)
   document.head.querySelectorAll('meta[property^="article:"]').forEach((element) => element.remove())
   if (metadata.ogType === 'article' && metadata.articleAuthorUrl) {
     upsertMeta(
@@ -104,6 +110,7 @@ export function applyPublicPageMetadata(metadata: PublicPageMetadata) {
 }
 
 export function resetPublicPageMetadata() {
+  removeManagedStructuredData()
   const origin = window.location.origin
   applyPublicPageMetadata({
     title: DEFAULT_TITLE,

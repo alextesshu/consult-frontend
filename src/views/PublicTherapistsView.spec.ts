@@ -206,6 +206,12 @@ describe('PublicTherapistsView', () => {
   it('shows a pending direction instruction without results, totals, pagination, or an API request', async () => {
     await renderView('/specialists?mode=direction')
 
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, follow')
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${window.location.origin}/specialists`
+    )
+
     expect(await screen.findByText('Оберіть професійний напрям, щоб переглянути спеціалістів.')).toBeInTheDocument()
     expect(discovery).not.toHaveBeenCalled()
     expect(screen.queryAllByRole('heading', { level: 2 }).some((heading) => heading.textContent?.includes('спеціаліст'))).toBe(false)

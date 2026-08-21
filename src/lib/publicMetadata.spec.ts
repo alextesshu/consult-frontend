@@ -55,4 +55,49 @@ describe('public metadata helper', () => {
     )
     expect(document.querySelector('meta[property="article:published_time"]')).toBeNull()
   })
+
+  it('adds and removes managed robots metadata across route transitions', () => {
+    applyPublicPageMetadata({
+      title: 'Знайти спеціаліста | Pro Consult',
+      description: 'Каталог.',
+      canonicalUrl: 'https://proconsult.space/specialists',
+      ogType: 'website',
+      imageUrl: 'https://proconsult.space/og-image.png',
+      imageAlt: 'Pro Consult',
+      robots: 'noindex, follow',
+    })
+
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, follow')
+    resetPublicPageMetadata()
+    expect(document.querySelector('meta[name="robots"]')).toBeNull()
+  })
+
+  it('removes only managed JSON-LD left by server-rendered public routes', () => {
+    document.head.insertAdjacentHTML(
+      'beforeend',
+      '<script data-proconsult-meta="managed" type="application/ld+json">{"@type":"Article"}</script>' +
+        '<script id="unmanaged-json-ld" type="application/ld+json">{"@type":"WebSite"}</script>'
+    )
+
+    applyPublicPageMetadata({
+      title: 'Профіль спеціаліста | Pro Consult',
+      description: 'Публічна сторінка спеціаліста у Pro Consult.',
+      canonicalUrl: 'https://proconsult.space/s/olena',
+      ogType: 'profile',
+      imageUrl: 'https://proconsult.space/og-image.png',
+      imageAlt: 'Pro Consult',
+    })
+
+    expect(
+      document.querySelector('script[type="application/ld+json"][data-proconsult-meta="managed"]')
+    ).not.toBeNull()
+    expect(document.querySelector('#unmanaged-json-ld')).not.toBeNull()
+
+    resetPublicPageMetadata()
+
+    expect(
+      document.querySelector('script[type="application/ld+json"][data-proconsult-meta="managed"]')
+    ).toBeNull()
+    expect(document.querySelector('#unmanaged-json-ld')).not.toBeNull()
+  })
 })

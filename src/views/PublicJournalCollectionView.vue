@@ -41,9 +41,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchPublicJournalCollectionDetail, getApiErrorMessage, type PublicJournalCollectionDetail } from '../lib/api'
+import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
 
 const route = useRoute()
 const slug = computed(() =>
@@ -65,32 +66,16 @@ const collectionHeroCoverUrl = computed(() => {
   return collection.value.items?.[0]?.cover_image_url || ''
 })
 
-function upsertMeta(name: string, content: string) {
-  if (!content) return
-  let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute('name', name)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
-
-function upsertCanonical(href: string) {
-  let el = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null
-  if (!el) {
-    el = document.createElement('link')
-    el.setAttribute('rel', 'canonical')
-    document.head.appendChild(el)
-  }
-  el.setAttribute('href', href)
-}
-
 function applySeo(data: PublicJournalCollectionDetail) {
-  document.title = data.title
   const summary = (data.description || '').replace(/\s+/g, ' ').trim().slice(0, 160)
-  upsertMeta('description', summary || 'Добірка дописів із блогу спеціаліста.')
-  upsertCanonical(window.location.origin + window.location.pathname)
+  applyPublicPageMetadata({
+    title: data.title,
+    description: summary || 'Добірка дописів із блогу спеціаліста.',
+    canonicalUrl: `${window.location.origin}/s/${slug.value}/journal/collections/${collectionSlug.value}`,
+    ogType: 'website',
+    imageUrl: `${window.location.origin}/og-image.png?v=20260707`,
+    imageAlt: 'Pro Consult',
+  })
 }
 
 async function load() {
@@ -114,6 +99,7 @@ watch([slug, collectionSlug], () => {
 })
 
 onMounted(load)
+onBeforeUnmount(resetPublicPageMetadata)
 </script>
 
 <style scoped>
