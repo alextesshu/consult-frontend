@@ -54,6 +54,11 @@ async function renderView(path = '/specialists') {
     history: createMemoryHistory(),
     routes: [
       { path: '/specialists', component: PublicTherapistsView },
+      {
+        path: '/specialists/psychological-support',
+        component: PublicTherapistsView,
+        meta: { discoveryLanding: 'psychological_support' },
+      },
       { path: '/s/:slug', component: { template: '<div>Profile</div>' } },
       { path: '/', component: { template: '<div>Home</div>' } },
     ],
@@ -88,6 +93,39 @@ describe('PublicTherapistsView', () => {
     await router.push('/specialists?format=online')
     await waitFor(() => expect(productAnalytics.capture).toHaveBeenCalledTimes(3))
     expect(productAnalytics.capture).toHaveBeenLastCalledWith('specialist_discovery_results_viewed')
+  })
+
+  it('renders the approved landing copy and reuses direction discovery results', async () => {
+    discovery.mockResolvedValue(response({
+      applied_filters: { request_group: null, direction: 'psychological_support', format: null },
+      groups: [
+        { code: 'matches_request', label: 'Працюють із вашим запитом', total: 1, items: [item] },
+        { code: 'related_matches', label: 'Також можуть підійти', total: 0, items: [] },
+        { code: 'other_specialists', label: 'Інші спеціалісти Pro Consult', total: 1, items: [{ ...item, slug: 'ivan', public_slug: 'ivan', public_profile_path: '/s/ivan' }] },
+      ],
+    }))
+
+    await renderView('/specialists/psychological-support')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Психологічна допомога' })).toBeInTheDocument()
+    expect(screen.getByText('Тут зібрані спеціалісти, які працюють у напрямі психологічної допомоги. Ви можете переглянути їхні професійні сторінки, теми роботи, формат і умови консультацій, а потім звернутися до обраного спеціаліста безпосередньо через Pro Consult.')).toBeInTheDocument()
+    await waitFor(() => expect(discovery).toHaveBeenLastCalledWith({ direction: 'psychological_support' }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Працюють із вашим запитом' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Інші спеціалісти Pro Consult' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Переглянути всіх спеціалістів' })).toHaveAttribute('href', '/specialists')
+  })
+
+  it('links the approved direction from general discovery and leaves the landing for another direction', async () => {
+    const { router } = await renderView('/specialists')
+
+    await fireEvent.click(screen.getByRole('radio', { name: 'За професійним напрямом' }))
+    const landingLink = await screen.findByRole('link', { name: 'Психологічна допомога' })
+    expect(landingLink).toHaveAttribute('href', '/specialists/psychological-support')
+    await fireEvent.click(landingLink)
+    await waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists/psychological-support'))
+
+    await fireEvent.click(await screen.findByRole('radio', { name: 'Наставництво та розвиток' }))
+    await waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists?mode=direction&direction=development_guidance'))
   })
 
   it('does not capture results for empty or failed discovery responses', async () => {
@@ -130,9 +168,10 @@ describe('PublicTherapistsView', () => {
     ])
 
     await fireEvent.click(screen.getByRole('radio', { name: 'За професійним напрямом' }))
-    const directions = await screen.findAllByRole('radio', { name: /Психологічна допомога|Наставництво та розвиток|Навчання та професійний супровід/ })
+    const directions = await screen.findAllByRole('radio', { name: /Наставництво та розвиток|Навчання та професійний супровід/ })
     expect(directions.every((radio) => radio.getAttribute('name') === 'specialist-direction')).toBe(true)
-    expect(directions.map((radio) => radio.getAttribute('value'))).toContain('psychological_support')
+    expect(directions.map((radio) => radio.getAttribute('value'))).toContain('development_guidance')
+    expect(screen.getByRole('link', { name: 'Психологічна допомога' })).toHaveAttribute('href', '/specialists/psychological-support')
   })
 
   it('reflects native selected states and allows request-group clearing', async () => {

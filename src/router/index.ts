@@ -23,6 +23,7 @@ import SpecialistClientsView from '../views/TherapistClientsView.vue'
 import SpecialistClientWorkbookView from '../views/TherapistClientWorkbookView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicSpecialistsView from '../views/PublicTherapistsView.vue'
+import { PSYCHOLOGICAL_SUPPORT_LANDING } from '../lib/specialistDiscoveryLanding'
 import SpecialistReviewsView from '../views/TherapistReviewsView.vue'
 import AuthorJournalView from '../views/AuthorJournalView.vue'
 import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
@@ -371,6 +372,15 @@ const routes = [
       '/specialist/:specialist_slug/journal/collections/:collection_slug',
     ],
     meta: { publicSurface: 'specialist-owned' },
+  },
+  {
+    path: PSYCHOLOGICAL_SUPPORT_LANDING.path,
+    name: 'public-specialists-psychological-support',
+    component: PublicSpecialistsView,
+    meta: {
+      publicSurface: 'neutral',
+      discoveryLanding: PSYCHOLOGICAL_SUPPORT_LANDING.code,
+    },
   },
   {
     path: '/specialists',
