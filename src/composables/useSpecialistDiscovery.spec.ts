@@ -46,7 +46,14 @@ async function settle() {
 async function mountComposable(path = '/specialists') {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/specialists', component: { template: '<div />' } }],
+    routes: [
+      { path: '/specialists', component: { template: '<div />' } },
+      {
+        path: '/specialists/psychological-support',
+        component: { template: '<div />' },
+        meta: { discoveryLanding: 'psychological_support' },
+      },
+    ],
   })
   await router.push(path)
   await router.isReady()
@@ -73,6 +80,26 @@ describe('useSpecialistDiscovery', () => {
     mockedFetch.mockClear()
     await mountComposable('/specialists?format=online')
     expect(mockedFetch).toHaveBeenCalledWith({ format: 'online' })
+  })
+
+  it('restores the approved landing preset and keeps format variants on its pathname', async () => {
+    const { router, state } = await mountComposable('/specialists/psychological-support?format=online')
+
+    expect(state.direction.value).toBe('psychological_support')
+    expect(state.mode.value).toBe('direction')
+    expect(mockedFetch).toHaveBeenLastCalledWith({ direction: 'psychological_support', format: 'online' })
+    expect(router.currentRoute.value.fullPath).toBe('/specialists/psychological-support?format=online')
+  })
+
+  it('leaves the landing pathname when its primary direction or request changes', async () => {
+    const { router, state } = await mountComposable('/specialists/psychological-support')
+
+    await state.setDirection('development_guidance')
+    await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists?mode=direction&direction=development_guidance'))
+
+    await router.push('/specialists/psychological-support')
+    await state.setMode('request')
+    await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists'))
   })
 
   it('builds q plus request_group while keeping draft text out of group and page changes', async () => {

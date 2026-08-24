@@ -2,10 +2,11 @@
   <section class="discovery-page">
     <header class="discovery-page__hero">
       <div>
-        <h1 class="title">Знайдіть спеціаліста для вашого запиту</h1>
-        <p class="muted">Оберіть напрям або опишіть своїми словами, з чим хочете звернутися.</p>
+        <h1 class="title">{{ landing?.heading || 'Знайдіть спеціаліста для вашого запиту' }}</h1>
+        <p class="muted">{{ landing?.intro || 'Оберіть напрям або опишіть своїми словами, з чим хочете звернутися.' }}</p>
       </div>
-      <RouterLink class="btn btn--ghost hero-home-link" to="/">← На головну</RouterLink>
+      <RouterLink v-if="landing" class="btn btn--ghost hero-home-link" to="/specialists">{{ landing.broadDiscoveryLinkLabel }}</RouterLink>
+      <RouterLink v-else class="btn btn--ghost hero-home-link" to="/">← На головну</RouterLink>
     </header>
 
     <section class="discovery-controls" aria-label="Пошук спеціалістів">
@@ -48,10 +49,19 @@
       <fieldset v-else class="control-group">
         <legend>Оберіть професійний напрям</legend>
         <div class="choice-list">
-          <label v-for="option in DIRECTION_OPTIONS" :key="option.code" class="choice-button">
-            <input name="specialist-direction" :value="option.code" type="radio" :checked="direction === option.code" @change="setDirection(option.code)" />
-            <span>{{ option.label }}</span>
-          </label>
+          <template v-for="option in DIRECTION_OPTIONS" :key="option.code">
+            <RouterLink
+              v-if="isPsychologicalSupportLink(option.code)"
+              class="choice-button"
+              :to="PSYCHOLOGICAL_SUPPORT_LANDING.path"
+            >
+              <span>{{ option.label }}</span>
+            </RouterLink>
+            <label v-else class="choice-button">
+              <input name="specialist-direction" :value="option.code" type="radio" :checked="direction === option.code" @change="setDirection(option.code)" />
+              <span>{{ option.label }}</span>
+            </label>
+          </template>
         </div>
       </fieldset>
 
@@ -140,9 +150,16 @@ import { DIRECTION_OPTIONS, REQUEST_GROUP_OPTIONS, useSpecialistDiscovery } from
 import { markClientAcquisitionDiscoveryUsed } from '../lib/clientAcquisitionAttribution'
 import { productAnalytics } from '../lib/productAnalytics'
 import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
+import { PSYCHOLOGICAL_SUPPORT_LANDING } from '../lib/specialistDiscoveryLanding'
 
 const discovery = useSpecialistDiscovery()
 const route = useRoute()
+const landing = computed(() => (
+  route.meta.discoveryLanding === PSYCHOLOGICAL_SUPPORT_LANDING.code
+    ? PSYCHOLOGICAL_SUPPORT_LANDING
+    : null
+))
+const isPsychologicalSupportLanding = computed(() => Boolean(landing.value))
 markClientAcquisitionDiscoveryUsed()
 productAnalytics.capture('specialist_discovery_opened')
 const { mode, queryDraft, requestGroup, direction, format, response, loading, fieldError, requestError, hasActiveSearch, focusResultsAfterPagination, isPendingDirection, submitQuery, setMode, setRequestGroup, setDirection, setFormat, setPage, reset, retry, consumeFocusResultsAfterPagination } = discovery
@@ -161,15 +178,23 @@ function applyDirectoryMetadata() {
     return Array.isArray(value) ? value.some(Boolean) : Boolean(value)
   })
   const origin = window.location.origin
+  const landingMetadata = landing.value
   applyPublicPageMetadata({
-    title: 'Знайти спеціаліста | Pro Consult',
-    description: 'Знайдіть спеціаліста за запитом або професійним напрямом.',
-    canonicalUrl: `${origin}/specialists`,
+    title: landingMetadata?.title || 'Знайти спеціаліста | Pro Consult',
+    description: landingMetadata?.description || 'Знайдіть спеціаліста за запитом або професійним напрямом.',
+    canonicalUrl: `${origin}${landingMetadata?.path || '/specialists'}`,
     ogType: 'website',
     imageUrl: `${origin}/og-image.png?v=20260707`,
     imageAlt: 'Pro Consult',
     robots: filtered ? 'noindex, follow' : undefined,
   })
+}
+
+function isPsychologicalSupportLink(code: string) {
+  return (
+    !isPsychologicalSupportLanding.value
+    && code === PSYCHOLOGICAL_SUPPORT_LANDING.direction
+  )
 }
 
 const visibleGroups = computed(() => (response.value?.groups || []).filter((group) => group.items.length > 0))

@@ -85,6 +85,7 @@ describe('router specialist session routes', () => {
   it('classifies neutral and specialist-owned public surfaces explicitly', () => {
     expect(router.resolve('/').meta.publicSurface).toBe('neutral')
     expect(router.resolve('/specialists').meta.publicSurface).toBe('neutral')
+    expect(router.resolve('/specialists/psychological-support').meta.publicSurface).toBe('neutral')
 
     for (const path of [
       '/public',
@@ -99,6 +100,15 @@ describe('router specialist session routes', () => {
     ]) {
       expect(router.resolve(path).meta.publicSurface).toBe('specialist-owned')
     }
+  })
+
+  it('matches only the approved psychological support discovery landing', () => {
+    const approved = router.resolve('/specialists/psychological-support')
+    const unapproved = router.resolve('/specialists/development-guidance')
+
+    expect(approved.name).toBe('public-specialists-psychological-support')
+    expect(approved.meta.discoveryLanding).toBe('psychological_support')
+    expect(unapproved.name).not.toBe('public-specialists-psychological-support')
   })
 
   it('matches client materials route and requires client role', () => {

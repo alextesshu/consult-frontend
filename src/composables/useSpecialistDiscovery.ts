@@ -10,6 +10,7 @@ import {
   type SpecialistDiscoveryMode,
   type SpecialistDiscoveryRequestGroup,
 } from '../lib/api'
+import { PSYCHOLOGICAL_SUPPORT_LANDING } from '../lib/specialistDiscoveryLanding'
 
 export const REQUEST_GROUP_OPTIONS: ReadonlyArray<{
   code: SpecialistDiscoveryRequestGroup
@@ -113,6 +114,23 @@ function queryMatches(left: LocationQuery, right: LocationQueryRaw): boolean {
   return JSON.stringify(leftEntries) === JSON.stringify(rightEntries)
 }
 
+function landingPrimaryIsOverridden(query: LocationQuery): boolean {
+  const rawDirection = firstQueryValue(query.direction)
+  return (
+    firstQueryValue(query.mode) === 'request'
+    || Boolean(firstQueryValue(query.q))
+    || Boolean(firstQueryValue(query.request_group))
+    || Boolean(rawDirection && rawDirection !== PSYCHOLOGICAL_SUPPORT_LANDING.direction)
+  )
+}
+
+function toLandingQuery(state: DiscoveryRouteState): LocationQueryRaw {
+  const query = toQuery(state)
+  delete query.mode
+  delete query.direction
+  return query
+}
+
 export function useSpecialistDiscovery() {
   const route = useRoute()
   const router = useRouter()
@@ -128,6 +146,9 @@ export function useSpecialistDiscovery() {
   const fieldError = ref<PublicSpecialistDiscoveryError | null>(null)
   const requestError = ref('')
   const focusResultsAfterPagination = ref(false)
+  const isPsychologicalSupportLanding = computed(
+    () => route.meta.discoveryLanding === PSYCHOLOGICAL_SUPPORT_LANDING.code,
+  )
   let requestSequence = 0
   let pendingFocusPage: number | null = null
 
@@ -203,7 +224,26 @@ export function useSpecialistDiscovery() {
   }
 
   async function syncFromRoute() {
-    const state = parseRouteState(route.query)
+    let state = parseRouteState(route.query)
+    if (isPsychologicalSupportLanding.value) {
+      if (landingPrimaryIsOverridden(route.query)) {
+        await router.replace({ path: '/specialists', query: toQuery(state) })
+        return
+      }
+      state = {
+        ...state,
+        mode: 'direction',
+        query: '',
+        requestGroup: null,
+        direction: PSYCHOLOGICAL_SUPPORT_LANDING.direction,
+        queryErrorCode: null,
+      }
+      const landingQuery = toLandingQuery(state)
+      if (!queryMatches(route.query, landingQuery)) {
+        await router.replace({ path: PSYCHOLOGICAL_SUPPORT_LANDING.path, query: landingQuery })
+        return
+      }
+    }
     mode.value = state.mode
     queryDraft.value = state.query
     appliedQuery.value = state.query
@@ -220,12 +260,29 @@ export function useSpecialistDiscovery() {
           field: 'q',
         }
       : null
-    const canonical = toQuery(state)
-    if (!queryMatches(route.query, canonical)) {
-      await router.replace({ query: canonical })
-      return
+    if (!isPsychologicalSupportLanding.value) {
+      const canonical = toQuery(state)
+      if (!queryMatches(route.query, canonical)) {
+        await router.replace({ query: canonical })
+        return
+      }
     }
     await load()
+  }
+
+  function routeTargetForState(state: DiscoveryRouteState) {
+    if (isPsychologicalSupportLanding.value) {
+      const remainsOnLanding = (
+        state.mode === 'direction'
+        && state.direction === PSYCHOLOGICAL_SUPPORT_LANDING.direction
+        && !state.query
+        && !state.requestGroup
+      )
+      return remainsOnLanding
+        ? { path: PSYCHOLOGICAL_SUPPORT_LANDING.path, query: toLandingQuery(state) }
+        : { path: '/specialists', query: toQuery(state) }
+    }
+    return { query: toQuery(state) }
   }
 
   async function pushState(state: DiscoveryRouteState, options: { focusAfterPagination?: boolean } = {}) {
@@ -233,13 +290,13 @@ export function useSpecialistDiscovery() {
       pendingFocusPage = null
       focusResultsAfterPagination.value = false
     }
-    await router.push({ query: toQuery(state) })
+    await router.push(routeTargetForState(state))
   }
 
   async function replaceState(state: DiscoveryRouteState) {
     pendingFocusPage = null
     focusResultsAfterPagination.value = false
-    await router.replace({ query: toQuery(state) })
+    await router.replace(routeTargetForState(state))
   }
 
   async function submitQuery() {
