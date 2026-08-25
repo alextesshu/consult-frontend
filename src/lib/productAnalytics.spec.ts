@@ -60,7 +60,7 @@ describe('ProductAnalytics', () => {
       'test-public-token',
       expect.objectContaining({
         api_host: 'https://eu.i.posthog.com',
-        persistence: 'memory',
+        persistence: 'sessionStorage',
         save_campaign_params: false,
         save_referrer: false,
         disable_capture_url_hashes: true,
@@ -74,8 +74,43 @@ describe('ProductAnalytics', () => {
         disable_session_recording: true,
         disable_surveys: true,
         advanced_disable_flags: true,
+        before_send: sanitizeProviderEvent,
       })
     )
+  })
+
+  it('deduplicates identify calls per initialized provider runtime', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+    const first = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: { source_type: 'direct' as const },
+    }
+    const second = {
+      subject_id: 'specialist:3b2cc3e6-5b2e-4dc1-8d6c-1e4b7c3a9d25',
+      attribution: { source_type: 'direct' as const },
+    }
+
+    analytics.identify(first)
+    expect(provider.identify).not.toHaveBeenCalled()
+
+    expect(analytics.initialize(enabledConfig, provider, 'allowed')).toBe(true)
+    analytics.identify(first)
+    analytics.identify(first)
+    expect(provider.identify).toHaveBeenCalledTimes(1)
+    expect(provider.identify).toHaveBeenLastCalledWith(first.subject_id)
+
+    analytics.identify(second)
+    expect(provider.identify).toHaveBeenCalledTimes(2)
+    expect(provider.identify).toHaveBeenLastCalledWith(second.subject_id)
+
+    analytics.reset()
+    expect(analytics.initialize(enabledConfig, provider, 'allowed')).toBe(true)
+    expect(provider.identify).toHaveBeenCalledTimes(2)
+
+    analytics.identify(second)
+    expect(provider.identify).toHaveBeenCalledTimes(3)
+    expect(provider.identify).toHaveBeenLastCalledWith(second.subject_id)
   })
 
   it('rejects unknown events and arbitrary, PII-like, raw URL properties', () => {
@@ -181,6 +216,35 @@ describe('ProductAnalytics', () => {
       referrer_origin: 'https://www.threads.com',
       first_landing_path: '/signup',
     })
+  })
+
+  it('classifies attribution from sanitized campaign evidence only', () => {
+    expect(browserAttributionForAnalytics({ utm_source: 'threads' })).toEqual({
+      source_type: 'campaign',
+      utm_source: 'threads',
+    })
+    expect(browserAttributionForAnalytics({ utm_source: 'person@example.com' })).toEqual({
+      source_type: 'direct',
+    })
+  })
+
+  it('classifies sanitized external referrers as referral and unsafe referrers as direct', () => {
+    expect(browserAttributionForAnalytics({ referrer: 'https://example.org/path?token=private' })).toEqual({
+      source_type: 'referral',
+      referrer_origin: 'https://example.org',
+    })
+    expect(browserAttributionForAnalytics({ referrer: 'mailto:person@example.com' })).toEqual({
+      source_type: 'direct',
+    })
+  })
+
+  it('classifies direct landings and keeps private paths out of analytics attribution', () => {
+    expect(browserAttributionForAnalytics(undefined)).toEqual({ source_type: 'direct' })
+    expect(
+      browserAttributionForAnalytics({
+        first_landing_path: '/guest/booking-time-proposal/private-token?access_token=private',
+      })
+    ).toEqual({ source_type: 'direct' })
   })
 
   it('keeps test mode disabled even with a configured token', () => {
