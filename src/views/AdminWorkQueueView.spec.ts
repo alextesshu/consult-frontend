@@ -220,6 +220,128 @@ describe('AdminWorkQueueView', () => {
     expect(document.body).not.toHaveTextContent('public_guest_request #33')
   })
 
+  it('renders canonical incomplete public profile readiness for specialist onboarding', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-onboarding-incomplete',
+          type: 'specialist_onboarding',
+          severity: 'normal',
+          status: 'open',
+          title: 'Specialist onboarding incomplete',
+          related: {
+            public_profile_readiness: {
+              is_ready: false,
+              completed_count: 2,
+              total_count: 6,
+              missing_items: ['topics'],
+              items: [],
+            },
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Профіль 2/6')).toBeInTheDocument()
+  })
+
+  it('renders completed canonical public profile readiness for specialist onboarding', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-onboarding-ready',
+          type: 'specialist_onboarding',
+          severity: 'normal',
+          status: 'open',
+          title: 'Specialist onboarding ready',
+          related: {
+            public_profile_readiness: {
+              is_ready: true,
+              completed_count: 6,
+              total_count: 6,
+              missing_items: [],
+              items: [],
+            },
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Профіль 6/6 ✓')).toBeInTheDocument()
+  })
+
+  it('does not render public profile readiness for unrelated work-queue items', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'unrelated-readiness',
+          type: 'billing_access_request',
+          severity: 'normal',
+          status: 'open',
+          title: 'Unrelated item',
+          related: {
+            public_profile_readiness: {
+              is_ready: false,
+              completed_count: 2,
+              total_count: 6,
+              missing_items: ['topics'],
+              items: [],
+            },
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchAdminWorkQueue).toHaveBeenCalledTimes(1)
+    })
+    expect(screen.queryByText('Профіль 2/6')).not.toBeInTheDocument()
+  })
+
+  it('does not fail or render a readiness badge for missing or malformed payloads', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-onboarding-missing-readiness',
+          type: 'specialist_onboarding',
+          severity: 'normal',
+          status: 'open',
+          title: 'Missing readiness',
+        },
+        {
+          id: 'specialist-onboarding-malformed-readiness',
+          type: 'specialist_onboarding',
+          severity: 'normal',
+          status: 'open',
+          title: 'Malformed readiness',
+          related: {
+            public_profile_readiness: {
+              is_ready: 'yes',
+              completed_count: '2',
+              total_count: null,
+            },
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Missing readiness')).toBeInTheDocument()
+    expect(screen.getByText('Malformed readiness')).toBeInTheDocument()
+    expect(screen.queryByText(/^Профіль /)).not.toBeInTheDocument()
+  })
+
   it('maps known backend item types to Ukrainian operational copy', async () => {
     mockedFetchAdminWorkQueue.mockResolvedValueOnce({
       summary: baseResponse.summary,
