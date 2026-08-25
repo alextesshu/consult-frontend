@@ -195,14 +195,10 @@ function normalizeLandingPath(value: unknown): string {
 }
 
 function sanitizeAttribution(value: AnalyticsAttribution | null | undefined): AnalyticsAttribution {
-  if (!value || typeof value !== 'object') return {}
-  const sourceType = SOURCE_TYPES.has(String(value.source_type || ''))
-    ? value.source_type
-    : undefined
-  if (!sourceType) return {}
-  if (sourceType === 'manual') return { source_type: sourceType }
+  if (value?.source_type === 'manual') return { source_type: 'manual' }
 
-  const safe: AnalyticsAttribution = { source_type: sourceType }
+  const safe: AnalyticsAttribution = {}
+  if (!value || typeof value !== 'object') return { source_type: 'direct' }
   for (const key of UTM_PROPERTY_KEYS) {
     const raw = value[key]
     const normalized = key === 'referrer_origin'
@@ -212,7 +208,21 @@ function sanitizeAttribution(value: AnalyticsAttribution | null | undefined): An
         : cleanSafeText(raw)
     if (normalized) safe[key] = normalized
   }
-  return safe
+  const hasCampaignEvidence = [
+    safe.utm_source,
+    safe.utm_medium,
+    safe.utm_campaign,
+    safe.utm_content,
+    safe.utm_term,
+  ].some(Boolean)
+  return {
+    source_type: hasCampaignEvidence
+      ? 'campaign'
+      : safe.referrer_origin
+        ? 'referral'
+        : 'direct',
+    ...safe,
+  }
 }
 
 function isApprovedPropertyValue(key: string, value: unknown): value is string {
@@ -321,21 +331,14 @@ export function normalizedLandingRoute(pathname: string): 'home' | 'specialist_s
 export function browserAttributionForAnalytics(
   attribution: RegistrationAttributionPayload | undefined
 ): AnalyticsAttribution {
-  if (!attribution) return {}
-  const sourceType = attribution.utm_source || attribution.utm_medium || attribution.utm_campaign || attribution.utm_content || attribution.utm_term
-    ? 'campaign'
-    : attribution.referrer
-      ? 'referral'
-      : 'direct'
   return sanitizeAttribution({
-    source_type: sourceType,
-    utm_source: attribution.utm_source,
-    utm_medium: attribution.utm_medium,
-    utm_campaign: attribution.utm_campaign,
-    utm_content: attribution.utm_content,
-    utm_term: attribution.utm_term,
-    referrer_origin: attribution.referrer,
-    first_landing_path: attribution.first_landing_path,
+    utm_source: attribution?.utm_source,
+    utm_medium: attribution?.utm_medium,
+    utm_campaign: attribution?.utm_campaign,
+    utm_content: attribution?.utm_content,
+    utm_term: attribution?.utm_term,
+    referrer_origin: attribution?.referrer,
+    first_landing_path: attribution?.first_landing_path,
   })
 }
 
@@ -343,6 +346,7 @@ export class ProductAnalytics {
   private provider: ProductAnalyticsProvider | null = null
   private initialized = false
   private specialistContext: SpecialistAnalyticsContext | null = null
+  private lastIdentifiedSubjectId: string | null = null
 
   initialize(
     config = getProductAnalyticsConfig(),
@@ -354,7 +358,7 @@ export class ProductAnalytics {
     try {
       provider.init(config.projectToken, {
         api_host: POSTHOG_EU_INGESTION_HOST,
-        persistence: 'memory',
+        persistence: 'sessionStorage',
         save_campaign_params: false,
         save_referrer: false,
         disable_capture_url_hashes: true,
@@ -372,7 +376,7 @@ export class ProductAnalytics {
       })
       this.provider = provider
       this.initialized = true
-      if (this.specialistContext) provider.identify(this.specialistContext.subject_id)
+      this.identifyCurrentSpecialist()
       return true
     } catch {
       this.provider = null
@@ -387,8 +391,15 @@ export class ProductAnalytics {
       subject_id: context.subject_id,
       attribution: sanitizeAttribution(context.attribution),
     }
+    this.identifyCurrentSpecialist()
+  }
+
+  private identifyCurrentSpecialist(): void {
+    const subjectId = this.specialistContext?.subject_id
+    if (!this.initialized || !this.provider || !subjectId || this.lastIdentifiedSubjectId === subjectId) return
     try {
-      this.provider?.identify(context.subject_id)
+      this.provider.identify(subjectId)
+      this.lastIdentifiedSubjectId = subjectId
     } catch {
       // Analytics must never interfere with authentication or product actions.
     }
@@ -431,6 +442,7 @@ export class ProductAnalytics {
     const provider = this.provider
     this.provider = null
     this.initialized = false
+    this.lastIdentifiedSubjectId = null
     try {
       provider?.reset()
     } catch {
