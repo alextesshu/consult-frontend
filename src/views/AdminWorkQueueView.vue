@@ -108,6 +108,13 @@
           <div class="queue-item__main">
             <div class="queue-item__topline">
               <span class="queue-item__type">{{ displayTypeLabel(item) }}</span>
+              <span
+                v-if="publicProfileReadinessLabel(item)"
+                class="status-pill"
+                :class="publicProfileReadinessClass(item)"
+              >
+                {{ publicProfileReadinessLabel(item) }}
+              </span>
               <span class="status-pill" :class="severityClass(item.severity)">
                 {{ severityLabel(item.severity) }}
               </span>
@@ -434,6 +441,37 @@ function displayTypeLabel(item: AdminWorkQueueItem) {
   }
   if (isSpecialistAccessReviewItem(item)) return 'СПЕЦІАЛІСТ'
   return typeLabel(item.type)
+}
+
+function publicProfileReadiness(item: AdminWorkQueueItem) {
+  if (normalizeToken(item.type) !== 'specialist_onboarding') return null
+
+  const readiness = item.related?.public_profile_readiness
+  if (!readiness || typeof readiness !== 'object') return null
+
+  const { completed_count: completedCount, total_count: totalCount, is_ready: isReady } = readiness
+  if (
+    typeof isReady !== 'boolean' ||
+    !Number.isInteger(completedCount) ||
+    !Number.isInteger(totalCount) ||
+    completedCount < 0 ||
+    totalCount <= 0 ||
+    completedCount > totalCount
+  ) {
+    return null
+  }
+
+  return { completedCount, totalCount, isReady }
+}
+
+function publicProfileReadinessLabel(item: AdminWorkQueueItem) {
+  const readiness = publicProfileReadiness(item)
+  if (!readiness) return ''
+  return `Профіль ${readiness.completedCount}/${readiness.totalCount}${readiness.isReady ? ' ✓' : ''}`
+}
+
+function publicProfileReadinessClass(item: AdminWorkQueueItem) {
+  return publicProfileReadiness(item)?.isReady ? 'status-pill--ok' : 'status-pill--muted'
 }
 
 function typeLabel(type: string) {

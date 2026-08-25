@@ -629,6 +629,7 @@ export interface AdminWorkQueueRelated {
   public_profile_slug?: string | null
   public_profile_path?: string | null
   public_profile_url?: string | null
+  public_profile_readiness?: PublicProfileReadiness | null
   has_client_name?: boolean
   has_contact?: boolean
   has_topics?: boolean
