@@ -40,7 +40,7 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a><slot /></a>',
+          template: '<a :href="to"><slot /></a>',
         },
       },
     },
@@ -135,5 +135,14 @@ describe('LoginView', () => {
     expect(passwordInput.type).toBe('password')
     expect(screen.getByRole('button', { name: 'Показати пароль' })).toBeInTheDocument()
     expect(mockedLoginWithIdentifier).not.toHaveBeenCalled()
+  })
+
+  it('links to password recovery', () => {
+    renderView()
+
+    expect(screen.getByRole('link', { name: 'Забули пароль?' })).toHaveAttribute(
+      'href',
+      '/forgot-password'
+    )
   })
 })

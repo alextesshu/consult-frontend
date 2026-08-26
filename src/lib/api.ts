@@ -77,6 +77,33 @@ export async function loginWithIdentifier(
   }
 }
 
+export type PasswordResetRequestResponse = {
+  status: 'accepted'
+  detail: string
+}
+
+export type PasswordResetConfirmResponse = {
+  status: 'password_changed'
+}
+
+export async function requestPasswordReset(email: string): Promise<PasswordResetRequestResponse> {
+  return apiPost<PasswordResetRequestResponse>('/auth/password-reset/', { email })
+}
+
+export async function confirmPasswordReset(
+  uid: string,
+  token: string,
+  newPassword: string,
+  newPasswordConfirm: string
+): Promise<PasswordResetConfirmResponse> {
+  return apiPost<PasswordResetConfirmResponse>('/auth/password-reset/confirm/', {
+    uid,
+    token,
+    new_password: newPassword,
+    new_password_confirm: newPasswordConfirm,
+  })
+}
+
 export async function signupTherapist(
   email: string,
   password: string,

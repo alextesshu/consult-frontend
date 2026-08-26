@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
 import AccountEmailChangeConfirmView from '../views/AccountEmailChangeConfirmView.vue'
 import SignupView from '../views/SignupView.vue'
 import ClientSignupView from '../views/ClientSignupView.vue'
@@ -74,6 +76,12 @@ const routes = [
     meta: { publicSurface: 'specialist-owned' },
   },
   { path: '/login', name: 'login', component: LoginView },
+  { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },
+  {
+    path: '/reset-password/:uid/:token',
+    name: 'reset-password',
+    component: ResetPasswordView,
+  },
   {
     path: '/account/email-change/confirm/:token',
     name: 'account-email-change-confirm',
