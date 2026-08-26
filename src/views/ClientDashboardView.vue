@@ -3,100 +3,107 @@
     <header class="client__hero card">
       <div>
         <div class="eyebrow">Клієнтський кабінет</div>
-        <h1 class="title">Ваші сесії</h1>
-        <p class="muted">
-          Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль спеціаліста.
-        </p>
+        <h1 class="title">{{ primaryHeroTitle }}</h1>
+        <p class="muted">{{ primaryHeroDescription }}</p>
+        <div v-if="prioritySession" class="client-hero-state">
+          <div class="client-hero-state__name">{{ specialistLabel(prioritySession) }}</div>
+          <div class="muted">{{ formatDateTime(sessionStartAt(prioritySession)) }} · {{ sessionFormatBadge(prioritySession) }}</div>
+          <div class="status-pill" :class="{ 'status-pill--danger': isPriorityLive, 'status-pill--warn': prioritySession.status === 'SCHEDULED' }">
+            {{ isPriorityLive ? 'Сесія триває' : sessionStatusLabel(prioritySession) }}
+          </div>
+        </div>
+        <div v-else-if="primaryInquiry" class="client-hero-state">
+          <div class="client-hero-state__name">{{ specialistName(primaryInquiry.other_user?.display_name) }}</div>
+          <div v-if="primaryInquiry.last_message_preview" class="muted">{{ primaryInquiry.last_message_preview }}</div>
+        </div>
       </div>
       <div class="client-hero-actions">
+        <a
+          v-if="prioritySession && canJoinMeeting(prioritySession)"
+          class="btn"
+          :href="meetingUrl(prioritySession)"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Приєднатися
+        </a>
         <RouterLink
           v-if="prioritySession"
-          class="btn"
-          :class="isPriorityLive ? 'btn--live' : 'btn--ghost'"
+          class="btn btn--ghost"
           :to="`/client/sessions/${prioritySession.id}`"
         >
-          {{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}
+          Деталі сесії
         </RouterLink>
-        <button v-else class="btn btn--ghost btn--disabled" type="button" disabled>
-          Найближча сесія
-        </button>
-        <RouterLink class="btn" to="/specialists">Знайти профіль спеціаліста</RouterLink>
+        <RouterLink v-else-if="primaryInquiry" class="btn" :to="inquiryRoute(primaryInquiry)">
+          {{ inquiryActionLabel(primaryInquiry) }}
+        </RouterLink>
+        <RouterLink v-else-if="primarySpecialist?.public_slug" class="btn" :to="`/s/${primarySpecialist.public_slug}`">
+          Відкрити профіль
+        </RouterLink>
+        <RouterLink v-else class="btn" to="/specialists">Знайти спеціаліста</RouterLink>
+        <RouterLink v-if="prioritySession" class="btn btn--ghost" to="/specialists">Знайти спеціаліста</RouterLink>
         <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
       </div>
     </header>
 
-    <div id="selected-specialists" class="card">
-      <div class="card__title">Обрані спеціалісти</div>
-      <div v-if="selectedSpecialistsWithSessions.length === 0" class="muted">
-        Ви ще не додали спеціалістів. Натисніть "Знайти профіль спеціаліста", щоб відкрити пошук.
-      </div>
-      <div
-        v-else
-        class="therapist-grid"
-        :class="{ 'therapist-grid--compact': selectedSpecialistsWithSessions.length === 1 }"
-      >
-        <RouterLink
-          v-for="therapist in selectedSpecialistsWithSessions"
-          :key="therapist.public_slug"
-          class="therapist-card"
-          :to="`/s/${therapist.public_slug}`"
-        >
-          <div class="therapist-photo-link">
-            <img
-              v-if="therapist.photo_url"
-              :src="therapist.photo_url"
-              :alt="publicName(therapist.display_name)"
-              @error="onPhotoError(therapist)"
-              class="therapist-photo"
-            />
-            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+    <div class="card active-specialists-card">
+      <div class="card__title">Мої спеціалісти</div>
+      <LoadingSkeleton v-if="specialistsLoading" variant="list" :count="1" />
+      <EmptyState v-else-if="specialistsError" title="Не вдалося завантажити спеціалістів" :description="specialistsError">
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadClientSpecialists">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <div v-else-if="activeSpecialists.length === 0" class="muted">Активних спеціалістів поки немає.</div>
+      <ul v-else class="session-list">
+        <li v-for="specialist in activeSpecialists" :key="specialist.specialist_id" class="session-item">
+          <div>
+            <div class="session-time">{{ specialistName(specialist.display_name) }}</div>
+            <div class="muted">Активна співпраця</div>
           </div>
-          <div class="therapist-info">
-            <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
-            <div class="muted meta-line">
-              <span v-if="therapist.location">{{ therapist.location }}</span>
-              <span v-if="languageLabel(therapist.languages)">
-                {{ languageLabel(therapist.languages) }}
-              </span>
-            </div>
-            <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
-            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
-              Ознайомча: {{ introPriceLabel(therapist) }}
-            </div>
-            <div class="therapist-sessions">
-              <div>
-                <span class="session-label">Підтверджена:</span>
-                <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED') || nextSession(therapist.therapist_id, 'CONFIRMED')) }}
-                </span>
-              </div>
-              <div>
-                <span class="session-label">Запланована:</span>
-                <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED') || nextSession(therapist.therapist_id, 'SCHEDULED')) }}
-                </span>
-              </div>
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                @click.stop.prevent="requestStopCollaboration(therapist)"
-              >
-                Припинити співпрацю
-              </button>
-            </div>
-          </div>
-        </RouterLink>
-      </div>
-      <div v-if="selectedSpecialists.length > 0" class="selected-actions">
-        <RouterLink class="btn btn--ghost" to="/specialists">Знайти профіль спеціаліста</RouterLink>
-      </div>
+          <RouterLink
+            v-if="specialist.public_slug"
+            class="btn btn--ghost btn--sm"
+            :to="`/s/${specialist.public_slug}`"
+          >
+            Відкрити профіль
+          </RouterLink>
+        </li>
+      </ul>
     </div>
 
-    <div class="card priority-card">
-      <div class="card__title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
+    <div v-show="false" class="card priority-card">
+      <div class="card__title">{{ primaryCardTitle }}</div>
       <LoadingSkeleton v-if="loading" variant="card" :count="1" height="112px" />
+      <div v-else-if="!prioritySession && primaryInquiry" class="priority-body">
+        <div class="priority-content">
+          <div class="priority-main">
+            <div class="priority-time">{{ specialistName(primaryInquiry.other_user?.display_name) }}</div>
+            <div v-if="primaryInquiry.last_message_preview" class="muted">{{ primaryInquiry.last_message_preview }}</div>
+            <div v-if="primaryInquiry.unread_count > 0" class="status-pill status-pill--warn">
+              Непрочитаних: {{ primaryInquiry.unread_count }}
+            </div>
+          </div>
+        </div>
+        <div class="priority-actions">
+          <RouterLink class="btn" :to="inquiryRoute(primaryInquiry)">{{ inquiryActionLabel(primaryInquiry) }}</RouterLink>
+        </div>
+      </div>
+      <div v-else-if="!prioritySession && primarySpecialist" class="priority-body">
+        <div class="priority-content">
+          <div class="priority-main">
+            <div class="priority-time">{{ specialistName(primarySpecialist.display_name) }}</div>
+            <div class="muted">Ваш активний спеціаліст</div>
+          </div>
+        </div>
+        <div class="priority-actions">
+          <RouterLink v-if="primarySpecialist.public_slug" class="btn" :to="`/s/${primarySpecialist.public_slug}`">
+            Відкрити профіль спеціаліста
+          </RouterLink>
+        </div>
+      </div>
       <EmptyState
-        v-else-if="sessionsError"
+        v-else-if="sessionsError && !primaryInquiry && !primarySpecialist"
         title="Не вдалося завантажити найближчу сесію"
         :description="sessionsError"
       >
@@ -165,6 +172,22 @@
         </div>
       </div>
       <EmptyState
+        v-else-if="!prioritySession && !primaryInquiry && !primarySpecialist && !specialistsError"
+        title="Знайти спеціаліста"
+        description="Перегляньте профілі спеціалістів і оберіть зручний формат роботи."
+        action-text="Знайти спеціаліста"
+        action-to="/specialists"
+      />
+      <EmptyState
+        v-else-if="specialistsError"
+        title="Не вдалося визначити ваш поточний стан"
+        :description="specialistsError"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadClientSpecialists">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <EmptyState
         v-else
         title="Майбутніх сесій поки немає"
         description="Коли у вас з'явиться нова сесія, вона відобразиться тут."
@@ -173,7 +196,7 @@
       />
     </div>
 
-    <div class="card tips-card">
+    <div v-if="false" class="card tips-card">
       <div class="card__title">Підказки</div>
       <ul class="tips-list">
         <li>
@@ -198,7 +221,7 @@
       </ul>
     </div>
 
-    <div class="card inquiry-card">
+    <div v-show="false" class="card inquiry-card">
       <div class="card__title">Запити перед сесією</div>
       <LoadingSkeleton v-if="inquiryLoading" variant="list" :count="2" />
       <EmptyState
@@ -207,13 +230,13 @@
         :description="inquiryError"
       >
         <template #actions>
-          <button class="btn btn--ghost" type="button" @click="loadInquiryDiscoverability">
+          <button class="btn btn--ghost" type="button" @click="loadInquiryThreads">
             Спробувати ще раз
           </button>
         </template>
       </EmptyState>
       <EmptyState
-        v-else-if="inquiryEntries.length === 0"
+        v-else-if="inquiryThreads.length === 0"
         title="Запити перед сесією поки недоступні"
         description="Знайдіть профіль спеціаліста, щоб поставити коротке уточнювальне питання перед надсиланням запиту."
         action-text="Переглянути профілі"
@@ -221,23 +244,21 @@
       />
       <ul v-else class="session-list">
         <li
-          v-for="entry in inquiryEntries"
-          :key="entry.specialist_id"
+          v-for="thread in inquiryThreads"
+          :key="thread.id"
           class="session-item"
-          :class="`inquiry-item--${entry.tone}`"
         >
           <div>
-            <div class="session-time">{{ entry.specialist_name }}</div>
-            <div class="muted">{{ entry.status_label }}</div>
-            <div class="muted">{{ entry.description }}</div>
+            <div class="session-time">{{ specialistName(thread.other_user?.display_name) }}</div>
+            <div v-if="thread.last_message_preview" class="muted">{{ thread.last_message_preview }}</div>
+            <div v-if="thread.unread_count > 0" class="muted">Непрочитаних: {{ thread.unread_count }}</div>
           </div>
           <div class="session-actions">
             <RouterLink
-              v-if="entry.action_to && entry.action_label"
               class="btn btn--ghost btn--sm"
-              :to="entry.action_to"
+              :to="inquiryRoute(thread)"
             >
-              {{ entry.action_label }}
+              {{ inquiryActionLabel(thread) }}
             </RouterLink>
           </div>
         </li>
@@ -245,16 +266,16 @@
     </div>
     <div class="card">
       <div class="card__title">Переглянуті спеціалісти</div>
-      <div v-if="viewedSpecialists.length === 0" class="muted">
+      <div v-if="viewedSpecialistPreview.length === 0" class="muted">
         Ви ще не переглядали профілі спеціалістів.
       </div>
       <div
         v-else
         class="therapist-grid therapist-grid--viewed"
-        :class="{ 'therapist-grid--compact': viewedSpecialists.length === 1 }"
+        :class="{ 'therapist-grid--compact': viewedSpecialistPreview.length === 1 }"
       >
         <RouterLink
-          v-for="therapist in viewedSpecialists"
+          v-for="therapist in viewedSpecialistPreview"
           :key="therapist.public_slug"
           class="therapist-card therapist-card--viewed"
           :to="`/s/${therapist.public_slug}`"
@@ -281,7 +302,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div v-if="groupEventsLoading || groupEventsError || groupEvents.length > 0" class="card">
       <div class="card__title">Ваші групові події</div>
       <LoadingSkeleton v-if="groupEventsLoading" variant="list" :count="2" />
       <EmptyState
@@ -314,7 +335,7 @@
     </div>
 
     <div class="client__grid">
-      <div id="upcoming-sessions" class="card">
+      <div v-show="loading || sessionsError || upcoming.length > 0" id="upcoming-sessions" class="card">
         <div class="card__title">Найближчі</div>
         <LoadingSkeleton v-if="loading" variant="list" :count="2" />
         <EmptyState
@@ -396,7 +417,7 @@
         />
         <ul v-else class="session-list">
           <li
-            v-for="session in past"
+            v-for="session in pastPreview"
             :key="session.id"
             class="session-item"
             :class="{ 'session-item--confirmed': session.status === 'CONFIRMED' }"
@@ -448,9 +469,13 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   apiGet,
+  fetchClientSpecialists,
   fetchInquiryState,
+  fetchInquiryThreads,
   fetchPublicSpecialistProfile,
+  type ClientSpecialist,
   type InquiryState,
+  type InquiryThread,
   type PublicSpecialistProfile,
   type SessionFormat,
 } from '../lib/api'
@@ -535,6 +560,10 @@ const sessionsError = ref('')
 const selectedSpecialists = ref<SelectedSpecialist[]>([])
 const stoppedSpecialists = ref<string[]>([])
 const viewedSpecialists = ref<SelectedSpecialist[]>([])
+const clientSpecialists = ref<ClientSpecialist[]>([])
+const specialistsLoading = ref(false)
+const specialistsError = ref('')
+const inquiryThreads = ref<InquiryThread[]>([])
 const inquiryEntries = ref<InquiryDashboardEntry[]>([])
 const inquiryLoading = ref(false)
 const inquiryError = ref('')
@@ -559,7 +588,9 @@ type GroupEvent = {
   my_status: string | null
 }
 
-const selectedSpecialistsWithSessions = computed(() => selectedSpecialists.value)
+const activeSpecialists = computed(() => clientSpecialists.value.slice(0, 3))
+const viewedSpecialistPreview = computed(() => viewedSpecialists.value.slice(0, 3))
+const pastPreview = computed(() => past.value.slice(0, 3))
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -690,6 +721,39 @@ const prioritySession = computed(() => livePrioritySession.value || nextUpcoming
 const isPriorityLive = computed(() =>
   prioritySession.value ? isSessionInProgress(prioritySession.value) : false
 )
+const primaryInquiry = computed(() =>
+  inquiryThreads.value
+    .filter((thread) => ['OPEN', 'ACTIVE_CLIENT'].includes(thread.inquiry_status))
+    .slice()
+    .sort((left, right) => {
+      if (left.unread_count !== right.unread_count) return right.unread_count - left.unread_count
+      return (right.last_message_at || right.created_at).localeCompare(left.last_message_at || left.created_at)
+    })[0] || null
+)
+const primarySpecialist = computed(() => activeSpecialists.value[0] || null)
+const primaryCardTitle = computed(() => {
+  if (isPriorityLive.value) return 'Сесія триває'
+  if (prioritySession.value) return 'Найближча сесія'
+  if (primaryInquiry.value) return 'Ваш запит'
+  if (primarySpecialist.value) return 'Ваш спеціаліст'
+  return 'Знайти спеціаліста'
+})
+const primaryHeroTitle = computed(() => {
+  if (isPriorityLive.value) return 'Сесія триває'
+  if (prioritySession.value) return 'Найближча сесія'
+  if (primaryInquiry.value) return 'Ваш запит'
+  if (specialistsError.value) return 'Не вдалося завантажити дані'
+  if (primarySpecialist.value) return `Продовжити роботу з ${specialistName(primarySpecialist.value.display_name)}`
+  return 'Знайдіть спеціаліста для вашого запиту'
+})
+const primaryHeroDescription = computed(() => {
+  if (isPriorityLive.value) return 'Скористайтеся посиланням для приєднання до сесії.'
+  if (prioritySession.value) return 'Деталі найближчої сесії та корисні дії зібрані тут.'
+  if (primaryInquiry.value) return 'Перегляньте останнє повідомлення та продовжте розмову.'
+  if (specialistsError.value) return 'Спробуйте завантажити список спеціалістів ще раз.'
+  if (primarySpecialist.value) return 'Наступної сесії поки не заплановано.'
+  return 'Перегляньте профілі спеціалістів і оберіть зручний формат роботи.'
+})
 const prioritySecondaryCandidates = computed<TimedUpcomingSession[]>(() => {
   const primary = prioritySession.value
   if (!primary) return []
@@ -795,8 +859,7 @@ function formatSession(session: Session | null) {
 function specialistLabel(session: Session) {
   const name = session.specialist_name || session.specialist_username
   if (name) return `Спеціаліст: ${name}`
-  if (session.specialist_id) return `Спеціаліст: #${session.specialist_id}`
-  return 'Спеціаліст: —'
+  return 'Спеціаліст'
 }
 
 function compactPrioritySessionLabel(session: Session) {
@@ -804,8 +867,22 @@ function compactPrioritySessionLabel(session: Session) {
   const time = formatUkTime(startAt)
   const specialist = session.specialist_name || session.specialist_username
   if (specialist) return `${time} · ${specialist}`
-  if (session.specialist_id) return `${time} · Спеціаліст #${session.specialist_id}`
   return `${time} · Спеціаліст`
+}
+
+function specialistName(value?: string | null) {
+  return publicName(value || '') || 'Спеціаліст'
+}
+
+function inquiryRoute(thread: InquiryThread) {
+  if (thread.inquiry_status === 'ACTIVE_CLIENT') {
+    return `/client/chat?therapist_id=${thread.specialist_id}`
+  }
+  return `/client/inquiries/${thread.specialist_id}`
+}
+
+function inquiryActionLabel(thread: InquiryThread) {
+  return thread.inquiry_status === 'ACTIVE_CLIENT' ? 'Відкрити повний чат' : 'Відкрити запит'
 }
 
 function resolveSessionFormat(session: Session): SessionFormat {
@@ -976,6 +1053,32 @@ async function loadInquiryDiscoverability() {
     inquiryError.value = 'Не вдалося завантажити стан запитів перед сесією.'
   } finally {
     inquiryLoading.value = false
+  }
+}
+
+async function loadInquiryThreads() {
+  inquiryLoading.value = true
+  inquiryError.value = ''
+  try {
+    inquiryThreads.value = await fetchInquiryThreads()
+  } catch {
+    inquiryThreads.value = []
+    inquiryError.value = 'Не вдалося завантажити запити перед сесією.'
+  } finally {
+    inquiryLoading.value = false
+  }
+}
+
+async function loadClientSpecialists() {
+  specialistsLoading.value = true
+  specialistsError.value = ''
+  try {
+    clientSpecialists.value = await fetchClientSpecialists()
+  } catch {
+    clientSpecialists.value = []
+    specialistsError.value = 'Не вдалося завантажити активних спеціалістів.'
+  } finally {
+    specialistsLoading.value = false
   }
 }
 
@@ -1232,14 +1335,20 @@ function onPhotoError(specialist: SelectedSpecialist) {
   persistSpecialists()
 }
 
+void [
+  introPriceLabel,
+  nextSession,
+  formatSession,
+  loadSelectedSpecialists,
+  loadStoppedSpecialists,
+  requestStopCollaboration,
+  syncSelectedSpecialists,
+  hydrateSpecialistProfiles,
+]
+
 onMounted(async () => {
-  loadStoppedSpecialists()
-  loadSelectedSpecialists()
   loadViewedSpecialists()
-  await Promise.all([loadSessions(), loadGroupEvents()])
-  syncSelectedSpecialists()
-  await hydrateSpecialistProfiles()
-  await loadInquiryDiscoverability()
+  await Promise.all([loadSessions(), loadGroupEvents(), loadInquiryThreads(), loadClientSpecialists()])
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
   }, LIVE_STATUS_REFRESH_MS)
