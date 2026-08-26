@@ -47,6 +47,7 @@
         <button class="btn" type="submit" :disabled="loading">
           {{ loading ? 'Вхід...' : 'Продовжити' }}
         </button>
+        <RouterLink class="auth__forgot-password" to="/forgot-password">Забули пароль?</RouterLink>
         <p class="muted auth__legal">
           Продовжуючи, ви погоджуєтеся з
           <RouterLink to="/terms">Умовами користування</RouterLink>
@@ -236,6 +237,12 @@ onMounted(() => {
 .auth__legal {
   margin-top: 8px;
   font-size: 13px;
+}
+
+.auth__forgot-password {
+  width: fit-content;
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .auth__aside {
