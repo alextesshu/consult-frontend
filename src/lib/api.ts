@@ -2708,6 +2708,7 @@ export type InquiryState = {
 export type InquiryThread = {
   id: number
   specialist_id: number
+  specialist_public_slug?: string | null
   client_id?: number | null
   client_record_id?: number | null
   client_card_id?: number | null
