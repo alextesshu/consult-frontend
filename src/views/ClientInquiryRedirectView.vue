@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { fetchPublicSpecialists } from '../lib/api'
+import { fetchInquiryThreads } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,26 +24,9 @@ function parsedSpecialistId() {
 }
 
 async function resolvePublicSlugBySpecialistId(specialistId: number) {
-  let page = 1
-  let totalPages = 1
-
-  while (page <= totalPages) {
-    const resp = await fetchPublicSpecialists({
-      page,
-      page_size: 100,
-    })
-    const match = (resp.results || []).find(
-      (item) => item.therapist_id === specialistId && (item.public_slug || item.slug)
-    )
-    const resolvedSlug = String(match?.public_slug || match?.slug || '').trim()
-    if (resolvedSlug) {
-      return resolvedSlug
-    }
-    totalPages = Math.max(resp.total_pages || 1, 1)
-    page += 1
-  }
-
-  return ''
+  const threads = await fetchInquiryThreads()
+  const thread = threads.find((item) => item.specialist_id === specialistId)
+  return String(thread?.specialist_public_slug || '').trim()
 }
 
 onMounted(async () => {
