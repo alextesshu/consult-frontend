@@ -112,6 +112,19 @@ export async function fetchMe(accessToken: string) {
   return resp.data
 }
 
+export type ClientSpecialist = {
+  specialist_id: number
+  display_name: string
+  public_slug: string | null
+  photo_url: string | null
+  relation_state: string
+}
+
+export async function fetchClientSpecialists(): Promise<ClientSpecialist[]> {
+  const resp = await http.get<ClientSpecialist[]>('/client/specialists/')
+  return resp.data
+}
+
 export type AccountEmailChangeInitiationResponse = {
   status: 'verification_sent'
 }

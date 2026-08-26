@@ -35,7 +35,7 @@
         <RouterLink v-if="isAuthenticated && isAdmin" class="nav__desktop-only" to="/admin/specialists">
           Спеціалісти
         </RouterLink>
-        <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Пошук профілю</RouterLink>
+        <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Знайти спеціаліста</RouterLink>
         <RouterLink v-if="showGuestCatalogNav" class="nav__guest-catalog" to="/specialists">
           Знайти спеціаліста
         </RouterLink>
