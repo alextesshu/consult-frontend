@@ -9,11 +9,13 @@ import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import {
   apiGet,
   fetchChatUnreadCount,
+  fetchInquiryThreads,
   fetchMe,
   fetchNotifications,
   fetchPublicSpecialists,
   markAllNotificationsRead,
   markNotificationRead,
+  type InquiryThread,
   type NotificationFeedItem,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
@@ -39,6 +41,7 @@ vi.mock('../lib/api', async () => {
     ...actual,
     apiGet: vi.fn(),
     fetchChatUnreadCount: vi.fn(),
+    fetchInquiryThreads: vi.fn(),
     fetchMe: vi.fn(),
     fetchNotifications: vi.fn(),
     fetchPublicSpecialists: vi.fn(),
@@ -49,6 +52,7 @@ vi.mock('../lib/api', async () => {
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchChatUnreadCount = vi.mocked(fetchChatUnreadCount)
+const mockedFetchInquiryThreads = vi.mocked(fetchInquiryThreads)
 const mockedFetchMe = vi.mocked(fetchMe)
 const mockedFetchNotifications = vi.mocked(fetchNotifications)
 const mockedFetchPublicSpecialists = vi.mocked(fetchPublicSpecialists)
@@ -199,6 +203,7 @@ async function renderWithProviders(options?: {
   const notificationsState = options?.notificationsState ?? { current: options?.notifications ?? [] }
 
   mockedFetchChatUnreadCount.mockResolvedValue({ unread_count: 0 })
+  mockedFetchInquiryThreads.mockResolvedValue([])
   mockedFetchMe.mockResolvedValue(mePayload as Awaited<ReturnType<typeof fetchMe>>)
   mockedFetchNotifications.mockImplementation(async () => ({
     count: notificationsState.current.length,
@@ -1705,19 +1710,24 @@ describe('App shell', () => {
         }),
       ],
     })
-    mockedFetchPublicSpecialists.mockResolvedValue({
-      results: [
-        {
-          therapist_id: 12,
-          public_slug: 'olena',
-          display_name: 'Олена',
-        } as any,
-      ],
-      page: 1,
-      page_size: 100,
-      total: 1,
-      total_pages: 1,
-    })
+    mockedFetchInquiryThreads.mockResolvedValue([
+      {
+        id: 91,
+        specialist_id: 12,
+        specialist_public_slug: 'olena',
+        created_at: '2026-03-12T10:00:00Z',
+        last_message_at: '2026-03-12T10:01:00Z',
+        inquiry_status: 'OPEN',
+        closed_reason: null,
+        other_user: { id: 12, role: 'SPECIALIST', display_name: 'Олена' },
+        last_message_preview: '',
+        unread_count: 0,
+        can_client_send: true,
+        client_send_reason_code: null,
+        can_specialist_reply: true,
+        specialist_reply_reason_code: null,
+      } satisfies InquiryThread,
+    ])
 
     await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
 
