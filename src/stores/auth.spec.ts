@@ -117,6 +117,33 @@ describe('auth store cookie-based flow', () => {
     expect(restoredAuth.accessToken).toBe('access-4')
   })
 
+  it.each(['legacy_unknown', 'unverified', 'verified'] as const)(
+    'keeps the canonical %s email verification state from /api/me',
+    async (emailVerificationState) => {
+      const auth = useAuthStore()
+      auth.setToken('access-token')
+      mockedFetchMe.mockResolvedValueOnce({
+        user: {
+          id: 1,
+          username: 'u',
+          email: 'u@example.com',
+          roles: ['CLIENT'],
+          email_verification_state: emailVerificationState,
+          email_verified_at: emailVerificationState === 'verified' ? '2026-08-29T12:00:00Z' : null,
+        },
+        access_state: null,
+        effective_entitlements: null,
+        counts: null,
+        server_time: '2026-08-29T12:00:00Z',
+      })
+
+      await auth.loadMe()
+
+      expect(auth.user?.email_verification_state).toBe(emailVerificationState)
+      expect(auth.me?.user.email_verification_state).toBe(emailVerificationState)
+    }
+  )
+
   it('does not let stale restoreSession overwrite state after successful login', async () => {
     const auth = useAuthStore()
     const refreshDeferred = deferred<{ access: string }>()

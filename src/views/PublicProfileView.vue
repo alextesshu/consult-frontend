@@ -1040,6 +1040,7 @@ import {
   resolvePublicBookingRecovery,
 } from '../lib/publicBookingRecovery'
 import { useAuthStore } from '../stores/auth'
+import { emailVerificationRequiredMessage } from '../lib/emailVerification'
 import { useToast } from '../composables/useToast'
 import {
   clearClientAcquisitionContext,
@@ -1291,6 +1292,9 @@ const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isAuthResolved = computed(() => Boolean(auth.authResolved))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const isEmailUnverified = computed(
+  () => (auth.me?.user ?? auth.user)?.email_verification_state === 'unverified'
+)
 const isSpecialist = computed(() =>
   roles.value.some((role) => ['SPECIALIST', 'THERAPIST'].includes(String(role).toUpperCase()))
 )
@@ -4337,6 +4341,11 @@ async function handleBookingClick(slotId: number) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
+  if (isEmailUnverified.value) {
+    bookingError.value = 'Спочатку підтвердьте email акаунта, щоб забронювати консультацію.'
+    toast.error(bookingError.value)
+    return
+  }
   if (isSlotBusy(slotId) || bookingSlotId.value !== null) return
   openClientBookingConfirmModal(slotId)
 }
@@ -4405,7 +4414,10 @@ async function bookSlot(slotId: number): Promise<boolean> {
       resetClientBookingConfirmModalState()
       await loadSlots({ forceRefresh: true })
     } else {
-      bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
+      bookingError.value = emailVerificationRequiredMessage(
+        err,
+        getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
+      )
     }
     toast.error(bookingError.value)
     return false

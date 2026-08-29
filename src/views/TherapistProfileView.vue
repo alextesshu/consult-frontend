@@ -211,7 +211,7 @@
               <input
                 v-model="profile.is_search_visible"
                 type="checkbox"
-                :disabled="!canChangeSearchVisibility"
+                :disabled="!canChangeSearchVisibility || (isEmailUnverified && !profile.is_search_visible)"
               />
               Показувати мою сторінку в пошуку
             </label>
@@ -1495,10 +1495,13 @@ import {
   type ProfessionalFocus,
 } from '../constants/professionalFocus'
 import { getSpecializationPresets } from '../constants/specializationPresets'
+import { useAuthStore } from '../stores/auth'
+import { emailVerificationRequiredMessage } from '../lib/emailVerification'
 
 const loading = ref(true)
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const profileLoaded = ref(false)
 const saving = ref(false)
 const error = ref('')
@@ -2505,6 +2508,9 @@ const canChangeSearchVisibility = computed(() =>
 
 const persistedPublicProfileEnabled = ref(false)
 const persistedSearchVisible = ref(false)
+const isEmailUnverified = computed(
+  () => (auth.me?.user ?? auth.user)?.email_verification_state === 'unverified'
+)
 const openedProfileAnalyticsSections = new Set<string>()
 const profileSetupOpened = ref(false)
 const publicationCtaViewed = ref(false)
@@ -2801,6 +2807,11 @@ function setSuggestionCategory(section: SuggestionSectionKey, category: Suggesti
 }
 
 function togglePublicProfileEnabled() {
+  if (isEmailUnverified.value) {
+    success.value = ''
+    error.value = 'Спочатку підтвердьте email акаунта, щоб опублікувати профіль.'
+    return
+  }
   if (!profile.public_profile_enabled && !publicProfileReadiness.value.is_ready) {
     profile.is_search_visible = false
     success.value = ''
@@ -3151,6 +3162,11 @@ async function onSave() {
   saving.value = true
   success.value = ''
   error.value = ''
+  if (isEmailUnverified.value && (isPendingPublication.value || isPendingSearchEnable.value)) {
+    error.value = 'Спочатку підтвердьте email акаунта, щоб опублікувати профіль або показати його в пошуку.'
+    saving.value = false
+    return
+  }
   if (!profile.offers_online && !profile.offers_offline) {
     error.value = 'Оберіть щонайменше один формат консультацій: онлайн або офлайн.'
     saving.value = false
@@ -3223,7 +3239,10 @@ async function onSave() {
       error.value = buildProfileNotReadyMessage(readinessLabelsForKeys(payload.missing_items))
     } else {
       secondaryPhoneServerError.value = fieldErrorMessage(payload, 'secondary_phone')
-      error.value = getApiErrorMessage(err, PROFILE_SAVE_ERROR_MESSAGE)
+      error.value = emailVerificationRequiredMessage(
+        err,
+        getApiErrorMessage(err, PROFILE_SAVE_ERROR_MESSAGE)
+      )
     }
   } finally {
     saving.value = false

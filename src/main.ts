@@ -13,6 +13,7 @@ import {
   normalizedLandingRoute,
   productAnalytics,
 } from './lib/productAnalytics'
+import { captureEmailVerificationTokenFromLocation } from './lib/emailVerificationToken'
 import { captureClientAcquisitionContext } from './lib/clientAcquisitionAttribution'
 import {
   getAnalyticsConsentPreference,
@@ -25,6 +26,7 @@ app.use(pinia)
 app.use(router)
 
 const authStore = useAuthStore(pinia)
+captureEmailVerificationTokenFromLocation()
 captureSpecialistRegistrationFirstTouch()
 productAnalytics.setConsentPreference(getAnalyticsConsentPreference())
 captureClientAcquisitionContext()

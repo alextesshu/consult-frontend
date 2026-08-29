@@ -3,10 +3,10 @@
     <header class="panel settings-hub__hero">
       <h1 class="title">Усі налаштування</h1>
       <p class="muted">Оберіть розділ, який хочете відкрити.</p>
-      <SettingsSubnav :active="activeTab" />
+      <SettingsSubnav v-if="isSpecialistAccount" :active="activeTab" />
     </header>
 
-    <section v-if="activeTab === 'hub'" class="settings-hub__grid">
+    <section v-if="activeTab === 'hub' && isSpecialistAccount" class="settings-hub__grid">
       <RouterLink class="panel settings-card" to="/cabinet/settings?tab=payment-details">
         <h2 class="settings-card__title">Реквізити</h2>
         <p class="muted">Керуйте платіжними реквізитами для запиту підтвердження оплати у сесіях.</p>
@@ -69,6 +69,13 @@
             <p class="muted account-email-change__copy">
               Email акаунта, логін і публічна адреса сторінки — окремі речі.
             </p>
+            <p
+              class="account-email-change__verification-status"
+              :class="`account-email-change__verification-status--${emailVerificationState}`"
+              data-testid="email-verification-status"
+            >
+              {{ emailVerificationStatusLabel }}
+            </p>
           </div>
 
           <p v-if="emailChangeSuccess" class="account-email-change__success">
@@ -109,9 +116,21 @@
             </div>
           </form>
 
-          <button v-else class="btn btn--ghost btn--sm" type="button" @click="openEmailChange">
-            Змінити email
-          </button>
+          <div v-else class="account-email-change__actions">
+            <button
+              v-if="emailVerificationState !== 'verified'"
+              class="btn btn--sm"
+              type="button"
+              data-testid="email-verification-resend"
+              :disabled="!verification.canResend.value"
+              @click="verification.resend"
+            >
+              {{ resendLabel }}
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="openEmailChange">Змінити email</button>
+          </div>
+          <p v-if="verification.state.success" class="account-email-change__success">{{ verification.state.success }}</p>
+          <p v-if="verification.state.error" class="form-error">{{ verification.state.error }}</p>
         </section>
 
         <div v-if="dataDeletionError" class="form-error">{{ dataDeletionError }}</div>
@@ -150,7 +169,7 @@
       </div>
     </section>
 
-    <section v-else id="payment-details" class="panel payment-details-panel">
+    <section v-else-if="isSpecialistAccount" id="payment-details" class="panel payment-details-panel">
       <div class="payment-details-panel__header">
         <h2 class="payment-details-panel__title">Реквізити для оплати</h2>
       </div>
@@ -410,6 +429,8 @@ import {
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
+import { useAccountEmailVerification } from '../composables/useAccountEmailVerification'
+import { hasSpecialistRole, normalizeUserRoles } from '../lib/entitlementReconcile'
 
 type CanonicalMethodType = 'bank_account' | 'card'
 type DataDeletionRequestStatus =
@@ -435,6 +456,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const auth = useAuthStore()
+const verification = useAccountEmailVerification()
 
 const loading = ref(false)
 const isLoaded = ref(false)
@@ -474,11 +496,23 @@ const saveErrors = reactive<Record<CanonicalMethodType, string>>({
 })
 
 const activeTab = computed<'hub' | 'payment-details'>(() =>
-  route.query.tab === PAYMENT_DETAILS_TAB ? PAYMENT_DETAILS_TAB : 'hub'
+  isSpecialistAccount.value && route.query.tab === PAYMENT_DETAILS_TAB ? PAYMENT_DETAILS_TAB : 'hub'
 )
 const isPaymentDetailsTab = computed(() => activeTab.value === PAYMENT_DETAILS_TAB)
+const isSpecialistAccount = computed(() => hasSpecialistRole(normalizeUserRoles(auth.me?.user ?? auth.user)))
 const accountEmail = computed(() => String(auth.me?.user?.email || auth.user?.email || '').trim())
 const accountUsername = computed(() => String(auth.me?.user?.username || auth.user?.username || '').trim())
+const emailVerificationState = computed(() => auth.me?.user?.email_verification_state || auth.user?.email_verification_state || 'legacy_unknown')
+const emailVerificationStatusLabel = computed(() => {
+  if (emailVerificationState.value === 'verified') return 'Email підтверджено'
+  if (emailVerificationState.value === 'unverified') return 'Email не підтверджено'
+  return 'Email ще не підтверджувався'
+})
+const resendLabel = computed(() => {
+  if (verification.state.sending) return 'Надсилаємо...'
+  if (verification.state.cooldownSeconds > 0) return `Ще раз через ${verification.state.cooldownSeconds} с`
+  return emailVerificationState.value === 'legacy_unknown' ? 'Підтвердити email' : 'Надіслати лист ще раз'
+})
 const canSubmitDataDeletionRequest = computed(() =>
   !dataDeletionRequest.value ||
   ['REJECTED', 'CANCELLED', 'EXECUTED'].includes(dataDeletionRequest.value.status)
@@ -611,7 +645,7 @@ function ensureCanonicalPaymentDetailsTab() {
   if (!hasLegacyHash || isCanonicalTab) return
 
   router.replace({
-    path: '/cabinet/settings',
+    path: isSpecialistAccount.value ? '/cabinet/settings' : '/client/settings',
     query: {
       ...route.query,
       tab: PAYMENT_DETAILS_TAB,
@@ -1074,6 +1108,31 @@ onMounted(() => {
 
 .account-email-change__success {
   color: var(--pc-success-text);
+}
+
+.account-email-change__verification-status {
+  width: fit-content;
+  margin: 10px 0 0;
+  padding: 5px 9px;
+  border: 1px solid var(--pc-border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-email-change__verification-status--verified {
+  color: var(--pc-success-text);
+  background: color-mix(in srgb, #dff4e7 82%, #ffffff);
+}
+
+.account-email-change__verification-status--unverified {
+  color: var(--pc-navy-900);
+  background: color-mix(in srgb, #f4e2ae 30%, #ffffff);
+}
+
+.account-email-change__verification-status--legacy_unknown {
+  color: var(--pc-text-muted);
+  background: #f8fafc;
 }
 
 .account-email-change__form {

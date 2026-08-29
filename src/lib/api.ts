@@ -8,14 +8,20 @@ type TokenResponse = {
   refresh?: string
 }
 
+export type EmailVerificationState = 'legacy_unknown' | 'unverified' | 'verified'
+
+export type AccountIdentity = {
+  id: number
+  username: string
+  email: string | null
+  role?: string | null
+  roles?: string[]
+  email_verification_state?: EmailVerificationState
+  email_verified_at?: string | null
+}
+
 type SignupResponse = TokenResponse & {
-  user: {
-    id: number
-    username: string
-    email: string | null
-    role: string
-    roles: string[]
-  }
+  user: AccountIdentity
 }
 
 export function getApiErrorMessage(err: unknown, fallback: string): string {
@@ -176,6 +182,25 @@ export async function confirmAccountEmailChange(
   return apiPost<AccountEmailChangeConfirmationResponse>(
     `/account/email-change/confirm/${encodeURIComponent(token)}/`
   )
+}
+
+export type AccountEmailVerificationResendResponse = {
+  status: 'verification_sent'
+  expires_at: string
+}
+
+export type AccountEmailVerificationConfirmationResponse = {
+  status: 'email_verified'
+}
+
+export async function resendAccountEmailVerification(): Promise<AccountEmailVerificationResendResponse> {
+  return apiPost<AccountEmailVerificationResendResponse>('/auth/email-verification/resend/', {})
+}
+
+export async function confirmAccountEmailVerification(
+  token: string
+): Promise<AccountEmailVerificationConfirmationResponse> {
+  return apiPost<AccountEmailVerificationConfirmationResponse>('/auth/email-verification/confirm/', { token })
 }
 
 export type OnboardingMissingItem = {
