@@ -23,10 +23,10 @@ import {
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
+captureEmailVerificationTokenFromLocation()
 app.use(router)
 
 const authStore = useAuthStore(pinia)
-captureEmailVerificationTokenFromLocation()
 captureSpecialistRegistrationFirstTouch()
 productAnalytics.setConsentPreference(getAnalyticsConsentPreference())
 captureClientAcquisitionContext()
