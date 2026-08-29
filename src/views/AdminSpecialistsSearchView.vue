@@ -5,7 +5,7 @@
         <div class="badge">Адмін</div>
         <h1 class="title admin-specialists-search__title">Спеціалісти</h1>
         <p class="muted admin-specialists-search__subtitle">
-          Знайдіть спеціаліста за email, логіном, слагом або ім’ям.
+          Усі спеціалісти Pro Consult та стан їхніх профілів.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/admin/inbox">До адмін-запитів</RouterLink>
@@ -14,8 +14,8 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Пошук</div>
-          <h2 class="panel__title">Пошук спеціалістів</h2>
+          <div class="badge badge--soft">Реєстр</div>
+          <h2 class="panel__title">Пошук у реєстрі спеціалістів</h2>
         </div>
       </div>
 
@@ -43,27 +43,58 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Результати</div>
-          <h2 class="panel__title">Список спеціалістів</h2>
+          <h2 class="panel__title">{{ isSearchActive ? 'Результати пошуку' : 'Усі спеціалісти' }}</h2>
         </div>
-        <div v-if="hasSearched && !loading && !error" class="muted">Знайдено: {{ results.length }}</div>
+        <div v-if="!loading && !error" class="muted">Спеціалістів: {{ results.length }}</div>
       </div>
 
       <div v-if="loading" class="muted">Завантаження…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <EmptyState
-        v-else-if="!hasSearched"
-        title="Почніть вводити запит для пошуку спеціалістів"
-        description="Знайдіть спеціаліста за email, логіном, слагом або ім’ям."
-      />
-      <EmptyState
         v-else-if="results.length === 0"
-        title="Нічого не знайдено"
-        description="Спробуйте інший запит."
+        :title="isSearchActive ? 'За запитом нічого не знайдено' : 'Реєстр спеціалістів поки порожній'"
+        :description="isSearchActive ? 'Спробуйте інший запит.' : 'Коли спеціалісти з’являться на платформі, вони будуть показані тут.'"
       />
+      <template v-else>
+        <div class="registry-filters" role="region" aria-label="Фільтри реєстру спеціалістів">
+          <label class="field registry-filters__field">
+            <span>Видимість профілю</span>
+            <select v-model="visibilityFilter" class="input">
+              <option value="all">Усі</option>
+              <option value="unpublished">Не опубліковано</option>
+              <option value="direct_link_only">За прямим посиланням</option>
+              <option value="search_visible">У пошуку</option>
+              <option value="invalid">Некоректний стан</option>
+            </select>
+          </label>
+          <label class="field registry-filters__field">
+            <span>Готовність</span>
+            <select v-model="readinessFilter" class="input">
+              <option value="all">Усі</option>
+              <option value="ready">Профіль готовий</option>
+              <option value="not_ready">Профіль не готовий</option>
+            </select>
+          </label>
+          <label class="field registry-filters__field">
+            <span>Фактичний тариф</span>
+            <select v-model="effectivePlanFilter" class="input">
+              <option value="all">Усі</option>
+              <option value="START">Start</option>
+              <option value="PRO">Pro</option>
+              <option value="LEADER">Leader</option>
+            </select>
+          </label>
+        </div>
+        <div class="muted registry-results-count">Показано: {{ filteredResults.length }} із {{ results.length }}</div>
+        <EmptyState
+          v-if="filteredResults.length === 0"
+          title="За активними фільтрами нічого не знайдено"
+          description="Змініть або скиньте фільтри, щоб побачити спеціалістів."
+        />
 
-      <div v-else class="results-list">
+        <div v-else class="results-list">
         <article
-          v-for="item in results"
+          v-for="item in filteredResults"
           :key="item.id"
           class="result-card"
           role="button"
@@ -132,12 +163,13 @@
           </div>
         </article>
       </div>
+      </template>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import EmptyState from '../components/EmptyState.vue'
 import {
@@ -152,9 +184,24 @@ const router = useRouter()
 const searchQuery = ref('')
 const loading = ref(false)
 const error = ref('')
-const hasSearched = ref(false)
+const isSearchActive = ref(false)
 const results = ref<AdminSpecialistSearchItem[]>([])
 const requestSeq = ref(0)
+const visibilityFilter = ref('all')
+const readinessFilter = ref('all')
+const effectivePlanFilter = ref('all')
+
+const filteredResults = computed(() => results.value.filter((item) => {
+  const visibility = String(item.crm_summary?.visibility?.state || '').trim()
+  const readiness = item.crm_summary?.readiness?.is_ready
+  const effectivePlan = String(item.effective_plan || '').trim().toUpperCase()
+
+  return (visibilityFilter.value === 'all' || visibility === visibilityFilter.value)
+    && (readinessFilter.value === 'all'
+      || (readinessFilter.value === 'ready' && readiness === true)
+      || (readinessFilter.value === 'not_ready' && readiness === false))
+    && (effectivePlanFilter.value === 'all' || effectivePlan === effectivePlanFilter.value)
+}))
 
 function firstQueryValue(value: unknown) {
   if (Array.isArray(value)) return value[0]
@@ -267,20 +314,14 @@ function openDetail(specialistId: number) {
 
 async function runSearch(rawQuery: string) {
   const query = rawQuery.trim()
-  if (!query) {
-    hasSearched.value = false
-    results.value = []
-    error.value = ''
-    return
-  }
 
   const seq = ++requestSeq.value
   loading.value = true
   error.value = ''
-  hasSearched.value = true
+  isSearchActive.value = Boolean(query)
 
   try {
-    const resp = await fetchAdminSpecialistSearch({ q: query, limit: 50 })
+    const resp = await fetchAdminSpecialistSearch(query ? { q: query, limit: 100 } : { limit: 100 })
     if (seq !== requestSeq.value) return
     results.value = resp.results || []
   } catch (err) {
@@ -308,16 +349,13 @@ async function submitSearch() {
 
 async function clearSearch() {
   searchQuery.value = ''
-  requestSeq.value += 1
-  loading.value = false
-  error.value = ''
-  hasSearched.value = false
-  results.value = []
   if (normalizedQuery(route.query.q)) {
     const nextQuery: LocationQueryRaw = { ...route.query }
     delete nextQuery.q
     await router.replace({ query: nextQuery })
+    return
   }
+  await runSearch('')
 }
 
 watch(
@@ -370,6 +408,21 @@ watch(
 .results-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.registry-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.registry-filters__field {
+  margin: 0;
+}
+
+.registry-results-count {
+  margin-bottom: 0.75rem;
 }
 
 .result-card {
@@ -491,6 +544,10 @@ watch(
   }
 
   .result-card__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .registry-filters {
     grid-template-columns: minmax(0, 1fr);
   }
 }

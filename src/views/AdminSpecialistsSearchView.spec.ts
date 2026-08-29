@@ -50,7 +50,7 @@ function buildSpecialist(
   }
 }
 
-async function renderView(initialPath = '/admin/specialists?q=olena') {
+async function renderView(initialPath = '/admin/specialists') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -97,12 +97,16 @@ describe('AdminSpecialistsSearchView', () => {
     })
   })
 
-  it('renders ready unpublished CRM summary without public profile action', async () => {
+  it('loads and renders the full registry on initial mount', async () => {
     await renderView()
 
     await waitFor(() => {
-      expect(mockedFetchAdminSpecialistSearch).toHaveBeenCalledWith({ q: 'olena', limit: 50 })
+      expect(mockedFetchAdminSpecialistSearch).toHaveBeenCalledWith({ limit: 100 })
     })
+
+    expect(await screen.findByRole('heading', { name: 'Олена К.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Усі спеціалісти' })).toBeInTheDocument()
+    expect(screen.getByText('Спеціалістів: 1')).toBeInTheDocument()
 
     const card = cardFor('Олена К.')
     expect(within(card).getByText('Профіль готовий')).toBeInTheDocument()
@@ -110,6 +114,83 @@ describe('AdminSpecialistsSearchView', () => {
     expect(within(card).getByText('Лист A: надіслано')).toBeInTheDocument()
     expect(within(card).getByText('Лист B: не зафіксовано')).toBeInTheDocument()
     expect(within(card).queryByRole('link', { name: 'Відкрити публічний профіль' })).not.toBeInTheDocument()
+  })
+
+  it('keeps q deep links as backend searches', async () => {
+    await renderView('/admin/specialists?q=olena')
+
+    await waitFor(() => {
+      expect(mockedFetchAdminSpecialistSearch).toHaveBeenCalledWith({ q: 'olena', limit: 100 })
+    })
+    expect(screen.getByRole('heading', { name: 'Результати пошуку' })).toBeInTheDocument()
+  })
+
+  it('submits a query and restores the full registry after clearing it', async () => {
+    const { router } = await renderView()
+    const input = screen.getByLabelText('Введіть email, логін, слаг або ім’я')
+
+    await fireEvent.update(input, 'maria')
+    await fireEvent.click(screen.getByRole('button', { name: 'Знайти' }))
+    await waitFor(() => {
+      expect(mockedFetchAdminSpecialistSearch).toHaveBeenLastCalledWith({ q: 'maria', limit: 100 })
+      expect(router.currentRoute.value.query.q).toBe('maria')
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Очистити' }))
+    await waitFor(() => {
+      expect(mockedFetchAdminSpecialistSearch).toHaveBeenLastCalledWith({ limit: 100 })
+      expect(router.currentRoute.value.query.q).toBeUndefined()
+    })
+    expect(screen.getByRole('heading', { name: 'Усі спеціалісти' })).toBeInTheDocument()
+  })
+
+  it('filters loaded results by readiness, visibility, and effective plan with a filtered count', async () => {
+    mockedFetchAdminSpecialistSearch.mockResolvedValue({
+      count: 3,
+      results: [
+        buildSpecialist(),
+        buildSpecialist({
+          id: 3,
+          username: 'maria',
+          display_name: 'Марія І.',
+          effective_plan: 'LEADER',
+          crm_summary: {
+            ...buildSpecialist().crm_summary!,
+            readiness: { is_ready: false, completed_count: 2, total_count: 6, missing_items: [] },
+            visibility: { state: 'search_visible', public_profile_path: '/s/maria' },
+          },
+        }),
+        buildSpecialist({
+          id: 4,
+          username: 'ira',
+          display_name: 'Ірина П.',
+          effective_plan: 'PRO',
+          crm_summary: {
+            ...buildSpecialist().crm_summary!,
+            visibility: { state: 'direct_link_only', public_profile_path: '/s/ira' },
+          },
+        }),
+      ],
+    })
+
+    await renderView()
+    await screen.findByRole('heading', { name: 'Олена К.' })
+    expect(screen.getByText('Показано: 3 із 3')).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Готовність'), 'not_ready')
+    expect(screen.getByText('Показано: 1 із 3')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Марія І.' })).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Готовність'), 'all')
+    await fireEvent.update(screen.getByLabelText('Видимість профілю'), 'direct_link_only')
+    expect(screen.getByText('Показано: 1 із 3')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Ірина П.' })).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Видимість профілю'), 'all')
+    await fireEvent.update(screen.getByLabelText('Фактичний тариф'), 'LEADER')
+    expect(screen.getByText('Показано: 1 із 3')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Марія І.' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Фільтри реєстру спеціалістів' })).toHaveClass('registry-filters')
   })
 
   it('renders incomplete direct-link summary and active public profile action', async () => {
@@ -304,7 +385,7 @@ describe('AdminSpecialistsSearchView', () => {
     expect(screen.getByText('Завантаження…')).toBeInTheDocument()
 
     resolveSearch({ count: 0, results: [] })
-    expect(await screen.findByText('Нічого не знайдено')).toBeInTheDocument()
+    expect(await screen.findByText('За запитом нічого не знайдено')).toBeInTheDocument()
 
     mockedFetchAdminSpecialistSearch.mockRejectedValueOnce(new Error('boom'))
     const input = screen.getByLabelText('Введіть email, логін, слаг або ім’я')
