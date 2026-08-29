@@ -1,19 +1,11 @@
 import { defineStore } from 'pinia'
 import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
-import type { ActiveClientEntitlement } from '../lib/api'
+import type { AccountIdentity, ActiveClientEntitlement } from '../lib/api'
 import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
 } from '../lib/registrationAttribution'
 import { productAnalytics, type SpecialistAnalyticsContext } from '../lib/productAnalytics'
-
-type AuthUser = {
-  id: number
-  username: string
-  email: string | null
-  role?: string | null
-  roles?: string[]
-}
 
 type Entitlements = {
   plan: string
@@ -34,7 +26,7 @@ type Counts = {
 }
 
 type MePayload = {
-  user: AuthUser
+  user: AccountIdentity
   access_state: string | null
   effective_entitlements: Entitlements | null
   counts: Counts | null
@@ -64,7 +56,7 @@ function isTerminalRefreshFailure(err: unknown) {
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: '' as string,
-    user: null as AuthUser | null,
+    user: null as AccountIdentity | null,
     me: null as MePayload | null,
     loading: false as boolean,
     error: '' as string,
@@ -98,7 +90,7 @@ export const useAuthStore = defineStore('auth', {
     setToken(token: string) {
       this.accessToken = token
     },
-    setUser(user: AuthUser | null) {
+    setUser(user: AccountIdentity | null) {
       this.user = user
     },
     setMe(payload: MePayload | null) {

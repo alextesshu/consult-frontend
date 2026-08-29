@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
 import AccountEmailChangeConfirmView from '../views/AccountEmailChangeConfirmView.vue'
+import VerifyEmailView from '../views/VerifyEmailView.vue'
 import SignupView from '../views/SignupView.vue'
 import ClientSignupView from '../views/ClientSignupView.vue'
 import ClientRecordAccountInviteView from '../views/ClientRecordAccountInviteView.vue'
@@ -87,6 +88,7 @@ const routes = [
     name: 'account-email-change-confirm',
     component: AccountEmailChangeConfirmView,
   },
+  { path: '/verify-email', name: 'verify-email', component: VerifyEmailView },
   { path: '/signup', name: 'signup', component: SignupView },
   { path: '/signup-client', name: 'signup-client', component: ClientSignupView },
   {
@@ -269,6 +271,12 @@ const routes = [
     name: 'cabinet-settings',
     component: SettingsHubView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/client/settings',
+    name: 'client-settings',
+    component: SettingsHubView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {
     path: '/cabinet/settings/notifications',

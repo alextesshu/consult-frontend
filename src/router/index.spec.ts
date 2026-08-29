@@ -82,6 +82,23 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.name).not.toBe('login')
   })
 
+  it('keeps email verification confirmation public and out of route params', async () => {
+    const resolved = router.resolve('/verify-email')
+    expect(resolved.name).toBe('verify-email')
+    expect(resolved.params).toEqual({})
+    expect(resolved.meta.requiresAuth).toBeUndefined()
+
+    await router.push('/verify-email')
+    expect(router.currentRoute.value.name).toBe('verify-email')
+  })
+
+  it('provides the existing settings hub to authenticated client accounts', () => {
+    const resolved = router.resolve('/client/settings')
+    expect(resolved.name).toBe('client-settings')
+    expect(resolved.meta.requiresAuth).toBe(true)
+    expect(resolved.meta.requiresRole).toBe('CLIENT')
+  })
+
   it('classifies neutral and specialist-owned public surfaces explicitly', () => {
     expect(router.resolve('/').meta.publicSurface).toBe('neutral')
     expect(router.resolve('/specialists').meta.publicSurface).toBe('neutral')

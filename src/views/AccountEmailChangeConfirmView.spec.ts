@@ -7,6 +7,8 @@ import { confirmAccountEmailChange } from '../lib/api'
 const mockRoute = reactive({ params: { token: 'verification-token' } })
 const mockAuthStore = {
   accessToken: '',
+  user: null as { roles?: string[] } | null,
+  me: null as { user: { roles?: string[] } } | null,
   loadMe: vi.fn(),
 }
 
@@ -41,6 +43,8 @@ describe('AccountEmailChangeConfirmView', () => {
   beforeEach(() => {
     mockRoute.params.token = 'verification-token'
     mockAuthStore.accessToken = ''
+    mockAuthStore.user = null
+    mockAuthStore.me = null
     mockAuthStore.loadMe.mockReset()
     mockedConfirmAccountEmailChange.mockReset()
   })
@@ -62,6 +66,7 @@ describe('AccountEmailChangeConfirmView', () => {
 
   it('refreshes me after authenticated confirmation', async () => {
     mockAuthStore.accessToken = 'access-token'
+    mockAuthStore.user = { roles: ['SPECIALIST'] }
     mockAuthStore.loadMe.mockResolvedValue(undefined)
     mockedConfirmAccountEmailChange.mockResolvedValue({ status: 'email_changed' })
     renderView()
@@ -71,6 +76,20 @@ describe('AccountEmailChangeConfirmView', () => {
     expect(screen.getByRole('link', { name: 'Повернутися до налаштувань' })).toHaveAttribute(
       'href',
       '/cabinet/settings'
+    )
+  })
+
+  it('returns an authenticated client to the shared client settings flow', async () => {
+    mockAuthStore.accessToken = 'access-token'
+    mockAuthStore.user = { roles: ['CLIENT'] }
+    mockAuthStore.loadMe.mockResolvedValue(undefined)
+    mockedConfirmAccountEmailChange.mockResolvedValue({ status: 'email_changed' })
+    renderView()
+
+    expect(await screen.findByText('Email акаунта успішно змінено.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Повернутися до налаштувань' })).toHaveAttribute(
+      'href',
+      '/client/settings'
     )
   })
 

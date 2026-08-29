@@ -4,6 +4,7 @@ import {
   getAnalyticsConsentPreference,
   type AnalyticsConsentPreference,
 } from './analyticsConsent'
+import { captureEmailVerificationTokenFromLocation } from './emailVerificationToken'
 
 export type ProductAnalyticsEvent =
   | 'landing_viewed'
@@ -349,6 +350,7 @@ export class ProductAnalytics {
     provider: ProductAnalyticsProvider = posthog as unknown as ProductAnalyticsProvider,
     preference: AnalyticsConsentPreference = getAnalyticsConsentPreference()
   ): boolean {
+    captureEmailVerificationTokenFromLocation()
     if (preference !== 'allowed' || !config.enabled) return false
     if (this.initialized) return true
     try {
