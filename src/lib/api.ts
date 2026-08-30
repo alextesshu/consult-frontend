@@ -753,6 +753,7 @@ export type AdminSpecialistSearchItem = {
   id: number
   username: string
   email: string | null
+  created_at: string
   display_name: string
   slug?: string | null
   public_profile_enabled: boolean
