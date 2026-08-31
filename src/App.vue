@@ -296,6 +296,7 @@
         },
       ]"
     >
+      <EmailVerificationNotice v-if="isAuthenticated && isAuthenticatedCabinetRoute && !useMinimalShell" />
       <div v-if="showSpecialistCabinetShell" class="specialist-shell">
         <aside class="specialist-sidebar" role="navigation" aria-label="Навігація кабінету спеціаліста">
           <div class="specialist-sidebar__label">Кабінет</div>
@@ -519,6 +520,7 @@ import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner.vue'
+import EmailVerificationNotice from './components/EmailVerificationNotice.vue'
 import { apiGet, fetchChatUnreadCount } from './lib/api'
 import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
 import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from './lib/entitlementReconcile'
@@ -539,6 +541,9 @@ const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
 const isTour = computed(() => route.path === '/tour')
 const isCabinetRoute = computed(() => route.path.startsWith('/cabinet'))
+const isAuthenticatedCabinetRoute = computed(
+  () => route.path.startsWith('/cabinet') || route.path.startsWith('/client')
+)
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
 const isAuthenticatedLayout = computed(

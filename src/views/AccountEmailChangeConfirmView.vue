@@ -7,7 +7,7 @@
 
       <template v-else-if="success">
         <p class="account-email-confirm__success">Email акаунта успішно змінено.</p>
-        <RouterLink v-if="isAuthenticated" class="btn" to="/cabinet/settings">Повернутися до налаштувань</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="btn" :to="settingsPath">Повернутися до налаштувань</RouterLink>
         <RouterLink v-else class="btn" to="/login">Увійти</RouterLink>
       </template>
 
@@ -26,6 +26,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { confirmAccountEmailChange } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
+import { hasSpecialistRole, normalizeUserRoles } from '../lib/entitlementReconcile'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -33,6 +34,11 @@ const loading = ref(true)
 const success = ref(false)
 const token = computed(() => String(route.params.token || '').trim())
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
+const settingsPath = computed(() =>
+  hasSpecialistRole(normalizeUserRoles(auth.me?.user ?? auth.user))
+    ? '/cabinet/settings'
+    : '/client/settings'
+)
 
 onMounted(async () => {
   if (!token.value) {

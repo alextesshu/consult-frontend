@@ -2,12 +2,14 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import SettingsHubView from './SettingsHubView.vue'
+import { resetAccountEmailVerificationForTests } from '../composables/useAccountEmailVerification'
 import {
   cancelDataDeletionRequest,
   createDataDeletionRequest,
   fetchCabinetPaymentDetails,
   fetchCurrentDataDeletionRequest,
   initiateAccountEmailChange,
+  resendAccountEmailVerification,
   updateCabinetPaymentDetails,
   type DataDeletionRequest,
 } from '../lib/api'
@@ -39,8 +41,9 @@ const mockAuthStore = {
     user: {
       username: 'specialist-login',
       email: 'specialist@example.test',
+      roles: ['SPECIALIST'],
     },
-  },
+  } as any,
   user: null,
 }
 
@@ -67,6 +70,7 @@ vi.mock('../lib/api', () => ({
   fetchCabinetPaymentDetails: vi.fn(),
   fetchCurrentDataDeletionRequest: vi.fn(),
   initiateAccountEmailChange: vi.fn(),
+  resendAccountEmailVerification: vi.fn(),
   updateCabinetPaymentDetails: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.response?.data?.detail || fallback),
 }))
@@ -76,6 +80,7 @@ const mockedCreateDataDeletionRequest = vi.mocked(createDataDeletionRequest)
 const mockedFetchCabinetPaymentDetails = vi.mocked(fetchCabinetPaymentDetails)
 const mockedFetchCurrentDataDeletionRequest = vi.mocked(fetchCurrentDataDeletionRequest)
 const mockedInitiateAccountEmailChange = vi.mocked(initiateAccountEmailChange)
+const mockedResendAccountEmailVerification = vi.mocked(resendAccountEmailVerification)
 const mockedUpdateCabinetPaymentDetails = vi.mocked(updateCabinetPaymentDetails)
 
 function paymentDetailsFixture(overrides: Record<string, unknown> = {}) {
@@ -136,6 +141,7 @@ function cardCard() {
 
 describe('SettingsHubView dual payment methods', () => {
   beforeEach(() => {
+    resetAccountEmailVerificationForTests()
     mockRoute.query = {}
     mockRoute.hash = ''
     mockRouter.replace.mockClear()
@@ -145,6 +151,7 @@ describe('SettingsHubView dual payment methods', () => {
       user: {
         username: 'specialist-login',
         email: 'specialist@example.test',
+        roles: ['SPECIALIST'],
       },
     }
     mockAuthStore.user = null
@@ -152,6 +159,7 @@ describe('SettingsHubView dual payment methods', () => {
     mockedFetchCabinetPaymentDetails.mockReset()
     mockedFetchCurrentDataDeletionRequest.mockReset()
     mockedInitiateAccountEmailChange.mockReset()
+    mockedResendAccountEmailVerification.mockReset()
     mockedUpdateCabinetPaymentDetails.mockReset()
     mockedCreateDataDeletionRequest.mockReset()
     mockedCancelDataDeletionRequest.mockReset()
@@ -161,6 +169,38 @@ describe('SettingsHubView dual payment methods', () => {
     mockToast.warning.mockReset()
     mockToast.info.mockReset()
     mockedFetchCurrentDataDeletionRequest.mockResolvedValue(null)
+  })
+
+  it('shows canonical unverified email state and reuses resend cooldown behavior', async () => {
+    mockAuthStore.me.user.email_verification_state = 'unverified'
+    mockedResendAccountEmailVerification.mockResolvedValue({
+      status: 'verification_sent',
+      expires_at: '2026-08-29T12:00:00Z',
+    })
+    const view = renderView()
+    await waitFor(() => expect(mockedFetchCurrentDataDeletionRequest).toHaveBeenCalledTimes(1))
+    const settings = within(view.container as HTMLElement)
+    await waitFor(() =>
+      expect(settings.getByTestId('email-verification-status')).toHaveClass(
+        'account-email-change__verification-status--unverified'
+      )
+    )
+    await fireEvent.click(settings.getByTestId('email-verification-resend'))
+    await waitFor(() => expect(mockedResendAccountEmailVerification).toHaveBeenCalledTimes(1))
+    expect(settings.getByTestId('email-verification-resend')).toBeDisabled()
+  })
+
+  it('shows neutral legacy state without calling it verified', async () => {
+    mockAuthStore.me.user.email_verification_state = 'legacy_unknown'
+    const view = renderView()
+    await waitFor(() => expect(mockedFetchCurrentDataDeletionRequest).toHaveBeenCalledTimes(1))
+    const settings = within(view.container as HTMLElement)
+    await waitFor(() =>
+      expect(settings.getByTestId('email-verification-status')).toHaveClass(
+        'account-email-change__verification-status--legacy_unknown'
+      )
+    )
+    expect(settings.getByTestId('email-verification-resend')).toBeInTheDocument()
   })
 
   it('shows dedicated Реквізити tab in settings navigation', async () => {

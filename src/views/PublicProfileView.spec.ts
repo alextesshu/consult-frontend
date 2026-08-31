@@ -36,8 +36,8 @@ const mockRouter = {
 
 const mockAuth = reactive({
   accessToken: '',
-  user: null as null | { id?: number; roles: string[] },
-  me: null as null | { user: { id?: number; roles: string[] } },
+  user: null as null | { id?: number; roles: string[]; email_verification_state?: string },
+  me: null as null | { user: { id?: number; roles: string[]; email_verification_state?: string } },
   authResolved: true,
 })
 
@@ -3073,6 +3073,22 @@ describe('PublicProfileView', () => {
     )
     expect(sessionStorage.getItem('proconsult.client_acquisition_first_touch.v1')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Запит на сесію' })).not.toBeInTheDocument()
+  })
+
+  it('prevents an unverified client from starting a direct booking without touching guest flow', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'], email_verification_state: 'unverified' } }
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+
+    expect(await screen.findByText('Спочатку підтвердьте email акаунта, щоб забронювати консультацію.')).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalledWith('/booking/sessions/', expect.anything())
   })
 
   it('blocks double-submit while client booking confirmation is in progress', async () => {

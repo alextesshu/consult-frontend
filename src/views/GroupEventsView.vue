@@ -442,6 +442,7 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
+import { emailVerificationRequiredMessage } from '../lib/emailVerification'
 
 type GroupEvent = {
   id: number
@@ -686,7 +687,7 @@ function updateEvent(updated: GroupEvent) {
 
 function extractError(err: any, fallback: string) {
   const data = err?.response?.data
-  return data?.detail || data?.code || fallback
+  return emailVerificationRequiredMessage(err, data?.detail || data?.code || fallback)
 }
 
 function toIso(value: string) {

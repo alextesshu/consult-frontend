@@ -27,6 +27,18 @@ function isEnableSpecialistEndpoint(url: string) {
   return url.includes('/auth/enable-specialist/')
 }
 
+function isEmailVerificationResendEndpoint(url: string) {
+  return url.includes('/auth/email-verification/resend/')
+}
+
+function isPublicAuthEndpoint(url: string) {
+  return (
+    url.includes('/auth/') &&
+    !isEnableSpecialistEndpoint(url) &&
+    !isEmailVerificationResendEndpoint(url)
+  )
+}
+
 export const http = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
@@ -73,7 +85,7 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
   const auth = useAuthStore()
   const url = config.url || ''
-  const isAuthEndpoint = url.includes('/auth/') && !isEnableSpecialistEndpoint(url)
+  const isAuthEndpoint = isPublicAuthEndpoint(url)
   const token = auth.accessToken || ''
   if (!isAuthEndpoint && token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -91,7 +103,7 @@ http.interceptors.response.use(
     }
 
     const url = original?.url || ''
-    const isAuthEndpoint = url.includes('/auth/') && !isEnableSpecialistEndpoint(url)
+    const isAuthEndpoint = isPublicAuthEndpoint(url)
     if (!isAuthEndpoint && error.response?.status === 401) {
       original._retry = true
       if (!refreshPromise) {

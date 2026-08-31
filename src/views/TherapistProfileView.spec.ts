@@ -34,6 +34,10 @@ const PROFILE_SUBTITLE_COPY =
 const LEGACY_PROFILE_SUBTITLE_COPY =
   'Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.'
 const scrollIntoViewSpy = vi.fn()
+const mockAuthStore = {
+  user: { email_verification_state: 'legacy_unknown' },
+  me: null,
+}
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
@@ -78,6 +82,10 @@ vi.mock('../lib/productAnalytics', () => ({
   productAnalytics: {
     capture: vi.fn(),
   },
+}))
+
+vi.mock('../stores/auth', () => ({
+  useAuthStore: () => mockAuthStore,
 }))
 
 const mockedCreateProfileDocument = vi.mocked(createProfileDocument)
@@ -283,6 +291,8 @@ function setClipboard(writeText?: (value: string) => Promise<void>) {
 
 describe('TherapistProfileView', () => {
   beforeEach(() => {
+    mockAuthStore.user = { email_verification_state: 'legacy_unknown' }
+    mockAuthStore.me = null
     mockRoute.query = {}
     setClipboard()
     vi.restoreAllMocks()
@@ -1135,6 +1145,22 @@ describe('TherapistProfileView', () => {
     expect(productAnalytics.capture).toHaveBeenCalledWith('profile_publish_failed', {
       error_code: 'server',
     })
+  })
+
+  it('does not let an unverified specialist begin public profile publication', async () => {
+    mockAuthStore.user = { email_verification_state: 'unverified' }
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_profile_enabled: false,
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Опублікувати сторінку' }))
+
+    expect(screen.getByText('Спочатку підтвердьте email акаунта, щоб опублікувати профіль.')).toBeInTheDocument()
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
   })
 
   it('emits canonical readiness transitions only after a successful saved response', async () => {
