@@ -302,23 +302,14 @@ describe('PublicTherapistsView', () => {
     expect(screen.getByRole('link', { name: '← На головну' })).toHaveAttribute('href', '/')
   })
 
-  it('uses global pagination controls and focuses only after explicit navigation', async () => {
-    const focus = vi.spyOn(HTMLElement.prototype, 'focus')
-    const scroll = vi.fn()
-    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
-      configurable: true,
-      value: scroll,
-    })
-    discovery
-      .mockResolvedValueOnce(response({ page: 1, total: 24, total_pages: 2 }))
-      .mockResolvedValueOnce(response({ page: 2, total: 24, total_pages: 2 }))
+  it('does not render pagination even when the API reports more than one page', async () => {
+    discovery.mockResolvedValue(response({ page: 1, page_size: 50, total: 51, total_pages: 2 }))
     await renderView()
-    expect(screen.getByRole('button', { name: 'Попередня' })).toBeDisabled()
-    await fireEvent.click(screen.getByRole('button', { name: 'Наступна' }))
-    await waitFor(() => expect(discovery).toHaveBeenLastCalledWith({ page: 2 }))
-    await waitFor(() => expect(focus).toHaveBeenCalled())
-    expect(scroll).toHaveBeenCalled()
-    focus.mockRestore()
+
+    expect(await screen.findByRole('heading', { name: '51 спеціаліст' })).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Сторінки каталогу' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Попередня' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Наступна' })).not.toBeInTheDocument()
   })
 
   it('does not focus results after format, reset, or history changes', async () => {
