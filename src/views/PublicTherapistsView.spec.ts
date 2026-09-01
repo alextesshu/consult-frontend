@@ -1,23 +1,39 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fetchPublicSpecialistDiscovery, fetchPublicSpecialists, getPublicSpecialistDiscoveryError } from '../lib/api'
 import PublicTherapistsView from './PublicTherapistsView.vue'
 import { productAnalytics } from '../lib/productAnalytics'
 
+const discoveryMocks = vi.hoisted(() => {
+  const discovery = vi.fn()
+  return {
+    discovery,
+    legacy: vi.fn(),
+    discoveryError: vi.fn(),
+    rotatedDiscovery: vi.fn((params: Record<string, unknown>) => {
+      const { shuffle_seed: _shuffleSeed, ...legacyParams } = params
+      return discovery(legacyParams)
+    }),
+  }
+})
+
 vi.mock('../lib/api', () => ({
-  fetchPublicSpecialistDiscovery: vi.fn(),
-  fetchPublicSpecialists: vi.fn(),
-  getPublicSpecialistDiscoveryError: vi.fn(),
+  fetchPublicSpecialistDiscovery: discoveryMocks.discovery,
+  fetchPublicSpecialists: discoveryMocks.legacy,
+  getPublicSpecialistDiscoveryError: discoveryMocks.discoveryError,
+}))
+
+vi.mock('../lib/specialistDiscoveryApi', () => ({
+  fetchRotatedPublicSpecialistDiscovery: discoveryMocks.rotatedDiscovery,
 }))
 
 vi.mock('../lib/productAnalytics', () => ({
   productAnalytics: { capture: vi.fn() },
 }))
 
-const discovery = vi.mocked(fetchPublicSpecialistDiscovery)
-const legacy = vi.mocked(fetchPublicSpecialists)
-const discoveryError = vi.mocked(getPublicSpecialistDiscoveryError)
+const discovery = discoveryMocks.discovery
+const legacy = discoveryMocks.legacy
+const discoveryError = discoveryMocks.discoveryError
 
 const item = {
   slug: 'olena',
@@ -72,6 +88,7 @@ describe('PublicTherapistsView', () => {
   beforeEach(() => {
     discovery.mockReset()
     discovery.mockResolvedValue(response())
+    discoveryMocks.rotatedDiscovery.mockClear()
     legacy.mockReset()
     discoveryError.mockReset()
     discoveryError.mockReturnValue(null)
