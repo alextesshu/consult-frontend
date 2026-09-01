@@ -167,7 +167,7 @@ describe('PublicTherapistsView', () => {
 
     const requestGroups = screen.getAllByRole('radio', { name: /Емоційний стан|Стосунки та сім’я|Інший запит/ })
     expect(requestGroups.every((radio) => radio.getAttribute('name') === 'specialist-request-group')).toBe(true)
-    expect(requestGroups.map((radio) => radio.getAttribute('value')).toContain('emotional_state'))
+    expect(requestGroups.map((radio) => radio.getAttribute('value'))).toContain('emotional_state')
     expect(requestGroups).not.toHaveLength(0)
     expect(requestGroups[0]!.closest('.request-group-controls__desktop')).not.toBeNull()
 
