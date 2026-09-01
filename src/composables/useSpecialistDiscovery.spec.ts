@@ -1,17 +1,32 @@
 import { defineComponent, nextTick, unref } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fetchPublicSpecialistDiscovery, getPublicSpecialistDiscoveryError } from '../lib/api'
+import { enableAutoUnmount, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getPublicSpecialistDiscoveryError } from '../lib/api'
+import { fetchRotatedPublicSpecialistDiscovery } from '../lib/specialistDiscoveryApi'
+import { createSpecialistDiscoveryShuffleSeed } from '../lib/specialistDiscoveryRotation'
 import { useSpecialistDiscovery } from './useSpecialistDiscovery'
 
 vi.mock('../lib/api', () => ({
-  fetchPublicSpecialistDiscovery: vi.fn(),
   getPublicSpecialistDiscoveryError: vi.fn(),
 }))
+vi.mock('../lib/specialistDiscoveryApi', () => ({
+  fetchRotatedPublicSpecialistDiscovery: vi.fn(),
+}))
+vi.mock('../lib/specialistDiscoveryRotation', () => ({
+  createSpecialistDiscoveryShuffleSeed: vi.fn(),
+}))
 
-const mockedFetch = vi.mocked(fetchPublicSpecialistDiscovery)
+enableAutoUnmount(afterEach)
+
+const mockedFetch = vi.mocked(fetchRotatedPublicSpecialistDiscovery)
 const mockedError = vi.mocked(getPublicSpecialistDiscoveryError)
+const mockedSeed = vi.mocked(createSpecialistDiscoveryShuffleSeed)
+const DEFAULT_SEED = 'seed-a'
+
+function withSeed(params: Record<string, unknown> = {}) {
+  return { shuffle_seed: DEFAULT_SEED, ...params }
+}
 
 function directoryResponse(overrides: Record<string, unknown> = {}) {
   return {
@@ -71,15 +86,19 @@ describe('useSpecialistDiscovery', () => {
     mockedFetch.mockResolvedValue(directoryResponse())
     mockedError.mockReset()
     mockedError.mockReturnValue(null)
+    mockedSeed.mockReset()
+    mockedSeed.mockReturnValue(DEFAULT_SEED)
   })
 
-  it('loads the default and format-only open directory', async () => {
-    await mountComposable()
-    expect(mockedFetch).toHaveBeenCalledWith({})
+  it('loads the default and format-only open directory with an ephemeral seed', async () => {
+    const first = await mountComposable()
+    expect(mockedFetch).toHaveBeenCalledWith(withSeed())
+    expect(first.router.currentRoute.value.query).toEqual({})
 
     mockedFetch.mockClear()
-    await mountComposable('/specialists?format=online')
-    expect(mockedFetch).toHaveBeenCalledWith({ format: 'online' })
+    const second = await mountComposable('/specialists?format=online')
+    expect(mockedFetch).toHaveBeenCalledWith(withSeed({ format: 'online' }))
+    expect(second.router.currentRoute.value.fullPath).toBe('/specialists?format=online')
   })
 
   it('restores the approved landing preset and keeps format variants on its pathname', async () => {
@@ -87,7 +106,7 @@ describe('useSpecialistDiscovery', () => {
 
     expect(state.direction.value).toBe('psychological_support')
     expect(state.mode.value).toBe('direction')
-    expect(mockedFetch).toHaveBeenLastCalledWith({ direction: 'psychological_support', format: 'online' })
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ direction: 'psychological_support', format: 'online' }))
     expect(router.currentRoute.value.fullPath).toBe('/specialists/psychological-support?format=online')
   })
 
@@ -106,10 +125,10 @@ describe('useSpecialistDiscovery', () => {
     const { state } = await mountComposable('/specialists?q=тривога&request_group=emotional_state')
     state.queryDraft.value = 'вигорання'
     await state.setRequestGroup('relationships_family')
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога', request_group: 'relationships_family' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога', request_group: 'relationships_family' })))
 
     await state.setPage(2)
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога', request_group: 'relationships_family', page: 2 }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога', request_group: 'relationships_family', page: 2 })))
   })
 
   it('validates short and long local queries without requests', async () => {
@@ -130,11 +149,11 @@ describe('useSpecialistDiscovery', () => {
     const { state } = await mountComposable()
     state.queryDraft.value = 'тривога'
     await state.submitQuery()
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога' })))
 
     await state.setMode('direction')
     await settle()
-    expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога' })
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога' }))
     expect(state.appliedQuery.value).toBe('')
     expect(state.requestGroup.value).toBeNull()
     expect(unref(state.mode)).toBe('direction')
@@ -145,7 +164,7 @@ describe('useSpecialistDiscovery', () => {
     const { router, state } = await mountComposable('/specialists?q=тривога&format=online&page=2')
     await state.reset()
     await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists'))
-    expect(mockedFetch).toHaveBeenLastCalledWith({})
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed())
   })
 
   it.each([
@@ -160,7 +179,7 @@ describe('useSpecialistDiscovery', () => {
     const { router } = await mountComposable(path)
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual(expectedQuery))
     expect(mockedFetch).toHaveBeenCalledTimes(expectedFetchCount)
-    if (expectedFetchCount) expect(mockedFetch).toHaveBeenLastCalledWith({})
+    if (expectedFetchCount) expect(mockedFetch).toHaveBeenLastCalledWith(withSeed())
   })
 
   it('preserves format while pending, fetches once after direction selection, and returns to open directory', async () => {
@@ -175,10 +194,10 @@ describe('useSpecialistDiscovery', () => {
 
     await state.setDirection('psychological_support')
     await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(1))
-    expect(mockedFetch).toHaveBeenLastCalledWith({ direction: 'psychological_support', format: 'online' })
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ direction: 'psychological_support', format: 'online' }))
 
     await state.setMode('request')
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ format: 'online' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ format: 'online' })))
   })
 
   it('clears stale responses in pending direction and reset restores the open directory', async () => {
@@ -196,7 +215,7 @@ describe('useSpecialistDiscovery', () => {
 
     await state.reset()
     await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists'))
-    expect(mockedFetch).toHaveBeenLastCalledWith({})
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed())
   })
 
   it('uses the same request-group transition for selection and clearing without applying the draft', async () => {
@@ -204,11 +223,11 @@ describe('useSpecialistDiscovery', () => {
     state.queryDraft.value = 'вигорання'
 
     await state.setRequestGroup('relationships_family')
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога', request_group: 'relationships_family' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога', request_group: 'relationships_family' })))
     expect(state.appliedQuery.value).toBe('тривога')
 
     await state.setRequestGroup(null)
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога' })))
     expect(state.queryDraft.value).toBe('вигорання')
   })
 
@@ -216,12 +235,12 @@ describe('useSpecialistDiscovery', () => {
     const { router, state } = await mountComposable()
     mockedFetch.mockClear()
     await router.push('/specialists?q=тривога&format=online')
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledWith({ q: 'тривога', format: 'online' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledWith(withSeed({ q: 'тривога', format: 'online' })))
     expect(state.appliedQuery.value).toBe('тривога')
 
     mockedFetch.mockClear()
     await router.push('/specialists?direction=psychological_support')
-    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith({ direction: 'psychological_support' }))
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ direction: 'psychological_support' })))
     expect(unref(state.mode)).toBe('direction')
   })
 
@@ -257,7 +276,7 @@ describe('useSpecialistDiscovery', () => {
 
     mockedFetch.mockResolvedValueOnce(directoryResponse({ total: 3 }))
     await state.retry()
-    expect(mockedFetch).toHaveBeenLastCalledWith({})
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed())
     expect(state.response.value?.total).toBe(3)
   })
 
@@ -268,7 +287,7 @@ describe('useSpecialistDiscovery', () => {
       .mockResolvedValueOnce(directoryResponse({ page: 2, total: 13, total_pages: 2 }))
     const { router } = await mountComposable('/specialists?q=тривога&page=3')
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual({ q: 'тривога', page: '2' }))
-    expect(mockedFetch).toHaveBeenLastCalledWith({ q: 'тривога', page: 2 })
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ q: 'тривога', page: 2 }))
 
     mockedFetch.mockReset()
     mockedFetch
@@ -276,7 +295,7 @@ describe('useSpecialistDiscovery', () => {
       .mockResolvedValueOnce(directoryResponse())
     await router.push('/specialists?page=4')
     await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/specialists'))
-    expect(mockedFetch).toHaveBeenLastCalledWith({})
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed())
   })
 
   it('raises focus only for an explicit pagination action', async () => {
@@ -287,11 +306,37 @@ describe('useSpecialistDiscovery', () => {
     const { state } = await mountComposable()
     await state.setPage(2)
     await vi.waitFor(() => expect(state.focusResultsAfterPagination.value).toBe(true))
+    expect(mockedFetch).toHaveBeenLastCalledWith(withSeed({ page: 2 }))
     state.consumeFocusResultsAfterPagination()
     expect(state.focusResultsAfterPagination.value).toBe(false)
 
     await state.setFormat('online')
     await settle()
     expect(state.focusResultsAfterPagination.value).toBe(false)
+  })
+
+  it('reuses the same seed for retry and route-driven filter changes', async () => {
+    const { router, state } = await mountComposable()
+    mockedFetch.mockClear()
+
+    await state.retry()
+    await state.setFormat('online')
+    await state.setPage(2)
+
+    expect(mockedFetch.mock.calls.every(([params]) => params.shuffle_seed === DEFAULT_SEED)).toBe(true)
+    expect(router.currentRoute.value.query).toEqual({ format: 'online', page: '2' })
+    expect('shuffle_seed' in router.currentRoute.value.query).toBe(false)
+  })
+
+  it('generates a fresh seed for each composable instance', async () => {
+    mockedSeed.mockReset()
+    mockedSeed.mockReturnValueOnce('seed-first').mockReturnValueOnce('seed-second')
+    mockedFetch.mockClear()
+
+    await mountComposable()
+    await mountComposable()
+
+    expect(mockedFetch.mock.calls[0]?.[0].shuffle_seed).toBe('seed-first')
+    expect(mockedFetch.mock.calls[1]?.[0].shuffle_seed).toBe('seed-second')
   })
 })

@@ -1,7 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import {
-  fetchPublicSpecialistDiscovery,
   getPublicSpecialistDiscoveryError,
   type PublicSpecialistDiscoveryError,
   type PublicSpecialistDiscoveryResponse,
@@ -10,6 +9,8 @@ import {
   type SpecialistDiscoveryMode,
   type SpecialistDiscoveryRequestGroup,
 } from '../lib/api'
+import { fetchRotatedPublicSpecialistDiscovery } from '../lib/specialistDiscoveryApi'
+import { createSpecialistDiscoveryShuffleSeed } from '../lib/specialistDiscoveryRotation'
 import { PSYCHOLOGICAL_SUPPORT_LANDING } from '../lib/specialistDiscoveryLanding'
 
 export const REQUEST_GROUP_OPTIONS: ReadonlyArray<{
@@ -134,6 +135,7 @@ function toLandingQuery(state: DiscoveryRouteState): LocationQueryRaw {
 export function useSpecialistDiscovery() {
   const route = useRoute()
   const router = useRouter()
+  const shuffleSeed = createSpecialistDiscoveryShuffleSeed()
   const mode = ref<SpecialistDiscoveryMode>('request')
   const queryDraft = ref('')
   const appliedQuery = ref('')
@@ -159,6 +161,7 @@ export function useSpecialistDiscovery() {
     () => Boolean(appliedQuery.value || requestGroup.value || direction.value || format.value)
   )
   const requestParams = computed(() => ({
+    shuffle_seed: shuffleSeed,
     ...(mode.value === 'request' && appliedQuery.value ? { q: appliedQuery.value } : {}),
     ...(mode.value === 'request' && requestGroup.value ? { request_group: requestGroup.value } : {}),
     ...(mode.value === 'direction' && direction.value ? { direction: direction.value } : {}),
@@ -194,7 +197,7 @@ export function useSpecialistDiscovery() {
     requestError.value = ''
     fieldError.value = null
     try {
-      const nextResponse = await fetchPublicSpecialistDiscovery(requestParams.value)
+      const nextResponse = await fetchRotatedPublicSpecialistDiscovery(requestParams.value)
       if (sequence !== requestSequence) return
       if (nextResponse.total_pages === 0 && page.value !== 1) {
         await replaceState({ ...currentState(), page: 1 })
