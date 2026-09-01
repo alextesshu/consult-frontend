@@ -104,7 +104,7 @@
       <template v-else>
         <div class="results__header">
           <div>
-            <h2 ref="resultsHeading" tabindex="-1">{{ specialistCount(response?.total ?? 0) }}</h2>
+            <h2>{{ specialistCount(response?.total ?? 0) }}</h2>
             <p class="muted">Порядок результатів не є рейтингом.</p>
           </div>
         </div>
@@ -127,12 +127,6 @@
             </div>
           </section>
         </template>
-
-        <nav v-if="response && response.total_pages > 1" class="pagination" aria-label="Сторінки каталогу">
-          <button class="btn btn--ghost" type="button" :disabled="response.page <= 1" @click="setPage(response.page - 1)">Попередня</button>
-          <span>Сторінка {{ response.page }} з {{ response.total_pages }}</span>
-          <button class="btn btn--ghost" type="button" :disabled="response.page >= response.total_pages" @click="setPage(response.page + 1)">Наступна</button>
-        </nav>
       </template>
     </section>
 
@@ -140,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
 import PublicSpecialistCard from '../components/PublicSpecialistCard.vue'
@@ -162,8 +156,7 @@ const landing = computed(() => (
 const isPsychologicalSupportLanding = computed(() => Boolean(landing.value))
 markClientAcquisitionDiscoveryUsed()
 productAnalytics.capture('specialist_discovery_opened')
-const { mode, queryDraft, requestGroup, direction, format, response, loading, fieldError, requestError, hasActiveSearch, focusResultsAfterPagination, isPendingDirection, submitQuery, setMode, setRequestGroup, setDirection, setFormat, setPage, reset, retry, consumeFocusResultsAfterPagination } = discovery
-const resultsHeading = ref<HTMLElement | null>(null)
+const { mode, queryDraft, requestGroup, direction, format, response, loading, fieldError, requestError, hasActiveSearch, isPendingDirection, submitQuery, setMode, setRequestGroup, setDirection, setFormat, reset, retry } = discovery
 const legacyQuery = ref('')
 const legacyLoading = ref(false)
 const legacyError = ref(false)
@@ -263,14 +256,6 @@ async function submitLegacySearch() {
 
 async function retryLegacySearch() { await runLegacySearch(legacyLastQuery.value || normalizeLegacyQuery(legacyQuery.value)) }
 
-watch(focusResultsAfterPagination, async (shouldFocus) => {
-  if (!shouldFocus) return
-  await nextTick()
-  resultsHeading.value?.focus()
-  resultsHeading.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  consumeFocusResultsAfterPagination()
-})
-
 watch(response, (nextResponse) => {
   if (!nextResponse || !nextResponse.groups.some((group) => group.items.length > 0)) return
   const stateKey = route.fullPath
@@ -286,7 +271,7 @@ onBeforeUnmount(resetPublicPageMetadata)
 <style scoped>
 .discovery-page { display: grid; gap: 20px; min-width: 0; }
 .discovery-page__hero, .discovery-controls, .legacy-lookup { border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; padding: 22px 24px; min-width: 0; }
-.discovery-page__hero, .results__header, .result-group__header, .active-search, .pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.discovery-page__hero, .results__header, .result-group__header, .active-search { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .discovery-page__hero .title, .result-group h2, .results h2 { margin: 0; }
 .discovery-controls, .control-group, .query-form, .result-group, .results { display: grid; gap: 12px; min-width: 0; }
 .control-group { margin: 0; padding: 0; border: 0; }
@@ -304,7 +289,6 @@ onBeforeUnmount(resetPublicPageMetadata)
 .direction-pending { margin: 0; max-width: 52ch; }
 .result-group { padding-top: 4px; }
 .result-list { display: grid; gap: 14px; }
-.pagination { justify-content: center; flex-wrap: wrap; }
 .legacy-lookup summary { cursor: pointer; font-weight: 700; }
 .legacy-lookup__content { display: grid; gap: 14px; margin-top: 16px; }
 @media (max-width: 720px) {
