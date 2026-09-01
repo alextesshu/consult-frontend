@@ -187,7 +187,7 @@ describe('PublicTherapistsView', () => {
     await fireEvent.click(screen.getByRole('radio', { name: 'За професійним напрямом' }))
     const directions = await screen.findAllByRole('radio', { name: /Наставництво та розвиток|Навчання та професійний супровід/ })
     expect(directions.every((radio) => radio.getAttribute('name') === 'specialist-direction')).toBe(true)
-    expect(directions.map((radio) => radio.getAttribute('value')).toContain('development_guidance')
+    expect(directions.map((radio) => radio.getAttribute('value'))).toContain('development_guidance')
     expect(screen.getByRole('link', { name: 'Психологічна допомога' })).toHaveAttribute('href', '/specialists/psychological-support')
   })
 
