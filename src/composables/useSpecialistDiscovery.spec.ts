@@ -1,7 +1,7 @@
 import { defineComponent, nextTick, unref } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPublicSpecialistDiscoveryError } from '../lib/api'
 import { fetchRotatedPublicSpecialistDiscovery } from '../lib/specialistDiscoveryApi'
 import { createSpecialistDiscoveryShuffleSeed } from '../lib/specialistDiscoveryRotation'
@@ -16,6 +16,8 @@ vi.mock('../lib/specialistDiscoveryApi', () => ({
 vi.mock('../lib/specialistDiscoveryRotation', () => ({
   createSpecialistDiscoveryShuffleSeed: vi.fn(),
 }))
+
+enableAutoUnmount(afterEach)
 
 const mockedFetch = vi.mocked(fetchRotatedPublicSpecialistDiscovery)
 const mockedError = vi.mocked(getPublicSpecialistDiscoveryError)
