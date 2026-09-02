@@ -1462,6 +1462,7 @@ import {
   type PublicProfileReadiness,
   type SpecialistProfileDocument,
   type SpecialistProfile,
+  type SpecialistProfileRequestGroup,
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ProfileVisibilityControl from '../components/ProfileVisibilityControl.vue'
@@ -1576,19 +1577,7 @@ const experienceOptions = Array.from({ length: 31 }, (_, value) => ({
 }))
 const standardDurationOptions = [30, 40, 50, 60, 75, 90]
 
-type RequestGroupCode =
-  | 'emotional_state'
-  | 'relationships_family'
-  | 'self_esteem_change'
-  | 'work_career_burnout'
-  | 'loss_life_changes'
-  | 'professional_development'
-
-type SpecialistProfileWithRequestGroups = SpecialistProfile & {
-  request_groups?: unknown
-}
-
-const requestGroupOptions: Array<{ value: RequestGroupCode; label: string }> = [
+const requestGroupOptions: Array<{ value: SpecialistProfileRequestGroup; label: string }> = [
   { value: 'emotional_state', label: 'Емоційний стан' },
   { value: 'relationships_family', label: 'Стосунки та сім’я' },
   { value: 'self_esteem_change', label: 'Самооцінка та особисті зміни' },
@@ -1596,7 +1585,7 @@ const requestGroupOptions: Array<{ value: RequestGroupCode; label: string }> = [
   { value: 'loss_life_changes', label: 'Втрата та життєві зміни' },
   { value: 'professional_development', label: 'Професійний розвиток і навчання' },
 ]
-const requestGroupCodes = new Set<RequestGroupCode>(
+const requestGroupCodes = new Set<SpecialistProfileRequestGroup>(
   requestGroupOptions.map((option) => option.value)
 )
 
@@ -1607,7 +1596,7 @@ const specializationList = ref<string[]>([])
 const showOtherSpecialization = ref(false)
 const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set<string>()
-const requestGroups = ref<RequestGroupCode[]>([])
+const requestGroups = ref<SpecialistProfileRequestGroup[]>([])
 const selectedWorkBoundariesSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
 const educationItemsText = ref('')
 const professionalDevelopmentItemsText = ref('')
@@ -1629,17 +1618,18 @@ function toStringList(value: unknown): string[] {
     .filter(Boolean)
 }
 
-function normalizeRequestGroups(value: unknown): RequestGroupCode[] {
+function normalizeRequestGroups(value: unknown): SpecialistProfileRequestGroup[] {
   return toStringList(value).filter(
-    (code): code is RequestGroupCode => requestGroupCodes.has(code as RequestGroupCode)
+    (code): code is SpecialistProfileRequestGroup =>
+      requestGroupCodes.has(code as SpecialistProfileRequestGroup)
   )
 }
 
-function isRequestGroupSelected(code: RequestGroupCode): boolean {
+function isRequestGroupSelected(code: SpecialistProfileRequestGroup): boolean {
   return requestGroups.value.includes(code)
 }
 
-function toggleRequestGroup(code: RequestGroupCode) {
+function toggleRequestGroup(code: SpecialistProfileRequestGroup) {
   requestGroups.value = requestGroups.value.includes(code)
     ? requestGroups.value.filter((value) => value !== code)
     : [...requestGroups.value, code]
@@ -2324,6 +2314,7 @@ const profile = reactive<SpecialistProfile>({
   bio_work: '',
   bio_approach: '',
   bio_for_whom: '',
+  request_groups: [],
   bio_other: '',
   education_summary: '',
   education_items: [],
@@ -2945,7 +2936,7 @@ type ProfileFormSnapshot = {
   bio_work: string
   bio_approach: string
   bio_for_whom: string
-  request_groups: RequestGroupCode[]
+  request_groups: SpecialistProfileRequestGroup[]
   bio_other: string
   education_summary: string
   education_items_text: string
@@ -3128,9 +3119,7 @@ async function loadProfile() {
     const profileData = await fetchSpecialistProfile()
     profileLoaded.value = true
     Object.assign(profile, normalizeProfile(profileData))
-    requestGroups.value = normalizeRequestGroups(
-      (profileData as SpecialistProfileWithRequestGroups).request_groups
-    )
+    requestGroups.value = normalizeRequestGroups(profileData.request_groups)
     secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
     secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
@@ -3227,9 +3216,7 @@ async function onSave() {
     }
     const data = await updateSpecialistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
-    requestGroups.value = normalizeRequestGroups(
-      (data as SpecialistProfileWithRequestGroups).request_groups
-    )
+    requestGroups.value = normalizeRequestGroups(data.request_groups)
     secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
     secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
