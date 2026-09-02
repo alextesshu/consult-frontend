@@ -342,6 +342,14 @@ export type ProfileNotice = {
   missing_items?: string[]
 }
 
+export type SpecialistProfileRequestGroup =
+  | 'emotional_state'
+  | 'relationships_family'
+  | 'self_esteem_change'
+  | 'work_career_burnout'
+  | 'loss_life_changes'
+  | 'professional_development'
+
 export type TherapistProfile = {
   id: number
   public_visibility_contract_version?: number
@@ -372,6 +380,7 @@ export type TherapistProfile = {
   bio_work: string
   bio_approach: string
   bio_for_whom: string
+  request_groups: SpecialistProfileRequestGroup[]
   bio_other: string
   education_summary: string
   education_items: string[]

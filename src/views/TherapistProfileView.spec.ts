@@ -97,7 +97,7 @@ const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
 const mockedUploadProfilePhoto = vi.mocked(uploadProfilePhoto)
 const mockedUploadProfileVideo = vi.mocked(uploadProfileVideo)
 
-function makeProfile(): SpecialistProfile {
+function makeProfile(overrides: Partial<SpecialistProfile> = {}): SpecialistProfile {
   return {
     id: 5,
     public_profile_enabled: true,
@@ -137,6 +137,7 @@ function makeProfile(): SpecialistProfile {
     bio_work: 'Онлайн консультації.',
     bio_approach: 'CBT.',
     bio_for_whom: 'Для дорослих.',
+    request_groups: [],
     bio_other: '',
     education_summary: 'Integrative psychotherapy background.',
     education_items: ['Master in psychology', 'CBT program'],
@@ -181,6 +182,7 @@ function makeProfile(): SpecialistProfile {
     show_intro_price: true,
     show_location: true,
     show_photo: true,
+    ...overrides,
   }
 }
 
@@ -1733,30 +1735,12 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
   })
 
-  it('supports quick-add suggestions for main requests and work boundaries without duplicates', async () => {
+  it('supports quick-add work-boundary suggestions without duplicates', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
     renderView()
 
-    const categoryKeys = ['psychology', 'coaching', 'mentoring', 'teaching', 'general']
-    for (const categoryKey of categoryKeys) {
-      expect(await screen.findByTestId(`main-requests-category-tab-${categoryKey}`)).toBeInTheDocument()
-      expect(screen.getByTestId(`work-boundaries-category-tab-${categoryKey}`)).toBeInTheDocument()
-    }
-
-    const mainRequestsTextarea = (await screen.findByTestId('main-requests-textarea')) as HTMLTextAreaElement
-    const mainRequestsChips = screen.getAllByTestId('main-requests-suggestion-chip')
-    expect(mainRequestsChips.length).toBeGreaterThan(0)
-    const firstMainRequestsChip = mainRequestsChips[0] as HTMLButtonElement
-    const mainRequestsSuggestion = firstMainRequestsChip.textContent?.trim() || ''
-
-    await fireEvent.click(firstMainRequestsChip)
-    expect(mainRequestsTextarea.value).toContain(`• ${mainRequestsSuggestion}`)
-    expect(firstMainRequestsChip).toBeDisabled()
-
-    const mainRequestsOccurrences = mainRequestsTextarea.value.split(`• ${mainRequestsSuggestion}`).length - 1
-    expect(mainRequestsOccurrences).toBe(1)
-
+    await screen.findByTestId('work-boundaries-suggestions')
     await fireEvent.click(screen.getByTestId('work-boundaries-category-tab-coaching'))
     const workBoundariesTextarea = screen.getByTestId('work-boundaries-textarea') as HTMLTextAreaElement
     const workBoundariesChips = screen.getAllByTestId('work-boundaries-suggestion-chip')
@@ -1873,10 +1857,41 @@ describe('TherapistProfileView', () => {
     expect(document.body).toHaveClass('has-bottom-action-bar')
   })
 
+  it('renders, loads, and toggles only canonical request groups without duplicates', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfile({
+        request_groups: ['emotional_state', 'professional_development'],
+      })
+    )
+
+    renderView()
+
+    const options = await screen.findByTestId('request-group-options')
+    expect(within(options).getAllByTestId('request-group-chip')).toHaveLength(6)
+    expect(screen.queryByRole('button', { name: 'Інший запит' })).not.toBeInTheDocument()
+
+    const emotionalState = within(options).getByRole('button', { name: 'Емоційний стан' })
+    const relationships = within(options).getByRole('button', { name: 'Стосунки та сім’я' })
+    const professionalDevelopment = within(options).getByRole('button', {
+      name: 'Професійний розвиток і навчання',
+    })
+
+    expect(emotionalState).toHaveAttribute('aria-pressed', 'true')
+    expect(professionalDevelopment).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.click(relationships)
+    expect(relationships).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.click(relationships)
+    expect(relationships).toHaveAttribute('aria-pressed', 'false')
+    await fireEvent.click(relationships)
+    expect(relationships).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('saves a normalized payload via sticky save action and hides sticky bar after success', async () => {
-    const profile = makeProfile()
+    const profile = makeProfile({ request_groups: ['emotional_state'] })
     mockedFetchSpecialistProfile.mockResolvedValue(profile)
-    mockedUpdateSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue(
+      makeProfile({ request_groups: ['professional_development'] })
+    )
 
     renderView()
 
@@ -1893,6 +1908,13 @@ describe('TherapistProfileView', () => {
     await fireEvent.update(summaryInput, 'Оновлений короткий опис.   ')
     const rulesInput = screen.getByLabelText('Умови спеціаліста перед записом') as HTMLTextAreaElement
     await fireEvent.update(rulesInput, 'Оновлені умови перед записом.   ')
+    const requestGroupOptions = screen.getByTestId('request-group-options')
+    const emotionalState = within(requestGroupOptions).getByRole('button', { name: 'Емоційний стан' })
+    const relationships = within(requestGroupOptions).getByRole('button', { name: 'Стосунки та сім’я' })
+    await fireEvent.click(emotionalState)
+    await fireEvent.click(relationships)
+    await fireEvent.click(relationships)
+    await fireEvent.click(relationships)
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
@@ -1917,6 +1939,7 @@ describe('TherapistProfileView', () => {
         education_items: ['Master in psychology', 'CBT program'],
         professional_development_items: ['EMDR Level 1', 'Schema intensive'],
         specializations: ['CBT', 'ACT'],
+        request_groups: ['relationships_family'],
         languages: ['Українська', 'English'],
         location: 'Львів',
         price: '1500',
@@ -1936,6 +1959,13 @@ describe('TherapistProfileView', () => {
     expect(savedPayload).not.toHaveProperty('show_bio_approach')
     expect(savedPayload).not.toHaveProperty('show_bio_for_whom')
     expect(savedPayload).not.toHaveProperty('show_bio_other')
+    expect(within(requestGroupOptions).getByRole('button', { name: 'Емоційний стан' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+    expect(
+      within(requestGroupOptions).getByRole('button', { name: 'Професійний розвиток і навчання' })
+    ).toHaveAttribute('aria-pressed', 'true')
     const successMessage = await screen.findByText('Зміни збережено')
     expect(successMessage).toBeInTheDocument()
     expect(successMessage).toHaveClass('profile-save-feedback--success')
@@ -2332,18 +2362,28 @@ describe('TherapistProfileView', () => {
   })
 
   it('restores last saved values on cancel and hides sticky bar', async () => {
-    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfile({ request_groups: ['emotional_state'] })
+    )
 
     renderView()
 
     const nameInput = (await screen.findByDisplayValue('Анна')) as HTMLInputElement
     await fireEvent.update(nameInput, 'Тест зміна')
+    const requestGroupOptions = screen.getByTestId('request-group-options')
+    const emotionalState = within(requestGroupOptions).getByRole('button', { name: 'Емоційний стан' })
+    const professionalDevelopment = within(requestGroupOptions).getByRole('button', {
+      name: 'Професійний розвиток і навчання',
+    })
+    await fireEvent.click(professionalDevelopment)
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
 
     await waitFor(() => {
       expect((screen.getByDisplayValue('Анна') as HTMLInputElement).value).toBe('Анна')
+      expect(emotionalState).toHaveAttribute('aria-pressed', 'true')
+      expect(professionalDevelopment).toHaveAttribute('aria-pressed', 'false')
       expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
     })
   })
