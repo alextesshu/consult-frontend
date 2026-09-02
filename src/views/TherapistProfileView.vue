@@ -806,8 +806,28 @@
           </details>
           <details class="details">
             <summary>Основні запити</summary>
+            <div class="quick-suggestions" data-testid="request-group-options">
+              <div class="quick-suggestions__title">Теми, з якими ви працюєте</div>
+              <div class="quick-suggestions__chips">
+                <button
+                  v-for="option in requestGroupOptions"
+                  :key="`request-group-${option.value}`"
+                  type="button"
+                  class="quick-suggestion-chip"
+                  :class="{ 'is-selected': isRequestGroupSelected(option.value) }"
+                  :aria-pressed="isRequestGroupSelected(option.value)"
+                  data-testid="request-group-chip"
+                  @click="toggleRequestGroup(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+              <div class="field-help">
+                Ці категорії використовуються для пошуку спеціалістів. Нижче можна описати запити своїми словами.
+              </div>
+            </div>
             <div class="field">
-              <label for="bioForWhom">Основні запити</label>
+              <label for="bioForWhom">Опис запитів своїми словами</label>
               <textarea
                 id="bioForWhom"
                 v-model="profile.bio_for_whom"
@@ -816,39 +836,6 @@
                 placeholder="Теми, з якими до вас звертаються клієнти."
                 data-testid="main-requests-textarea"
               ></textarea>
-              <div class="field-help">
-                Оберіть готові приклади або опишіть своїми словами, з якими темами до вас звертаються клієнти.
-              </div>
-            </div>
-            <div class="quick-suggestions" data-testid="main-requests-suggestions">
-              <div class="quick-suggestions__title">Швидко додати приклади</div>
-              <div class="quick-suggestions__tabs" role="tablist" aria-label="Категорії прикладів для Основних запитів">
-                <button
-                  v-for="category in profileSuggestionCategories"
-                  :key="`main-requests-${category.key}`"
-                  type="button"
-                  class="quick-suggestions__tab"
-                  :class="{ 'is-active': activeMainRequestsSuggestionCategory === category.key }"
-                  :data-testid="`main-requests-category-tab-${category.key}`"
-                  @click="setSuggestionCategory('main_requests', category.key)"
-                >
-                  {{ category.label }}
-                </button>
-              </div>
-              <div class="quick-suggestions__chips">
-                <button
-                  v-for="suggestion in mainRequestSuggestions"
-                  :key="`main-requests-suggestion-${suggestion}`"
-                  type="button"
-                  class="quick-suggestion-chip"
-                  :class="{ 'is-selected': isSuggestionSelected('bio_for_whom', suggestion) }"
-                  :disabled="isSuggestionSelected('bio_for_whom', suggestion)"
-                  data-testid="main-requests-suggestion-chip"
-                  @click="appendSuggestionToField('bio_for_whom', suggestion)"
-                >
-                  {{ suggestion }}
-                </button>
-              </div>
             </div>
           </details>
           <details class="details">
@@ -877,7 +864,7 @@
                   class="quick-suggestions__tab"
                   :class="{ 'is-active': activeWorkBoundariesSuggestionCategory === category.key }"
                   :data-testid="`work-boundaries-category-tab-${category.key}`"
-                  @click="setSuggestionCategory('work_boundaries', category.key)"
+                  @click="setWorkBoundariesSuggestionCategory(category.key)"
                 >
                   {{ category.label }}
                 </button>
@@ -1487,7 +1474,6 @@ import {
   profileSuggestionCategoryKeywords,
   profileSuggestionPresets,
   type SuggestionCategoryKey,
-  type SuggestionSectionKey,
 } from '../constants/profileSuggestionPresets'
 import {
   normalizeProfessionalFocus,
@@ -1590,6 +1576,30 @@ const experienceOptions = Array.from({ length: 31 }, (_, value) => ({
 }))
 const standardDurationOptions = [30, 40, 50, 60, 75, 90]
 
+type RequestGroupCode =
+  | 'emotional_state'
+  | 'relationships_family'
+  | 'self_esteem_change'
+  | 'work_career_burnout'
+  | 'loss_life_changes'
+  | 'professional_development'
+
+type SpecialistProfileWithRequestGroups = SpecialistProfile & {
+  request_groups?: unknown
+}
+
+const requestGroupOptions: Array<{ value: RequestGroupCode; label: string }> = [
+  { value: 'emotional_state', label: 'Емоційний стан' },
+  { value: 'relationships_family', label: 'Стосунки та сім’я' },
+  { value: 'self_esteem_change', label: 'Самооцінка та особисті зміни' },
+  { value: 'work_career_burnout', label: 'Робота, кар’єра та вигорання' },
+  { value: 'loss_life_changes', label: 'Втрата та життєві зміни' },
+  { value: 'professional_development', label: 'Професійний розвиток і навчання' },
+]
+const requestGroupCodes = new Set<RequestGroupCode>(
+  requestGroupOptions.map((option) => option.value)
+)
+
 const languageInput = ref('')
 const languageList = ref<string[]>([])
 const specializationInput = ref('')
@@ -1597,7 +1607,7 @@ const specializationList = ref<string[]>([])
 const showOtherSpecialization = ref(false)
 const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set<string>()
-const selectedMainRequestsSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
+const requestGroups = ref<RequestGroupCode[]>([])
 const selectedWorkBoundariesSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
 const educationItemsText = ref('')
 const professionalDevelopmentItemsText = ref('')
@@ -1617,6 +1627,22 @@ function toStringList(value: unknown): string[] {
     .split(/\r?\n|[,;]+/)
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function normalizeRequestGroups(value: unknown): RequestGroupCode[] {
+  return toStringList(value).filter(
+    (code): code is RequestGroupCode => requestGroupCodes.has(code as RequestGroupCode)
+  )
+}
+
+function isRequestGroupSelected(code: RequestGroupCode): boolean {
+  return requestGroups.value.includes(code)
+}
+
+function toggleRequestGroup(code: RequestGroupCode) {
+  requestGroups.value = requestGroups.value.includes(code)
+    ? requestGroups.value.filter((value) => value !== code)
+    : [...requestGroups.value, code]
 }
 
 function listToMultilineText(value: unknown): string {
@@ -2227,6 +2253,7 @@ function buildProfilePayload() {
     bio_work: profile.bio_work,
     bio_approach: profile.bio_approach,
     bio_for_whom: profile.bio_for_whom,
+    request_groups: [...requestGroups.value],
     bio_other: profile.bio_other,
     education_summary: (profile.education_summary || '').trim(),
     education_items: multilineTextToList(educationItemsText.value),
@@ -2735,7 +2762,7 @@ const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
 )
 
-type SuggestionFieldKey = 'bio_for_whom' | 'bio_other'
+type SuggestionFieldKey = 'bio_other'
 
 function normalizeSuggestionToken(value: string): string {
   return value
@@ -2781,16 +2808,8 @@ const preferredSuggestionCategory = computed<SuggestionCategoryKey>(() => {
   return 'general'
 })
 
-const activeMainRequestsSuggestionCategory = computed<SuggestionCategoryKey>(
-  () => selectedMainRequestsSuggestionCategory.value || preferredSuggestionCategory.value
-)
-
 const activeWorkBoundariesSuggestionCategory = computed<SuggestionCategoryKey>(
   () => selectedWorkBoundariesSuggestionCategory.value || preferredSuggestionCategory.value
-)
-
-const mainRequestSuggestions = computed(
-  () => profileSuggestionPresets.main_requests[activeMainRequestsSuggestionCategory.value]
 )
 
 const workBoundarySuggestions = computed(
@@ -2798,11 +2817,7 @@ const workBoundarySuggestions = computed(
 )
 const specializationPresetOptions = computed(() => getSpecializationPresets(profile.professional_focus))
 
-function setSuggestionCategory(section: SuggestionSectionKey, category: SuggestionCategoryKey) {
-  if (section === 'main_requests') {
-    selectedMainRequestsSuggestionCategory.value = category
-    return
-  }
+function setWorkBoundariesSuggestionCategory(category: SuggestionCategoryKey) {
   selectedWorkBoundariesSuggestionCategory.value = category
 }
 
@@ -2930,6 +2945,7 @@ type ProfileFormSnapshot = {
   bio_work: string
   bio_approach: string
   bio_for_whom: string
+  request_groups: RequestGroupCode[]
   bio_other: string
   education_summary: string
   education_items_text: string
@@ -2985,6 +3001,7 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     bio_work: profile.bio_work || '',
     bio_approach: profile.bio_approach || '',
     bio_for_whom: profile.bio_for_whom || '',
+    request_groups: [...requestGroups.value],
     bio_other: profile.bio_other || '',
     education_summary: profile.education_summary || '',
     education_items_text: educationItemsText.value,
@@ -3041,6 +3058,7 @@ function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
   const {
     education_items_text,
     professional_development_items_text,
+    request_groups,
     ...profileSnapshot
   } = snapshot
   Object.assign(profile, {
@@ -3050,6 +3068,7 @@ function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
     specializations: [...profileSnapshot.specializations],
     languages: [...profileSnapshot.languages],
   })
+  requestGroups.value = [...request_groups]
   educationItemsText.value = education_items_text
   professionalDevelopmentItemsText.value = professional_development_items_text
   specializationList.value = [...profileSnapshot.specializations]
@@ -3109,6 +3128,9 @@ async function loadProfile() {
     const profileData = await fetchSpecialistProfile()
     profileLoaded.value = true
     Object.assign(profile, normalizeProfile(profileData))
+    requestGroups.value = normalizeRequestGroups(
+      (profileData as SpecialistProfileWithRequestGroups).request_groups
+    )
     secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
     secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
@@ -3124,7 +3146,6 @@ async function loadProfile() {
     slugDraft.value = resolvedSlug.value
     slugEditOpen.value = false
     slugError.value = ''
-    selectedMainRequestsSuggestionCategory.value = null
     selectedWorkBoundariesSuggestionCategory.value = null
     dirtySnapshot.markSaved()
     syncPersistedVisibilityStateFromSavedSnapshot()
@@ -3206,6 +3227,9 @@ async function onSave() {
     }
     const data = await updateSpecialistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
+    requestGroups.value = normalizeRequestGroups(
+      (data as SpecialistProfileWithRequestGroups).request_groups
+    )
     secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
     secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
@@ -4337,6 +4361,13 @@ onBeforeUnmount(() => {
   border-color: color-mix(in srgb, var(--pc-navy-900) 32%, var(--pc-border));
   background: color-mix(in srgb, var(--pc-primary-soft) 76%, #ffffff);
   color: var(--pc-navy-900);
+}
+
+.quick-suggestion-chip.is-selected {
+  cursor: pointer;
+}
+
+.quick-suggestion-chip:disabled {
   cursor: default;
 }
 
