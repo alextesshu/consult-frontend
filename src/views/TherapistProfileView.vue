@@ -135,15 +135,6 @@
               >
                 Копіювати посилання
               </button>
-              <a
-                v-if="isPublicProfilePublished && publicUrl"
-                class="btn btn--ghost"
-                :href="publicUrl"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Переглянути сторінку
-              </a>
               <button
                 class="btn btn--ghost"
                 type="button"
