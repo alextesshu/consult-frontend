@@ -660,12 +660,14 @@ describe('TherapistProfileView', () => {
     expect(copyLinkButton).toBeEnabled()
     expect(within(linkCallout).queryByRole('link', { name: 'Подивитись профіль' })).not.toBeInTheDocument()
     expect(within(linkCallout).queryByRole('link', { name: 'Відкрити як клієнт' })).not.toBeInTheDocument()
-    expect(within(linkCallout).getByRole('link', { name: 'Переглянути сторінку' })).toHaveAttribute(
-      'href',
-      `${window.location.origin}/s/specialist-anna`
-    )
+    expect(within(linkCallout).queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
     expect(within(linkCallout).queryByRole('button', { name: 'Зняти з публікації' })).not.toBeInTheDocument()
     expect(within(linkCallout).getByRole('button', { name: 'Змінити адресу' })).toBeInTheDocument()
+    expect(
+      within(screen.getByTestId('profile-final-public-check')).getByRole('link', {
+        name: 'Відкрити публічний профіль',
+      })
+    ).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(screen.queryByText('Публічне посилання на профіль')).not.toBeInTheDocument()
     expect(screen.queryByText(/Надішліть це посилання клієнту/)).not.toBeInTheDocument()
     expect(screen.queryByText('Сторінку ще не опубліковано.')).not.toBeInTheDocument()
@@ -680,7 +682,7 @@ describe('TherapistProfileView', () => {
     await fireEvent.click(copyLinkButton)
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
     expect(await within(linkCallout).findByText('Посилання скопійовано')).toBeInTheDocument()
-    expect(screen.getAllByText('Переглянути сторінку')).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Переглянути сторінку' })).toHaveLength(1)
   })
 
   it('keeps profile sharing available when the published profile is hidden from search', async () => {
@@ -1127,11 +1129,11 @@ describe('TherapistProfileView', () => {
       )
     })
     expect(screen.getByText('Сторінка доступна за посиланням')).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Переглянути сторінку' })[0]).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Переглянути сторінку' })).toHaveAttribute(
       'href',
       `${window.location.origin}/s/specialist-anna`
     )
-    expect(screen.getAllByText('Переглянути сторінку')).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Переглянути сторінку' })).toHaveLength(1)
     expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
     expect(productAnalytics.capture).toHaveBeenCalledWith('profile_publish_succeeded')
   })
