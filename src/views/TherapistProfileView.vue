@@ -795,7 +795,11 @@
               </div>
             </div>
           </details>
-          <details class="details">
+          <details
+            class="details"
+            :class="{ 'field--attention': profileFocusAttentionKey === 'request_groups' }"
+            data-readiness-key="request_groups"
+          >
             <summary>Основні запити</summary>
             <div class="quick-suggestions" data-testid="request-group-options">
               <div class="quick-suggestions__title">Теми, з якими ви працюєте</div>
@@ -2839,6 +2843,7 @@ const profileReadinessActions: Record<string, ProfileReadinessAction> = {
   about: { kind: 'focus', targetKey: 'about' },
   topics: { kind: 'focus', targetKey: 'specializations' },
   specializations: { kind: 'focus', targetKey: 'specializations' },
+  request_groups: { kind: 'focus', targetKey: 'request_groups' },
   work_format: { kind: 'focus', targetKey: 'work_format' },
   price: { kind: 'focus', targetKey: 'price_decision' },
   price_decision: { kind: 'focus', targetKey: 'price_decision' },
@@ -2869,6 +2874,10 @@ function focusProfileReadinessTarget(rawKey: string, clearFocusQuery = false) {
   const fallbackTarget = document.querySelector<HTMLElement>('.form--profile-basics')
   const element = target || fallbackTarget
   if (!element) return
+
+  if (element.tagName === 'DETAILS') {
+    ;(element as HTMLDetailsElement).open = true
+  }
 
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
   element.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' })
@@ -3208,6 +3217,9 @@ async function onSave() {
     const data = await updateSpecialistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
     requestGroups.value = normalizeRequestGroups(data.request_groups)
+    if (requestGroups.value.length > 0) {
+      auth.markProductUpdateResolved('specialist_request_groups')
+    }
     secondaryPhoneExpanded.value = Boolean(profile.secondary_phone?.trim())
     secondaryPhoneServerError.value = ''
     languageList.value = sanitizeLanguages(toList(profile.languages))
