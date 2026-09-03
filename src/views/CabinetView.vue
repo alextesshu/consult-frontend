@@ -392,6 +392,7 @@ import {
   requestTopicLabel,
   type ChatThread,
   type SessionFormat,
+  type SpecialistProductUpdate,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
@@ -595,6 +596,7 @@ type MeWithOnboardingSummary = {
   public_slug?: string | null
   public_profile_path?: string | null
   public_profile_url?: string | null
+  product_updates?: SpecialistProductUpdate[]
 }
 
 const hasCabinetDataSnapshot = computed(() => {
@@ -623,6 +625,11 @@ const onboardingRenderableState = computed(() => {
 const onboardingViewModel = computed<SpecialistOnboardingViewModel | null>(() => {
   if (!onboardingRenderableState.value) return null
   return buildSpecialistOnboardingViewModel(onboardingRenderableState.value)
+})
+
+const activeProductUpdates = computed(() => {
+  const payload = me.value as MeWithOnboardingSummary | null
+  return Array.isArray(payload?.product_updates) ? payload.product_updates : []
 })
 
 const shouldShowOnboardingBlock = computed(() => {
@@ -1092,6 +1099,18 @@ const attentionItems = computed<AttentionItem[]>(() => {
       to: '/cabinet/external-sessions#guest-requests',
       tone: 'warning',
       topics: guestRequestAttentionTopics.value,
+    })
+  }
+
+  for (const update of activeProductUpdates.value) {
+    items.push({
+      key: `product-update-${update.update_key}`,
+      title: update.title,
+      body: update.body,
+      label: update.cta_label,
+      to: update.target_url,
+      tone: update.tone === 'info' ? 'info' : 'warning',
+      topics: [],
     })
   }
 

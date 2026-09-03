@@ -1120,6 +1120,54 @@ describe('App shell', () => {
     })
   })
 
+  it('renders, reads, and routes an action-required product update from the bell', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'product_update:31',
+          kind: 'product_update',
+          source_kind: 'product_update',
+          source_id: 31,
+          update_key: 'specialist_request_groups',
+          code: 'SPECIALIST_REQUEST_GROUPS_REQUIRED',
+          title: 'Доповніть профіль для точнішого пошуку',
+          body:
+            'У Pro Consult з’явився пошук за основними запитами клієнтів. Виберіть теми, з якими ви працюєте, щоб ваш профіль потрапляв у відповідні результати пошуку.',
+          target_url: '/cabinet/profile?focus=request_groups',
+          cta_label: 'Вибрати теми',
+          tone: 'warning',
+          slot_start_at: null,
+        }),
+      ],
+    })
+
+    const notificationsButton = screen.getByRole('button', { name: /Сповіщення/i })
+    await waitFor(() => expect(notificationsButton).toHaveTextContent('1'))
+    await fireEvent.click(notificationsButton)
+
+    const title = await screen.findByText('Доповніть профіль для точнішого пошуку')
+    expect(
+      screen.getByText(
+        'У Pro Consult з’явився пошук за основними запитами клієнтів. Виберіть теми, з якими ви працюєте, щоб ваш профіль потрапляв у відповідні результати пошуку.'
+      )
+    ).toBeInTheDocument()
+    const notificationLink = title.closest('a')
+    expect(notificationLink).toHaveAttribute('href', '/cabinet/profile?focus=request_groups')
+
+    await fireEvent.click(notificationLink as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'product_update',
+        source_id: 31,
+      })
+      expect(notificationsButton).not.toHaveTextContent('1')
+      expect(router.currentRoute.value.fullPath).toBe('/cabinet/profile?focus=request_groups')
+    })
+  })
+
   it('does not count a read specialist-created session notification', async () => {
     await renderWithProviders({
       initialPath: '/client',

@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
-import type { AccountIdentity, ActiveClientEntitlement } from '../lib/api'
+import type {
+  AccountIdentity,
+  ActiveClientEntitlement,
+  SpecialistProductUpdate,
+} from '../lib/api'
 import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
@@ -31,6 +35,7 @@ type MePayload = {
   effective_entitlements: Entitlements | null
   counts: Counts | null
   onboarding_summary?: unknown
+  product_updates?: SpecialistProductUpdate[]
   analytics_context?: SpecialistAnalyticsContext | null
   server_time: string
 }
@@ -98,6 +103,12 @@ export const useAuthStore = defineStore('auth', {
       this.user = payload ? payload.user : null
       this.authResolved = true
       productAnalytics.identify(payload?.analytics_context)
+    },
+    markProductUpdateResolved(updateKey: string) {
+      if (!this.me?.product_updates) return
+      this.me.product_updates = this.me.product_updates.filter(
+        (update) => update.update_key !== updateKey
+      )
     },
     async login(identifier: string, password: string) {
       const epoch = this.beginAuthEpoch()

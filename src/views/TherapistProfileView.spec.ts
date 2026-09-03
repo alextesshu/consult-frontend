@@ -37,6 +37,7 @@ const scrollIntoViewSpy = vi.fn()
 const mockAuthStore = {
   user: { email_verification_state: 'legacy_unknown' },
   me: null,
+  markProductUpdateResolved: vi.fn(),
 }
 
 vi.mock('vue-router', async () => {
@@ -295,6 +296,7 @@ describe('TherapistProfileView', () => {
   beforeEach(() => {
     mockAuthStore.user = { email_verification_state: 'legacy_unknown' }
     mockAuthStore.me = null
+    mockAuthStore.markProductUpdateResolved.mockReset()
     mockRoute.query = {}
     setClipboard()
     vi.restoreAllMocks()
@@ -896,6 +898,25 @@ describe('TherapistProfileView', () => {
 
     expect(specializationsField).toHaveClass('field--attention')
     expect(container.querySelector('[data-readiness-key="topics"]')).not.toBeInTheDocument()
+  })
+
+  it('opens and focuses request groups from the product update deep link', async () => {
+    mockRoute.query = { focus: 'request_groups', keep: '1' }
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile({ request_groups: [] }))
+
+    const { container } = renderView()
+
+    const requestGroups = await screen.findByTestId('request-group-options')
+    const details = requestGroups.closest('details') as HTMLDetailsElement
+    await waitFor(() => {
+      expect(details.open).toBe(true)
+      expect(details).toHaveClass('field--attention')
+      expect(scrollIntoViewSpy).toHaveBeenCalled()
+      expect(details).toContainElement(document.activeElement as HTMLElement)
+      expect(mockRouter.replace).toHaveBeenCalledWith({ query: { keep: '1' } })
+    })
+
+    expect(container.querySelector('[data-readiness-key="request_groups"]')).toBe(details)
   })
 
   it('routes first_contact readiness to booking settings instead of Contacts', async () => {
@@ -1924,6 +1945,10 @@ describe('TherapistProfileView', () => {
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
     })
+
+    expect(mockAuthStore.markProductUpdateResolved).toHaveBeenCalledWith(
+      'specialist_request_groups'
+    )
 
     expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
       expect.objectContaining({
