@@ -437,6 +437,22 @@ export type NotificationSettings = {
   notify_session_starts_1h_in_app: boolean
 }
 
+export type SpecialistProductUpdate = {
+  id: string
+  kind: 'product_update'
+  source_kind: 'product_update'
+  source_id: number
+  update_key: string
+  code: string
+  title: string
+  body: string
+  target_url: string
+  cta_label: string
+  tone: 'warning' | 'info'
+  created_at: string
+  read_at?: string | null
+}
+
 export type NotificationFeedItem = {
   id: string
   kind?:
@@ -447,6 +463,7 @@ export type NotificationFeedItem = {
   | 'payment_proof_event'
   | 'public_guest_request'
   | 'admin_inbox_item'
+  | 'product_update'
   source_kind:
   | 'session_event'
   | 'reminder_delivery'
@@ -455,10 +472,14 @@ export type NotificationFeedItem = {
   | 'payment_proof_event'
   | 'public_guest_request'
   | 'admin_inbox_item'
+  | 'product_update'
   source_id: number
   code: string
   title?: string | null
   body?: string | null
+  update_key?: string | null
+  cta_label?: string | null
+  tone?: 'warning' | 'info' | null
   target_url?: string | null
   counterparty_name?: string | null
   preview?: string | null
