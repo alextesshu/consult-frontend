@@ -1,7 +1,12 @@
 ﻿import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { apiGet, fetchChatThreads, fetchSpecialistOnboardingState } from '../lib/api'
+import {
+  apiGet,
+  fetchChatThreads,
+  fetchSpecialistOnboardingState,
+  type SpecialistProductUpdate,
+} from '../lib/api'
 import CabinetView from './CabinetView.vue'
 
 function createMePayload() {
@@ -26,7 +31,30 @@ function createMePayload() {
       prospect_clients: 0,
       upcoming_sessions_count: 1,
     },
+    product_updates: [] as SpecialistProductUpdate[],
     server_time: '2026-03-18T12:00:00Z',
+  }
+}
+
+function createProductUpdate(
+  overrides?: Partial<SpecialistProductUpdate>
+): SpecialistProductUpdate {
+  return {
+    id: 'product_update:1',
+    kind: 'product_update',
+    source_kind: 'product_update',
+    source_id: 1,
+    update_key: 'specialist_request_groups',
+    code: 'SPECIALIST_REQUEST_GROUPS_REQUIRED',
+    title: 'Доповніть профіль для точнішого пошуку',
+    body:
+      'У Pro Consult з’явився пошук за основними запитами клієнтів. Виберіть теми, з якими ви працюєте, щоб ваш профіль потрапляв у відповідні результати пошуку.',
+    target_url: '/cabinet/profile?focus=request_groups',
+    cta_label: 'Вибрати теми',
+    tone: 'warning',
+    created_at: '2026-09-03T10:00:00Z',
+    read_at: '2026-09-03T10:05:00Z',
+    ...(overrides || {}),
   }
 }
 
@@ -378,6 +406,97 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('.work-queue-list')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('Робочий огляд')
     expect(view.container).not.toHaveTextContent('Нотатки до завершення')
+  })
+
+  it('keeps a read but unresolved product update in the attention panel until backend state resolves it', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      product_updates: [createProductUpdate()],
+    }
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+
+    const updateLink = await waitFor(() => {
+      const link = view.container.querySelector(
+        'a.attention-row[href="/cabinet/profile?focus=request_groups"]'
+      )
+      expect(link).toBeInTheDocument()
+      return link as HTMLAnchorElement
+    })
+    expect(updateLink).toHaveTextContent('Доповніть профіль для точнішого пошуку')
+    expect(updateLink).toHaveTextContent('Вибрати теми')
+
+    mockMe.value = {
+      ...mockMe.value,
+      product_updates: [],
+    }
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector('a.attention-row[href="/cabinet/profile?focus=request_groups"]')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('keeps urgent session and request items ahead of product updates and preserves max three', async () => {
+    const start = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+    const end = new Date(Date.now() + 90 * 60 * 1000).toISOString()
+    mockMe.value = {
+      ...createMePayload(),
+      product_updates: [
+        createProductUpdate(),
+        createProductUpdate({
+          id: 'product_update:2',
+          source_id: 2,
+          update_key: 'future_update',
+          title: 'Майбутнє оновлення',
+          target_url: '/cabinet/profile?focus=about',
+        }),
+      ],
+    }
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          pending_guest_requests_count: 1,
+          pending_slotless_guest_requests_count: 1,
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 881,
+            status: 'CONFIRMED',
+            client: 47,
+            client_name: 'Urgent Client',
+            session_format: 'online',
+            meeting_url: null,
+            join_available: false,
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector(
+          'a.attention-row[href="/cabinet/external-sessions#guest-requests"]'
+        )
+      ).toBeInTheDocument()
+      expect(view.container.querySelectorAll('.panel--attention .attention-row')).toHaveLength(3)
+    })
+    const rows = Array.from(view.container.querySelectorAll('.panel--attention .attention-row'))
+    expect(rows[0]).toHaveAttribute('href', '/cabinet/sessions/881')
+    expect(rows[1]).toHaveAttribute('href', '/cabinet/external-sessions#guest-requests')
+    expect(rows[2]).toHaveAttribute('href', '/cabinet/profile?focus=request_groups')
+    expect(view.container).not.toHaveTextContent('Майбутнє оновлення')
   })
 
   it('shows a slotless-only pending guest request as an attention row', async () => {

@@ -73,6 +73,10 @@ export function useNotifications({
     return item.source_kind === 'admin_inbox_item'
   }
 
+  function isProductUpdate(item: NotificationFeedItem) {
+    return item.source_kind === 'product_update'
+  }
+
   function notificationJoinUrl(item: NotificationFeedItem) {
     const url = normalizeMeetingUrl(item.meeting_url)
     if (!url) return null
@@ -83,6 +87,7 @@ export function useNotifications({
   }
 
   function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
+    if (isProductUpdate(item)) return item.tone === 'info' ? 'info' : 'warn'
     if (item.source_kind === 'inquiry_message') return 'info'
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
     if (isPaymentProofRequested(item)) return 'warn'
@@ -100,6 +105,9 @@ export function useNotifications({
     const counterpartyLabel = notificationCounterpartyLabel(item)
     if (item.code === 'PROPOSED_TIME_ACCEPTED') {
       return item.title?.trim() || 'Клієнт прийняв запропонований час'
+    }
+    if (isProductUpdate(item)) {
+      return item.title?.trim() || 'Оновлення профілю'
     }
     if (isAdminInboxItem(item)) {
       return item.title?.trim() || 'Адміністративне сповіщення'
@@ -157,6 +165,9 @@ export function useNotifications({
     const time = formatDateTime(item.slot_start_at || item.scheduled_for)
     if (item.code === 'PROPOSED_TIME_ACCEPTED') {
       return item.body?.trim() || 'Нову сесію створено. Відкрийте її, щоб переглянути деталі.'
+    }
+    if (isProductUpdate(item)) {
+      return item.body?.trim() || 'Відкрийте профіль, щоб виконати потрібну дію.'
     }
     if (isAdminInboxItem(item)) {
       return item.body?.trim() || 'Відкрийте чергу роботи, щоб переглянути деталі.'
