@@ -8,7 +8,9 @@
 - Do not create feature branches without explicit approval.
 - Do not commit, push, merge, or deploy without a direct request.
 - Run production deploys only after explicit confirmation.
-- Do not use the GitHub connector for this project.
+- GitHub connector may be used for read-only inspection, PR/CI review, and repository metadata without separate permission.
+- Do not use the GitHub connector to create commits or modify repository files unless explicitly authorized for that write.
+- Prefer a local/Codex workspace for implementation so changes can be tested before commit.
 - Do not remind the user to run `npm run dev`; the local dev server is usually already running.
 - Inspect repository state before editing.
 - Provide a short plan and list exact files before editing.
