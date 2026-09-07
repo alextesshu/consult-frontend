@@ -2575,6 +2575,8 @@ export type PublicSpecialistDiscoveryItem = {
   location: string | null
   offers_online: boolean
   offers_offline: boolean
+  price: string | null
+  price_currency: string | null
   photo_url: string | null
   match_kind: SpecialistDiscoveryMatchKind
 }
