@@ -35,6 +35,14 @@
 - Product/public profile rules: `docs/PROFILE_PUBLIC_URLS.md`
 - Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 - Backend API/product contract, when needed: `..\backend\docs\AI_CONTRACT.md`
+- Cross-repository workflow policies and Skills:
+  `..\backend\docs\GIT_CI_PROMOTION.md`,
+  `..\backend\docs\JIRA_DELIVERY_LIFECYCLE.md`, and
+  `..\backend\.agents\skills\`
+
+The backend repository Skills are canonical for Pro Consult workflows. Do not
+let user-global or cached Skill copies override those repository instructions
+or their referenced documentation and scripts.
 
 Read only the relevant canonical docs for the task. Do not duplicate their full content in `AGENTS.md`.
 
