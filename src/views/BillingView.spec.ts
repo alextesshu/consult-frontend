@@ -723,4 +723,27 @@ describe('BillingView downgrade semantics', () => {
     expect(view.container).not.toHaveTextContent('effective plan')
     expect(view.container).not.toHaveTextContent('base plan')
   })
+
+  it('explains grace and offers a Pro renewal without implying data loss', async () => {
+    setCurrentPlan('PRO', {
+      plan: 'PRO',
+      effective_plan: 'PRO',
+      access_source: 'billing',
+      access_label: 'Платний доступ',
+      billing: {
+        active: true,
+        status: 'ACTIVE',
+        source: 'MANUAL',
+        paid_through: '2026-09-01T00:00:00Z',
+        grace_ends_at: '2026-10-01T00:00:00Z',
+      },
+    })
+    mockMe.value.access_state = 'GRACE'
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText(/Практика та можливості Pro тимчасово збережені/)).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: 'Продовжити Pro' })).toBeInTheDocument()
+  })
 })
