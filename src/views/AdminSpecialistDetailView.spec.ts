@@ -8,6 +8,7 @@ import {
   applyAdminSpecialistTrialAction,
   fetchAdminSpecialistAccessHistory,
   fetchAdminSpecialistDetail,
+  recordAdminManualBillingPayment,
   type AdminSpecialistDetailResponse,
 } from '../lib/api'
 
@@ -28,6 +29,7 @@ vi.mock('../lib/api', async () => {
     applyAdminSpecialistTrialAction: vi.fn(),
     fetchAdminSpecialistAccessHistory: vi.fn(),
     fetchAdminSpecialistDetail: vi.fn(),
+    recordAdminManualBillingPayment: vi.fn(),
   }
 })
 
@@ -36,6 +38,7 @@ const mockedApplyAdminSpecialistOnboardingSuppressionAction = vi.mocked(applyAdm
 const mockedApplyAdminSpecialistTrialAction = vi.mocked(applyAdminSpecialistTrialAction)
 const mockedFetchAdminSpecialistAccessHistory = vi.mocked(fetchAdminSpecialistAccessHistory)
 const mockedFetchAdminSpecialistDetail = vi.mocked(fetchAdminSpecialistDetail)
+const mockedRecordAdminManualBillingPayment = vi.mocked(recordAdminManualBillingPayment)
 const nativeDateTimeInputType = ['datetime', 'local'].join('-')
 const meridiemPattern = new RegExp(`\\b${['A', 'M'].join('')}\\b|\\b${['P', 'M'].join('')}\\b`)
 const canonicalReadinessItems = [
@@ -146,6 +149,15 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
         ends_at: null,
         reason: null,
         actor: null,
+      },
+      billing: {
+        active: false,
+        plan: null,
+        status: null,
+        source: null,
+        paid_through: null,
+        grace_ends_at: null,
+        reason: null,
       },
     },
     admin_context: {
@@ -976,5 +988,42 @@ describe('AdminSpecialistDetailView', () => {
         reason: 'Exceptional service case',
       })
     })
+  })
+
+  it('records manual Pro payment with an idempotency reference', async () => {
+    mockedRecordAdminManualBillingPayment.mockResolvedValue({
+      created: true,
+      subscription: {},
+    } as never)
+    await renderView()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити оплату Pro' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Підтвердити оплату Pro' })
+    await fireEvent.update(within(dialog).getByLabelText('Посилання на платіж'), 'receipt-42')
+    await fireEvent.update(within(dialog).getByLabelText('Підстава'), 'Bank transfer confirmed.')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+
+    await waitFor(() => {
+      expect(mockedRecordAdminManualBillingPayment).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({
+          payment_reference: 'receipt-42',
+          billing_interval: 'MONTHLY',
+          reason: 'Bank transfer confirmed.',
+          effective_at: expect.any(String),
+        }),
+      )
+    })
+  })
+
+  it('blocks manual payment submission without reference or reason', async () => {
+    await renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити оплату Pro' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Підтвердити оплату Pro' })
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+
+    expect(await within(dialog).findByText('Вкажіть посилання на платіж.')).toBeInTheDocument()
+    expect(mockedRecordAdminManualBillingPayment).not.toHaveBeenCalled()
   })
 })

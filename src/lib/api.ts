@@ -541,6 +541,19 @@ export type BillingCheckoutSession = {
   message: string
 }
 
+export type ManualBillingPayment = {
+  created: boolean
+  subscription: {
+    id: number
+    plan: 'START' | 'PRO' | 'LEADER' | string
+    status: string
+    current_period_end: string | null
+    grace_ends_at?: string | null
+    billing_interval?: 'MONTHLY' | 'ANNUAL' | string | null
+    source?: string | null
+  }
+}
+
 export type AdminInboxItemStatus =
   | 'UNREAD'
   | 'OPEN'
@@ -995,6 +1008,15 @@ export type AdminSpecialistDetailResponse = {
       ends_at: string | null
       reason: string | null
       actor: string | null
+    }
+    billing?: {
+      active: boolean
+      plan: string | null
+      status: string | null
+      source: string | null
+      paid_through: string | null
+      grace_ends_at: string | null
+      reason: string | null
     }
   }
   admin_crm_state?: AdminCrmState | null
@@ -2125,6 +2147,22 @@ export async function createBillingCheckoutSession(payload: {
   billing_cycle?: 'monthly' | 'annual'
 }): Promise<BillingCheckoutSession> {
   const resp = await http.post<BillingCheckoutSession>('/billing/checkout-session/', payload)
+  return resp.data
+}
+
+export async function recordAdminManualBillingPayment(
+  specialistId: number,
+  payload: {
+    payment_reference: string
+    billing_interval: 'MONTHLY' | 'ANNUAL'
+    reason: string
+    effective_at?: string
+  }
+): Promise<ManualBillingPayment> {
+  const resp = await http.post<ManualBillingPayment>(
+    `/billing/admin/specialists/${specialistId}/manual-payment/`,
+    payload
+  )
   return resp.data
 }
 
