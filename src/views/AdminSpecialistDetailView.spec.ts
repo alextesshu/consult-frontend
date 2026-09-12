@@ -996,6 +996,27 @@ describe('AdminSpecialistDetailView', () => {
       subscription: {},
     } as never)
     await renderView()
+    await waitFor(() => {
+      expect(mockedFetchAdminSpecialistAccessHistory).toHaveBeenCalledWith(2)
+    })
+    mockedFetchAdminSpecialistDetail.mockClear()
+    mockedFetchAdminSpecialistAccessHistory.mockClear()
+    mockedFetchAdminSpecialistAccessHistory.mockResolvedValue([
+      {
+        id: 101,
+        event_type: 'BILLING_PAYMENT_RECORDED',
+        reason: 'Bank transfer confirmed.',
+        actor: 1,
+        actor_username: 'admin',
+        source: 'MANUAL_BILLING_PAYMENT',
+        source_request_id: null,
+        created_at: '2026-09-12T17:45:26Z',
+        before_snapshot: null,
+        after_snapshot: null,
+        before_plan: 'START',
+        after_plan: 'PRO',
+      },
+    ])
 
     await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити оплату Pro' }))
     const dialog = await screen.findByRole('dialog', { name: 'Підтвердити оплату Pro' })
@@ -1014,6 +1035,9 @@ describe('AdminSpecialistDetailView', () => {
         }),
       )
     })
+    expect(mockedFetchAdminSpecialistDetail).toHaveBeenCalledWith(2)
+    expect(mockedFetchAdminSpecialistAccessHistory).toHaveBeenCalledWith(2)
+    expect(await screen.findByText('BILLING_PAYMENT_RECORDED')).toBeInTheDocument()
   })
 
   it('blocks manual payment submission without reference or reason', async () => {
