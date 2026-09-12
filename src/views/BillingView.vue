@@ -27,6 +27,9 @@
       <div v-if="overrideDateLines.length" class="access-meta">
         <div v-for="line in overrideDateLines" :key="line" class="access-line">{{ line }}</div>
       </div>
+      <div v-if="billingDateLines.length" class="access-meta">
+        <div v-for="line in billingDateLines" :key="line" class="access-line">{{ line }}</div>
+      </div>
       <div class="limits-grid">
         <article class="limit-card">
           <div class="limit-card__label">Активні клієнти</div>
@@ -104,6 +107,15 @@
         </div>
       </div>
       <div class="request-row">
+        <button
+          v-if="requiresRenewal"
+          class="btn"
+          type="button"
+          :disabled="isRequesting || hasPendingRequest"
+          @click="requestRenewal"
+        >
+          Продовжити Pro
+        </button>
         <button
           class="btn"
           type="button"
@@ -249,6 +261,13 @@ type BillingAccessSummary = {
     active?: boolean | null
     plan?: PlanCode | string | null
     expires_at?: string | null
+  } | null
+  billing?: {
+    active?: boolean | null
+    status?: string | null
+    source?: string | null
+    paid_through?: string | null
+    grace_ends_at?: string | null
   } | null
   current_request?: BillingSummaryRequest | null
   latest_request?: BillingSummaryRequest | null
@@ -448,7 +467,17 @@ const accessLabel = computed(() => {
 })
 
 const accessSource = computed(() => accessSummary.value?.access_source || 'base_plan')
+const requiresRenewal = computed(() => {
+  const state = me.value?.access_state
+  return state === 'GRACE' || state === 'START_SOFT_RESTRICTED'
+})
 const mainAccessDescription = computed(() => {
+  if (me.value?.access_state === 'GRACE') {
+    return 'Практика та можливості Pro тимчасово збережені. Продовжіть Pro до завершення пільгового періоду.'
+  }
+  if (me.value?.access_state === 'START_SOFT_RESTRICTED') {
+    return 'Поточна практика, клієнти та сесії збережені. Нове зростання діє в межах Start, а Pro-функції обмежені.'
+  }
   if (accessSource.value === 'trial') {
     return `Вам відкрито тестовий доступ до можливостей тарифу ${currentPlanLabel.value}.`
   }
@@ -508,6 +537,17 @@ const overrideDateLines = computed(() => {
   const override = accessSummary.value?.override
   if (!override?.active || !override.expires_at) return []
   return [`Ручне налаштування діє до: ${formatDateTime(override.expires_at)}`]
+})
+
+const billingDateLines = computed(() => {
+  const billing = accessSummary.value?.billing
+  if (!billing) return []
+  const lines: string[] = []
+  if (billing.paid_through) lines.push(`Сплачено до: ${formatDateTime(billing.paid_through)}`)
+  if (me.value?.access_state === 'GRACE' && billing.grace_ends_at) {
+    lines.push(`Пільговий період до: ${formatDateTime(billing.grace_ends_at)}`)
+  }
+  return lines
 })
 
 const accessPillClass = computed(() => {
@@ -865,6 +905,11 @@ async function requestExtraActiveClient() {
 async function startSelfServeUpgrade() {
   if (!nextPlan.value) return
   await requestAccess(nextPlan.value)
+}
+
+async function requestRenewal() {
+  if (isRequesting.value || hasPendingRequest.value) return
+  await requestAccess('PRO')
 }
 
 async function requestAccess(planCode: string) {

@@ -45,6 +45,12 @@
                 Ручна службова дія для виняткових випадків, поза звичайним тестовим сценарієм.
               </p>
             </div>
+            <div class="access-action access-action--primary">
+              <button class="btn btn--ghost btn--sm" type="button" @click="openManualPaymentModal">
+                Підтвердити оплату Pro
+              </button>
+              <p class="muted access-action__hint">Ручне підтвердження оплати з посиланням на платіж та строком доступу.</p>
+            </div>
           </div>
         </div>
 
@@ -390,6 +396,19 @@
             <template v-else>немає</template>
           </div>
           <div><strong>Фактичний доступ зараз:</strong> {{ planLabel(detail.tariff_access.effective_plan) }}</div>
+          <div>
+            <strong>Оплата Pro:</strong>
+            <template v-if="detail.tariff_access.billing?.active">
+              {{ detail.tariff_access.billing.source || '—' }} · до {{ formatDate(detail.tariff_access.billing.paid_through) }}
+              <template v-if="detail.tariff_access.billing.grace_ends_at">
+                · grace до {{ formatDate(detail.tariff_access.billing.grace_ends_at) }}
+              </template>
+              <template v-if="detail.tariff_access.billing.reason">
+                · {{ detail.tariff_access.billing.reason }}
+              </template>
+            </template>
+            <template v-else>немає</template>
+          </div>
         </div>
 
         <div
@@ -709,6 +728,21 @@
         </div>
       </section>
     </div>
+    <div v-if="manualPaymentModalOpen" class="setting-modal" @keydown.esc="closeManualPaymentModal">
+      <div class="setting-modal__backdrop" @click="closeManualPaymentModal"></div>
+      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Підтвердити оплату Pro">
+        <h2 class="panel__title">Підтвердити оплату Pro</h2>
+        <p class="muted modal-helper">Повторне підтвердження з тим самим посиланням на платіж не подовжує доступ вдруге.</p>
+        <label class="field"><span>Посилання на платіж</span><input v-model.trim="manualPaymentForm.payment_reference" /></label>
+        <label class="field"><span>Період</span><select v-model="manualPaymentForm.billing_interval"><option value="MONTHLY">Місяць</option><option value="ANNUAL">Рік</option></select></label>
+        <label class="field"><span>Підстава</span><textarea v-model.trim="manualPaymentForm.reason" rows="3"></textarea></label>
+        <p v-if="manualPaymentFormError" class="form-error">{{ manualPaymentFormError }}</p>
+        <div class="setting-modal__footer">
+          <button class="btn" type="button" :disabled="manualPaymentSaving" @click="submitManualPayment">{{ manualPaymentSaving ? 'Зберігаємо…' : 'Підтвердити' }}</button>
+          <button class="btn btn--ghost" type="button" :disabled="manualPaymentSaving" @click="closeManualPaymentModal">Скасувати</button>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
 
@@ -724,6 +758,7 @@ import {
   fetchAdminSpecialistAccessHistory,
   fetchAdminSpecialistDetail,
   getApiErrorMessage,
+  recordAdminManualBillingPayment,
   type AdminCrmReadinessItem,
   type AdminOnboardingSuppressionReason,
   type AdminSpecialistAccessHistoryItem,
@@ -747,6 +782,11 @@ const toast = useToast()
 const loading = ref(false)
 const error = ref('')
 const detail = ref<AdminSpecialistDetailResponse | null>(null)
+
+const manualPaymentModalOpen = ref(false)
+const manualPaymentSaving = ref(false)
+const manualPaymentFormError = ref('')
+const manualPaymentForm = ref({ payment_reference: '', billing_interval: 'MONTHLY' as 'MONTHLY' | 'ANNUAL', reason: '' })
 
 const historyLoading = ref(false)
 const historyError = ref('')
@@ -1303,6 +1343,43 @@ function openPlanModal() {
   planForm.value.plan = basePlan === 'PRO' || basePlan === 'LEADER' ? basePlan : 'START'
   planForm.value.reason = ''
   planModalOpen.value = true
+}
+
+function openManualPaymentModal() {
+  manualPaymentFormError.value = ''
+  manualPaymentForm.value = { payment_reference: '', billing_interval: 'MONTHLY', reason: '' }
+  manualPaymentModalOpen.value = true
+}
+
+function closeManualPaymentModal() {
+  if (!manualPaymentSaving.value) manualPaymentModalOpen.value = false
+}
+
+async function submitManualPayment() {
+  if (!detail.value || manualPaymentSaving.value) return
+  if (!manualPaymentForm.value.payment_reference.trim()) {
+    manualPaymentFormError.value = 'Вкажіть посилання на платіж.'
+    return
+  }
+  if (!manualPaymentForm.value.reason.trim()) {
+    manualPaymentFormError.value = 'Вкажіть підставу підтвердження оплати.'
+    return
+  }
+  manualPaymentSaving.value = true
+  manualPaymentFormError.value = ''
+  try {
+    await recordAdminManualBillingPayment(detail.value.identity.id, {
+      ...manualPaymentForm.value,
+      effective_at: new Date().toISOString(),
+    })
+    await Promise.all([loadDetail(), loadHistory()])
+    manualPaymentModalOpen.value = false
+    toast.success('Оплату Pro підтверджено.')
+  } catch (err) {
+    manualPaymentFormError.value = getApiErrorMessage(err, 'Не вдалося підтвердити оплату.')
+  } finally {
+    manualPaymentSaving.value = false
+  }
 }
 
 function closePlanModal() {
