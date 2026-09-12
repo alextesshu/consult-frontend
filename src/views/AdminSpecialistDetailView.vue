@@ -1372,7 +1372,7 @@ async function submitManualPayment() {
       ...manualPaymentForm.value,
       effective_at: new Date().toISOString(),
     })
-    await loadDetail()
+    await Promise.all([loadDetail(), loadHistory()])
     manualPaymentModalOpen.value = false
     toast.success('Оплату Pro підтверджено.')
   } catch (err) {
