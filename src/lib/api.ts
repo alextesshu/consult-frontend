@@ -1017,6 +1017,7 @@ export type AdminSpecialistDetailResponse = {
       paid_through: string | null
       grace_ends_at: string | null
       reason: string | null
+      first_manual_payment_preserves_trial?: boolean
     }
   }
   admin_crm_state?: AdminCrmState | null
