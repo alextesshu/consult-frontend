@@ -158,6 +158,7 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
         paid_through: null,
         grace_ends_at: null,
         reason: null,
+        first_manual_payment_preserves_trial: false,
       },
     },
     admin_context: {
@@ -249,6 +250,10 @@ function activeAccessDetail() {
         reason: 'Beta demo',
         actor: 'admin',
       },
+      billing: {
+        ...buildDetail().tariff_access.billing!,
+        first_manual_payment_preserves_trial: true,
+      },
       override: {
         active: true,
         override_plan: 'LEADER',
@@ -263,6 +268,19 @@ function activeAccessDetail() {
       },
     },
   })
+}
+
+function activeSignupTrialWithPriorManualPaymentDetail() {
+  return {
+    ...activeAccessDetail(),
+    tariff_access: {
+      ...activeAccessDetail().tariff_access,
+      billing: {
+        ...activeAccessDetail().tariff_access.billing!,
+        first_manual_payment_preserves_trial: false,
+      },
+    },
+  }
 }
 
 describe('AdminSpecialistDetailView', () => {
@@ -1038,6 +1056,57 @@ describe('AdminSpecialistDetailView', () => {
     expect(mockedFetchAdminSpecialistDetail).toHaveBeenCalledWith(2)
     expect(mockedFetchAdminSpecialistAccessHistory).toHaveBeenCalledWith(2)
     expect(await screen.findByText('BILLING_PAYMENT_RECORDED')).toBeInTheDocument()
+  })
+
+  it('preserves an active signup complimentary trial before the first manual payment', async () => {
+    mockedRecordAdminManualBillingPayment.mockResolvedValue({
+      created: true,
+      subscription: {},
+    } as never)
+    await renderView(activeAccessDetail())
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити оплату Pro' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Підтвердити оплату Pro' })
+    expect(within(dialog).getByTestId('manual-payment-effective-start')).toHaveTextContent(
+      '13.06.2026',
+    )
+    await fireEvent.update(within(dialog).getByLabelText('Посилання на платіж'), 'trial-receipt-42')
+    await fireEvent.update(within(dialog).getByLabelText('Підстава'), 'Trial-preserving payment.')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+
+    await waitFor(() => {
+      expect(mockedRecordAdminManualBillingPayment).toHaveBeenCalledWith(
+        2,
+        expect.not.objectContaining({ effective_at: expect.anything() }),
+      )
+    })
+  })
+
+  it('keeps the normal effective start for an active signup trial with prior manual payment', async () => {
+    mockedRecordAdminManualBillingPayment.mockResolvedValue({
+      created: true,
+      subscription: {},
+    } as never)
+    await renderView(activeSignupTrialWithPriorManualPaymentDetail())
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити оплату Pro' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Підтвердити оплату Pro' })
+    expect(within(dialog).getByTestId('manual-payment-effective-start')).toHaveTextContent(
+      'з моменту підтвердження оплати',
+    )
+    expect(within(dialog).getByTestId('manual-payment-effective-start')).not.toHaveTextContent(
+      '13.06.2026',
+    )
+    await fireEvent.update(within(dialog).getByLabelText('Посилання на платіж'), 'prior-manual-42')
+    await fireEvent.update(within(dialog).getByLabelText('Підстава'), 'Renewal after prior payment.')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Підтвердити' }))
+
+    await waitFor(() => {
+      expect(mockedRecordAdminManualBillingPayment).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({ effective_at: expect.any(String) }),
+      )
+    })
   })
 
   it('blocks manual payment submission without reference or reason', async () => {
