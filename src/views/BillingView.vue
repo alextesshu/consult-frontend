@@ -19,6 +19,31 @@
         <div class="access-pill" :class="accessPillClass">{{ accessLabel }}</div>
       </div>
       <div class="muted">{{ mainAccessDescription }}</div>
+      <section
+        v-if="complimentaryTrialWarning"
+        class="complimentary-trial-warning"
+        :class="`complimentary-trial-warning--${complimentaryTrialWarning.state.toLowerCase()}`"
+        role="alert"
+        aria-labelledby="complimentary-trial-warning-title"
+      >
+        <div>
+          <h3 id="complimentary-trial-warning-title" class="complimentary-trial-warning__title">
+            {{ complimentaryTrialWarningTitle }}
+          </h3>
+          <p v-if="complimentaryTrialWarningCopy" class="complimentary-trial-warning__copy">
+            {{ complimentaryTrialWarningCopy }}
+          </p>
+        </div>
+        <button
+          v-if="complimentaryTrialWarning.state === 'EXPIRING'"
+          class="btn"
+          type="button"
+          :disabled="isRequesting || hasPendingRequest"
+          @click="requestRenewal"
+        >
+          {{ hasPendingRequest ? 'Заявка очікує розгляду' : 'Перейти на Pro' }}
+        </button>
+      </section>
       <div v-if="secondaryAccessNote" class="muted access-secondary-note">{{ secondaryAccessNote }}</div>
       <div v-if="latestRequestLine" class="muted access-secondary-note">{{ latestRequestLine }}</div>
       <div v-if="trialDateLines.length" class="access-meta">
@@ -108,7 +133,7 @@
       </div>
       <div class="request-row">
         <button
-          v-if="requiresRenewal"
+          v-if="hasCanonicalRenewalAction"
           class="btn"
           type="button"
           :disabled="isRequesting || hasPendingRequest"
@@ -117,6 +142,7 @@
           Продовжити Pro
         </button>
         <button
+          v-if="!hasCanonicalRenewalAction"
           class="btn"
           type="button"
           :disabled="!nextPlan || isRequesting || (nextPlan ? isRequestActionBlocked(nextPlan) : false)"
@@ -170,7 +196,7 @@
         <div class="plan-foot">
           <div class="plan-action">
             <button
-              v-if="isUpgradePlan(plan.code)"
+              v-if="isUpgradePlan(plan.code) && !hasCanonicalRenewalAction"
               class="btn"
               type="button"
               :disabled="!canSelfServePlan(plan.code) || isRequesting || isRequestActionBlocked(plan.code)"
@@ -178,6 +204,9 @@
             >
               {{ planActionLabel(plan.code) }}
             </button>
+            <div v-else-if="isUpgradePlan(plan.code)" class="plan-action__state plan-action__state--base">
+              Продовження Pro доступне вище
+            </div>
             <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний доступ</div>
             <div v-else-if="isBasePlan(plan.code)" class="plan-action__state plan-action__state--base">Базовий тариф</div>
             <div v-else-if="isUnavailableBetaPlan(plan.code)" class="plan-action__state plan-action__state--base">
@@ -268,6 +297,10 @@ type BillingAccessSummary = {
     source?: string | null
     paid_through?: string | null
     grace_ends_at?: string | null
+  } | null
+  complimentary_trial_warning?: {
+    state: 'EXPIRING' | 'EXPIRED'
+    ends_at: string
   } | null
   current_request?: BillingSummaryRequest | null
   latest_request?: BillingSummaryRequest | null
@@ -471,6 +504,9 @@ const requiresRenewal = computed(() => {
   const state = me.value?.access_state
   return state === 'GRACE' || state === 'START_SOFT_RESTRICTED'
 })
+const hasCanonicalRenewalAction = computed(() => {
+  return requiresRenewal.value || complimentaryTrialWarning.value?.state === 'EXPIRED'
+})
 const mainAccessDescription = computed(() => {
   if (me.value?.access_state === 'GRACE') {
     return 'Практика та можливості Pro тимчасово збережені. Продовжіть Pro до завершення пільгового періоду.'
@@ -523,6 +559,22 @@ function formatDateTime(value: string | null | undefined) {
     minute: '2-digit',
   }).format(date)
 }
+
+const complimentaryTrialWarning = computed(() => accessSummary.value?.complimentary_trial_warning || null)
+const complimentaryTrialWarningTitle = computed(() => {
+  return complimentaryTrialWarning.value?.state === 'EXPIRED'
+    ? 'Тестовий доступ до Pro завершився'
+    : 'Тестовий доступ до Pro завершується'
+})
+const complimentaryTrialWarningCopy = computed(() => {
+  const warning = complimentaryTrialWarning.value
+  if (!warning) return ''
+  if (warning.state === 'EXPIRED') {
+    if (requiresRenewal.value) return ''
+    return 'Ваші клієнти, сесії та дані збережені. Зараз діють можливості тарифу Start; нове зростання та частина Pro-функцій обмежені.'
+  }
+  return `Тестовий доступ до Pro завершується ${formatDateTime(warning.ends_at)}. Щоб зберегти Pro після цієї дати, подайте заявку на продовження.`
+})
 
 const trialDateLines = computed(() => {
   const trial = accessSummary.value?.trial
@@ -1243,6 +1295,42 @@ onMounted(() => {
   margin: 0;
 }
 
+.complimentary-trial-warning {
+  border: 1px solid var(--pc-warning-border);
+  border-radius: var(--pc-radius-card);
+  background: var(--pc-warning-soft);
+  color: var(--pc-warning-text);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.complimentary-trial-warning--expired {
+  border-color: var(--pc-danger-border);
+  background: var(--pc-danger-soft);
+  color: var(--pc-danger-text);
+}
+
+.complimentary-trial-warning__title,
+.complimentary-trial-warning__copy {
+  margin: 0;
+}
+
+.complimentary-trial-warning__title {
+  font-size: 16px;
+}
+
+.complimentary-trial-warning__copy {
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.complimentary-trial-warning .btn {
+  flex: 0 0 auto;
+}
+
 .slot-panel {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-card);
@@ -1560,6 +1648,15 @@ onMounted(() => {
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .complimentary-trial-warning {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .complimentary-trial-warning .btn {
+    width: 100%;
   }
 }
 </style>
