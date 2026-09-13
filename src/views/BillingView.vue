@@ -44,6 +44,35 @@
           {{ hasPendingRequest ? 'Заявка очікує розгляду' : 'Перейти на Pro' }}
         </button>
       </section>
+      <section
+        v-if="paymentInstructions"
+        class="payment-instructions"
+        :class="{ 'payment-instructions--unavailable': !paymentInstructions.available }"
+        aria-labelledby="payment-instructions-title"
+      >
+        <template v-if="paymentInstructions.available">
+          <div>
+            <h3 id="payment-instructions-title" class="payment-instructions__title">Оплата Pro</h3>
+            <p class="payment-instructions__copy">
+              Заявку на Pro схвалено, але доступ стане платним лише після підтвердження оплати адміністратором.
+            </p>
+          </div>
+          <dl class="payment-instructions__details">
+            <div><dt>Тариф</dt><dd>Pro</dd></div>
+            <div><dt>Щомісяця</dt><dd>{{ formatUah(paymentInstructions.monthly_amount_uah) }}</dd></div>
+            <div><dt>За рік</dt><dd>{{ formatUah(paymentInstructions.annual_amount_uah) }}</dd></div>
+            <div><dt>Отримувач</dt><dd>{{ paymentInstructions.payee_name }}</dd></div>
+            <div><dt>IBAN</dt><dd class="payment-instructions__copyable">{{ paymentInstructions.iban }}</dd></div>
+            <div><dt>Призначення платежу</dt><dd class="payment-instructions__copyable">{{ paymentInstructions.payment_purpose }}</dd></div>
+          </dl>
+          <p class="payment-instructions__confirmation">
+            Після оплати доступ буде підтверджено адміністратором.
+          </p>
+        </template>
+        <p v-else id="payment-instructions-title" class="payment-instructions__copy">
+          Реквізити для оплати готуються. Ми повідомимо їх окремо.
+        </p>
+      </section>
       <div v-if="secondaryAccessNote" class="muted access-secondary-note">{{ secondaryAccessNote }}</div>
       <div v-if="latestRequestLine" class="muted access-secondary-note">{{ latestRequestLine }}</div>
       <div v-if="trialDateLines.length" class="access-meta">
@@ -301,6 +330,16 @@ type BillingAccessSummary = {
   complimentary_trial_warning?: {
     state: 'EXPIRING' | 'EXPIRED'
     ends_at: string
+  } | null
+  payment_instructions?: {
+    available: boolean
+    plan: 'PRO'
+    supported_billing_cycles: ('MONTHLY' | 'ANNUAL')[]
+    monthly_amount_uah: number | null
+    annual_amount_uah: number | null
+    payee_name: string | null
+    iban: string | null
+    payment_purpose: string | null
   } | null
   current_request?: BillingSummaryRequest | null
   latest_request?: BillingSummaryRequest | null
@@ -560,7 +599,13 @@ function formatDateTime(value: string | null | undefined) {
   }).format(date)
 }
 
+function formatUah(value: number | null) {
+  if (value === null) return ''
+  return `${new Intl.NumberFormat('uk-UA').format(value)} грн`
+}
+
 const complimentaryTrialWarning = computed(() => accessSummary.value?.complimentary_trial_warning || null)
+const paymentInstructions = computed(() => accessSummary.value?.payment_instructions || null)
 const complimentaryTrialWarningTitle = computed(() => {
   return complimentaryTrialWarning.value?.state === 'EXPIRED'
     ? 'Тестовий доступ до Pro завершився'
@@ -1331,6 +1376,62 @@ onMounted(() => {
   flex: 0 0 auto;
 }
 
+.payment-instructions {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-primary-soft) 54%, #ffffff);
+  color: var(--pc-navy-900);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.payment-instructions--unavailable {
+  background: #fff;
+}
+
+.payment-instructions__title,
+.payment-instructions__copy,
+.payment-instructions__confirmation {
+  margin: 0;
+}
+
+.payment-instructions__title {
+  font-size: 16px;
+}
+
+.payment-instructions__copy,
+.payment-instructions__confirmation {
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.payment-instructions__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.payment-instructions__details div {
+  min-width: 0;
+}
+
+.payment-instructions__details dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.payment-instructions__details dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.payment-instructions__copyable {
+  user-select: text;
+}
+
 .slot-panel {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-card);
@@ -1657,6 +1758,10 @@ onMounted(() => {
 
   .complimentary-trial-warning .btn {
     width: 100%;
+  }
+
+  .payment-instructions__details {
+    grid-template-columns: 1fr;
   }
 }
 </style>

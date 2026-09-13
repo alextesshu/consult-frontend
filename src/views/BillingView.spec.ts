@@ -858,4 +858,120 @@ describe('BillingView downgrade semantics', () => {
     })
     expect(screen.getByRole('button', { name: 'Продовжити Pro' })).toBeInTheDocument()
   })
+
+  it('renders configured payment instructions for an approved but unpaid Pro request', async () => {
+    setCurrentPlan('START', {
+      latest_request: {
+        id: 42,
+        requested_plan: 'PRO',
+        status: 'APPROVED',
+        created_at: '2026-09-01T10:00:00Z',
+        reviewed_at: '2026-09-01T11:00:00Z',
+      },
+      payment_instructions: {
+        available: true,
+        plan: 'PRO',
+        supported_billing_cycles: ['MONTHLY', 'ANNUAL'],
+        monthly_amount_uah: 990,
+        annual_amount_uah: 9900,
+        payee_name: 'Pro Consult',
+        iban: 'UA001234567890123456789012345',
+        payment_purpose: 'Pro Consult Pro, request #42',
+      },
+    })
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Оплата Pro' })).toBeInTheDocument()
+    })
+    expect(screen.getAllByText('990 грн')).toHaveLength(2)
+    expect(screen.getByText(/9\s?900 грн/)).toBeInTheDocument()
+    expect(screen.getByText('Pro Consult')).toBeInTheDocument()
+    expect(screen.getByText('UA001234567890123456789012345')).toBeInTheDocument()
+    expect(screen.getByText('Pro Consult Pro, request #42')).toBeInTheDocument()
+    expect(screen.getByText(/доступ стане платним лише після підтвердження оплати адміністратором/)).toBeInTheDocument()
+    expect(view.container.querySelector('.payment-instructions__copyable')).toHaveClass('payment-instructions__copyable')
+  })
+
+  it('renders neutral pending copy when approved payment requisites are unavailable', async () => {
+    setCurrentPlan('START', {
+      latest_request: { id: 43, requested_plan: 'PRO', status: 'APPROVED', created_at: null },
+      payment_instructions: {
+        available: false,
+        plan: 'PRO',
+        supported_billing_cycles: [],
+        monthly_amount_uah: null,
+        annual_amount_uah: null,
+        payee_name: null,
+        iban: null,
+        payment_purpose: null,
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Реквізити для оплати готуються. Ми повідомимо їх окремо.')).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Оплата Pro' })).not.toBeInTheDocument()
+  })
+
+  it('does not show payment instructions for pending, rejected, or paid access states', async () => {
+    setCurrentPlan('START', {
+      current_request: { id: 44, requested_plan: 'PRO', status: 'PENDING', created_at: null },
+      payment_instructions: null,
+    })
+    const pendingView = renderView()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Реквізити для оплати готуються. Ми повідомимо їх окремо.')).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Оплата Pro' })).not.toBeInTheDocument()
+    pendingView.unmount()
+
+    setCurrentPlan('START', {
+      latest_request: { id: 45, requested_plan: 'PRO', status: 'REJECTED', created_at: null },
+      payment_instructions: null,
+    })
+    const rejectedView = renderView()
+    await waitFor(() => {
+      expect(screen.getByText(/Остання заявка: Pro, відхилено/)).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Оплата Pro' })).not.toBeInTheDocument()
+    rejectedView.unmount()
+
+    setCurrentPlan('PRO', {
+      billing: { active: true, status: 'ACTIVE', source: 'MANUAL', paid_through: null, grace_ends_at: null },
+      payment_instructions: null,
+    })
+    renderView()
+    await waitFor(() => {
+      expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Оплата Pro' })).not.toBeInTheDocument()
+  })
+
+  it('keeps a complimentary-trial warning separate from approved payment instructions', async () => {
+    setCurrentPlan('PRO', {
+      access_source: 'trial',
+      complimentary_trial_warning: { state: 'EXPIRING', ends_at: '2026-09-16T10:00:00Z' },
+      latest_request: { id: 46, requested_plan: 'PRO', status: 'APPROVED', created_at: null },
+      payment_instructions: {
+        available: true,
+        plan: 'PRO',
+        supported_billing_cycles: ['MONTHLY', 'ANNUAL'],
+        monthly_amount_uah: 990,
+        annual_amount_uah: 9900,
+        payee_name: 'Pro Consult',
+        iban: 'UA001234567890123456789012345',
+        payment_purpose: 'Pro Consult Pro, request #46',
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Тестовий доступ до Pro завершується')).toBeInTheDocument()
+    })
+    expect(screen.getAllByRole('heading', { name: 'Оплата Pro' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Перейти на Pro' })).toHaveLength(1)
+  })
 })
