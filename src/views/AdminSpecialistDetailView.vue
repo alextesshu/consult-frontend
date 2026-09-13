@@ -733,6 +733,12 @@
       <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Підтвердити оплату Pro">
         <h2 class="panel__title">Підтвердити оплату Pro</h2>
         <p class="muted modal-helper">Повторне підтвердження з тим самим посиланням на платіж не подовжує доступ вдруге.</p>
+        <p class="muted modal-helper" data-testid="manual-payment-effective-start">
+          <template v-if="firstManualPaymentTrialEndsAt">
+            Оплачуваний період почнеться після завершення complimentary trial: {{ formatDate(firstManualPaymentTrialEndsAt) }}.
+          </template>
+          <template v-else>Оплачуваний період почнеться з моменту підтвердження оплати.</template>
+        </p>
         <label class="field"><span>Посилання на платіж</span><input v-model.trim="manualPaymentForm.payment_reference" /></label>
         <label class="field"><span>Період</span><select v-model="manualPaymentForm.billing_interval"><option value="MONTHLY">Місяць</option><option value="ANNUAL">Рік</option></select></label>
         <label class="field"><span>Підстава</span><textarea v-model.trim="manualPaymentForm.reason" rows="3"></textarea></label>
@@ -1130,6 +1136,16 @@ const templateC = computed(() => {
     variant,
   }
 })
+const firstManualPaymentTrialEndsAt = computed(() => {
+  const trial = detail.value?.tariff_access.trial
+  if (
+    detail.value?.tariff_access.billing?.first_manual_payment_preserves_trial === true &&
+    trial?.ends_at
+  ) {
+    return trial.ends_at
+  }
+  return null
+})
 const onboardingUnavailable = computed(
   () =>
     Boolean(adminCrmState.value && !crmOnboarding.value) ||
@@ -1370,7 +1386,9 @@ async function submitManualPayment() {
   try {
     await recordAdminManualBillingPayment(detail.value.identity.id, {
       ...manualPaymentForm.value,
-      effective_at: new Date().toISOString(),
+      ...(firstManualPaymentTrialEndsAt.value
+        ? {}
+        : { effective_at: new Date().toISOString() }),
     })
     await Promise.all([loadDetail(), loadHistory()])
     manualPaymentModalOpen.value = false
