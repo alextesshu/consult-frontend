@@ -574,6 +574,118 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getByText(/Завершення тестового доступу:/)).toBeInTheDocument()
   })
 
+  it('shows no complimentary trial expiry warning with more than three days remaining', async () => {
+    setCurrentPlan('START', {
+      plan: 'PRO',
+      effective_plan: 'PRO',
+      access_source: 'trial',
+      complimentary_trial_warning: null,
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByText('Тестовий доступ до Pro завершується')).not.toBeInTheDocument()
+  })
+
+  it('shows an expiring complimentary trial warning with local date and Pro CTA', async () => {
+    setCurrentPlan('START', {
+      plan: 'PRO',
+      effective_plan: 'PRO',
+      access_source: 'trial',
+      complimentary_trial_warning: {
+        state: 'EXPIRING',
+        ends_at: '2026-09-15T10:30:00Z',
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Тестовий доступ до Pro завершується')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText(/15\.09\.2026.*13:30/)).toBeInTheDocument()
+    const button = screen.getByRole('button', { name: 'Перейти на Pro' })
+    await fireEvent.click(button)
+    expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
+      requested_plan: 'PRO',
+      note: 'upgrade_from:PRO',
+    })
+  })
+
+  it('shows continuity copy after a complimentary trial expires', async () => {
+    setCurrentPlan('START', {
+      access_state: 'START_SOFT_RESTRICTED',
+      complimentary_trial_warning: {
+        state: 'EXPIRED',
+        ends_at: '2026-09-10T10:30:00Z',
+      },
+    })
+    mockMe.value.access_state = 'START_SOFT_RESTRICTED'
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Тестовий доступ до Pro завершився')).toBeInTheDocument()
+    })
+
+    expect(
+      screen.getAllByText(/Поточна практика, клієнти та сесії збережені/)
+    ).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Продовжити Pro' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Перейти на Pro' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Подати заявку на Pro' })).not.toBeInTheDocument()
+  })
+
+  it('disables the complimentary trial CTA while a Pro request is pending', async () => {
+    setCurrentPlan('START', {
+      plan: 'PRO',
+      effective_plan: 'PRO',
+      access_source: 'trial',
+      complimentary_trial_warning: {
+        state: 'EXPIRING',
+        ends_at: '2026-09-15T10:30:00Z',
+      },
+      current_request: {
+        id: 77,
+        requested_plan: 'PRO',
+        status: 'PENDING',
+        created_at: '2026-09-12T10:30:00Z',
+        reviewed_at: null,
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Тестовий доступ до Pro завершується')).toBeInTheDocument()
+    })
+
+    expect(screen.getByRole('button', { name: 'Заявка очікує розгляду' })).toBeDisabled()
+    expect(mockedCreateBillingAccessRequest).not.toHaveBeenCalled()
+  })
+
+  it('does not show a complimentary trial warning when paid Pro is active', async () => {
+    setCurrentPlan('PRO', {
+      billing: {
+        active: true,
+        status: 'ACTIVE',
+        source: 'MANUAL',
+        paid_through: '2026-10-15T10:30:00Z',
+        grace_ends_at: '2026-11-14T10:30:00Z',
+      },
+      complimentary_trial_warning: null,
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByText('Тестовий доступ до Pro завершується')).not.toBeInTheDocument()
+    expect(screen.queryByText('Тестовий доступ до Pro завершився')).not.toBeInTheDocument()
+  })
+
   it('explains START base with active Leader override', async () => {
     setCurrentPlan('START', {
       plan: 'LEADER',
