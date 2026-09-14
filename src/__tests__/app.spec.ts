@@ -1530,6 +1530,42 @@ describe('App shell', () => {
     expect(panelText).not.toContain('PAYMENT_CLARIFICATION_REQUESTED')
   })
 
+  it('renders and routes a manual Pro payment confirmation notification', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'billing_payment:81',
+          kind: 'billing_payment',
+          source_kind: 'billing_payment',
+          source_id: 81,
+          code: 'PRO_PAYMENT_RECORDED',
+          title: 'Оплату Pro підтверджено',
+          body: 'Ваш доступ Pro активний до 14 жовтня 2026 р., 12:00.',
+          target_url: '/cabinet/billing',
+          session_id: null,
+        }),
+      ],
+    })
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await fireEvent.click(notificationsButton as HTMLButtonElement)
+
+    const title = await screen.findByText('Оплату Pro підтверджено')
+    expect(screen.getByText('Ваш доступ Pro активний до 14 жовтня 2026 р., 12:00.')).toBeInTheDocument()
+    await fireEvent.click(title.closest('a') as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'billing_payment',
+        source_id: 81,
+      })
+      expect(router.currentRoute.value.fullPath).toBe('/cabinet/billing')
+    })
+  })
+
   it('shows a join button for reminder notifications with an external meeting link', async () => {
     await renderWithProviders({
       initialPath: '/client',
