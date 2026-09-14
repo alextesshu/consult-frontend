@@ -51,6 +51,7 @@ function buildAccessSummary(overrides: Record<string, unknown> = {}) {
     plan: 'START',
     base_plan: 'START',
     effective_plan: 'START',
+    access_state: 'OK',
     access_source: 'base_plan',
     access_label: 'Поточний тариф',
     access_message: 'Доступ відповідає тарифу Start.',
@@ -415,6 +416,27 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.queryByText('Повний доступ')).not.toBeInTheDocument()
   })
 
+  it.each([
+    'START_SOFT_RESTRICTED',
+    'RESTRICTED',
+    'SUSPENDED',
+    'FUTURE_INTERNAL_STATE',
+  ])('never renders the raw %s access state', async (accessState) => {
+    setCurrentPlan('START', {
+      access_state: accessState,
+      access_label: null,
+    })
+    mockMe.value.access_state = accessState
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Ваш доступ зараз: Start')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByText(accessState)).not.toBeInTheDocument()
+    expect(screen.getAllByText('Start').length).toBeGreaterThan(0)
+  })
+
   it('uses beta access request flow instead of checkout payment wording', async () => {
     setCurrentPlan('START')
     mockedCreateBillingAccessRequest.mockResolvedValue({
@@ -669,6 +691,7 @@ describe('BillingView downgrade semantics', () => {
     setCurrentPlan('PRO', {
       billing: {
         active: true,
+        plan: 'PRO',
         status: 'ACTIVE',
         source: 'MANUAL',
         paid_through: '2026-10-15T10:30:00Z',
@@ -840,10 +863,12 @@ describe('BillingView downgrade semantics', () => {
     setCurrentPlan('PRO', {
       plan: 'PRO',
       effective_plan: 'PRO',
+      access_state: 'GRACE',
       access_source: 'billing',
       access_label: 'Платний доступ',
       billing: {
         active: true,
+        plan: 'PRO',
         status: 'ACTIVE',
         source: 'MANUAL',
         paid_through: '2026-09-01T00:00:00Z',
@@ -854,8 +879,12 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getByText(/Практика та можливості Pro тимчасово збережені/)).toBeInTheDocument()
+      expect(screen.getByText(/Оплачений період завершився\. Pro ще доступний до/)).toBeInTheDocument()
     })
+    expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+    expect(screen.queryByText('GRACE')).not.toBeInTheDocument()
+    expect(screen.queryByText('grace')).not.toBeInTheDocument()
+    expect(screen.queryByText('START_SOFT_RESTRICTED')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Продовжити Pro' })).toBeInTheDocument()
   })
 
@@ -890,6 +919,8 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getByText('UA001234567890123456789012345')).toBeInTheDocument()
     expect(screen.getByText('Pro Consult Pro, request #42')).toBeInTheDocument()
     expect(screen.getByText(/доступ стане платним лише після підтвердження оплати адміністратором/)).toBeInTheDocument()
+    expect(screen.getByText('Заявку на Pro схвалено. Для активації платного Pro потрібно завершити оплату.')).toBeInTheDocument()
+    expect(screen.queryByText('Заявку на Start схвалено. Можливості Start активні.')).not.toBeInTheDocument()
     expect(view.container.querySelector('.payment-instructions__copyable')).toHaveClass('payment-instructions__copyable')
   })
 
@@ -940,12 +971,21 @@ describe('BillingView downgrade semantics', () => {
     rejectedView.unmount()
 
     setCurrentPlan('PRO', {
-      billing: { active: true, status: 'ACTIVE', source: 'MANUAL', paid_through: null, grace_ends_at: null },
-      payment_instructions: null,
+      billing: { active: true, plan: 'PRO', status: 'ACTIVE', source: 'MANUAL', paid_through: null, grace_ends_at: null },
+      payment_instructions: {
+        available: true,
+        plan: 'PRO',
+        supported_billing_cycles: ['MONTHLY'],
+        monthly_amount_uah: 1000,
+        annual_amount_uah: null,
+        payee_name: 'Pro Consult',
+        iban: 'UA001234567890123456789012345',
+        payment_purpose: 'Pro Consult Pro',
+      },
     })
     renderView()
     await waitFor(() => {
-      expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+      expect(screen.getByText('Ваш доступ зараз: Pro · оплачений')).toBeInTheDocument()
     })
     expect(screen.queryByRole('heading', { name: 'Оплата Pro' })).not.toBeInTheDocument()
   })
@@ -953,6 +993,13 @@ describe('BillingView downgrade semantics', () => {
   it('keeps a complimentary-trial warning separate from approved payment instructions', async () => {
     setCurrentPlan('PRO', {
       access_source: 'trial',
+      trial: {
+        active: true,
+        plan: 'PRO',
+        source: 'SIGNUP_COMPLIMENTARY',
+        starts_at: '2026-09-01T10:00:00Z',
+        ends_at: '2026-09-16T10:00:00Z',
+      },
       complimentary_trial_warning: { state: 'EXPIRING', ends_at: '2026-09-16T10:00:00Z' },
       latest_request: { id: 46, requested_plan: 'PRO', status: 'APPROVED', created_at: null },
       payment_instructions: {
@@ -973,5 +1020,8 @@ describe('BillingView downgrade semantics', () => {
     })
     expect(screen.getAllByRole('heading', { name: 'Оплата Pro' })).toHaveLength(1)
     expect(screen.getAllByRole('button', { name: 'Перейти на Pro' })).toHaveLength(1)
+    expect(screen.getByText('Ваш доступ зараз: Pro · тестовий доступ')).toBeInTheDocument()
+    expect(screen.getByText('Заявку на Pro схвалено. Зараз у вас ще діє тестовий доступ Pro.')).toBeInTheDocument()
+    expect(screen.queryByText('Заявку на Pro схвалено. Можливості Pro активні.')).not.toBeInTheDocument()
   })
 })

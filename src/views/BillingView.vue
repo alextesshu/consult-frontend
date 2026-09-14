@@ -308,10 +308,12 @@ type BillingAccessSummary = {
   effective_plan?: PlanCode | string | null
   access_source?: AccessSource | null
   access_label?: string | null
+  access_state?: string | null
   access_message?: string | null
   trial?: {
     active?: boolean | null
     plan?: PlanCode | string | null
+    source?: string | null
     starts_at?: string | null
     ends_at?: string | null
   } | null
@@ -322,6 +324,7 @@ type BillingAccessSummary = {
   } | null
   billing?: {
     active?: boolean | null
+    plan?: PlanCode | string | null
     status?: string | null
     source?: string | null
     paid_through?: string | null
@@ -450,8 +453,36 @@ const basePlan = computed<PlanCode | null>(() => {
   return normalizePlan(accessSummary.value?.base_plan) || currentPlan.value
 })
 
+const currentAccessState = computed(() => {
+  return accessSummary.value?.access_state || me.value?.access_state || null
+})
+
+const hasActiveComplimentaryProTrial = computed(() => {
+  const trial = accessSummary.value?.trial
+  return Boolean(
+    trial?.active &&
+      trial.plan === 'PRO' &&
+      trial.source === 'SIGNUP_COMPLIMENTARY',
+  )
+})
+
+const hasActivePaidPro = computed(() => {
+  const billing = accessSummary.value?.billing
+  return Boolean(
+    billing?.active &&
+      billing.plan === 'PRO' &&
+      currentAccessState.value === 'OK',
+  )
+})
+
 const currentPlanLabel = computed(() => {
   if (!currentPlan.value) return 'Не визначено'
+  if (currentPlan.value === 'PRO' && hasActivePaidPro.value) {
+    return 'Pro · оплачений'
+  }
+  if (currentPlan.value === 'PRO' && hasActiveComplimentaryProTrial.value) {
+    return 'Pro · тестовий доступ'
+  }
   return planTitle(currentPlan.value)
 })
 
@@ -508,6 +539,19 @@ const normalizedLatestRequest = computed<BillingSummaryRequest | null>(() => {
   }
 })
 
+const paymentInstructions = computed(() => {
+  if (hasActivePaidPro.value) return null
+  return accessSummary.value?.payment_instructions || null
+})
+const hasApprovedUnpaidProRequest = computed(() => {
+  const request = normalizedLatestRequest.value
+  return Boolean(
+    paymentInstructions.value &&
+      request?.status === 'APPROVED' &&
+      request.requested_plan === 'PRO',
+  )
+})
+
 const requestForActionState = computed(() => {
   return normalizedCurrentRequest.value || normalizedLatestRequest.value
 })
@@ -530,28 +574,38 @@ const billingCycleLabel = computed(() => '')
 const accessLabel = computed(() => {
   if (accessSummary.value?.access_label) return accessSummary.value.access_label
   const state = me.value?.access_state
-  if (!state) return 'Невідомо'
+  if (!state) return currentPlanLabel.value || 'Статус доступу оновлюється'
   if (state === 'OK') return 'Доступ активний'
   if (state === 'GRACE') return 'Пільговий період'
   if (state === 'RESTRICTED') return 'Обмежений режим'
   if (state === 'SUSPENDED') return 'Призупинено'
-  return state
+  return currentPlanLabel.value || 'Статус доступу оновлюється'
 })
 
 const accessSource = computed(() => accessSummary.value?.access_source || 'base_plan')
 const requiresRenewal = computed(() => {
-  const state = me.value?.access_state
+  const state = currentAccessState.value
   return state === 'GRACE' || state === 'START_SOFT_RESTRICTED'
 })
 const hasCanonicalRenewalAction = computed(() => {
   return requiresRenewal.value || complimentaryTrialWarning.value?.state === 'EXPIRED'
 })
 const mainAccessDescription = computed(() => {
-  if (me.value?.access_state === 'GRACE') {
-    return 'Практика та можливості Pro тимчасово збережені. Продовжіть Pro до завершення пільгового періоду.'
+  if (currentAccessState.value === 'GRACE') {
+    const graceEndsAt = accessSummary.value?.billing?.grace_ends_at
+    if (graceEndsAt) {
+      return `Оплачений період завершився. Pro ще доступний до ${formatDateTime(graceEndsAt)}. Після цього діятимуть умови Start, якщо підписку не продовжити.`
+    }
+    return 'Оплачений період завершився. Pro ще тимчасово доступний. Після цього діятимуть умови Start, якщо підписку не продовжити.'
   }
-  if (me.value?.access_state === 'START_SOFT_RESTRICTED') {
+  if (currentAccessState.value === 'START_SOFT_RESTRICTED') {
     return 'Поточна практика, клієнти та сесії збережені. Нове зростання діє в межах Start, а Pro-функції обмежені.'
+  }
+  if (hasApprovedUnpaidProRequest.value) {
+    if (hasActiveComplimentaryProTrial.value) {
+      return 'Заявку на Pro схвалено. Зараз у вас ще діє тестовий доступ Pro.'
+    }
+    return 'Заявку на Pro схвалено. Для активації платного Pro потрібно завершити оплату.'
   }
   if (accessSource.value === 'trial') {
     return `Вам відкрито тестовий доступ до можливостей тарифу ${currentPlanLabel.value}.`
@@ -605,7 +659,6 @@ function formatUah(value: number | null) {
 }
 
 const complimentaryTrialWarning = computed(() => accessSummary.value?.complimentary_trial_warning || null)
-const paymentInstructions = computed(() => accessSummary.value?.payment_instructions || null)
 const complimentaryTrialWarningTitle = computed(() => {
   return complimentaryTrialWarning.value?.state === 'EXPIRED'
     ? 'Тестовий доступ до Pro завершився'
