@@ -77,6 +77,10 @@ export function useNotifications({
     return item.source_kind === 'product_update'
   }
 
+  function isManualBillingPayment(item: NotificationFeedItem) {
+    return item.source_kind === 'billing_payment'
+  }
+
   function notificationJoinUrl(item: NotificationFeedItem) {
     const url = normalizeMeetingUrl(item.meeting_url)
     if (!url) return null
@@ -88,6 +92,7 @@ export function useNotifications({
 
   function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
     if (isProductUpdate(item)) return item.tone === 'info' ? 'info' : 'warn'
+    if (isManualBillingPayment(item)) return 'ok'
     if (item.source_kind === 'inquiry_message') return 'info'
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
     if (isPaymentProofRequested(item)) return 'warn'
@@ -108,6 +113,9 @@ export function useNotifications({
     }
     if (isProductUpdate(item)) {
       return item.title?.trim() || 'Оновлення профілю'
+    }
+    if (isManualBillingPayment(item)) {
+      return item.title?.trim() || 'Оплату Pro підтверджено'
     }
     if (isAdminInboxItem(item)) {
       return item.title?.trim() || 'Адміністративне сповіщення'
@@ -168,6 +176,9 @@ export function useNotifications({
     }
     if (isProductUpdate(item)) {
       return item.body?.trim() || 'Відкрийте профіль, щоб виконати потрібну дію.'
+    }
+    if (isManualBillingPayment(item)) {
+      return item.body?.trim() || 'Ваш доступ Pro активний.'
     }
     if (isAdminInboxItem(item)) {
       return item.body?.trim() || 'Відкрийте чергу роботи, щоб переглянути деталі.'
