@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="home-lite">
     <div class="home-lite__container">
       <section class="home-hero reveal" aria-labelledby="home-hero-title">
@@ -6,12 +6,23 @@
         <span class="home-hero__wash home-hero__wash--peach" aria-hidden="true"></span>
         <div class="home-hero__content">
           <h1 id="home-hero-title" class="home-hero__title">
-            Консультаційна практика — в одному спокійному просторі
+            Етичний простір для консультування
           </h1>
           <p class="home-hero__subtitle">
-            Публічна сторінка, запити від клієнтів, сесії, календар і робочі матеріали — для ведення практики без
-            комісій з консультацій.
+            Для фахівців, які хочуть професійно представити себе та вести консультаційну практику, і клієнтів, які шукають спеціалістів.
           </p>
+          <div class="home-hero__principles" aria-label="Принципи Pro Consult">
+            <div class="home-hero__principles-row">
+              <span>Прямий контакт без посередників</span>
+              <span class="home-hero__principle-sep" aria-hidden="true">·</span>
+              <span>Без комісій з консультацій</span>
+            </div>
+            <div class="home-hero__principles-row">
+              <span>Професійна публічна сторінка з блогом</span>
+              <span class="home-hero__principle-sep" aria-hidden="true">·</span>
+              <span>Без рейтингів і платного просування</span>
+            </div>
+          </div>
           <div class="home-hero__actions">
             <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">
               Перейти до кабінету
@@ -123,7 +134,7 @@
                     <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
                     <path d="M5 20a7 7 0 0 1 14 0" />
                   </svg>
-                  Публічний профіль
+                  Професійна сторінка
                 </span>
               </header>
               <div class="product-story__profile">
@@ -199,8 +210,7 @@
         <div>
           <h2 id="client-entry-title" class="section-head__title">Шукаєте спеціаліста?</h2>
           <p>
-            Оберіть напрям або опишіть свій запит, перегляньте публічні сторінки спеціалістів і залиште запит без
-            реєстрації.
+            Оберіть напрям або опишіть свій запит, перегляньте професійні сторінки спеціалістів і зверніться напряму до того, хто вам підходить — без реєстрації.
           </p>
         </div>
         <RouterLink class="btn" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
@@ -210,7 +220,7 @@
         <div class="section-head section-head--center">
           <h2 id="workflow-title" class="section-head__title">Як це працює</h2>
           <p class="section-head__subtitle">
-            Спочатку ви створюєте профіль і приймаєте запити. Доступний час, який клієнти можуть обрати під час запиту, можна додати за потреби.
+            Створіть свій професійний простір, діліться сторінкою там, де вас знаходять клієнти, і ведіть консультаційну практику в одному місці.
           </p>
         </div>
         <div class="workflow-grid" role="list" aria-label="Як спеціаліст починає роботу в Pro Consult">
@@ -229,11 +239,10 @@
       <section id="features" class="value-section reveal" aria-labelledby="value-title">
         <div class="section-head section-head--center">
           <h2 id="value-title" class="section-head__title">
-            Профіль для презентації себе і робочий кабінет для розвитку практики
+            Ваш професійний простір
           </h2>
           <p class="section-head__subtitle">
-            Pro Consult допомагає спеціалісту зрозуміло представити свою роботу клієнтам і вести
-            консультаційну практику в одному місці.
+            Професійна сторінка допомагає представити себе, свій підхід і послуги клієнтам. А робочий кабінет — організувати звернення, записи, сесії, календар, матеріали та щоденну роботу з практикою.
           </p>
         </div>
         <div class="value-grid" role="list" aria-label="Ключові можливості Pro Consult">
@@ -255,8 +264,7 @@
         </div>
         <div class="blog-section__copy">
           <p>
-            Не кожен клієнт готовий одразу написати спеціалісту. Часто спочатку хочеться зрозуміти,
-            як спеціаліст мислить, з якими темами працює і якою мовою говорить про складні речі.
+            Не кожен клієнт готовий одразу звернутися. Часто спочатку хочеться зрозуміти, як спеціаліст мислить, із якими темами працює і чи відгукується його підхід.
           </p>
           <p>
             У блозі можна публікувати короткі статті, відповіді на часті питання, пояснення свого підходу
@@ -269,8 +277,7 @@
         <div class="section-head section-head--center pricing-head">
           <h2 id="pricing-title" class="section-head__title pricing-title">Тарифи</h2>
           <p class="section-head__subtitle">
-            Start підходить для початку вашої практики. Pro — для регулярної
-            роботи з більшою кількістю клієнтів та інструментами розвитку.
+            Start — для знайомства з Pro Consult і невеликої практики. Pro — для регулярної роботи з більшою кількістю клієнтів і розширеними інструментами.
           </p>
         </div>
 
@@ -333,12 +340,10 @@
           <div>
             <h3>Відкритий ранній доступ</h3>
             <p>
-              Ранній доступ активується автоматично після реєстрації. Під час раннього доступу ви можете спробувати
-              розширені можливості без промокоду, а далі залишитися на Start, розширити ліміт активних клієнтів або
-              перейти на PRO.
+              Ранній доступ активується після реєстрації й дає змогу спробувати розширені можливості Pro Consult. Після його завершення ви можете залишитися на Start, збільшити ліміт активних клієнтів або перейти на Pro.
             </p>
           </div>
-          <RouterLink class="btn btn--ghost" to="/signup">Створити профіль</RouterLink>
+          <RouterLink class="btn btn--ghost" to="/signup">Створити свій простір</RouterLink>
         </article>
       </section>
 
@@ -400,13 +405,13 @@ const iconPaths: Record<IconKey, string[]> = {
 const valueCards: Array<{ icon: IconKey; title: string; copy: string }> = [
   {
     icon: 'profile',
-    title: 'Публічний профіль',
-    copy: 'Покажіть, хто ви, з чим працюєте, у якому форматі консультуєте і як до вас звернутися.',
+    title: 'Професійна сторінка',
+    copy: 'Покажіть, хто ви, з чим працюєте, у якому форматі консультуєте та як до вас звернутися.',
   },
   {
     icon: 'booking',
     title: 'Звернення від клієнтів',
-    copy: 'Клієнт залишає короткий запит без реєстрації. Ви бачите його в кабінеті й вирішуєте, що робити далі.',
+    copy: 'Клієнт може залишити короткий запит без реєстрації. Ви бачите його в кабінеті й вирішуєте, як продовжити.',
   },
   {
     icon: 'session',
@@ -416,51 +421,51 @@ const valueCards: Array<{ icon: IconKey; title: string; copy: string }> = [
   {
     icon: 'feedback',
     title: 'Власний блог',
-    copy: 'Публікуйте тексти, які пояснюють ваш підхід, теми роботи й відповідають на часті питання клієнтів.',
+    copy: 'Публікуйте тексти, які пояснюють ваш підхід, теми роботи й допомагають клієнту краще познайомитися з вами.',
   },
   {
     icon: 'materials',
     title: 'Клієнтські матеріали й приватні нотатки',
-    copy: 'Зберігайте приватні нотатки для спеціаліста окремо від клієнтських матеріалів, які ви публікуєте явно.',
+    copy: 'Зберігайте приватні нотатки окремо від матеріалів, які ви свідомо відкриваєте клієнту.',
   },
 ]
 
 const workflowSteps = [
   {
-    title: 'Створіть профіль',
-    copy: 'Додайте опис, теми роботи, формат консультацій і дані, які допомагають клієнту зрозуміти ваш підхід.',
+    title: 'Створіть професійну сторінку',
+    copy: 'Розкажіть про себе, свій підхід, теми роботи, формат консультацій і вартість.',
   },
   {
-    title: 'Отримуйте запити',
-    copy: 'Клієнт може залишити коротке звернення без реєстрації. Ви бачите запит у кабінеті й вирішуєте, як продовжити.',
+    title: 'Діліться своєю сторінкою',
+    copy: 'Додайте посилання на сторінку в соцмережі, месенджери, власний сайт або надсилайте його клієнтам напряму.',
   },
   {
-    title: 'Плануйте сесії',
-    copy: 'Створюйте сесії, ведіть календар, зберігайте приватні нотатки й явно опубліковані клієнтські матеріали в одному місці.',
+    title: 'Отримуйте звернення',
+    copy: 'Клієнт переходить на вашу сторінку, знайомиться з вами та може залишити запит без реєстрації або записатися на сесію.',
   },
   {
-    title: 'Розвивайте довіру',
-    copy: 'Публікуйте дописи, пояснюйте свій підхід і діліться корисними матеріалами для клієнтів.',
+    title: 'Ведіть практику',
+    copy: 'Працюйте зі зверненнями, плануйте сесії, ведіть календар, зберігайте нотатки й матеріали в одному просторі.',
   },
 ]
 
 const trustItems = [
-  'Ранній доступ',
+  'Діліться сторінкою у своїх каналах',
+  'Клієнт може звернутися без реєстрації',
   'Без комісій з консультацій',
-  'Профіль публікується тільки після вашого рішення',
-  'Клієнт може залишити запит без реєстрації',
-  'Можна почати зі Start — 0 грн',
+  'Ви самі вирішуєте, коли публікувати сторінку',
+  'Start — 0 грн',
 ]
 
 const pricingPlans = computed(() => [
   {
     name: 'Start',
     price: '0 грн',
-    scenario: 'Для невеликої приватної практики на старті.',
+    scenario: 'Для невеликої практики та знайомства з основними можливостями Pro Consult.',
     helper: '',
     badge: '',
     features: [
-      'Публічний профіль спеціаліста',
+      'Професійна публічна сторінка',
       'Запити від клієнтів без обов’язкової реєстрації на сайті',
       'Простір для ведення сесій, календаря і ваших перших клієнтів',
       '3 активні клієнти включено',
@@ -595,8 +600,10 @@ onBeforeUnmount(() => {
 }
 
 .home-hero__content {
-  display: grid;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
 }
 
 .home-hero__eyebrow,
@@ -610,19 +617,45 @@ onBeforeUnmount(() => {
 }
 
 .home-hero__title {
-  margin: 0;
-  font-size: clamp(36px, 4.2vw, 62px);
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  margin: 0 0 16px;
+  font-size: clamp(38px, 3.65vw, 48px);
+  line-height: 1.06;
+  letter-spacing: -0.026em;
   color: var(--pc-navy-950);
   max-width: 680px;
 }
 
 .home-hero__subtitle {
-  margin: 0;
+  margin: 0 0 26px;
   max-width: 600px;
+  font-size: clamp(14px, 1vw, 16px);
   line-height: 1.58;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 76%, #526672);
+}
+
+.home-hero__principles {
+  margin: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--pc-navy-900) 68%, #476472);
+  font-weight: 500;
+  max-width: 620px;
+}
+
+.home-hero__principles-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-hero__principle-sep {
+  color: color-mix(in srgb, var(--pc-navy-900) 28%, #8ea5ad);
+  font-weight: 400;
+  user-select: none;
 }
 
 .home-hero__client-path {
@@ -633,7 +666,13 @@ onBeforeUnmount(() => {
   font-weight: 650;
 }
 
-.home-hero__actions,
+.home-hero__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
 .final-cta__actions {
   display: flex;
   gap: 12px;
@@ -1284,12 +1323,6 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 
-.home-hero__content {
-  align-content: center;
-  gap: 18px;
-  min-width: 0;
-}
-
 .home-hero__eyebrow {
   width: max-content;
   max-width: 100%;
@@ -1326,20 +1359,6 @@ onBeforeUnmount(() => {
   stroke-linejoin: round;
 }
 
-.home-hero__title {
-  max-width: 660px;
-  font-size: clamp(42px, 4.35vw, 64px);
-  line-height: 1.06;
-  letter-spacing: -0.028em;
-}
-
-.home-hero__subtitle {
-  max-width: 590px;
-  font-size: clamp(16px, 1.16vw, 18px);
-  line-height: 1.58;
-  color: color-mix(in srgb, var(--text) 74%, #526672);
-}
-
 .home-hero__support {
   display: flex;
   align-items: flex-start;
@@ -1369,11 +1388,6 @@ onBeforeUnmount(() => {
   border-left: 2px solid currentcolor;
   border-bottom: 2px solid currentcolor;
   transform: rotate(-45deg) translate(1px, -1px);
-}
-
-.home-hero__actions {
-  gap: 12px;
-  margin-top: 2px;
 }
 
 .home-hero__actions .btn {
@@ -2088,30 +2102,9 @@ onBeforeUnmount(() => {
   gap: clamp(22px, 3vw, 44px);
 }
 
-.home-hero__content {
-  gap: 0;
-  padding-block: clamp(10px, 1.4vw, 18px);
-}
-
 .home-hero__eyebrow {
   padding: 6px 11px;
   margin-bottom: 12px;
-}
-
-.home-hero__title {
-  max-width: 640px;
-  font-size: clamp(38px, 3.65vw, 48px);
-  line-height: 1.06;
-  letter-spacing: -0.026em;
-  margin-bottom: 24px;
-}
-
-.home-hero__subtitle {
-  max-width: 560px;
-  font-size: clamp(14px, 1vw, 16px);
-  line-height: 1.54;
-  color: color-mix(in srgb, var(--text) 78%, #526672);
-  margin-bottom: 24px;
 }
 
 .home-hero__support {
@@ -2121,12 +2114,6 @@ onBeforeUnmount(() => {
   line-height: 1.25;
   font-weight: 750;
   margin-bottom: 14px;
-}
-
-.home-hero__actions {
-  gap: 10px;
-  margin-top: 2px;
-  margin-bottom: 18px;
 }
 
 .home-hero__actions .btn {
@@ -3412,6 +3399,10 @@ onBeforeUnmount(() => {
   .home-hero__title {
     font-size: clamp(32px, 9.8vw, 40px);
     line-height: 1.07;
+  }
+
+  .home-hero__principles {
+    gap: 4px 6px;
   }
 
   .home-hero__actions,
