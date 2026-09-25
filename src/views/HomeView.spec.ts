@@ -80,11 +80,23 @@ describe('HomeView', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Консультаційна практика — в одному спокійному просторі',
+        name: 'Етичний простір для консультування',
       })
     ).toBeInTheDocument()
-    expect(screen.getByText(/Публічна сторінка, запити від клієнтів, сесії, календар і робочі матеріали/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /Для фахівців, які хочуть професійно представити себе та вести консультаційну практику, і клієнтів, які шукають спеціалістів/
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText('Прямий контакт без посередників')).toBeInTheDocument()
+    expect(screen.getByText('Професійна публічна сторінка з блогом')).toBeInTheDocument()
+    expect(screen.getByText('Без рейтингів і платного просування')).toBeInTheDocument()
     const hero = container.querySelector('.home-hero') as HTMLElement
+    const principlesLine = hero.querySelector('.home-hero__principles') as HTMLElement
+    expect(principlesLine).toHaveAttribute('aria-label', 'Принципи Pro Consult')
+    expect(principlesLine).toHaveTextContent(
+      /Прямий контакт без посередників.*·.*Без комісій з консультацій.*Професійна публічна сторінка з блогом.*·.*Без рейтингів і платного просування/
+    )
     expect(within(hero).getByRole('link', { name: 'Створити свій простір' })).toHaveAttribute(
       'href',
       '/signup'
@@ -99,7 +111,7 @@ describe('HomeView', () => {
     expect(within(clientEntry).getByRole('heading', { name: 'Шукаєте спеціаліста?' })).toBeInTheDocument()
     expect(
       within(clientEntry).getByText(
-        /Оберіть напрям або опишіть свій запит, перегляньте публічні сторінки спеціалістів і залиште запит без реєстрації/
+        /Оберіть напрям або опишіть свій запит, перегляньте професійні сторінки спеціалістів і зверніться напряму до того, хто вам підходить — без реєстрації/
       )
     ).toBeInTheDocument()
     expect(within(clientEntry).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute(
@@ -128,27 +140,28 @@ describe('HomeView', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Профіль для презентації себе і робочий кабінет для розвитку практики',
+        name: 'Ваш професійний простір',
       })
     ).toBeInTheDocument()
     expect(screen.getByText('Звернення від клієнтів')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Блог, який допомагає пояснити ваш підхід' })).toBeInTheDocument()
-    expect(screen.getByText(/Не кожен клієнт готовий одразу написати спеціалісту/)).toBeInTheDocument()
+    expect(screen.getByText(/Не кожен клієнт готовий одразу звернутися/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Як це працює' })).toBeInTheDocument()
-    expect(screen.getByText('Створіть профіль')).toBeInTheDocument()
-    expect(screen.getByText('Отримуйте запити')).toBeInTheDocument()
-    expect(screen.getByText('Плануйте сесії')).toBeInTheDocument()
-    expect(screen.getByText('Розвивайте довіру')).toBeInTheDocument()
+    expect(screen.getByText('Створіть професійну сторінку')).toBeInTheDocument()
+    expect(screen.getByText('Діліться своєю сторінкою')).toBeInTheDocument()
+    expect(screen.getByText('Отримуйте звернення')).toBeInTheDocument()
+    expect(screen.getByText('Ведіть практику')).toBeInTheDocument()
     expect(
-      screen.getByText(/Доступний час, який клієнти можуть обрати під час запиту, можна додати за потреби/)
+      screen.getByText(/Створіть свій професійний простір, діліться сторінкою там, де вас знаходять клієнти/)
     ).toBeInTheDocument()
     expect(screen.getAllByText('Без комісій з консультацій').length).toBeGreaterThan(0)
-    expect(screen.getByText('Профіль публікується тільки після вашого рішення')).toBeInTheDocument()
-    expect(screen.getByText('Клієнт може залишити запит без реєстрації')).toBeInTheDocument()
+    expect(screen.getByText('Діліться сторінкою у своїх каналах')).toBeInTheDocument()
+    expect(screen.getByText('Клієнт може звернутися без реєстрації')).toBeInTheDocument()
+    expect(screen.getByText('Ви самі вирішуєте, коли публікувати сторінку')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Тарифи' })).toBeInTheDocument()
     expect(
       screen.getByText(
-        /Start підходить для початку вашої практики.*Pro — для регулярної роботи з більшою кількістю клієнтів/
+        /Start — для знайомства з Pro Consult і невеликої практики.*Pro — для регулярної роботи з більшою кількістю клієнтів/s
       )
     ).toBeInTheDocument()
     const pricing = container.querySelector('#pricing') as HTMLElement
@@ -156,8 +169,8 @@ describe('HomeView', () => {
     expect(within(pricing).getByText('0 грн')).toBeInTheDocument()
     expect(within(pricing).getByText('990 грн/міс')).toBeInTheDocument()
     expect(within(pricing).queryByText('2 490 грн/міс')).not.toBeInTheDocument()
-    expect(screen.getByText('Для невеликої приватної практики на старті.')).toBeInTheDocument()
-    expect(within(pricing).getByText('Публічний профіль спеціаліста')).toBeInTheDocument()
+    expect(screen.getByText('Для невеликої практики та знайомства з основними можливостями Pro Consult.')).toBeInTheDocument()
+    expect(within(pricing).getByText('Професійна публічна сторінка')).toBeInTheDocument()
     expect(within(pricing).getByText('Запити від клієнтів без обов’язкової реєстрації на сайті')).toBeInTheDocument()
     expect(within(pricing).getByText('Простір для ведення сесій, календаря і ваших перших клієнтів')).toBeInTheDocument()
     expect(within(pricing).getByText('3 активні клієнти включено')).toBeInTheDocument()
@@ -185,8 +198,7 @@ describe('HomeView', () => {
     expect(screen.getByText('Pro Consult не бере відсоток із консультацій на жодному тарифі.')).toBeInTheDocument()
     expect(pricing).not.toHaveTextContent(/базов/i)
     expect(screen.getByRole('heading', { name: 'Відкритий ранній доступ' })).toBeInTheDocument()
-    expect(screen.getByText(/Ранній доступ активується автоматично після реєстрації/)).toBeInTheDocument()
-    expect(screen.getByText(/розширені можливості без промокоду/)).toBeInTheDocument()
+    expect(screen.getByText(/Ранній доступ активується після реєстрації й дає змогу спробувати розширені можливості Pro Consult/)).toBeInTheDocument()
     expect(within(pricing).getByRole('link', { name: 'Отримати безкоштовно' })).toHaveAttribute(
       'href',
       '/signup'
@@ -200,12 +212,8 @@ describe('HomeView', () => {
       '/support-and-data-requests'
     )
     expect(within(pricing).queryByRole('link', { name: 'Подати запит' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Створити профіль' })).toHaveAttribute(
-      'href',
-      '/signup'
-    )
     expect(container).not.toHaveTextContent('FOUNDER')
-    expect(container).not.toHaveTextContent(/маркетплейс|рейтинг|гарантовано приведе клієнтів/i)
+    expect(container).not.toHaveTextContent(/маркетплейс|гарантовано приведе клієнтів/i)
     expect(container).not.toHaveTextContent(/ми приведемо клієнтів|гарантовані клієнти|оберіть найкращого спеціаліста/i)
     expect(container).not.toHaveTextContent(/професійної присутності|без хаосу|Більше запитів від клієнтів/i)
     expect(screen.queryByText('До 3 ' + 'активних клієнтів')).not.toBeInTheDocument()
