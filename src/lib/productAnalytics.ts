@@ -278,7 +278,10 @@ export function sanitizeProviderEvent(event: ProviderEvent): ProviderEvent | nul
     }
     return {
       ...eventWithoutPersonProperties,
-      properties,
+      properties: {
+        ...properties,
+        $geoip_disable: true,
+      },
     }
   }
   if (typeof event.event !== 'string' || !(event.event in EVENT_PROPERTY_ALLOWLIST)) return null
@@ -297,7 +300,10 @@ export function sanitizeProviderEvent(event: ProviderEvent): ProviderEvent | nul
   }
   return {
     ...event,
-    properties,
+    properties: {
+      ...properties,
+      $geoip_disable: true,
+    },
   }
 }
 
