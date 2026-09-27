@@ -149,8 +149,28 @@ describe('ProductAnalytics', () => {
         distinct_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
         $anon_distinct_id: 'anonymous-device-id',
         $process_person_profile: true,
+        $geoip_disable: true,
       },
     })
+  })
+
+  it('disables GeoIP for every event returned by before_send sanitization', () => {
+    const captured = sanitizeProviderEvent({
+      event: 'landing_viewed',
+      properties: {
+        landing_route: 'home',
+        $current_url: 'https://proconsult.space/?email=private@example.com',
+      },
+    })
+    const identified = sanitizeProviderEvent({
+      event: '$identify',
+      properties: {
+        distinct_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      },
+    })
+
+    expect(captured?.properties?.$geoip_disable).toBe(true)
+    expect(identified?.properties?.$geoip_disable).toBe(true)
   })
 
   it('uses private specialist context, excludes manual source text, and resets on logout', () => {
