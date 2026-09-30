@@ -1,0 +1,33 @@
+name: Release debt monitor
+
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: ["dev", "main"]
+    paths:
+      - "docs/RELEASE_DEBT_REGISTER.md"
+      - "scripts/release-debt/**"
+      - ".github/workflows/release-debt-monitor.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-release-debt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout proposed register or current dev register
+        uses: actions/checkout@v4
+        with:
+          # GitHub schedules only default-branch workflow definitions; inspect dev explicitly.
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Test release-debt validator
+        run: node --test scripts/release-debt/tests/check-release-debt.node.mjs
+      - name: Validate release debt
+        run: node scripts/release-debt/check-release-debt.mjs docs/RELEASE_DEBT_REGISTER.md
