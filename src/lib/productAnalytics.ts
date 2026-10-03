@@ -405,9 +405,10 @@ export class ProductAnalytics {
   private identifyCurrentSpecialist(): void {
     const subjectId = this.specialistContext?.subject_id
     if (!this.initialized || !this.provider || !subjectId || this.lastIdentifiedSubjectId === subjectId) return
+    // Reserve before calling the SDK: it may re-enter or throw after sending.
+    this.lastIdentifiedSubjectId = subjectId
     try {
       this.provider.identify(subjectId)
-      this.lastIdentifiedSubjectId = subjectId
     } catch {
       // Analytics must never interfere with authentication or product actions.
     }

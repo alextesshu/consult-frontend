@@ -113,6 +113,74 @@ describe('ProductAnalytics', () => {
     expect(provider.identify).toHaveBeenLastCalledWith(second.subject_id)
   })
 
+  it('reserves the subject before a synchronous provider callback repeats identify', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+    const context = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: null,
+    }
+    let repeated = false
+    provider.identify = vi.fn(() => {
+      if (!repeated) {
+        repeated = true
+        analytics.identify(context)
+      }
+    })
+    analytics.initialize(enabledConfig, provider, 'allowed')
+    analytics.identify(context)
+    expect(provider.identify).toHaveBeenCalledOnce()
+    expect(provider.identify).toHaveBeenCalledWith(context.subject_id)
+  })
+
+  it('does not retry an identify that may have sent before the provider throws', () => {
+    const provider = createProvider()
+    provider.identify = vi.fn(() => { throw new Error('provider failed after capture') })
+    const analytics = new ProductAnalytics()
+    const context = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: null,
+    }
+    analytics.initialize(enabledConfig, provider, 'allowed')
+    expect(() => analytics.identify(context)).not.toThrow()
+    analytics.identify(context)
+    analytics.initialize(enabledConfig, provider, 'allowed')
+    analytics.identify(context)
+    expect(provider.identify).toHaveBeenCalledOnce()
+    expect(provider.identify).toHaveBeenCalledWith(context.subject_id)
+  })
+
+  it('allows the same subject again after reset and fresh initialization', () => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+    const context = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: null,
+    }
+    analytics.initialize(enabledConfig, provider, 'allowed')
+    analytics.identify(context)
+    analytics.reset()
+    analytics.identify(context)
+    expect(provider.identify).toHaveBeenCalledTimes(1)
+    analytics.initialize(enabledConfig, provider, 'allowed')
+    analytics.identify(context)
+    expect(provider.reset).toHaveBeenCalledOnce()
+    expect(provider.identify).toHaveBeenCalledTimes(2)
+  })
+
+  it.each(['unknown', 'denied'] as const)('never identifies without %s consent', (preference) => {
+    const provider = createProvider()
+    const analytics = new ProductAnalytics()
+    const context = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: null,
+    }
+    analytics.identify(context)
+    analytics.initialize(enabledConfig, provider, preference)
+    analytics.identify(context)
+    expect(provider.identify).not.toHaveBeenCalled()
+  })
+
   it('rejects unknown events and arbitrary, PII-like, raw URL properties', () => {
     const provider = createProvider()
     const analytics = new ProductAnalytics()

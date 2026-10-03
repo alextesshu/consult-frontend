@@ -102,6 +102,7 @@ export const useAuthStore = defineStore('auth', {
       this.me = payload
       this.user = payload ? payload.user : null
       this.authResolved = true
+      productAnalytics.initialize()
       productAnalytics.identify(payload?.analytics_context)
     },
     markProductUpdateResolved(updateKey: string) {
