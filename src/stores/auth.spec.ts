@@ -24,6 +24,7 @@ vi.mock('../lib/registrationAttribution', () => ({
 
 vi.mock('../lib/productAnalytics', () => ({
   productAnalytics: {
+    initialize: vi.fn(),
     capture: vi.fn(),
     identify: vi.fn(),
     reset: vi.fn(),
@@ -317,6 +318,47 @@ describe('auth store cookie-based flow', () => {
     })
     expect(mockedClearSpecialistRegistrationAttribution).toHaveBeenCalledTimes(1)
     expect(productAnalytics.capture).toHaveBeenCalledWith('signup_completed')
+  })
+
+  it('deduplicates restored-session and loadMe triggers, then identifies again after logout/login', async () => {
+    const { ProductAnalytics } = await vi.importActual<typeof import('../lib/productAnalytics')>('../lib/productAnalytics')
+    const runtime = new ProductAnalytics()
+    const provider = { init: vi.fn(), identify: vi.fn(), capture: vi.fn(), reset: vi.fn() }
+    vi.mocked(productAnalytics.initialize).mockImplementation(() => runtime.initialize({
+      enabled: true,
+      projectToken: 'test-public-token',
+      apiHost: 'https://eu.i.posthog.com',
+    }, provider, 'allowed'))
+    vi.mocked(productAnalytics.identify).mockImplementation((context) => runtime.identify(context))
+    vi.mocked(productAnalytics.reset).mockImplementation(() => runtime.reset())
+    const context = {
+      subject_id: 'specialist:4a3bb3e7-6a3f-4ed2-9e7c-0f5a8d5d7436',
+      attribution: null,
+    }
+    mockedRefreshToken.mockResolvedValue({ access: 'restored-access' })
+    mockedLoginWithIdentifier.mockResolvedValue({ access: 'login-access', refresh: 'ignored' })
+    mockedFetchMe.mockResolvedValue({
+      user: { id: 1, username: 'specialist', email: null, roles: ['SPECIALIST'] },
+      access_state: null, effective_entitlements: null, counts: null,
+      analytics_context: context, server_time: '2026-10-03T10:00:00Z',
+    })
+    try {
+      const auth = useAuthStore()
+      await auth.restoreSession()
+      await auth.loadMe()
+      await auth.loadMe()
+      expect(provider.init).toHaveBeenCalledOnce()
+      expect(provider.identify).toHaveBeenCalledOnce()
+      expect(provider.identify).toHaveBeenCalledWith(context.subject_id)
+      auth.logout()
+      await auth.login('specialist', 'test-password')
+      await auth.loadMe()
+      expect(provider.identify).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.mocked(productAnalytics.initialize).mockReset()
+      vi.mocked(productAnalytics.identify).mockReset()
+      vi.mocked(productAnalytics.reset).mockReset()
+    }
   })
 
   it('identifies only the private analytics context and resets it on logout', () => {

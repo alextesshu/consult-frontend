@@ -7,7 +7,7 @@ import { useAuthStore } from '../stores/auth'
 import { productAnalytics } from '../lib/productAnalytics'
 
 vi.mock('../lib/productAnalytics', () => ({
-  productAnalytics: { capture: vi.fn(), identify: vi.fn(), reset: vi.fn() },
+  productAnalytics: { capture: vi.fn(), initialize: vi.fn(), identify: vi.fn(), reset: vi.fn() },
 }))
 
 async function renderHome(options?: { authenticated?: boolean; roles?: string[] }) {
