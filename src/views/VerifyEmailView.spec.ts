@@ -63,6 +63,32 @@ describe('VerifyEmailView', () => {
     expect(screen.getByRole('link', { name: 'Повернутися до кабінету' })).toHaveAttribute('href', '/client')
   })
 
+  it('returns an authenticated admin to the admin panel instead of the client cabinet', async () => {
+    mockAuth.accessToken = 'admin-access-token'
+    mockAuth.user = { roles: ['ADMIN'] }
+    mockedConfirm.mockResolvedValue({ status: 'email_verified' })
+    mockAuth.loadMe.mockResolvedValue(undefined)
+    renderView()
+
+    await screen.findByText('Адресу email успішно підтверджено.')
+    await waitFor(() => expect(mockAuth.loadMe).toHaveBeenCalledTimes(1))
+    expect(screen.getByRole('link', { name: 'Повернутися до адмін-панелі' })).toHaveAttribute(
+      'href',
+      '/admin/inbox'
+    )
+  })
+
+  it('returns an authenticated specialist to the specialist cabinet', async () => {
+    mockAuth.accessToken = 'specialist-access-token'
+    mockAuth.user = { roles: ['SPECIALIST'] }
+    mockedConfirm.mockResolvedValue({ status: 'email_verified' })
+    mockAuth.loadMe.mockResolvedValue(undefined)
+    renderView()
+
+    await screen.findByText('Адресу email успішно підтверджено.')
+    expect(screen.getByRole('link', { name: 'Повернутися до кабінету' })).toHaveAttribute('href', '/cabinet')
+  })
+
   it.each([
     ['EXPIRED_EMAIL_VERIFICATION_TOKEN', 'Термін дії посилання минув'],
     ['INVALID_EMAIL_VERIFICATION_TOKEN', 'Посилання для підтвердження недійсне'],

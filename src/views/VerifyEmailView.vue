@@ -5,12 +5,12 @@
       <p v-if="state === 'confirming'" class="muted">Підтверджуємо email...</p>
       <template v-else-if="state === 'success'">
         <p class="verify-email__success">Адресу email успішно підтверджено.</p>
-        <RouterLink v-if="isAuthenticated" class="btn" :to="cabinetPath">Повернутися до кабінету</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="btn" :to="returnDestination.path">{{ returnDestination.label }}</RouterLink>
         <RouterLink v-else class="btn" to="/login">Увійти</RouterLink>
       </template>
       <template v-else>
         <p class="form-error">{{ message }}</p>
-        <RouterLink v-if="isAuthenticated" class="btn btn--ghost" :to="cabinetPath">До кабінету</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="btn btn--ghost" :to="returnDestination.path">{{ returnDestination.label }}</RouterLink>
         <RouterLink v-else class="btn btn--ghost" to="/login">Увійти</RouterLink>
       </template>
     </div>
@@ -22,7 +22,7 @@ import { computed, onMounted, ref } from 'vue'
 import { confirmAccountEmailVerification } from '../lib/api'
 import { takeEmailVerificationToken } from '../lib/emailVerificationToken'
 import { useAuthStore } from '../stores/auth'
-import { hasSpecialistRole, normalizeUserRoles } from '../lib/entitlementReconcile'
+import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from '../lib/entitlementReconcile'
 
 type ConfirmationState = 'confirming' | 'success' | 'error'
 
@@ -30,9 +30,19 @@ const auth = useAuthStore()
 const state = ref<ConfirmationState>('confirming')
 const message = ref('')
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
-const cabinetPath = computed(() =>
-  hasSpecialistRole(normalizeUserRoles(auth.me?.user ?? auth.user)) ? '/cabinet' : '/client'
-)
+const returnDestination = computed(() => {
+  const roles = normalizeUserRoles(auth.me?.user ?? auth.user)
+  if (hasAdminRole(roles)) {
+    return { path: '/admin/inbox', label: 'Повернутися до адмін-панелі' }
+  }
+  if (hasSpecialistRole(roles)) {
+    return { path: '/cabinet', label: 'Повернутися до кабінету' }
+  }
+  if (hasClientRole(roles)) {
+    return { path: '/client', label: 'Повернутися до кабінету' }
+  }
+  return { path: '/', label: 'На головну' }
+})
 
 function errorMessage(error: unknown): string {
   const code = (error as { response?: { data?: { code?: unknown } } })?.response?.data?.code

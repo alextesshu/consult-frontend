@@ -1831,6 +1831,8 @@ describe('App shell', () => {
       })
       expect(router.currentRoute.value.fullPath).toBe('/s/olena#inquiry')
     })
+    expect(mockedFetchInquiryThreads).toHaveBeenCalledOnce()
+    expect(mockedFetchPublicSpecialists).not.toHaveBeenCalled()
   })
 
   it('routes specialist inquiry follow-up notifications to the specialist inquiry surface', async () => {
