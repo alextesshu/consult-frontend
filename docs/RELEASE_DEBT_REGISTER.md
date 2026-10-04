@@ -80,6 +80,27 @@
       "release_owner": null,
       "decision": {"kind": null, "at": null, "reason": null, "next_review_at": null},
       "production": {"pr": "https://github.com/alextesshu/consult-frontend/pull/23", "deployed_source_sha": null, "runtime_evidence": null}
+    },
+    {
+      "id": "kan-107-identify-dedup",
+      "ticket": "KAN-107",
+      "repository": "consult-frontend",
+      "status": "RELEASED",
+      "historical_evidence": false,
+      "historical_reason": null,
+      "evidence_snapshot_at": null,
+      "staging": {
+        "sha": "581bca108b4195051610587bf4e58b313044a7c5",
+        "acceptance_completed_at": null,
+        "evidence": "Operator-confirmed canonical staging frontend deploy, /healthz, /readyz, specialist login/logout/relogin/reload, and admin UI smoke PASS. Exact UTC completion timestamp of full staging acceptance is unrecoverable; it is not replaced by operator confirmation time. Staging analytics was disabled by contract."
+      },
+      "release_owner": null,
+      "decision": {"kind": "PROMOTE", "at": null, "reason": null, "next_review_at": null},
+      "production": {
+        "pr": "https://github.com/alextesshu/consult-frontend/pull/28",
+        "deployed_source_sha": "f8a12d372d2fc506f7bf4345ac0ae22133cdf0a5",
+        "runtime_evidence": "Canonical production frontend deploy and clean main checkout verified on 2026-10-04; frontend running; /healthz and /readyz HTTP 200; public / HTTP 200 HTML. Operator-confirmed manual auth smoke PASS and fresh PostHog evidence: $identify=2, identities=1, sessions=1, $geoip_disable=true on 2/2 identify events, city/postal/latitude enrichment=0; explicit profile_setup_opened, profile_section_opened, search_visibility_cta_viewed observed; no fresh $pageview, $autocapture, or $exception. Same-runtime deduplication is primarily verified by regression tests; production rows do not directly identify a JS runtime. The historical six duplicate events were not proven to originate from this defect."
+      }
     }
   ]
 }
@@ -96,6 +117,15 @@ frontend image's commit was not independently attested.
 Local and live remote refs agreed. No confirmed `STAGED_READY` frontend content
 remained absent from the audited production source; the oldest confirmed open
 staging-approved release age is therefore not applicable.
+
+Current KAN-107 identify-dedup release evidence (2026-10-04) is recorded
+separately from that historical snapshot. PR #28 was deployed from
+`f8a12d372d2fc506f7bf4345ac0ae22133cdf0a5`; production runtime and HTTP
+checks passed, with manual auth and fresh PostHog results confirmed by the
+operator. The exact staging acceptance completion timestamp is unrecoverable
+and remains null. The historical `kan-107-posthog-transport-verification`
+record remains `AMBIGUOUS`: fresh evidence verifies current transport but
+does not establish the PR #23 runtime state at the 2026-09-29 snapshot.
 
 The `release-debt-contract-v1` block above is the canonical machine-readable
 source of each record's status and fields. The narrative below is supporting
@@ -121,6 +151,7 @@ promotion policy is in the backend repository's `docs/GIT_CI_PROMOTION.md`.
 | Unattributed dev-only GitHub-access policy and app test | No independent staging acceptance recorded | No PROMOTE/DEFER decision recorded | Production tree differs; review required |
 | KAN-105 role-specific email-verification return route | Not a staging-approved dev change | Separate reconciliation decision needed | Present in production `VerifyEmailView` code/tests at `9e1856e4`; preserve before dev-to-main promotion |
 | KAN-107 live PostHog transport / enrichment verification | Staging code accepted; live production transport inspection not established | Not a code-promotion decision | Code released via PR #23; no PostHog settings change asserted |
+| KAN-107 identify deduplication | `581bca1`; operator-confirmed canonical deploy, health/readiness, specialist login/logout/relogin/reload, and admin UI smoke PASS; exact acceptance timestamp unrecoverable (null) | PROMOTE executed via PR #28; exact decision time not recorded | [PR #28](https://github.com/alextesshu/consult-frontend/pull/28); `f8a12d3` clean main checkout, frontend running, health/readiness HTTP 200 and public / HTTP 200 HTML; manual auth PASS; fresh PostHog transport/enrichment evidence in the canonical record |
 
 Source commit `79e3b9a` is patch-equivalent to KAN-107 release commit
 `87c0f85`; both analytics file blobs match between current main and dev.
