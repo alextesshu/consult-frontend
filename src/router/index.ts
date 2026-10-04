@@ -426,8 +426,24 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, _from, savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
+    if (
+      to.name === 'cabinet-profile' &&
+      from.name === 'cabinet-profile' &&
+      to.path === from.path &&
+      to.hash === from.hash &&
+      typeof from.query.focus === 'string' &&
+      Boolean(from.query.focus.trim()) &&
+      !Object.prototype.hasOwnProperty.call(to.query, 'focus')
+    ) {
+      const { focus: _focus, ...remainingQuery } = from.query
+      const keys = Object.keys(remainingQuery)
+      if (
+        keys.length === Object.keys(to.query).length &&
+        keys.every((key) => JSON.stringify(remainingQuery[key]) === JSON.stringify(to.query[key]))
+      ) return false
+    }
     if (to.hash) {
       return new Promise((resolve) => {
         setTimeout(() => {

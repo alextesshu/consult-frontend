@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import router from './index'
 import { useAuthStore } from '../stores/auth'
+import type { RouteLocationNormalized } from 'vue-router'
 import { fetchSpecialistProfile } from '../lib/api'
 
 vi.mock('../lib/api', async () => {
@@ -13,6 +14,48 @@ vi.mock('../lib/api', async () => {
 })
 
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
+
+describe('profile focus cleanup scrolling', () => {
+  const scroll = (to: string, from: string, savedPosition: { left: number; top: number } | null = null) =>
+    router.options.scrollBehavior!(
+      router.resolve(to) as RouteLocationNormalized,
+      router.resolve(from) as RouteLocationNormalized,
+      savedPosition
+    )
+
+  it.each(['request_groups', 'topics', 'about', 'work_format', 'price'])('%s cleanup preserves the section scroll', (focus) => {
+    expect(scroll('/cabinet/profile?keep=1', `/cabinet/profile?focus=${focus}&keep=1`)).toBe(false)
+  })
+
+  it('compares retained query values independently of key order', () => {
+    expect(scroll('/cabinet/profile?b=2&a=1', '/cabinet/profile?a=1&focus=request_groups&b=2')).toBe(false)
+  })
+
+  it.each([
+    ['/cabinet/profile?focus=request_groups', '/cabinet'],
+    ['/cabinet/profile', '/cabinet'],
+    ['/cabinet', '/cabinet/profile?focus=request_groups'],
+    ['/cabinet/profile?keep=2', '/cabinet/profile?focus=request_groups&keep=1'],
+    ['/cabinet/profile', '/cabinet/profile?focus='],
+    ['/cabinet/profile?focus=about', '/cabinet/profile?focus=request_groups'],
+    ['/cabinet/profile', '/cabinet/profile?focus=request_groups#some-section'],
+    ['/cabinet/profile?focus=request_groups', '/cabinet/profile'],
+    ['/cabinet/profile?keep=2', '/cabinet/profile?keep=1'],
+  ])('keeps normal top scrolling for %s from %s', (to, from) => {
+    expect(scroll(to, from)).toEqual({ top: 0 })
+  })
+
+  it.each(['', '#previous-section'])('keeps hash scrolling when cleanup changes hash from %s', async (hash) => {
+    const result = scroll('/cabinet/profile#some-section', `/cabinet/profile?focus=request_groups${hash}`)
+    expect(result).toBeInstanceOf(Promise)
+    await expect(result).resolves.toEqual({ el: '#some-section', top: 0, behavior: 'smooth' })
+  })
+
+  it('prioritizes back/forward saved position over cleanup', () => {
+    const saved = { left: 0, top: 700 }
+    expect(scroll('/cabinet/profile', '/cabinet/profile?focus=request_groups', saved)).toBe(saved)
+  })
+})
 
 describe('router specialist session routes', () => {
   beforeEach(async () => {
