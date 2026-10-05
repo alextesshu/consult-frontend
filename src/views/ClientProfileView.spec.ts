@@ -64,6 +64,7 @@ function profileFixture(overrides: Partial<ClientProfile> = {}): ClientProfile {
   return {
     id: 7,
     display_name: 'Марія',
+    account_email: 'account@example.com',
     contact_email: 'maria@example.com',
     contact_phone: '+380991112233',
     photo_url: null,
@@ -158,6 +159,9 @@ describe('ClientProfileView', () => {
       })
     })
     expect(mockedUpdateClientProfile.mock.calls[0]?.[0]).not.toHaveProperty('photo_url')
+    expect(screen.getByText('account@example.com')).toBeInTheDocument()
+    expect(screen.getByText('Email акаунта')).toBeInTheDocument()
+    expect(mockedUpdateClientProfile.mock.calls[0]?.[0]).not.toHaveProperty('account_email')
     expect(mockRouter.push).toHaveBeenCalledWith('/client')
   })
 

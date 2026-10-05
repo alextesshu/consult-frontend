@@ -6002,6 +6002,7 @@ function matchesClientSearch(client: ClientListItem, query: string) {
     const searchable = [
       client.display_name,
       client.email,
+      client.account_email,
       client.phone,
       client.telegram,
       client.internal_note,
@@ -6014,6 +6015,7 @@ function matchesClientSearch(client: ClientListItem, query: string) {
     normalizeClientName(client.client_name),
     normalizeClientName(client.client_username),
     client.client_code,
+    client.client_email,
     relationClientId(client),
     client.id,
   ]

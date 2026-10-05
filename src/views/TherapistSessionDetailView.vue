@@ -232,7 +232,16 @@
                   Цю сесію створено для клієнта без реєстрації. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
                 </span>
               </div>
-              <div v-if="session.client_email" class="muted detail-meta">{{ session.client_email }}</div>
+              <div v-if="session.client_contact_email" class="muted detail-meta">
+                {{ session.client_contact_email === (session.client_account_email ?? session.client_email) ? 'Контактний email / Email акаунта:' : 'Контактний email:' }}
+                <span>{{ session.client_contact_email }}</span>
+              </div>
+              <div
+                v-if="(session.client_account_email ?? session.client_email) && session.client_contact_email !== (session.client_account_email ?? session.client_email)"
+                class="muted detail-meta"
+              >
+                Email акаунта: <span>{{ session.client_account_email ?? session.client_email }}</span>
+              </div>
               <div v-if="session.client" class="muted detail-meta">ID: #{{ session.client }}</div>
             </div>
           </div>
@@ -986,6 +995,8 @@ type SessionDetail = {
   client_display_name?: string | null
   client_username?: string | null
   client_name?: string | null
+  client_account_email?: string | null
+  client_contact_email?: string | null
   client_email?: string | null
   client_has_account?: boolean | null
   client_source?: string | null

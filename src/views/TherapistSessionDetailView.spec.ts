@@ -328,6 +328,31 @@ describe('TherapistSessionDetailView', () => {
     openSpy.mockRestore()
   })
 
+  it.each([
+    ['linked', 'login@example.com', 'contact@example.com'],
+    ['manual', null, 'contact@example.com'],
+    ['equal', 'same@example.com', 'same@example.com'],
+    ['registered', 'login@example.com', 'contact@example.com'],
+  ])('labels account/contact identity for %s clients', async (kind, accountEmail, contactEmail) => {
+    mockDetailContext(() => buildSession({
+      client: kind === 'registered' ? 77 : null,
+      client_record_id: kind === 'registered' ? null : 501,
+      client_display_name: 'Identity Client', client_name: 'Identity Client',
+      client_email: kind === 'registered' ? accountEmail : null,
+      client_account_email: accountEmail, client_contact_email: contactEmail,
+      client_has_account: kind !== 'manual',
+    }), { requests: [] })
+    const { container } = renderView()
+    await screen.findByText(contactEmail)
+    expect(container).toHaveTextContent('Контактний email')
+    if (accountEmail) {
+      expect(container).toHaveTextContent('Email акаунта')
+      expect(screen.getAllByText(accountEmail)).toHaveLength(1)
+    } else {
+      expect(container).not.toHaveTextContent('Email акаунта:')
+    }
+  })
+
   it('shows manual-client badge and hides account-only detail actions', async () => {
     const sessionDetail = buildSession({
       status: 'COMPLETED',

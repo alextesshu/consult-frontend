@@ -2170,6 +2170,7 @@ export async function recordAdminManualBillingPayment(
 }
 
 export type ClientProfile = {
+  readonly account_email?: string
   id: number
   display_name: string
   contact_email: string
