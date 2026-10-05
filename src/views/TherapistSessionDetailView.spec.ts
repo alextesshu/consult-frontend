@@ -333,6 +333,7 @@ describe('TherapistSessionDetailView', () => {
     ['manual', null, 'contact@example.com'],
     ['equal', 'same@example.com', 'same@example.com'],
     ['registered', 'login@example.com', 'contact@example.com'],
+    ['account-only', 'login@example.com', null],
   ])('labels account/contact identity for %s clients', async (kind, accountEmail, contactEmail) => {
     mockDetailContext(() => buildSession({
       client: kind === 'registered' ? 77 : null,
@@ -343,13 +344,32 @@ describe('TherapistSessionDetailView', () => {
       client_has_account: kind !== 'manual',
     }), { requests: [] })
     const { container } = renderView()
-    await screen.findByText(contactEmail)
-    expect(container).toHaveTextContent('Контактний email')
+    await screen.findByText((contactEmail ?? accountEmail) as string)
+    if (contactEmail) {
+      expect(container).toHaveTextContent('Контактний email')
+    } else {
+      expect(container).not.toHaveTextContent('Контактний email')
+      expect(container).not.toHaveTextContent('Для зв’язку з клієнтом')
+    }
     if (accountEmail) {
       expect(container).toHaveTextContent('Email акаунта')
       expect(screen.getAllByText(accountEmail)).toHaveLength(1)
     } else {
-      expect(container).not.toHaveTextContent('Email акаунта:')
+      expect(container).not.toHaveTextContent('Email акаунта')
+    }
+    if (accountEmail && accountEmail === contactEmail) {
+      expect(screen.getAllByText('Для зв’язку з клієнтом і входу в Pro Consult')).toHaveLength(1)
+      expect(screen.queryByText('Для зв’язку з клієнтом', { exact: true })).not.toBeInTheDocument()
+      expect(screen.queryByText('Для входу клієнта в Pro Consult', { exact: true })).not.toBeInTheDocument()
+    } else {
+      if (contactEmail) {
+        expect(screen.getByText('Для зв’язку з клієнтом', { exact: true })).toBeInTheDocument()
+      }
+      if (accountEmail) {
+        expect(screen.getByText('Для входу клієнта в Pro Consult', { exact: true })).toBeInTheDocument()
+      } else {
+        expect(screen.queryByText('Для входу клієнта в Pro Consult')).not.toBeInTheDocument()
+      }
     }
   })
 

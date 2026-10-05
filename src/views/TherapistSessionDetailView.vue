@@ -233,14 +233,17 @@
                 </span>
               </div>
               <div v-if="session.client_contact_email" class="muted detail-meta">
-                {{ session.client_contact_email === (session.client_account_email ?? session.client_email) ? 'Контактний email / Email акаунта:' : 'Контактний email:' }}
-                <span>{{ session.client_contact_email }}</span>
+                <div>{{ session.client_contact_email === (session.client_account_email ?? session.client_email) ? 'Контактний email / Email акаунта' : 'Контактний email' }}</div>
+                <div>{{ session.client_contact_email }}</div>
+                <div>{{ session.client_contact_email === (session.client_account_email ?? session.client_email) ? 'Для зв’язку з клієнтом і входу в Pro Consult' : 'Для зв’язку з клієнтом' }}</div>
               </div>
               <div
                 v-if="(session.client_account_email ?? session.client_email) && session.client_contact_email !== (session.client_account_email ?? session.client_email)"
                 class="muted detail-meta"
               >
-                Email акаунта: <span>{{ session.client_account_email ?? session.client_email }}</span>
+                <div>Email акаунта</div>
+                <div>{{ session.client_account_email ?? session.client_email }}</div>
+                <div>Для входу клієнта в Pro Consult</div>
               </div>
               <div v-if="session.client" class="muted detail-meta">ID: #{{ session.client }}</div>
             </div>
