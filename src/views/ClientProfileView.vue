@@ -47,6 +47,11 @@
           <span>Ім'я</span>
           <input v-model="profile.display_name" class="input" type="text" placeholder="Ваше ім'я" />
         </label>
+        <div class="field">
+          <span>Email акаунта</span>
+          <span>{{ profile.account_email || '—' }}</span>
+          <small class="muted">Email для входу в Pro Consult. Змінюється окремо в налаштуваннях акаунта.</small>
+        </div>
         <label class="field">
           <span>Контактний email</span>
           <input v-model="profile.contact_email" class="input" type="email" placeholder="name@example.com" />

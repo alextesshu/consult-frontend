@@ -1031,6 +1031,36 @@ describe('TherapistClientsView', () => {
     expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
   })
 
+  it.each([
+    ['linked-login@example.com', 'Linked Identity'],
+    ['registered-login@example.com', 'Registered Identity'],
+    ['Linked Identity', 'Linked Identity'],
+    ['manual-contact@example.com', 'Linked Identity'],
+    ['380501234567', 'Linked Identity'],
+  ])('searches identity and existing contact fields: %s', async (query, expectedName) => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return [{
+        id: 1, client_id: 44, state: 'ACTIVE', last_session_at: null, upcoming_count: 0,
+        client_display_name: 'Registered Identity', client_email: 'registered-login@example.com',
+      }]
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({
+        id: 610, display_name: 'Linked Identity', status: 'active', has_account: true, user_id: 700,
+        email: 'manual-contact@example.com', account_email: 'linked-login@example.com', phone: '+380501234567',
+      })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    await waitFor(() => expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(2))
+    await fireEvent.update(clientsPanel.querySelector('#clients-search-input') as HTMLInputElement, query)
+    await waitFor(() => {
+      const rows = clientsPanel.querySelectorAll('.client-row')
+      expect(rows).toHaveLength(1)
+      expect(rows[0]).toHaveTextContent(expectedName)
+    })
+  })
+
   it('searches clients by name, code and id and keeps status filter active', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
