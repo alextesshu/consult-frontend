@@ -164,7 +164,7 @@
       "id": "kan-122-actionable-readiness-chips",
       "ticket": "KAN-122",
       "repository": "consult-frontend",
-      "status": "STAGED_READY",
+      "status": "RELEASED",
       "historical_evidence": false,
       "historical_reason": null,
       "evidence_snapshot_at": null,
@@ -173,17 +173,17 @@
         "acceptance_completed_at": "2026-10-07T13:23:00Z",
         "evidence": "Dev CI 37614678425 PASS. Canonical staging frontend deploy via scripts/deploy/deploy-staging-frontend.sh fast-forwarded the staging checkout to e45d8b8b861ed3be478408e6f0a1a4b40cd23719 and recreated frontend-staging successfully. Post-deploy frontend service was running; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed KAN-122 manual UX smoke PASS: each missing readiness chip navigated to its own exact section/destination, keyboard/focus behavior passed, unsaved same-page changes were preserved, first_contact routing followed readiness state, and completed/request_only states did not show false actionable missing items. Full staging acceptance completed at 2026-10-07T13:23:00Z (16:23 Kyiv), confirmed by the operator."
       },
-      "release_owner": null,
+      "release_owner": "Oleksandr Konstantinov",
       "decision": {
-        "kind": null,
+        "kind": "PROMOTE",
         "at": null,
         "reason": null,
         "next_review_at": null
       },
       "production": {
-        "pr": null,
-        "deployed_source_sha": null,
-        "runtime_evidence": null
+        "pr": "https://github.com/alextesshu/consult-frontend/pull/30",
+        "deployed_source_sha": "aaedf35b55718d267b0d3827e65707c93bb296de",
+        "runtime_evidence": "Canonical production frontend deploy from /opt/proconsult/backend-production completed successfully on 2026-10-07. Production frontend checkout was clean at aaedf35b55718d267b0d3827e65707c93bb296de; frontend service was running; /healthz returned status ok; /readyz returned database ok and migrations ok; public homepage returned HTTP 200. Operator-confirmed KAN-122 production UX smoke PASS at 2026-10-07T16:59:30Z (19:59 Kyiv): missing readiness chips navigated to the expected exact destinations and no release-specific regression was observed."
       }
     }
   ]
@@ -236,7 +236,7 @@ promotion policy is in the backend repository's `docs/GIT_CI_PROMOTION.md`.
 | KAN-105 role-specific email-verification return route | Not a staging-approved dev change | Separate reconciliation decision needed | Present in production `VerifyEmailView` code/tests at `9e1856e4`; preserve before dev-to-main promotion |
 | KAN-107 live PostHog transport / enrichment verification | Staging code accepted; live production transport inspection not established | Not a code-promotion decision | Code released via PR #23; no PostHog settings change asserted |
 | KAN-107 identify deduplication | `581bca1`; operator-confirmed canonical deploy, health/readiness, specialist login/logout/relogin/reload, and admin UI smoke PASS; exact acceptance timestamp unrecoverable (null) | PROMOTE executed via PR #28; exact decision time not recorded | [PR #28](https://github.com/alextesshu/consult-frontend/pull/28); `f8a12d3` clean main checkout, frontend running, health/readiness HTTP 200 and public / HTTP 200 HTML; manual auth PASS; fresh PostHog transport/enrichment evidence in the canonical record |
-| KAN-122 actionable profile-readiness chips | `e45d8b8`; dev CI [37614678425](https://github.com/alextesshu/consult-frontend/actions/runs/37614678425) PASS; canonical staging frontend deploy PASS; frontend-staging running; health/ready PASS; operator-confirmed focused KAN-122 UX smoke PASS | No PROMOTE/DEFER decision recorded yet | STAGED_READY; production PR/deploy not yet completed |
+| KAN-122 actionable profile-readiness chips | `e45d8b8`; dev CI [37614678425](https://github.com/alextesshu/consult-frontend/actions/runs/37614678425) PASS; canonical staging frontend deploy PASS; frontend-staging running; health/ready PASS; operator-confirmed focused KAN-122 UX smoke PASS | PROMOTE executed via [PR #30](https://github.com/alextesshu/consult-frontend/pull/30); release owner Oleksandr Konstantinov; exact promotion-decision timestamp not separately recorded | `aaedf35`; canonical production frontend deploy PASS; frontend running; health/ready PASS; homepage HTTP 200; operator-confirmed production UX smoke PASS at 2026-10-07T16:59:30Z |
 
 Source commit `79e3b9a` is patch-equivalent to KAN-107 release commit
 `87c0f85`; both analytics file blobs match between current main and dev.
@@ -246,7 +246,7 @@ are `AGENTS.md`, `src/__tests__/app.spec.ts`, and the two
 `VerifyEmailView` files. Do not infer unreleased functionality from the
 historical commit divergence alone.
 
-KAN-122 is currently `STAGED_READY` at `e45d8b8`; full staging acceptance completed at `2026-10-07T13:23:00Z` (16:23 Kyiv), confirmed by the operator. No production PROMOTE/DEFER decision, owner, merge, or deploy is recorded yet.
+KAN-122 is `RELEASED`. Staging acceptance completed at `2026-10-07T13:23:00Z` (16:23 Kyiv). PR #30 merged to `main` as `aaedf35b55718d267b0d3827e65707c93bb296de`, the canonical production frontend deploy completed successfully, production health/readiness and homepage checks passed, and the operator confirmed the release-specific production UX smoke at `2026-10-07T16:59:30Z` (19:59 Kyiv).
 
 After a future staging PASS, add or update a ticket row immediately, record
 its actual acceptance time and named decision owner, then decide PROMOTE or
