@@ -170,8 +170,8 @@
       "evidence_snapshot_at": null,
       "staging": {
         "sha": "e45d8b8b861ed3be478408e6f0a1a4b40cd23719",
-        "acceptance_completed_at": null,
-        "evidence": "Dev CI 37614678425 PASS. Canonical staging frontend deploy via scripts/deploy/deploy-staging-frontend.sh fast-forwarded the staging checkout to e45d8b8b861ed3be478408e6f0a1a4b40cd23719 and recreated frontend-staging successfully. Post-deploy frontend service was running; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed KAN-122 manual UX smoke PASS: each missing readiness chip navigated to its own exact section/destination, keyboard/focus behavior passed, unsaved same-page changes were preserved, first_contact routing followed readiness state, and completed/request_only states did not show false actionable missing items. Exact UTC completion timestamp of the full manual acceptance was not independently captured, so it remains null rather than inferred."
+        "acceptance_completed_at": "2026-10-07T13:23:00Z",
+        "evidence": "Dev CI 37614678425 PASS. Canonical staging frontend deploy via scripts/deploy/deploy-staging-frontend.sh fast-forwarded the staging checkout to e45d8b8b861ed3be478408e6f0a1a4b40cd23719 and recreated frontend-staging successfully. Post-deploy frontend service was running; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed KAN-122 manual UX smoke PASS: each missing readiness chip navigated to its own exact section/destination, keyboard/focus behavior passed, unsaved same-page changes were preserved, first_contact routing followed readiness state, and completed/request_only states did not show false actionable missing items. Full staging acceptance completed at 2026-10-07T13:23:00Z (16:23 Kyiv), confirmed by the operator."
       },
       "release_owner": null,
       "decision": {
@@ -246,7 +246,7 @@ are `AGENTS.md`, `src/__tests__/app.spec.ts`, and the two
 `VerifyEmailView` files. Do not infer unreleased functionality from the
 historical commit divergence alone.
 
-KAN-122 is currently `STAGED_READY` at `e45d8b8`; the exact UTC completion timestamp of the operator-confirmed manual staging acceptance was not independently captured, so the machine-readable field remains null rather than inferred. No production PROMOTE/DEFER decision, owner, merge, or deploy is recorded yet.
+KAN-122 is currently `STAGED_READY` at `e45d8b8`; full staging acceptance completed at `2026-10-07T13:23:00Z` (16:23 Kyiv), confirmed by the operator. No production PROMOTE/DEFER decision, owner, merge, or deploy is recorded yet.
 
 After a future staging PASS, add or update a ticket row immediately, record
 its actual acceptance time and named decision owner, then decide PROMOTE or
