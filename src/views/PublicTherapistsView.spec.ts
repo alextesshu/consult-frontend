@@ -112,6 +112,16 @@ describe('PublicTherapistsView', () => {
     expect(productAnalytics.capture).toHaveBeenLastCalledWith('specialist_discovery_results_viewed')
   })
 
+  it('loads unfiltered specialists and renders the count and first card without search interaction', async () => {
+    await renderView()
+
+    expect(await screen.findByRole('heading', { name: '1 спеціаліст' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Олена Коваль/ })).toBeInTheDocument()
+    expect(discovery).toHaveBeenCalledTimes(1)
+    expect(discovery).toHaveBeenCalledWith({})
+    expect(legacy).not.toHaveBeenCalled()
+  })
+
   it('renders the approved landing copy and reuses direction discovery results', async () => {
     discovery.mockResolvedValue(response({
       applied_filters: { request_group: null, direction: 'psychological_support', format: null },
@@ -359,8 +369,8 @@ describe('PublicTherapistsView', () => {
     await renderView()
     const details = screen.getByText('Знайти конкретного спеціаліста').closest('details') as HTMLDetailsElement
     expect(details.open).toBe(false)
-    details.open = true
     await fireEvent.click(details.querySelector('summary')!)
+    expect(details.open).toBe(true)
     const input = screen.getByLabelText('Ім’я або посилання')
     await fireEvent.update(input, 'Ол')
     await fireEvent.submit(input.closest('form')!)
@@ -372,22 +382,26 @@ describe('PublicTherapistsView', () => {
     await waitFor(() => expect(legacy).toHaveBeenCalledWith({ name: 'olena', page_size: 5 }))
   })
 
-  it('renders one collapsed exact lookup above the directory count and cards', async () => {
+  it('renders one collapsed exact lookup inside discovery controls before the directory results', async () => {
     await renderView()
 
     const lookups = screen.getAllByText('Знайти конкретного спеціаліста')
     const details = lookups[0]!.closest('details') as HTMLDetailsElement
+    const controls = document.querySelector('.discovery-controls')!
     const count = await screen.findByRole('heading', { name: '1 спеціаліст' })
     const card = screen.getByRole('link', { name: /Олена Коваль/ })
 
     expect(lookups).toHaveLength(1)
+    expect(details.parentElement).toBe(controls)
+    expect(document.querySelector('.discovery-page > .legacy-lookup')).toBeNull()
     expect(details.open).toBe(false)
     expect(details.compareDocumentPosition(count) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(details.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
-    details.open = true
-    expect(details).toHaveAttribute('open')
+    await fireEvent.click(details.querySelector('summary')!)
+    expect(details.open).toBe(true)
     expect(screen.getByLabelText('Ім’я або посилання')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Знайти профіль' })).toBeInTheDocument()
   })
 
   it('falls back to public_slug when a discovery path is nullable', async () => {

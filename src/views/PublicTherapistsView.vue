@@ -1,7 +1,7 @@
 <template>
   <section class="discovery-page">
     <header class="discovery-page__hero">
-      <div>
+      <div class="discovery-page__hero-copy">
         <h1 class="title">{{ landing?.heading || 'Знайдіть спеціаліста для вашого запиту' }}</h1>
         <p class="muted">{{ landing?.intro || 'Оберіть напрям або опишіть своїми словами, з чим хочете звернутися.' }}</p>
       </div>
@@ -10,13 +10,24 @@
     </header>
 
     <section class="discovery-controls" aria-label="Пошук спеціалістів">
-      <fieldset class="control-group">
-        <legend>Спосіб пошуку</legend>
-        <div class="segmented-control segmented-control--modes">
-          <label><input name="specialist-discovery-mode" value="request" type="radio" :checked="mode === 'request'" @change="setMode('request')" />За запитом</label>
-          <label><input name="specialist-discovery-mode" value="direction" type="radio" :checked="mode === 'direction'" @change="setMode('direction')" />За професійним напрямом</label>
-        </div>
-      </fieldset>
+      <div class="discovery-controls__toolbar">
+        <fieldset class="control-group">
+          <legend>Спосіб пошуку</legend>
+          <div class="segmented-control segmented-control--modes">
+            <label><input name="specialist-discovery-mode" value="request" type="radio" :checked="mode === 'request'" @change="setMode('request')" />За запитом</label>
+            <label><input name="specialist-discovery-mode" value="direction" type="radio" :checked="mode === 'direction'" @change="setMode('direction')" />За професійним напрямом</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="control-group">
+          <legend>Формат</legend>
+          <div class="segmented-control segmented-control--format">
+            <label><input name="specialist-format" value="" type="radio" :checked="format === null" @change="setFormat(null)" />Усі формати</label>
+            <label><input name="specialist-format" value="online" type="radio" :checked="format === 'online'" @change="setFormat('online')" />Онлайн</label>
+            <label><input name="specialist-format" value="offline" type="radio" :checked="format === 'offline'" @change="setFormat('offline')" />Офлайн</label>
+          </div>
+        </fieldset>
+      </div>
 
       <template v-if="mode === 'request'">
         <fieldset class="control-group">
@@ -65,15 +76,6 @@
         </div>
       </fieldset>
 
-      <fieldset class="control-group">
-        <legend>Формат</legend>
-        <div class="segmented-control segmented-control--format">
-          <label><input name="specialist-format" value="" type="radio" :checked="format === null" @change="setFormat(null)" />Усі формати</label>
-          <label><input name="specialist-format" value="online" type="radio" :checked="format === 'online'" @change="setFormat('online')" />Онлайн</label>
-          <label><input name="specialist-format" value="offline" type="radio" :checked="format === 'offline'" @change="setFormat('offline')" />Офлайн</label>
-        </div>
-      </fieldset>
-
       <div v-if="hasActiveSearch" class="active-search">
         <span>{{ activeSearchSummary }}</span>
         <button class="btn btn--ghost" type="button" @click="reset">Скинути пошук</button>
@@ -81,23 +83,22 @@
       <p v-if="fieldError && fieldError.field !== 'q'" class="form-error" role="alert">
         {{ fieldError.detail }}
       </p>
+      <details class="legacy-lookup">
+        <summary>Знайти конкретного спеціаліста</summary>
+        <div class="legacy-lookup__content">
+          <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
+          <form class="query-form" @submit.prevent="submitLegacySearch">
+            <label for="legacy-specialist-search">Ім’я або посилання</label>
+            <div class="query-form__row"><input id="legacy-specialist-search" v-model="legacyQuery" class="input" type="text" autocomplete="off" /><button class="btn" type="submit">Знайти профіль</button></div>
+            <p v-if="legacyValidation" class="form-error">{{ legacyValidation }}</p>
+          </form>
+          <LoadingSkeleton v-if="legacyLoading" variant="card" :count="2" height="150px" />
+          <EmptyState v-else-if="legacyError" title="Не вдалося виконати пошук" description="Спробуйте ще раз трохи пізніше."><template #actions><button class="btn btn--ghost" type="button" @click="retryLegacySearch">Спробувати ще раз</button></template></EmptyState>
+          <EmptyState v-else-if="legacySearched && legacyResults.length === 0" title="Профіль не знайдено" description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання." />
+          <div v-else-if="legacyResults.length" class="result-list legacy-lookup__results"><PublicSpecialistCard v-for="item in legacyResults" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" /></div>
+        </div>
+      </details>
     </section>
-
-    <details class="legacy-lookup">
-      <summary>Знайти конкретного спеціаліста</summary>
-      <div class="legacy-lookup__content">
-        <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
-        <form class="query-form" @submit.prevent="submitLegacySearch">
-          <label for="legacy-specialist-search">Ім’я або посилання</label>
-          <div class="query-form__row"><input id="legacy-specialist-search" v-model="legacyQuery" class="input" type="text" autocomplete="off" /><button class="btn" type="submit">Знайти профіль</button></div>
-          <p v-if="legacyValidation" class="form-error">{{ legacyValidation }}</p>
-        </form>
-        <LoadingSkeleton v-if="legacyLoading" variant="card" :count="2" height="150px" />
-        <EmptyState v-else-if="legacyError" title="Не вдалося виконати пошук" description="Спробуйте ще раз трохи пізніше."><template #actions><button class="btn btn--ghost" type="button" @click="retryLegacySearch">Спробувати ще раз</button></template></EmptyState>
-        <EmptyState v-else-if="legacySearched && legacyResults.length === 0" title="Профіль не знайдено" description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання." />
-        <div v-else-if="legacyResults.length" class="result-list legacy-lookup__results"><PublicSpecialistCard v-for="item in legacyResults" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" /></div>
-      </div>
-    </details>
 
     <section class="results" :aria-busy="loading" aria-live="polite">
       <p v-if="isPendingDirection" class="direction-pending">Оберіть професійний напрям, щоб переглянути спеціалістів.</p>
@@ -269,13 +270,19 @@ onBeforeUnmount(resetPublicPageMetadata)
 </script>
 
 <style scoped>
-.discovery-page { display: grid; gap: 20px; min-width: 0; }
-.discovery-page__hero, .discovery-controls, .legacy-lookup { border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; padding: 22px 24px; min-width: 0; }
-.discovery-page__hero, .results__header, .result-group__header, .active-search { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.discovery-page { display: grid; gap: 12px; min-width: 0; }
+.discovery-page__hero, .discovery-controls { min-width: 0; }
+.discovery-page__hero { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 2px 2px; }
+.discovery-page__hero-copy { min-width: 0; }
 .discovery-page__hero .title, .result-group h2, .results h2 { margin: 0; }
-.discovery-controls, .control-group, .query-form, .result-group, .results { display: grid; gap: 12px; min-width: 0; }
+.discovery-page__hero .muted { margin: 6px 0 0; max-width: 76ch; }
+.discovery-controls { display: grid; gap: 10px; min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; padding: 14px 18px; }
+.discovery-controls__toolbar, .discovery-page__hero, .results__header, .result-group__header, .active-search { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; }
+.discovery-controls__toolbar { flex-wrap: wrap; align-items: end; }
+.control-group, .query-form, .result-group, .results { display: grid; gap: 8px; min-width: 0; }
 .control-group { margin: 0; padding: 0; border: 0; }
 .control-group legend, .query-form label { font-weight: 700; }
+.control-group legend { margin-bottom: 2px; font-size: 13px; }
 .segmented-control, .choice-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .segmented-control label, .choice-button { align-items: center; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; display: inline-flex; min-height: 44px; padding: 9px 12px; }
 .segmented-control label:has(input:checked), .choice-button[aria-pressed='true'] { background: rgba(15, 118, 110, .1); border-color: rgba(15, 118, 110, .55); font-weight: 700; }
@@ -289,11 +296,15 @@ onBeforeUnmount(resetPublicPageMetadata)
 .direction-pending { margin: 0; max-width: 52ch; }
 .result-group { padding-top: 4px; }
 .result-list { display: grid; gap: 14px; }
-.legacy-lookup summary { cursor: pointer; font-weight: 700; }
-.legacy-lookup__content { display: grid; gap: 14px; margin-top: 16px; }
+.legacy-lookup { min-width: 0; margin-top: 2px; padding-top: 6px; border-top: 1px solid var(--line); }
+.legacy-lookup summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 700; }
+.legacy-lookup summary:focus-visible { outline: 2px solid rgba(15, 118, 110, .7); outline-offset: 2px; }
+.legacy-lookup__content { display: grid; gap: 10px; margin-top: 8px; }
 @media (max-width: 720px) {
   .discovery-page__hero, .results__header, .active-search { align-items: stretch; flex-direction: column; }
-  .discovery-page__hero, .discovery-controls, .legacy-lookup { padding: 16px; }
+  .discovery-page__hero { padding: 0; }
+  .discovery-controls { padding: 14px; }
+  .discovery-controls__toolbar { align-items: stretch; flex-direction: column; }
   .request-group-controls__desktop { display: none; }
   .request-group-controls__mobile { display: grid; gap: 6px; width: 100%; }
   .request-group-controls__mobile .input { min-height: 44px; width: 100%; }
@@ -306,7 +317,7 @@ onBeforeUnmount(resetPublicPageMetadata)
 }
 @media (max-width: 480px) {
   .discovery-page { gap: 14px; }
-  .discovery-page__hero { gap: 8px; padding: 14px; }
+  .discovery-page__hero { gap: 8px; padding: 0; }
   .discovery-page__hero .title { font-size: 35px; line-height: 1.12; }
   .discovery-page__hero .muted { font-size: 14px; line-height: 1.45; }
   .hero-home-link { align-self: flex-start; border: 0; min-height: auto; padding: 2px 0; }
