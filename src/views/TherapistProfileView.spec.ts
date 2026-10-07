@@ -802,8 +802,13 @@ describe('TherapistProfileView', () => {
     expect(within(summary).getByText('Заповніть обов’язкові дані, щоб опублікувати профіль.')).toBeInTheDocument()
     expect(within(summary).getByText('Не вистачає:')).toBeInTheDocument()
     expect(within(summary).queryByText('Фото')).not.toBeInTheDocument()
-    expect(within(summary).getByText('Спеціалізації')).toBeInTheDocument()
-    expect(within(summary).getByText('Вартість консультації')).toBeInTheDocument()
+    expect(
+      within(summary).getByRole('button', { name: 'Перейти до розділу: Спеціалізації' })
+    ).toBeInTheDocument()
+    expect(
+      within(summary).getByRole('button', { name: 'Перейти до розділу: Вартість консультації' })
+    ).toBeInTheDocument()
+    expect(within(summary).getAllByRole('button', { name: /Перейти до розділу:/ })).toHaveLength(2)
 
     const finishProfileButton = within(summary).getByRole('button', { name: 'Завершити профіль' })
     expect(screen.getAllByText('Завершити профіль')).toHaveLength(1)
@@ -943,6 +948,75 @@ describe('TherapistProfileView', () => {
   })
 
   it.each([
+    ['display_name', 'Публічне ім’я', '[data-readiness-key="display_name"]'],
+    ['about', 'Опис', '[data-readiness-key="about"]'],
+    ['topics', 'Спеціалізації', '[data-readiness-key="specializations"]'],
+    ['specializations', 'Спеціалізації', '[data-readiness-key="specializations"]'],
+    ['work_format', 'Формат роботи', '[data-readiness-key="work_format"]'],
+    ['price_decision', 'Вартість консультації', '[data-readiness-key="price_decision"]'],
+  ])('makes the %s missing chip an accessible control for its own profile section', async (key, label, selector) => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfileWithSingleMissingReadinessItem(key, label))
+
+    const { container } = renderView()
+    const chip = await screen.findByRole('button', { name: `Перейти до розділу: ${label}` })
+    const target = container.querySelector(selector)
+
+    expect(chip).toHaveAttribute('type', 'button')
+    chip.focus()
+    expect(chip).toHaveFocus()
+    await fireEvent.click(chip)
+
+    expect(scrollIntoViewSpy).toHaveBeenCalledTimes(1)
+    expect(scrollIntoViewSpy.mock.contexts[0]).toBe(target)
+    expect(mockRouter.push).not.toHaveBeenCalled()
+  })
+
+  it('uses the backend-provided first_contact route from its missing chip', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит', {
+        action_route: '/cabinet/slots?tab=availability',
+      })
+    )
+
+    renderView()
+
+    await fireEvent.click(
+      await screen.findByRole('button', { name: 'Перейти до розділу: Запис або запит' })
+    )
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/cabinet/slots?tab=availability')
+    expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+  })
+
+  it('keeps the legacy first_contact fallback for its missing chip without metadata', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(
+      makeProfileWithSingleMissingReadinessItem('first_contact', 'Запис або запит')
+    )
+
+    renderView()
+
+    await fireEvent.click(
+      await screen.findByRole('button', { name: 'Перейти до розділу: Запис або запит' })
+    )
+
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      path: '/cabinet/slots',
+      query: { tab: 'settings' },
+    })
+  })
+
+  it('renders no readiness chips for completed items, including request_only first contact', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Готовність профілю' })
+    expect(screen.getByText('6 з 6')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Перейти до розділу:/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Не вистачає:')).not.toBeInTheDocument()
+  })
+
+  it.each([
     [
       'no_future_slots',
       'Створіть хоча б одне майбутнє вікно для запису.',
@@ -982,6 +1056,11 @@ describe('TherapistProfileView', () => {
 
       expect(mockRouter.push).toHaveBeenCalledWith(actionRoute)
       expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+
+      await fireEvent.click(
+        within(summary).getByRole('button', { name: 'Перейти до розділу: Запис або запит' })
+      )
+      expect(mockRouter.push).toHaveBeenLastCalledWith(actionRoute)
     }
   )
 
