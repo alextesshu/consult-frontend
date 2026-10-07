@@ -46,15 +46,18 @@
           <p v-if="firstMissingProfileReadinessMessage" class="profile-summary-card__text">
             {{ firstMissingProfileReadinessMessage }}
           </p>
-          <div v-if="missingProfileReadinessLabels.length" class="profile-summary-card__missing">
+          <div v-if="missingProfileReadinessItems.length" class="profile-summary-card__missing">
             <span class="profile-summary-card__missing-label">Не вистачає:</span>
-            <span
-              v-for="label in missingProfileReadinessLabels"
-              :key="label"
-              class="profile-summary-card__chip"
+            <button
+              v-for="item in missingProfileReadinessItems"
+              :key="item.key"
+              class="profile-summary-card__chip profile-summary-card__chip--action"
+              type="button"
+              :aria-label="`Перейти до розділу: ${item.label || readinessLabelByKey[item.key] || item.key}`"
+              @click="onProfileReadinessChipClick(item)"
             >
-              {{ label }}
-            </span>
+              {{ item.label || readinessLabelByKey[item.key] || item.key }}
+            </button>
           </div>
         </div>
 
@@ -1455,6 +1458,7 @@ import {
   uploadProfilePhoto,
   uploadProfileVideo,
   type PublicProfileReadiness,
+  type PublicProfileReadinessItem,
   type SpecialistProfileDocument,
   type SpecialistProfile,
   type SpecialistProfileRequestGroup,
@@ -2492,15 +2496,20 @@ const firstMissingProfileReadinessMessage = computed(() =>
   firstMissingProfileReadinessItem.value?.message?.trim() || ''
 )
 
-const missingProfileReadinessLabels = computed(() => {
+const missingProfileReadinessItems = computed<PublicProfileReadinessItem[]>(() => {
   const fromItems = publicProfileReadiness.value.items
     .filter((item) => !item.complete)
-    .map((item) => item.label || readinessLabelByKey[item.key] || item.key)
   if (fromItems.length) return fromItems
-  return publicProfileReadiness.value.missing_items.map(
-    (key) => readinessLabelByKey[key] || key
-  )
+  return publicProfileReadiness.value.missing_items.map((key) => ({
+    key,
+    label: readinessLabelByKey[key] || key,
+    complete: false,
+  }))
 })
+
+const missingProfileReadinessLabels = computed(() =>
+  missingProfileReadinessItems.value.map((item) => item.label || readinessLabelByKey[item.key] || item.key)
+)
 
 const publicProfileReadinessCountText = computed(
   () => `${publicProfileReadiness.value.completed_count} з ${publicProfileReadiness.value.total_count}`
@@ -2913,6 +2922,22 @@ function scrollToFirstMissingProfileSection() {
   }
 
   focusProfileReadinessTarget(action?.kind === 'focus' ? action.targetKey : '')
+}
+
+function onProfileReadinessChipClick(item: PublicProfileReadinessItem) {
+  const actionRoute = item.key === 'first_contact' ? item.action_route?.trim() : ''
+  if (actionRoute) {
+    void router.push(actionRoute)
+    return
+  }
+
+  const action = profileReadinessActions[item.key]
+  if (action?.kind === 'route') {
+    void router.push({ path: action.path, query: action.query })
+    return
+  }
+
+  focusProfileReadinessTarget(item.key)
 }
 
 function onProfilePrimaryAction() {
@@ -3872,6 +3897,25 @@ onBeforeUnmount(() => {
   color: #91463d;
   font-size: 12px;
   font-weight: 700;
+}
+
+.profile-summary-card__chip--action {
+  cursor: pointer;
+  font: inherit;
+}
+
+.profile-summary-card__chip--action:hover {
+  border-color: color-mix(in srgb, #91463d 50%, var(--pc-border));
+  background: color-mix(in srgb, #c56b5d 14%, #ffffff);
+}
+
+.profile-summary-card__chip--action:focus-visible {
+  outline: 2px solid var(--pc-navy-700);
+  outline-offset: 2px;
+}
+
+.profile-summary-card__chip--action:active {
+  transform: translateY(1px);
 }
 
 .profile-summary-card__actions {

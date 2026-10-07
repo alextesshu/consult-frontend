@@ -18,7 +18,12 @@
         "evidence": "Dev CI 36339948253 PASS; staging acceptance is recorded in PR #23."
       },
       "release_owner": null,
-      "decision": {"kind": "PROMOTE", "at": null, "reason": null, "next_review_at": null},
+      "decision": {
+        "kind": "PROMOTE",
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
       "production": {
         "pr": "https://github.com/alextesshu/consult-frontend/pull/23",
         "deployed_source_sha": "9e1856e440ad72c9eaea0eaacb7352e75cc3f461",
@@ -33,9 +38,18 @@
       "historical_evidence": true,
       "historical_reason": "Imported from the reviewed KAN-127 Phase A reconciliation snapshot; unknown fields remain explicit.",
       "evidence_snapshot_at": "2026-09-29T11:03:00Z",
-      "staging": {"sha": null, "acceptance_completed_at": null, "evidence": "Earlier staging SHAs vary by slice."},
+      "staging": {
+        "sha": null,
+        "acceptance_completed_at": null,
+        "evidence": "Earlier staging SHAs vary by slice."
+      },
       "release_owner": null,
-      "decision": {"kind": "PROMOTE", "at": null, "reason": null, "next_review_at": null},
+      "decision": {
+        "kind": "PROMOTE",
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
       "production": {
         "pr": "https://github.com/alextesshu/consult-frontend/pull/20",
         "deployed_source_sha": "9e1856e440ad72c9eaea0eaacb7352e75cc3f461",
@@ -50,10 +64,23 @@
       "historical_evidence": true,
       "historical_reason": "Imported from the reviewed KAN-127 Phase A reconciliation snapshot; no independent staging acceptance was recorded.",
       "evidence_snapshot_at": "2026-09-29T11:03:00Z",
-      "staging": {"sha": "df8929de7d676374e90a0279021b0dcfdf1b7444", "acceptance_completed_at": null, "evidence": null},
+      "staging": {
+        "sha": "df8929de7d676374e90a0279021b0dcfdf1b7444",
+        "acceptance_completed_at": null,
+        "evidence": null
+      },
       "release_owner": null,
-      "decision": {"kind": null, "at": null, "reason": null, "next_review_at": null},
-      "production": {"pr": null, "deployed_source_sha": null, "runtime_evidence": null}
+      "decision": {
+        "kind": null,
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": null,
+        "deployed_source_sha": null,
+        "runtime_evidence": null
+      }
     },
     {
       "id": "kan-105-role-return-route",
@@ -63,10 +90,23 @@
       "historical_evidence": true,
       "historical_reason": "Imported from the reviewed KAN-127 Phase A reconciliation snapshot; the production-only scope requires reconciliation.",
       "evidence_snapshot_at": "2026-09-29T11:03:00Z",
-      "staging": {"sha": null, "acceptance_completed_at": null, "evidence": null},
+      "staging": {
+        "sha": null,
+        "acceptance_completed_at": null,
+        "evidence": null
+      },
       "release_owner": null,
-      "decision": {"kind": null, "at": null, "reason": null, "next_review_at": null},
-      "production": {"pr": null, "deployed_source_sha": "9e1856e440ad72c9eaea0eaacb7352e75cc3f461", "runtime_evidence": "Present in production source checkout."}
+      "decision": {
+        "kind": null,
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": null,
+        "deployed_source_sha": "9e1856e440ad72c9eaea0eaacb7352e75cc3f461",
+        "runtime_evidence": "Present in production source checkout."
+      }
     },
     {
       "id": "kan-107-posthog-transport-verification",
@@ -76,10 +116,23 @@
       "historical_evidence": true,
       "historical_reason": "Imported from the reviewed KAN-127 Phase A reconciliation snapshot; live transport evidence was incomplete.",
       "evidence_snapshot_at": "2026-09-29T11:03:00Z",
-      "staging": {"sha": "df8929de7d676374e90a0279021b0dcfdf1b7444", "acceptance_completed_at": null, "evidence": "Staging code was accepted; live production transport inspection was not established."},
+      "staging": {
+        "sha": "df8929de7d676374e90a0279021b0dcfdf1b7444",
+        "acceptance_completed_at": null,
+        "evidence": "Staging code was accepted; live production transport inspection was not established."
+      },
       "release_owner": null,
-      "decision": {"kind": null, "at": null, "reason": null, "next_review_at": null},
-      "production": {"pr": "https://github.com/alextesshu/consult-frontend/pull/23", "deployed_source_sha": null, "runtime_evidence": null}
+      "decision": {
+        "kind": null,
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": "https://github.com/alextesshu/consult-frontend/pull/23",
+        "deployed_source_sha": null,
+        "runtime_evidence": null
+      }
     },
     {
       "id": "kan-107-identify-dedup",
@@ -95,11 +148,42 @@
         "evidence": "Operator-confirmed canonical staging frontend deploy, /healthz, /readyz, specialist login/logout/relogin/reload, and admin UI smoke PASS. Exact UTC completion timestamp of full staging acceptance is unrecoverable; it is not replaced by operator confirmation time. Staging analytics was disabled by contract."
       },
       "release_owner": null,
-      "decision": {"kind": "PROMOTE", "at": null, "reason": null, "next_review_at": null},
+      "decision": {
+        "kind": "PROMOTE",
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
       "production": {
         "pr": "https://github.com/alextesshu/consult-frontend/pull/28",
         "deployed_source_sha": "f8a12d372d2fc506f7bf4345ac0ae22133cdf0a5",
         "runtime_evidence": "Canonical production frontend deploy and clean main checkout verified on 2026-10-04; frontend running; /healthz and /readyz HTTP 200; public / HTTP 200 HTML. Operator-confirmed manual auth smoke PASS and fresh PostHog evidence: $identify=2, identities=1, sessions=1, $geoip_disable=true on 2/2 identify events, city/postal/latitude enrichment=0; explicit profile_setup_opened, profile_section_opened, search_visibility_cta_viewed observed; no fresh $pageview, $autocapture, or $exception. Same-runtime deduplication is primarily verified by regression tests; production rows do not directly identify a JS runtime. The historical six duplicate events were not proven to originate from this defect."
+      }
+    },
+    {
+      "id": "kan-122-actionable-readiness-chips",
+      "ticket": "KAN-122",
+      "repository": "consult-frontend",
+      "status": "STAGED_READY",
+      "historical_evidence": false,
+      "historical_reason": null,
+      "evidence_snapshot_at": null,
+      "staging": {
+        "sha": "e45d8b8b861ed3be478408e6f0a1a4b40cd23719",
+        "acceptance_completed_at": "2026-10-07T13:23:00Z",
+        "evidence": "Dev CI 37614678425 PASS. Canonical staging frontend deploy via scripts/deploy/deploy-staging-frontend.sh fast-forwarded the staging checkout to e45d8b8b861ed3be478408e6f0a1a4b40cd23719 and recreated frontend-staging successfully. Post-deploy frontend service was running; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed KAN-122 manual UX smoke PASS: each missing readiness chip navigated to its own exact section/destination, keyboard/focus behavior passed, unsaved same-page changes were preserved, first_contact routing followed readiness state, and completed/request_only states did not show false actionable missing items. Full staging acceptance completed at 2026-10-07T13:23:00Z (16:23 Kyiv), confirmed by the operator."
+      },
+      "release_owner": null,
+      "decision": {
+        "kind": null,
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": null,
+        "deployed_source_sha": null,
+        "runtime_evidence": null
       }
     }
   ]
@@ -152,6 +236,7 @@ promotion policy is in the backend repository's `docs/GIT_CI_PROMOTION.md`.
 | KAN-105 role-specific email-verification return route | Not a staging-approved dev change | Separate reconciliation decision needed | Present in production `VerifyEmailView` code/tests at `9e1856e4`; preserve before dev-to-main promotion |
 | KAN-107 live PostHog transport / enrichment verification | Staging code accepted; live production transport inspection not established | Not a code-promotion decision | Code released via PR #23; no PostHog settings change asserted |
 | KAN-107 identify deduplication | `581bca1`; operator-confirmed canonical deploy, health/readiness, specialist login/logout/relogin/reload, and admin UI smoke PASS; exact acceptance timestamp unrecoverable (null) | PROMOTE executed via PR #28; exact decision time not recorded | [PR #28](https://github.com/alextesshu/consult-frontend/pull/28); `f8a12d3` clean main checkout, frontend running, health/readiness HTTP 200 and public / HTTP 200 HTML; manual auth PASS; fresh PostHog transport/enrichment evidence in the canonical record |
+| KAN-122 actionable profile-readiness chips | `e45d8b8`; dev CI [37614678425](https://github.com/alextesshu/consult-frontend/actions/runs/37614678425) PASS; canonical staging frontend deploy PASS; frontend-staging running; health/ready PASS; operator-confirmed focused KAN-122 UX smoke PASS | No PROMOTE/DEFER decision recorded yet | STAGED_READY; production PR/deploy not yet completed |
 
 Source commit `79e3b9a` is patch-equivalent to KAN-107 release commit
 `87c0f85`; both analytics file blobs match between current main and dev.
@@ -160,6 +245,8 @@ only current frontend tree differences between `origin/main` and `origin/dev`
 are `AGENTS.md`, `src/__tests__/app.spec.ts`, and the two
 `VerifyEmailView` files. Do not infer unreleased functionality from the
 historical commit divergence alone.
+
+KAN-122 is currently `STAGED_READY` at `e45d8b8`; full staging acceptance completed at `2026-10-07T13:23:00Z` (16:23 Kyiv), confirmed by the operator. No production PROMOTE/DEFER decision, owner, merge, or deploy is recorded yet.
 
 After a future staging PASS, add or update a ticket row immediately, record
 its actual acceptance time and named decision owner, then decide PROMOTE or
