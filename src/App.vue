@@ -2682,6 +2682,14 @@ body.body--home .footer__bottom {
     display: none !important;
   }
 
+  .shell--home .topbar--guest .nav__guest-catalog {
+    display: none;
+  }
+
+  .nav__guest-catalog.router-link-exact-active {
+    display: none;
+  }
+
   .nav__mobile-only {
     display: inline-flex;
   }
@@ -2694,11 +2702,16 @@ body.body--home .footer__bottom {
     display: none;
   }
 
-  .brand__logo--mark {
-    display: block;
+  .brand {
+    flex: 0 0 auto;
   }
 
-  .topbar--guest .brand__logo-frame {
+  .brand__logo--mark {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .brand__logo-frame {
     gap: 7px;
   }
 
@@ -2707,8 +2720,9 @@ body.body--home .footer__bottom {
     width: 32px;
   }
 
-  .topbar--guest .brand__mobile-name {
+  .brand__mobile-name {
     display: inline-block;
+    flex: 0 0 auto;
     color: var(--pc-navy-900);
     font-family: var(--font-display);
     font-size: 14.5px;
