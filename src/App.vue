@@ -2682,6 +2682,10 @@ body.body--home .footer__bottom {
     display: none !important;
   }
 
+  .shell--home .topbar--guest .nav__guest-catalog {
+    display: none;
+  }
+
   .nav__mobile-only {
     display: inline-flex;
   }
