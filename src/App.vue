@@ -2686,6 +2686,10 @@ body.body--home .footer__bottom {
     display: none;
   }
 
+  .nav__guest-catalog.router-link-exact-active {
+    display: none;
+  }
+
   .nav__mobile-only {
     display: inline-flex;
   }
