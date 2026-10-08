@@ -2694,11 +2694,16 @@ body.body--home .footer__bottom {
     display: none;
   }
 
-  .brand__logo--mark {
-    display: block;
+  .brand {
+    flex: 0 0 auto;
   }
 
-  .topbar--guest .brand__logo-frame {
+  .brand__logo--mark {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .brand__logo-frame {
     gap: 7px;
   }
 
@@ -2707,8 +2712,9 @@ body.body--home .footer__bottom {
     width: 32px;
   }
 
-  .topbar--guest .brand__mobile-name {
+  .brand__mobile-name {
     display: inline-block;
+    flex: 0 0 auto;
     color: var(--pc-navy-900);
     font-family: var(--font-display);
     font-size: 14.5px;
