@@ -913,6 +913,23 @@ describe('App shell', () => {
     expect(screen.getByText('Можна розширити ліміт: +1 активний клієнт — 200 грн/міс.')).toBeInTheDocument()
   })
 
+  it.each([
+    { role: 'SPECIALIST', full: 'Мій кабінет', compact: 'Кабінет', href: '/cabinet' },
+    { role: 'ADMIN', full: 'Черга роботи', compact: 'Черга', href: '/admin/work-queue' },
+    { role: 'CLIENT', full: 'Кабінет', compact: 'Кабінет', href: '/client' },
+  ])('preserves the full accessible cabinet label for $role with compact mobile copy', async ({ role, full, compact, href }) => {
+    await renderWithProviders({ initialPath: '/specialists', roles: [role] })
+
+    const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    const action = within(nav).getByRole('link', { name: full })
+    expect(action).toHaveAttribute('href', href)
+    expect(action).toHaveAttribute('aria-label', full)
+    expect(action.querySelector('.nav__primary-label--full')).toHaveTextContent(full)
+    expect(action.querySelector('.nav__primary-label--compact')).toHaveTextContent(compact)
+    expect(within(nav).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: 'Меню' })).toBeInTheDocument()
+  })
+
   it('shows only admin header navigation for pure ADMIN', async () => {
     await renderWithProviders({
       initialPath: '/admin/inbox',
