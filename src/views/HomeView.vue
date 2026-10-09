@@ -6,21 +6,19 @@
         <span class="home-hero__wash home-hero__wash--peach" aria-hidden="true"></span>
         <div class="home-hero__content">
           <h1 id="home-hero-title" class="home-hero__title">
-            Етичний простір для консультування
+            Консультаційна практика — в одному спокійному просторі
           </h1>
           <p class="home-hero__subtitle">
-            Для фахівців, які хочуть професійно представити себе та вести консультаційну практику, і клієнтів, які шукають спеціалістів.
+            Професійно представте себе, отримуйте звернення від клієнтів і ведіть регулярну консультаційну практику — сесії, календар, клієнтів, матеріали та щоденну роботу в одному місці.
           </p>
           <div class="home-hero__principles" aria-label="Принципи Pro Consult">
             <div class="home-hero__principles-row">
-              <span>Прямий контакт без посередників</span>
+              <span>Прямий контакт із клієнтом</span>
               <span class="home-hero__principle-sep" aria-hidden="true">·</span>
               <span>Без комісій з консультацій</span>
             </div>
             <div class="home-hero__principles-row">
-              <span>Професійна публічна сторінка з блогом</span>
-              <span class="home-hero__principle-sep" aria-hidden="true">·</span>
-              <span>Без рейтингів і платного просування</span>
+              <span>Без рейтингів</span>
             </div>
           </div>
           <div class="home-hero__actions">
@@ -36,9 +34,6 @@
               Знайти спеціаліста
             </RouterLink>
           </div>
-          <p class="home-hero__client-path">
-            Шукаєте спеціаліста? Відкрийте пошук спеціалістів і залиште запит без реєстрації.
-          </p>
         </div>
 
         <div class="home-hero__visual" aria-hidden="true">
@@ -206,24 +201,14 @@
         </div>
       </section>
 
-      <section class="client-entry-section reveal" aria-labelledby="client-entry-title">
-        <div>
-          <h2 id="client-entry-title" class="section-head__title">Шукаєте спеціаліста?</h2>
-          <p>
-            Оберіть напрям або опишіть свій запит, перегляньте професійні сторінки спеціалістів і зверніться напряму до того, хто вам підходить — без реєстрації.
-          </p>
-        </div>
-        <RouterLink class="btn" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
-      </section>
-
       <section class="workflow-section reveal" aria-labelledby="workflow-title">
         <div class="section-head section-head--center">
-          <h2 id="workflow-title" class="section-head__title">Як це працює</h2>
+          <h2 id="workflow-title" class="section-head__title">Від першого знайомства — до регулярної роботи</h2>
           <p class="section-head__subtitle">
-            Створіть свій професійний простір, діліться сторінкою там, де вас знаходять клієнти, і ведіть консультаційну практику в одному місці.
+            Pro Consult поєднує вашу професійну сторінку з робочим простором для регулярної консультаційної практики.
           </p>
         </div>
-        <div class="workflow-grid" role="list" aria-label="Як спеціаліст починає роботу в Pro Consult">
+        <div class="workflow-grid" role="list" aria-label="Від знайомства до регулярної роботи в Pro Consult">
           <article v-for="(step, index) in workflowSteps" :key="step.title" class="workflow-card" role="listitem">
             <span class="workflow-card__number">{{ index + 1 }}</span>
             <h3>{{ step.title }}</h3>
@@ -239,38 +224,52 @@
       <section id="features" class="value-section reveal" aria-labelledby="value-title">
         <div class="section-head section-head--center">
           <h2 id="value-title" class="section-head__title">
-            Ваш професійний простір
+            Дві сторони одного професійного простору
           </h2>
           <p class="section-head__subtitle">
             Професійна сторінка допомагає представити себе, свій підхід і послуги клієнтам. А робочий кабінет — організувати звернення, записи, сесії, календар, матеріали та щоденну роботу з практикою.
           </p>
         </div>
-        <div class="value-grid" role="list" aria-label="Ключові можливості Pro Consult">
-          <article v-for="item in valueCards" :key="item.title" class="value-card" role="listitem">
-            <span class="icon-wrap" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path v-for="path in iconPaths[item.icon]" :key="path" :d="path"></path>
-              </svg>
-            </span>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.copy }}</p>
-          </article>
-        </div>
+        <section v-for="group in capabilityGroups" :key="group.id" class="value-group" :aria-labelledby="group.id">
+          <h3 :id="group.id" class="value-group__title">{{ group.title }}</h3>
+          <div class="value-grid" role="list" :aria-label="group.title">
+            <article v-for="item in group.items" :key="item.title" class="value-card" role="listitem">
+              <span class="icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path v-for="path in iconPaths[item.icon]" :key="path" :d="path"></path>
+                </svg>
+              </span>
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.copy }}</p>
+            </article>
+          </div>
+        </section>
       </section>
 
       <section class="blog-section reveal" aria-labelledby="blog-title">
         <div class="section-head">
-          <h2 id="blog-title" class="section-head__title">Блог, який допомагає пояснити ваш підхід</h2>
+          <h2 id="blog-title" class="section-head__title">Дайте клієнту можливість познайомитися з вами до консультації</h2>
         </div>
         <div class="blog-section__copy">
           <p>
-            Не кожен клієнт готовий одразу звернутися. Часто спочатку хочеться зрозуміти, як спеціаліст мислить, із якими темами працює і чи відгукується його підхід.
+            Не кожен готовий звернутися одразу.
           </p>
           <p>
-            У блозі можна публікувати короткі статті, відповіді на часті питання, пояснення свого підходу
-            або клієнтські матеріали, які ви явно публікуєте для клієнтів.
+            Професійна сторінка і власний блог допомагають клієнту зрозуміти, з чим ви працюєте, як мислите і чи відгукується йому ваш підхід.
+          </p>
+          <p>
+            Публікуйте статті, відповіді на часті запитання та матеріали, які ви хочете зробити доступними клієнтам.
           </p>
         </div>
+      </section>
+
+      <section class="client-entry-section reveal" aria-labelledby="client-entry-title">
+        <div>
+          <h2 id="client-entry-title" class="section-head__title">Шукаєте спеціаліста?</h2>
+          <p>Опишіть свій запит або оберіть напрям, перегляньте професійні сторінки й зверніться напряму до спеціаліста, який вам підходить.</p>
+          <p>Без обов'язкової реєстрації для першого звернення.</p>
+        </div>
+        <RouterLink class="btn" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
       </section>
 
       <section id="pricing" class="pricing reveal" aria-labelledby="pricing-title">
@@ -402,50 +401,53 @@ const iconPaths: Record<IconKey, string[]> = {
   support: ['M12 18v2', 'M8.5 9.5a3.5 3.5 0 1 1 6.2 2.2c-.9.8-1.7 1.3-1.7 2.3v.5', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'],
 }
 
-const valueCards: Array<{ icon: IconKey; title: string; copy: string }> = [
+const capabilityGroups: Array<{
+  id: string
+  title: string
+  items: Array<{ icon: IconKey; title: string; copy: string }>
+}> = [
   {
-    icon: 'profile',
-    title: 'Професійна сторінка',
-    copy: 'Покажіть, хто ви, з чим працюєте, у якому форматі консультуєте та як до вас звернутися.',
+    id: 'practice-presence-title',
+    title: 'Покажіть свою практику',
+    items: [
+      { icon: 'profile', title: 'Професійна сторінка', copy: 'Покажіть, хто ви, з чим працюєте, як консультуєте та як до вас звернутися.' },
+      { icon: 'booking', title: 'Звернення без реєстрації', copy: 'Клієнту не потрібно створювати кабінет, щоб зробити перший крок.' },
+      { icon: 'feedback', title: 'Власний блог', copy: 'Публікуйте тексти, які допомагають зрозуміти ваш підхід ще до першої консультації.' },
+      { icon: 'clients', title: 'Пошук спеціалістів', copy: 'Клієнти можуть знайти спеціаліста за своїм запитом і звернутися напряму.' },
+    ],
   },
   {
-    icon: 'booking',
-    title: 'Звернення від клієнтів',
-    copy: 'Клієнт може залишити короткий запит без реєстрації. Ви бачите його в кабінеті й вирішуєте, як продовжити.',
-  },
-  {
-    icon: 'session',
-    title: 'Сесії та календар',
-    copy: 'Плануйте консультації, погоджуйте час і тримайте робочий розклад в одному місці.',
-  },
-  {
-    icon: 'feedback',
-    title: 'Власний блог',
-    copy: 'Публікуйте тексти, які пояснюють ваш підхід, теми роботи й допомагають клієнту краще познайомитися з вами.',
-  },
-  {
-    icon: 'materials',
-    title: 'Клієнтські матеріали й приватні нотатки',
-    copy: 'Зберігайте приватні нотатки окремо від матеріалів, які ви свідомо відкриваєте клієнту.',
+    id: 'practice-work-title',
+    title: 'Ведіть свою практику',
+    items: [
+      { icon: 'session', title: 'Сесії та календар', copy: 'Плануйте консультації, погоджуйте час і бачте свій робочий розклад.' },
+      { icon: 'clients', title: 'Робота з клієнтами', copy: 'Тримайте поточну консультаційну роботу в одному контексті.' },
+      { icon: 'materials', title: 'Приватні нотатки та матеріали', copy: 'Внутрішні записи спеціаліста залишаються приватними, а клієнту відкривається лише те, чим ви свідомо ділитеся.' },
+      { icon: 'analytics', title: 'Задачі та організація практики', copy: 'Плануйте власну роботу без окремого набору таблиць і списків.' },
+    ],
   },
 ]
 
 const workflowSteps = [
   {
-    title: 'Створіть професійну сторінку',
-    copy: 'Розкажіть про себе, свій підхід, теми роботи, формат консультацій і вартість.',
+    title: 'Покажіть свою практику',
+    copy: 'Створіть професійну сторінку: розкажіть про себе, свій підхід, теми роботи, формат консультацій і вартість.',
   },
   {
-    title: 'Діліться своєю сторінкою',
-    copy: 'Додайте посилання на сторінку в соцмережі, месенджери, власний сайт або надсилайте його клієнтам напряму.',
+    title: 'Отримайте звернення',
+    copy: 'Клієнт може знайти вас у Pro Consult або перейти за вашим посиланням, познайомитися з вами й залишити запит без реєстрації чи записатися на сесію.',
   },
   {
-    title: 'Отримуйте звернення',
-    copy: 'Клієнт переходить на вашу сторінку, знайомиться з вами та може залишити запит без реєстрації або записатися на сесію.',
+    title: 'Проведіть консультацію',
+    copy: 'Погоджуйте час, плануйте сесії та тримайте робочий календар в одному місці.',
   },
   {
-    title: 'Ведіть практику',
-    copy: 'Працюйте зі зверненнями, плануйте сесії, ведіть календар, зберігайте нотатки й матеріали в одному просторі.',
+    title: 'Продовжуйте роботу з клієнтом',
+    copy: 'Регулярні сесії, приватні нотатки та матеріали залишаються в контексті вашої роботи з клієнтом.',
+  },
+  {
+    title: 'Тримайте практику в порядку',
+    copy: 'Керуйте клієнтами, задачами й робочими процесами без набору розрізнених інструментів.',
   },
 ]
 
@@ -658,14 +660,6 @@ onBeforeUnmount(() => {
   user-select: none;
 }
 
-.home-hero__client-path {
-  margin: 0;
-  max-width: 54ch;
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--pc-navy-900) 82%, #38515f);
-  font-weight: 650;
-}
-
 .home-hero__actions {
   display: flex;
   gap: 12px;
@@ -711,8 +705,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin: 26px 0 48px;
-  padding: 28px;
+  margin: 0;
+  padding: 24px;
   border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
   border-radius: var(--pc-radius-card);
   background: linear-gradient(135deg, var(--pc-bg-card), color-mix(in srgb, var(--pc-teal-soft) 70%, #ffffff));
@@ -2421,7 +2415,7 @@ onBeforeUnmount(() => {
 
 .benefit-chip__label,
 .how-step h3,
-.value-card h3,
+.value-card h4,
 .difference-card h3,
 .plan-card h3,
 .section-head__title,
@@ -2432,7 +2426,7 @@ onBeforeUnmount(() => {
 
 .benefit-chip__label,
 .how-step h3,
-.value-card h3,
+.value-card h4,
 .difference-card h3,
 .plan-card h3 {
   font-size: 16px;
@@ -2506,11 +2500,21 @@ onBeforeUnmount(() => {
 
 .workflow-grid {
   display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 
 .value-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.value-group + .value-group {
+  margin-top: 24px;
+}
+
+.value-group__title {
+  margin: 0 0 14px;
+  color: var(--pc-navy-950);
 }
 
 .value-card,

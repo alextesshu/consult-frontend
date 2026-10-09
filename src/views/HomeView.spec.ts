@@ -80,22 +80,22 @@ describe('HomeView', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Етичний простір для консультування',
+        name: 'Консультаційна практика — в одному спокійному просторі',
       })
     ).toBeInTheDocument()
     expect(
       screen.getByText(
-        /Для фахівців, які хочуть професійно представити себе та вести консультаційну практику, і клієнтів, які шукають спеціалістів/
+        'Професійно представте себе, отримуйте звернення від клієнтів і ведіть регулярну консультаційну практику — сесії, календар, клієнтів, матеріали та щоденну роботу в одному місці.'
       )
     ).toBeInTheDocument()
-    expect(screen.getByText('Прямий контакт без посередників')).toBeInTheDocument()
-    expect(screen.getByText('Професійна публічна сторінка з блогом')).toBeInTheDocument()
-    expect(screen.getByText('Без рейтингів і платного просування')).toBeInTheDocument()
+    expect(screen.getByText('Прямий контакт із клієнтом')).toBeInTheDocument()
+    expect(screen.getByText('Без рейтингів')).toBeInTheDocument()
+    expect(container).not.toHaveTextContent('Без платного просування у пошуку')
     const hero = container.querySelector('.home-hero') as HTMLElement
     const principlesLine = hero.querySelector('.home-hero__principles') as HTMLElement
     expect(principlesLine).toHaveAttribute('aria-label', 'Принципи Pro Consult')
     expect(principlesLine).toHaveTextContent(
-      /Прямий контакт без посередників.*·.*Без комісій з консультацій.*Професійна публічна сторінка з блогом.*·.*Без рейтингів і платного просування/
+      /Прямий контакт із клієнтом.*·.*Без комісій з консультацій.*Без рейтингів/
     )
     expect(within(hero).getByRole('link', { name: 'Створити свій простір' })).toHaveAttribute(
       'href',
@@ -105,15 +105,16 @@ describe('HomeView', () => {
       'href',
       '/specialists'
     )
-    expect(screen.getByText(/Шукаєте спеціаліста\? Відкрийте пошук спеціалістів/)).toBeInTheDocument()
+    expect(hero.querySelector('.home-hero__client-path')).not.toBeInTheDocument()
     expect(container.querySelector('.home-hero a[href="/tour"]')).not.toBeInTheDocument()
     const clientEntry = container.querySelector('.client-entry-section') as HTMLElement
     expect(within(clientEntry).getByRole('heading', { name: 'Шукаєте спеціаліста?' })).toBeInTheDocument()
     expect(
       within(clientEntry).getByText(
-        /Оберіть напрям або опишіть свій запит, перегляньте професійні сторінки спеціалістів і зверніться напряму до того, хто вам підходить — без реєстрації/
+        'Опишіть свій запит або оберіть напрям, перегляньте професійні сторінки й зверніться напряму до спеціаліста, який вам підходить.'
       )
     ).toBeInTheDocument()
+    expect(within(clientEntry).getByText("Без обов'язкової реєстрації для першого звернення.")).toBeInTheDocument()
     expect(within(clientEntry).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute(
       'href',
       '/specialists'
@@ -140,19 +141,15 @@ describe('HomeView', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Ваш професійний простір',
+        name: 'Дві сторони одного професійного простору',
       })
     ).toBeInTheDocument()
-    expect(screen.getByText('Звернення від клієнтів')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Блог, який допомагає пояснити ваш підхід' })).toBeInTheDocument()
-    expect(screen.getByText(/Не кожен клієнт готовий одразу звернутися/)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Як це працює' })).toBeInTheDocument()
-    expect(screen.getByText('Створіть професійну сторінку')).toBeInTheDocument()
-    expect(screen.getByText('Діліться своєю сторінкою')).toBeInTheDocument()
-    expect(screen.getByText('Отримуйте звернення')).toBeInTheDocument()
-    expect(screen.getByText('Ведіть практику')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Звернення без реєстрації' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Дайте клієнту можливість познайомитися з вами до консультації' })).toBeInTheDocument()
+    expect(screen.getByText('Не кожен готовий звернутися одразу.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Від першого знайомства — до регулярної роботи' })).toBeInTheDocument()
     expect(
-      screen.getByText(/Створіть свій професійний простір, діліться сторінкою там, де вас знаходять клієнти/)
+      screen.getByText('Pro Consult поєднує вашу професійну сторінку з робочим простором для регулярної консультаційної практики.')
     ).toBeInTheDocument()
     expect(screen.getAllByText('Без комісій з консультацій').length).toBeGreaterThan(0)
     expect(screen.getByText('Діліться сторінкою у своїх каналах')).toBeInTheDocument()
@@ -221,6 +218,47 @@ describe('HomeView', () => {
     expect(screen.queryByText('До 20 ' + 'активних клієнтів')).not.toBeInTheDocument()
     expect(screen.queryByText('Максимум 27 ' + 'активних клієнтів на PRO')).not.toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Створити свій простір' }).length).toBeGreaterThan(0)
+  })
+
+  it('connects five workflow steps with both capability groups before client discovery and pricing', async () => {
+    const { container } = await renderHome()
+    const workflow = screen.getByRole('region', { name: 'Від першого знайомства — до регулярної роботи' })
+    const steps = within(workflow).getAllByRole('listitem')
+    expect(steps).toHaveLength(5)
+    const expectedSteps = [
+      ['Покажіть свою практику', 'Створіть професійну сторінку: розкажіть про себе, свій підхід, теми роботи, формат консультацій і вартість.'],
+      ['Отримайте звернення', 'Клієнт може знайти вас у Pro Consult або перейти за вашим посиланням, познайомитися з вами й залишити запит без реєстрації чи записатися на сесію.'],
+      ['Проведіть консультацію', 'Погоджуйте час, плануйте сесії та тримайте робочий календар в одному місці.'],
+      ['Продовжуйте роботу з клієнтом', 'Регулярні сесії, приватні нотатки та матеріали залишаються в контексті вашої роботи з клієнтом.'],
+      ['Тримайте практику в порядку', 'Керуйте клієнтами, задачами й робочими процесами без набору розрізнених інструментів.'],
+    ]
+    expectedSteps.forEach(([title, copy], index) => {
+      expect(within(steps[index]!).getByRole('heading', { name: title })).toBeInTheDocument()
+      expect(within(steps[index]!).getByText(copy!)).toBeInTheDocument()
+    })
+
+    const presence = screen.getByRole('region', { name: 'Покажіть свою практику' })
+    const practice = screen.getByRole('region', { name: 'Ведіть свою практику' })
+    expect(within(presence).getAllByRole('listitem')).toHaveLength(4)
+    expect(within(practice).getAllByRole('listitem')).toHaveLength(4)
+    for (const title of ['Професійна сторінка', 'Звернення без реєстрації', 'Власний блог', 'Пошук спеціалістів']) {
+      expect(within(presence).getByRole('heading', { name: title, level: 4 })).toBeInTheDocument()
+    }
+    for (const title of ['Сесії та календар', 'Робота з клієнтами', 'Приватні нотатки та матеріали', 'Задачі та організація практики']) {
+      expect(within(practice).getByRole('heading', { name: title, level: 4 })).toBeInTheDocument()
+    }
+    expect(within(practice).getByText('Внутрішні записи спеціаліста залишаються приватними, а клієнту відкривається лише те, чим ви свідомо ділитеся.')).toBeInTheDocument()
+
+    const sections = Array.from(container.querySelector('.home-lite__container')!.children)
+    const workflowIndex = sections.indexOf(workflow)
+    const productIndex = sections.indexOf(screen.getByRole('region', { name: 'Дві сторони одного професійного простору' }))
+    const blogIndex = sections.indexOf(screen.getByRole('region', { name: 'Дайте клієнту можливість познайомитися з вами до консультації' }))
+    const clientIndex = sections.indexOf(screen.getByRole('region', { name: 'Шукаєте спеціаліста?' }))
+    const pricingIndex = sections.indexOf(screen.getByRole('region', { name: 'Тарифи' }))
+    expect(workflowIndex).toBeLessThan(productIndex)
+    expect(productIndex).toBeLessThan(blogIndex)
+    expect(clientIndex).toBe(blogIndex + 1)
+    expect(pricingIndex).toBe(clientIndex + 1)
   })
 
   it('does not render removed duplicate homepage sections or forbidden wording', async () => {

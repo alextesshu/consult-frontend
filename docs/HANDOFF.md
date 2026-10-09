@@ -792,6 +792,12 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
+- KAN-135 homepage explanation is implemented locally, pending review: the
+  existing hero and cards explain one connected consultation-practice workflow,
+  with two capability groups and client discovery after blog content, before
+  pricing. CTA routes, analytics, auth, pricing, and the hero mockup are unchanged;
+  this patch is not committed, pushed, or deployed.
+
 - KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
 - KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
 - KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
