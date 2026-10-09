@@ -10,6 +10,44 @@ Usage:
 
 ---
 
+## 2026-10-09 - KAN-131 / KAN-134 Mobile Discovery and Authenticated Header Production Close
+
+### Context
+- KAN-131 reduced narrow-mobile specialist-discovery vertical density so result availability appears materially earlier.
+- KAN-134 kept the authenticated header on one row below 400 px using compact visible cabinet labels while preserving full accessible labels.
+- Runtime PR #36 merged `dev -> main` as `7dac8b790d663609691b8f790da4ab50c3f48eeb`.
+- Frontend-only release; no backend contract, migration, or deployment-process change.
+
+### Done
+- Narrow-mobile discovery controls remain complete while consuming less vertical space.
+- Authenticated 375×667 header keeps Pro Consult, cabinet action, notifications, and menu on one row.
+- Full cabinet labels remain on wider mobile widths; canonical accessible names are preserved.
+- KAN-131 and KAN-134 are Done after production acceptance.
+
+### Validation
+- KAN-131 focused tests: 29 PASS; production build PASS; typecheck introduced 0 new diagnostics; `git diff --check` PASS.
+- KAN-134 App shell tests: 67 PASS; production build PASS; typecheck introduced 0 new diagnostics; `git diff --check` PASS.
+- Dev CI #926 and #927 PASS; PR CI #928 PASS.
+- Canonical staging deploy at `137cc2cf144706981b97f77da45e2204d0c56df8`; `/healthz` and `/readyz` PASS.
+- Staging 375×667 authenticated smoke: header one row and specialist count visible in the first viewport; 412×924 and guest variants showed no release-specific regression.
+- Canonical production deploy at `7dac8b790d663609691b8f790da4ab50c3f48eeb`; `/healthz` and `/readyz` PASS.
+- Production focused smoke passed for authenticated 375×667, authenticated 412×924, and guest narrow-mobile specialist discovery/header variants.
+
+### Deferred / Not in Scope
+- KAN-114 tablet header overlap around 768–820 px remains separate.
+- KAN-133 midnight-boundary CabinetView flake remains isolated test debt.
+- No backend changes and no broad navigation/header redesign.
+
+### Key Commits
+- `8b6e1d6` — KAN-131 compact mobile specialist discovery.
+- `137cc2c` — KAN-134 compact authenticated mobile header.
+- `7dac8b7` — production merge commit from PR #36.
+
+### Merge Readiness
+- Runtime release is production-closed. This documentation closeout is evidence-only and requires no production redeploy.
+
+---
+
 ## 2026-07-12 - KAN-29 Public Profile Visibility Production Close
 
 ### Context

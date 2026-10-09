@@ -237,6 +237,58 @@
         "deployed_source_sha": "7f5a449d73df8b971a01118659a7e26274f59e65",
         "runtime_evidence": "Canonical production frontend deploy from /opt/proconsult/backend-production completed successfully on 2026-10-08 UTC. Production frontend checkout was clean on main at 7f5a449d73df8b971a01118659a7e26274f59e65; backend-frontend-1 was running; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed real Google Pixel 10 Pro production smoke PASS at 2026-10-08T21:46:00Z for guest /, guest /login, guest /specialists, and authenticated /specialists; mobile brand truncation/action crowding was resolved with no observed overlap."
       }
+    },
+    {
+      "id": "kan-131-mobile-specialist-discovery",
+      "ticket": "KAN-131",
+      "repository": "consult-frontend",
+      "status": "RELEASED",
+      "historical_evidence": false,
+      "historical_reason": null,
+      "evidence_snapshot_at": null,
+      "staging": {
+        "sha": "137cc2cf144706981b97f77da45e2204d0c56df8",
+        "acceptance_completed_at": null,
+        "evidence": "KAN-131 source 8b6e1d6c2808fcdcaff7df33cc2f9e1ad8b8e0a2 passed dev CI #926. The final accepted staging build was 137cc2cf144706981b97f77da45e2204d0c56df8 after KAN-134; canonical staging frontend deploy completed successfully, /healthz returned status ok, and /readyz returned database ok and migrations ok. Operator-confirmed authenticated 375×667 /specialists smoke showed the specialist count in the first viewport with the compact discovery controls and no observed horizontal overflow; 412×924 and wider mobile checks also passed. The exact UTC staging acceptance completion timestamp was not independently captured and remains null."
+      },
+      "release_owner": "Oleksandr Konstantinov",
+      "decision": {
+        "kind": "PROMOTE",
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": "https://github.com/alextesshu/consult-frontend/pull/36",
+        "deployed_source_sha": "7dac8b790d663609691b8f790da4ab50c3f48eeb",
+        "runtime_evidence": "Canonical production frontend deploy from /opt/proconsult/backend-production completed successfully on 2026-10-09. Production frontend checkout was at 7dac8b790d663609691b8f790da4ab50c3f48eeb; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed production /specialists smoke PASS: authenticated 375×667 showed the result count in the first viewport, authenticated 412×924 showed result content and a specialist card, guest 375×667 and 412×924 showed no release-specific regression, and no horizontal overflow was observed. Exact UTC production acceptance time was not independently captured."
+      }
+    },
+    {
+      "id": "kan-134-compact-authenticated-mobile-header",
+      "ticket": "KAN-134",
+      "repository": "consult-frontend",
+      "status": "RELEASED",
+      "historical_evidence": false,
+      "historical_reason": null,
+      "evidence_snapshot_at": null,
+      "staging": {
+        "sha": "137cc2cf144706981b97f77da45e2204d0c56df8",
+        "acceptance_completed_at": null,
+        "evidence": "Dev CI #927 PASS. Canonical staging frontend deploy completed successfully at 137cc2cf144706981b97f77da45e2204d0c56df8; /healthz returned status ok and /readyz returned database ok and migrations ok. Operator-confirmed authenticated 375×667 header smoke PASS on /cabinet and /specialists: Pro Consult, compact Cabinet action, notifications, and menu remained visible on one row with no observed horizontal overflow. Wider 412×924 mobile retained the full cabinet label. Exact UTC staging acceptance completion timestamp was not independently captured and remains null."
+      },
+      "release_owner": "Oleksandr Konstantinov",
+      "decision": {
+        "kind": "PROMOTE",
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": "https://github.com/alextesshu/consult-frontend/pull/36",
+        "deployed_source_sha": "7dac8b790d663609691b8f790da4ab50c3f48eeb",
+        "runtime_evidence": "Canonical production frontend deploy from /opt/proconsult/backend-production completed successfully on 2026-10-09. Production frontend checkout was at 7dac8b790d663609691b8f790da4ab50c3f48eeb; /healthz returned status ok; /readyz returned database ok and migrations ok. Operator-confirmed production authenticated 375×667 header smoke PASS on /cabinet and /specialists: the header stayed on one row with brand, compact Cabinet action, notification control, and menu visible; 412×924 retained the full cabinet label. Guest narrow-mobile header behavior also passed release smoke. Exact UTC production acceptance time was not independently captured."
+      }
     }
   ]
 }
@@ -291,20 +343,25 @@ promotion policy is in the backend repository's `docs/GIT_CI_PROMOTION.md`.
 | KAN-122 actionable profile-readiness chips | `e45d8b8`; dev CI [37614678425](https://github.com/alextesshu/consult-frontend/actions/runs/37614678425) PASS; canonical staging frontend deploy PASS; frontend-staging running; health/ready PASS; operator-confirmed focused KAN-122 UX smoke PASS | PROMOTE executed via [PR #30](https://github.com/alextesshu/consult-frontend/pull/30); release owner Oleksandr Konstantinov; exact promotion-decision timestamp not separately recorded | `aaedf35`; canonical production frontend deploy PASS; frontend running; health/ready PASS; homepage HTTP 200; operator-confirmed production UX smoke PASS at 2026-10-07T16:59:30Z |
 | KAN-130 specialist results above the fold | `d3714a9`; dev CI [37667391033](https://github.com/alextesshu/consult-frontend/actions/runs/37667391033) PASS; canonical staging frontend deploy PASS; health/ready PASS; operator-confirmed 1440×900 UX smoke PASS | PROMOTE executed via [PR #32](https://github.com/alextesshu/consult-frontend/pull/32); release owner Oleksandr Konstantinov; exact promotion-decision timestamp not separately recorded | `149cb27`; canonical production frontend deploy PASS; frontend running; health/ready PASS; homepage HTTP 200; desktop `/specialists` UX smoke PASS; 375×667 compaction deferred to KAN-131 |
 | KAN-132 mobile public header | `886d864`; dev CI #924 attempt 2 PASS; canonical staging frontend deploy PASS; frontend-staging running; health/ready PASS; operator-confirmed Pixel 10 Pro smoke PASS for guest `/`, `/login`, guest `/specialists`, and authenticated `/specialists` | PROMOTE executed via [PR #34](https://github.com/alextesshu/consult-frontend/pull/34); release owner Oleksandr Konstantinov | `7f5a449`; canonical production frontend deploy PASS; frontend running; health/ready PASS; operator-confirmed Pixel 10 Pro production smoke PASS at 2026-10-08T21:46:00Z; header truncation/crowding resolved |
+| KAN-131 compact mobile specialist discovery | `137cc2c` final accepted staging build; KAN-131 source `8b6e1d6` dev CI #926 PASS; canonical staging deploy PASS; health/ready PASS; operator-confirmed authenticated 375×667 `/specialists` count visible in first viewport with no observed horizontal overflow | PROMOTE executed via [PR #36](https://github.com/alextesshu/consult-frontend/pull/36); release owner Oleksandr Konstantinov | `7dac8b7`; canonical production frontend deploy PASS; health/ready PASS; operator-confirmed production authenticated 375×667 and 412×924 `/specialists` smoke PASS; guest narrow-mobile smoke also passed |
+| KAN-134 compact authenticated mobile header | `137cc2c`; dev CI #927 PASS; canonical staging deploy PASS; health/ready PASS; operator-confirmed authenticated 375×667 header one-row smoke PASS on `/cabinet` and `/specialists`; 412×924 retained full label | PROMOTE executed via [PR #36](https://github.com/alextesshu/consult-frontend/pull/36); release owner Oleksandr Konstantinov | `7dac8b7`; canonical production frontend deploy PASS; health/ready PASS; authenticated 375×667 header one-row smoke PASS; guest and wider mobile variants showed no release-specific regression |
 
 Source commit `79e3b9a` is patch-equivalent to KAN-107 release commit
 `87c0f85`; both analytics file blobs match between current main and dev.
-Earlier KAN-118/119 frontend release slices are also present in main. The
-only current frontend tree differences between `origin/main` and `origin/dev`
-are `AGENTS.md`, `src/__tests__/app.spec.ts`, and the two
-`VerifyEmailView` files. Do not infer unreleased functionality from the
-historical commit divergence alone.
+Earlier KAN-118/119 frontend release slices are also present in main. The KAN-127 branch-divergence notes are historical snapshot evidence only;
+do not use them as current branch state. Verify `origin/main...origin/dev`
+directly during each promotion or closeout, and do not infer unreleased
+functionality from historical commit divergence alone.
 
 KAN-122 is `RELEASED`. Staging acceptance completed at `2026-10-07T13:23:00Z` (16:23 Kyiv). PR #30 merged to `main` as `aaedf35b55718d267b0d3827e65707c93bb296de`, the canonical production frontend deploy completed successfully, production health/readiness and homepage checks passed, and the operator confirmed the release-specific production UX smoke at `2026-10-07T16:59:30Z` (19:59 Kyiv).
 
 KAN-130 is `RELEASED`. Staging acceptance completed at `2026-10-07T18:48:01Z` (21:48 Kyiv) on source `d3714a900266d8e9f96b4ebd6023a9f42b3225b3`. PR #32 merged to `main` as `149cb27d16bd0e5f2a7aa599451a25d32a24491f`; the canonical production frontend deploy completed successfully, production health/readiness and homepage checks passed, and the operator confirmed the 1440×900 release-specific `/specialists` UX smoke. The remaining 375×667 vertical-density limitation is accepted as non-blocking and tracked separately in KAN-131; it does not change KAN-130 release status.
 
 KAN-132 is `RELEASED`. Staging source `886d86415186595cf6f19d1d8a169d905887cd24` passed dev CI #924 attempt 2 and canonical staging deploy/health/readiness gates; the operator confirmed real Pixel 10 Pro smoke for guest and authenticated header variants. PR #34 merged to `main` as `7f5a449d73df8b971a01118659a7e26274f59e65`; the canonical production frontend deploy completed successfully, production source/service/health/readiness checks passed, and the operator confirmed production Pixel smoke at `2026-10-08T21:46:00Z`. The unrelated midnight-boundary `CabinetView.spec.ts` CI flake discovered during the release is tracked separately as KAN-133.
+
+KAN-131 is `RELEASED`. Source commit `8b6e1d6c2808fcdcaff7df33cc2f9e1ad8b8e0a2` passed dev CI #926; the final accepted staging build was `137cc2cf144706981b97f77da45e2204d0c56df8` after the KAN-134 header refinement. Canonical staging deploy/health/readiness passed, and the operator confirmed authenticated 375×667 `/specialists` showed the result count in the first viewport without observed horizontal overflow. PR #36 merged to `main` as `7dac8b790d663609691b8f790da4ab50c3f48eeb`; canonical production deploy, health/readiness, authenticated/guest narrow-mobile smoke, and 412×924 smoke passed. The exact UTC staging and production acceptance timestamps were not independently captured and remain null.
+
+KAN-134 is `RELEASED`. Commit `137cc2cf144706981b97f77da45e2204d0c56df8` passed dev CI #927 and the canonical staging deploy/health/readiness gates. The operator confirmed authenticated 375×667 header smoke on `/cabinet` and `/specialists`: brand, compact cabinet action, notifications, and menu remained visible on one row; 412×924 retained the full label. The same runtime shipped through PR #36 as production merge `7dac8b790d663609691b8f790da4ab50c3f48eeb`, where production deploy/health/readiness and focused mobile smoke passed. The exact UTC staging and production acceptance timestamps were not independently captured and remain null.
 
 After a future staging PASS, add or update a ticket row immediately, record
 its actual acceptance time and named decision owner, then decide PROMOTE or
