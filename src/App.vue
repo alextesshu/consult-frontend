@@ -26,8 +26,10 @@
           v-if="isAuthenticated && hasSupportedCabinetRole"
           class="nav__primary-action"
           :to="cabinetRoute"
+          :aria-label="cabinetLabel"
         >
-          {{ cabinetLabel }}
+          <span class="nav__primary-label--full" aria-hidden="true">{{ cabinetLabel }}</span>
+          <span class="nav__primary-label--compact" aria-hidden="true">{{ compactCabinetLabel }}</span>
         </RouterLink>
         <RouterLink v-if="isAuthenticated && isAdmin" class="nav__desktop-only" to="/admin/inbox">
           Адмін-запити
@@ -674,6 +676,7 @@ const cabinetLabel = computed(() => {
   if (isClient.value) return 'Кабінет'
   return 'Кабінет'
 })
+const compactCabinetLabel = computed(() => (isAdmin.value ? 'Черга' : 'Кабінет'))
 const showCatalogNav = computed(() => isClient.value && !isSpecialistOwnedSurface.value)
 const showGuestCatalogNav = computed(
   () => !isAuthenticated.value && route.meta?.publicSurface === 'neutral'
@@ -1360,6 +1363,10 @@ watch(isChatCapable, (value) => {
   );
   opacity: 0.55;
   pointer-events: none;
+}
+
+.nav__primary-label--compact {
+  display: none;
 }
 
 .topbar__inner {
@@ -2874,6 +2881,24 @@ body.body--home .footer__bottom {
     right: 8px;
     bottom: 8px;
     max-width: calc(100vw - 16px);
+  }
+}
+
+@media (max-width: 400px) {
+  :is(.topbar--specialist, .topbar--admin, .topbar--client) .topbar__inner {
+    flex-wrap: nowrap;
+  }
+
+  :is(.topbar--specialist, .topbar--admin, .topbar--client) .nav {
+    gap: 8px;
+  }
+
+  :is(.topbar--specialist, .topbar--admin, .topbar--client) .nav__primary-label--full {
+    display: none;
+  }
+
+  :is(.topbar--specialist, .topbar--admin, .topbar--client) .nav__primary-label--compact {
+    display: inline;
   }
 }
 
