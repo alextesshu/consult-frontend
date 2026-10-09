@@ -1,12 +1,15 @@
 # Handoff
 
-Last updated: 2026-07-27
+Last updated: 2026-10-09
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
 Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
+
+KAN-131 mobile specialist discovery and KAN-134 authenticated mobile header are production-closed, production-smoke verified, and Done. Runtime PR #36 merged to `main` as `7dac8b790d663609691b8f790da4ab50c3f48eeb`. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. No backend contract or deployment-process change was introduced.
+
 
 KAN-82 adds the browser-only consent gate required before KAN-80 product
 analytics can initialize: `unknown` is the safe default, only an explicit
@@ -789,29 +792,14 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
-- KAN-1 email trigger/copy implementation is complete locally and awaiting
-  review/staging decision.
-- KAN-27 frontend documents/certificates upload UX is complete locally and
-  awaiting review/staging decision.
-- KAN-27 public-profile document scalability hotfix is complete locally and
-  awaiting review/staging decision.
-- KAN-29 is production-closed and Done.
-- Manual Client Records Phase 1 and manual-client session creation are closed on frontend.
-- Keep canonical slug/public-link behavior stable while extending profile-related UX.
-- Keep queued follow-ups:
-  - client cabinet/dashboard top upcoming sessions visibility
-  - `professional_focus` + copy-personalization foundation
+- KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
+- KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
+- KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
+- KAN-131 and KAN-134 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
 
 ## Immediate Next Step
 
-For KAN-1, review the local implementation and decide staging. Frontend now
-shows backend-provided Template B status in API typing and
-`AdminSpecialistDetailView`; Template C should remain absent until a runtime
-trigger and integration contract are approved.
-
-Keep manual-client, registered-client, and guest/external flows separate while extending account linking or client-cabinet access.
-
-Do not add payment buttons for guest sessions until backend contract is confirmed.
+Take KAN-114 next as a focused tablet-header audit/remediation around 768–820 px. Preserve the now-verified narrow-mobile header behavior, KAN-130 desktop discovery layout, and KAN-131 mobile discovery density. Keep KAN-133 isolated as test debt and KAN-129 as parallel growth work.
 
 ## Validation Commands
 
