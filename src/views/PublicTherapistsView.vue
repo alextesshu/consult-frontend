@@ -15,14 +15,14 @@
           <legend>Спосіб пошуку</legend>
           <div class="segmented-control segmented-control--modes">
             <label><input name="specialist-discovery-mode" value="request" type="radio" :checked="mode === 'request'" @change="setMode('request')" />За запитом</label>
-            <label><input name="specialist-discovery-mode" value="direction" type="radio" :checked="mode === 'direction'" @change="setMode('direction')" />За професійним напрямом</label>
+            <label><input name="specialist-discovery-mode" value="direction" type="radio" aria-label="За професійним напрямом" :checked="mode === 'direction'" @change="setMode('direction')" /><span class="control-label--full" aria-hidden="true">За професійним напрямом</span><span class="control-label--short" aria-hidden="true">За напрямом</span></label>
           </div>
         </fieldset>
 
         <fieldset class="control-group">
           <legend>Формат</legend>
           <div class="segmented-control segmented-control--format">
-            <label><input name="specialist-format" value="" type="radio" :checked="format === null" @change="setFormat(null)" />Усі формати</label>
+            <label><input name="specialist-format" value="" type="radio" aria-label="Усі формати" :checked="format === null" @change="setFormat(null)" /><span class="control-label--full" aria-hidden="true">Усі формати</span><span class="control-label--short" aria-hidden="true">Усі</span></label>
             <label><input name="specialist-format" value="online" type="radio" :checked="format === 'online'" @change="setFormat('online')" />Онлайн</label>
             <label><input name="specialist-format" value="offline" type="radio" :checked="format === 'offline'" @change="setFormat('offline')" />Офлайн</label>
           </div>
@@ -284,6 +284,7 @@ onBeforeUnmount(resetPublicPageMetadata)
 .control-group legend, .query-form label { font-weight: 700; }
 .control-group legend { margin-bottom: 2px; font-size: 13px; }
 .segmented-control, .choice-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.control-label--short { display: none; }
 .segmented-control label, .choice-button { align-items: center; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; display: inline-flex; min-height: 44px; padding: 9px 12px; }
 .segmented-control label:has(input:checked), .choice-button[aria-pressed='true'] { background: rgba(15, 118, 110, .1); border-color: rgba(15, 118, 110, .55); font-weight: 700; }
 .choice-button:has(input:checked) { background: rgba(15, 118, 110, .1); border-color: rgba(15, 118, 110, .55); font-weight: 700; }
@@ -305,11 +306,12 @@ onBeforeUnmount(resetPublicPageMetadata)
   .discovery-page__hero { padding: 0; }
   .discovery-controls { padding: 14px; }
   .discovery-controls__toolbar { align-items: stretch; flex-direction: column; }
+  .discovery-controls__toolbar > .control-group:first-child { width: 100%; }
   .request-group-controls__desktop { display: none; }
   .request-group-controls__mobile { display: grid; gap: 6px; width: 100%; }
   .request-group-controls__mobile .input { min-height: 44px; width: 100%; }
-  .segmented-control--modes { display: grid; grid-template-columns: minmax(0, 1fr); }
-  .segmented-control--modes label { width: 100%; }
+  .segmented-control--modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
+  .segmented-control--modes label { width: 100%; min-width: 0; min-height: 48px; height: auto; padding: 8px 10px; justify-content: center; text-align: center; line-height: 1.2; }
   .segmented-control--format { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .segmented-control--format label { justify-content: center; min-width: 0; padding-inline: 6px; text-align: center; white-space: normal; }
   .query-form__row { align-items: stretch; }
@@ -318,14 +320,14 @@ onBeforeUnmount(resetPublicPageMetadata)
 @media (max-width: 480px) {
   .discovery-page { gap: 14px; }
   .discovery-page__hero { gap: 8px; padding: 0; }
-  .discovery-page__hero .title { font-size: 35px; line-height: 1.12; }
-  .discovery-page__hero .muted { font-size: 14px; line-height: 1.45; }
+  .discovery-page__hero .title { font-size: clamp(30px, 8.5vw, 34px); line-height: 1.12; }
+  .discovery-page__hero .muted { display: none; }
+  .control-label--full { display: none; }
+  .control-label--short { display: inline; }
   .hero-home-link { align-self: flex-start; border: 0; min-height: auto; padding: 2px 0; }
   .hero-home-link:focus-visible { outline: 2px solid rgba(15, 118, 110, .65); outline-offset: 3px; }
-  .query-form__row { flex-direction: column; }
-  .query-form__row .btn { width: 100%; }
-}
-@media (max-width: 360px) {
-  .discovery-page__hero .title { font-size: 33px; }
+  .query-form__row { flex-wrap: wrap; }
+  .query-form__row .input { flex: 1 1 190px; min-height: 44px; }
+  .query-form__row .btn { flex: 0 0 auto; min-height: 44px; }
 }
 </style>
