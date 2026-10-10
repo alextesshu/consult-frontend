@@ -8,7 +8,7 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-KAN-135 homepage product explanation is production-closed, production-smoke verified, and Done. Runtime PR #38 merged `dev -> main` as `d398067a7a6a0e3cf6c8369c8b2bbd7f9e6edba9`. The homepage now presents Pro Consult as a connected consultation-practice workflow, makes direct specialist payment / 0% consultation commission explicit, surfaces payment-control capabilities without accounting claims, and gives the 30-day Pro trial proper conversion weight. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. No backend contract, migration, or deployment-process change was introduced.
+KAN-136 practice financial overview is production-closed, focused production acceptance PASS, and Jira Done. PR #40 released frontend source `2363e84d791382cb76d1144613fc1388a35476e5` with backend PR #41 / `b477429d5d013d458c3ce970ab6709cd1d597615`. The cabinet shows payment-state visibility for direct specialist payments, not bookkeeping or payment processing. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. Exact acceptance timestamps were not independently captured; no migration or new endpoint was introduced.
 
 
 KAN-82 adds the browser-only consent gate required before KAN-80 product
@@ -763,6 +763,14 @@ Frontend production-closure slice is now integrated:
 
 ## Stable Areas
 
+- KAN-136 cabinet `Оплати за сесії` uses the existing `GET /api/cabinet/practice-analytics/`:
+  - `payments.paid_total_by_currency`, `unconfirmed_total_by_currency`, `unconfirmed_count`, `unconfirmed_sessions`, `review_count`, `no_price_count`, and `coverage`;
+  - future expected value reads `prices.upcoming_scheduled_total_by_currency`; legacy `prices.scheduled_total_by_currency` remains unchanged and is not guaranteed future-only;
+  - PAID is paid; NOT_CONFIRMED/AWAITING_CLIENT are unconfirmed (`Не підтверджено оплату`); AWAITING_REVIEW/NEEDS_CLARIFICATION count for review only, not debt;
+  - null price is missing price; zero price is free and excluded from payment aggregates/counts; cancelled/no-show and external guest monetary totals are excluded;
+  - currencies stay separate, no FX; actionable rows cap at five while counts/totals cover the full eligible set;
+  - rolling specialist-timezone 7/30/90-day controls and 375 CSS px stacked header/horizontal controls passed production acceptance without overflow;
+  - `/cabinet/analytics` remains available; existing-account empty state and read-only endpoint keys were verified, not populated production financial data.
 - Auth transport and restore flow:
   - no refresh token in frontend storage
   - silent restore via cookie refresh endpoint
@@ -795,11 +803,11 @@ Frontend production-closure slice is now integrated:
 - KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
 - KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
 - KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
-- KAN-131, KAN-134, and KAN-135 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
+- KAN-131, KAN-134, KAN-135, and KAN-136 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
 
 ## Immediate Next Step
 
-Take KAN-136 next: add a simple practice financial overview and unpaid-session debt tracking on top of the existing direct-payment/status/history model, without turning Pro Consult into accounting software. After KAN-136, continue the agreed product order with KAN-137 reminders and KAN-138 informed consent. Keep KAN-114 as separate tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
+Continue the agreed product order with KAN-137 reminders, then KAN-138 informed consent under separate approved scope. KAN-136 payment-state visibility is released; Pro Consult does not accept, process, or transfer consultation payments. Keep KAN-114 as separate tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
 
 ## Validation Commands
 

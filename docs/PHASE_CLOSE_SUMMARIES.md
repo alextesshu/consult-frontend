@@ -757,3 +757,43 @@ npm run build
 
 ### Merge Readiness
 - `dev` was validated, clean, and synced with `origin/dev` at phase close.
+
+## 2026-10-10 - KAN-136 Practice Payment Overview Production Close
+
+### Context
+
+KAN-136 adds practice financial overview/payment-state visibility to the specialist cabinet, preserving direct specialist payments and existing analytics navigation.
+
+### Done
+
+- `Оплати за сесії` uses the existing practice analytics endpoint with paid/unconfirmed totals, review/no-price counts, coverage and capped actionable rows; future expected value uses `prices.upcoming_scheduled_total_by_currency`.
+- Existing 7/30/90-day controls remain rolling specialist-timezone periods; narrow-mobile header stacks title above three horizontal period controls. `/cabinet/analytics` remains unchanged.
+- Direct specialist payments only: Pro Consult does not accept, process or transfer consultation money; no bank-debt/accounting inference.
+- PAID -> paid; NOT_CONFIRMED/AWAITING_CLIENT -> unconfirmed; AWAITING_REVIEW/NEEDS_CLARIFICATION -> review count only, not unconfirmed amounts.
+- Completed ordinary sessions require positive price for monetary aggregation; null -> no-price count, zero -> free/excluded. Cancelled/no-show and external guest monetary totals are excluded; guest coverage remains explicit.
+- Currencies stay separate decimal strings, no FX; actionable rows cap at five, totals/count cover all eligible sessions; rolling specialist-timezone 7/30/90 days, not calendar months.
+
+### Validation
+
+- Frontend push CI #933 SUCCESS; canonical staging frontend deploy, health/readiness and focused responsive acceptance including 375 px PASS at `4a44491f762c7568519e7b972db58d18f9d67d5a`.
+- PR #40 CI #934 SUCCESS; canonical production frontend deploy exit 0 at `2363e84d791382cb76d1144613fc1388a35476e5`; frontend running, main checkout clean, `/healthz` and `/readyz` HTTP 200.
+- Focused production acceptance PASS: authenticated `/cabinet`, payment overview, 7/30/90 controls, 375 CSS px horizontal controls/title one row/no overflow, and `/cabinet/analytics`.
+- Backend deployed handler confirmed `payments` and `prices.upcoming_scheduled_total_by_currency` for all three periods in a READ ONLY transaction; existing account empty financial state verified.
+- Evidence supplied by the accepted release; full suites intentionally not rerun. Exact staging/production acceptance and decision timestamps were not independently captured and remain unknown.
+
+### Deferred / Not in Scope
+
+- Populated production financial data was not tested; no synthetic payment, FX, bookkeeping or payment processing.
+- KAN-137 reminders and KAN-138 informed consent remain separate scopes; no backend contract extension beyond the accepted KAN-136 release, migration or new endpoint.
+- Bake/buildx and chunk-size advisories were non-blocking; no runtime blocker remained.
+
+### Key Commits
+
+- `cf2482f3e5e830d1e4cc721e69043d0ec08131a8` - KAN-136 Add practice payment overview.
+- `4a44491f762c7568519e7b972db58d18f9d67d5a` - KAN-136 Refine mobile payment summary layout; accepted staging source.
+- `2363e84d791382cb76d1144613fc1388a35476e5` - production merge via [PR #40](https://github.com/alextesshu/consult-frontend/pull/40).
+- Cross-stack backend production: `b477429d5d013d458c3ce970ab6709cd1d597615` via [PR #41](https://github.com/alextesshu/consult-backend/pull/41).
+
+### Merge Readiness
+
+Runtime release already merged, deployed and accepted; KAN-136 is Done. This follow-up is local documentation only, pending separate review/commit/push approval.
