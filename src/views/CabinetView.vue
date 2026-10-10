@@ -2611,6 +2611,20 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 520px) {
+  .panel--practice-summary .panel__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .practice-summary__ranges {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .practice-summary__ranges .btn {
+    min-height: 44px;
+  }
+
   .cabinet {
     gap: 10px;
     padding: 10px;
