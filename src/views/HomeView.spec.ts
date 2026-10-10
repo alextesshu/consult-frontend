@@ -88,15 +88,19 @@ describe('HomeView', () => {
         'Професійно представте себе, отримуйте звернення від клієнтів і ведіть регулярну консультаційну практику — сесії, календар, клієнтів, матеріали та щоденну роботу в одному місці.'
       )
     ).toBeInTheDocument()
-    expect(screen.getByText('Прямий контакт із клієнтом')).toBeInTheDocument()
+    expect(screen.getByText('Клієнти можуть знайти вас і звернутись напряму')).toBeInTheDocument()
     expect(screen.getByText('Без рейтингів')).toBeInTheDocument()
     expect(container).not.toHaveTextContent('Без платного просування у пошуку')
     const hero = container.querySelector('.home-hero') as HTMLElement
     const principlesLine = hero.querySelector('.home-hero__principles') as HTMLElement
     expect(principlesLine).toHaveAttribute('aria-label', 'Принципи Pro Consult')
-    expect(principlesLine).toHaveTextContent(
-      /Прямий контакт із клієнтом.*·.*Без комісій з консультацій.*Без рейтингів/
-    )
+    const benefits = within(principlesLine).getAllByRole('listitem')
+    expect(benefits).toHaveLength(3)
+    expect(benefits[0]).toHaveTextContent('Клієнти можуть знайти вас і звернутись напряму')
+    expect(benefits[1]).toHaveTextContent('0% комісії — клієнт оплачує консультацію напряму вам')
+    expect(benefits[2]).toHaveTextContent('Без рейтингів')
+    expect(principlesLine).not.toHaveTextContent('·')
+    expect(principlesLine).not.toHaveTextContent('Прямий контакт із клієнтом')
     expect(within(hero).getByRole('link', { name: 'Створити свій простір' })).toHaveAttribute(
       'href',
       '/signup'
@@ -145,15 +149,15 @@ describe('HomeView', () => {
       })
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Звернення без реєстрації' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Дайте клієнту можливість познайомитися з вами до консультації' })).toBeInTheDocument()
-    expect(screen.getByText('Не кожен готовий звернутися одразу.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Дайте клієнту можливість познайомитись з вами до консультації' })).toBeInTheDocument()
+    expect(screen.getByText('Не кожен готовий звернутись одразу.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Від першого знайомства — до регулярної роботи' })).toBeInTheDocument()
     expect(
       screen.getByText('Pro Consult поєднує вашу професійну сторінку з робочим простором для регулярної консультаційної практики.')
     ).toBeInTheDocument()
     expect(screen.getAllByText('Без комісій з консультацій').length).toBeGreaterThan(0)
     expect(screen.getByText('Діліться сторінкою у своїх каналах')).toBeInTheDocument()
-    expect(screen.getByText('Клієнт може звернутися без реєстрації')).toBeInTheDocument()
+    expect(screen.getByText('Клієнт може звернутись без реєстрації')).toBeInTheDocument()
     expect(screen.getByText('Ви самі вирішуєте, коли публікувати сторінку')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Тарифи' })).toBeInTheDocument()
     expect(
@@ -194,8 +198,10 @@ describe('HomeView', () => {
     expect(screen.queryByText(/200 грн\/міс/)).not.toBeInTheDocument()
     expect(screen.getByText('Pro Consult не бере відсоток із консультацій на жодному тарифі.')).toBeInTheDocument()
     expect(pricing).not.toHaveTextContent(/базов/i)
-    expect(screen.getByRole('heading', { name: 'Відкритий ранній доступ' })).toBeInTheDocument()
-    expect(screen.getByText(/Ранній доступ активується після реєстрації й дає змогу спробувати розширені можливості Pro Consult/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '30 днів Pro безкоштовно' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Відкритий ранній доступ' })).not.toBeInTheDocument()
+    expect(screen.getByText('Після реєстрації ви отримуєте 30 днів доступу до розширених можливостей Pro Consult без оплати.')).toBeInTheDocument()
+    expect(within(pricing).getByRole('link', { name: 'Спробувати Pro 30 днів безкоштовно' })).toHaveAttribute('href', '/signup')
     expect(within(pricing).getByRole('link', { name: 'Отримати безкоштовно' })).toHaveAttribute(
       'href',
       '/signup'
@@ -227,7 +233,7 @@ describe('HomeView', () => {
     expect(steps).toHaveLength(5)
     const expectedSteps = [
       ['Покажіть свою практику', 'Створіть професійну сторінку: розкажіть про себе, свій підхід, теми роботи, формат консультацій і вартість.'],
-      ['Отримайте звернення', 'Клієнт може знайти вас у Pro Consult або перейти за вашим посиланням, познайомитися з вами й залишити запит без реєстрації чи записатися на сесію.'],
+      ['Отримайте звернення', 'Клієнт може знайти вас у Pro Consult або перейти за вашим посиланням, познайомитись з вами й залишити запит без реєстрації чи записатись на сесію.'],
       ['Проведіть консультацію', 'Погоджуйте час, плануйте сесії та тримайте робочий календар в одному місці.'],
       ['Продовжуйте роботу з клієнтом', 'Регулярні сесії, приватні нотатки та матеріали залишаються в контексті вашої роботи з клієнтом.'],
       ['Тримайте практику в порядку', 'Керуйте клієнтами, задачами й робочими процесами без набору розрізнених інструментів.'],
@@ -240,25 +246,56 @@ describe('HomeView', () => {
     const presence = screen.getByRole('region', { name: 'Покажіть свою практику' })
     const practice = screen.getByRole('region', { name: 'Ведіть свою практику' })
     expect(within(presence).getAllByRole('listitem')).toHaveLength(4)
-    expect(within(practice).getAllByRole('listitem')).toHaveLength(4)
+    expect(within(practice).getAllByRole('listitem')).toHaveLength(5)
     for (const title of ['Професійна сторінка', 'Звернення без реєстрації', 'Власний блог', 'Пошук спеціалістів']) {
       expect(within(presence).getByRole('heading', { name: title, level: 4 })).toBeInTheDocument()
     }
-    for (const title of ['Сесії та календар', 'Робота з клієнтами', 'Приватні нотатки та матеріали', 'Задачі та організація практики']) {
+    for (const title of ['Сесії та календар', 'Робота з клієнтами', 'Приватні нотатки та матеріали', 'Задачі та організація практики', 'Оплати під контролем']) {
       expect(within(practice).getByRole('heading', { name: title, level: 4 })).toBeInTheDocument()
     }
-    expect(within(practice).getByText('Внутрішні записи спеціаліста залишаються приватними, а клієнту відкривається лише те, чим ви свідомо ділитеся.')).toBeInTheDocument()
+    expect(within(practice).getByText('Внутрішні записи спеціаліста залишаються приватними, а клієнту відкривається лише те, чим ви свідомо ділитесь.')).toBeInTheDocument()
 
     const sections = Array.from(container.querySelector('.home-lite__container')!.children)
     const workflowIndex = sections.indexOf(workflow)
     const productIndex = sections.indexOf(screen.getByRole('region', { name: 'Дві сторони одного професійного простору' }))
-    const blogIndex = sections.indexOf(screen.getByRole('region', { name: 'Дайте клієнту можливість познайомитися з вами до консультації' }))
+    const blogIndex = sections.indexOf(screen.getByRole('region', { name: 'Дайте клієнту можливість познайомитись з вами до консультації' }))
     const clientIndex = sections.indexOf(screen.getByRole('region', { name: 'Шукаєте спеціаліста?' }))
     const pricingIndex = sections.indexOf(screen.getByRole('region', { name: 'Тарифи' }))
     expect(workflowIndex).toBeLessThan(productIndex)
     expect(productIndex).toBeLessThan(blogIndex)
     expect(clientIndex).toBe(blogIndex + 1)
     expect(pricingIndex).toBe(clientIndex + 1)
+  })
+
+  it('explains direct payments and the trial without changing pricing economics or signup routing', async () => {
+    const { container } = await renderHome()
+    const presence = screen.getByRole('region', { name: 'Покажіть свою практику' })
+    expect(within(presence).getByText('Клієнту не обов’язково створювати кабінет, щоб зробити перший крок.')).toBeInTheDocument()
+    expect(container).not.toHaveTextContent('Клієнту не потрібно створювати кабінет, щоб зробити перший крок.')
+    const practice = screen.getByRole('region', { name: 'Ведіть свою практику' })
+    expect(within(practice).getByText('Плануйте консультації, погоджуйте час і тримайте робочий розклад в одному місці.')).toBeInTheDocument()
+    expect(within(practice).getByText('Клієнт оплачує консультацію безпосередньо вам. У Pro Consult ви можете відстежувати статуси оплат, бачити їхню історію, працювати з підтвердженнями та фіксувати отримані оплати.')).toBeInTheDocument()
+
+    const commission = screen.getByRole('article', { name: 'Ваш дохід від консультацій залишається вашим' })
+    expect(within(commission).getByText('Pro Consult не бере відсоток із консультацій. Клієнт оплачує безпосередньо спеціалісту, а в кабінеті ви контролюєте статуси та історію оплат.')).toBeInTheDocument()
+    expect(within(commission).getByText('Ви оплачуєте доступ до професійного простору — не комісію з кожної проведеної консультації.')).toBeInTheDocument()
+    const trial = screen.getByRole('article', { name: '30 днів Pro безкоштовно' })
+    expect(within(trial).getByText('Спробуйте Pro на своїй реальній практиці: працюйте з клієнтами, ведіть сесії, контролюйте оплати, використовуйте блог, матеріали, аналітику та інші інструменти.')).toBeInTheDocument()
+    expect(within(trial).getByText('Після 30 днів вирішіть, що підходить саме вам: залишитись на Start, розширити ліміт клієнтів або продовжити роботу на Pro.')).toBeInTheDocument()
+    const pricing = container.querySelector('#pricing') as HTMLElement
+    const children = Array.from(pricing.children)
+    const toggleIndex = children.indexOf(within(pricing).getByRole('group', { name: 'Період оплати' }))
+    const cardsIndex = children.indexOf(pricing.querySelector('.pricing__grid')!)
+    const commissionIndex = children.indexOf(commission)
+    const trialIndex = children.indexOf(trial)
+    const customIndex = children.indexOf(screen.getByRole('article', { name: 'Потрібно більше простору для практики?' }))
+    const detailsIndex = children.indexOf(screen.getByRole('article', { name: 'Як рахуються ліміти' }))
+    expect(cardsIndex).toBe(toggleIndex + 1)
+    expect(commissionIndex).toBe(cardsIndex + 1)
+    expect(trialIndex).toBe(commissionIndex + 1)
+    expect(customIndex).toBe(trialIndex + 1)
+    expect(detailsIndex).toBe(customIndex + 1)
+    expect(container).not.toHaveTextContent(/податк|синхронізація з банком|автоматичне списання|бухгалтер/i)
   })
 
   it('does not render removed duplicate homepage sections or forbidden wording', async () => {
