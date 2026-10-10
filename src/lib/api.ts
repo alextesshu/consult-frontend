@@ -435,6 +435,8 @@ export type NotificationSettings = {
   notify_session_confirmed_in_app: boolean
   notify_session_starts_24h_in_app: boolean
   notify_session_starts_1h_in_app: boolean
+  notify_session_reminders_email: boolean
+  email_session_reminders_available: boolean
 }
 
 export type SpecialistProductUpdate = {
@@ -1916,7 +1918,7 @@ export async function fetchNotificationSettings(): Promise<NotificationSettings>
 }
 
 export async function updateNotificationSettings(
-  payload: Partial<NotificationSettings>
+  payload: Partial<Omit<NotificationSettings, 'email_session_reminders_available'>>
 ): Promise<NotificationSettings> {
   const resp = await http.patch<NotificationSettings>('/cabinet/settings/notifications/', payload)
   return resp.data

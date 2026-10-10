@@ -668,10 +668,9 @@ const complimentaryTrialWarningCopy = computed(() => {
   const warning = complimentaryTrialWarning.value
   if (!warning) return ''
   if (warning.state === 'EXPIRED') {
-    if (requiresRenewal.value) return ''
-    return 'Ваші клієнти, сесії та дані збережені. Зараз діють можливості тарифу Start; нове зростання та частина Pro-функцій обмежені.'
+    return 'Ваш тариф змінено на Start. Email-нагадування про сесії вимкнені. Нагадування в застосунку залишаються.'
   }
-  return `Тестовий доступ до Pro завершується ${formatDateTime(warning.ends_at)}. Щоб зберегти Pro після цієї дати, подайте заявку на продовження.`
+  return `Тестовий доступ до Pro завершується ${formatDateTime(warning.ends_at)}. Щоб зберегти Pro після цієї дати, подайте заявку на продовження. Email-нагадування про сесії вимкнуться; нагадування в застосунку залишаться.`
 })
 
 const trialDateLines = computed(() => {

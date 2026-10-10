@@ -1,3 +1,4 @@
+import { flushPromises } from '@vue/test-utils'
 ﻿import { fireEvent, render, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
@@ -2107,5 +2108,67 @@ describe('CabinetView', () => {
       expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/practice-analytics/')).toHaveLength(4)
       expect(view.container).not.toHaveTextContent('Цей місяць')
     })
+  })
+})
+
+describe('expired trial reminder notice', () => {
+  const endsAt = '2026-10-09T10:00:00Z'
+  const copy = 'Ваш тариф змінено на Start. Email-нагадування про сесії вимкнені. Нагадування в застосунку залишаються.'
+  function setup(state: 'EXPIRED' | 'EXPIRING' | null = 'EXPIRED', end = endsAt) {
+    mockMe.value = createMePayload()
+    mockLoadMe.mockResolvedValue(undefined)
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({ readiness: true, missing_items: [], warnings: [], next_actions: [] } as any)
+    mockedApiGet.mockImplementation(async (url) => url === '/cabinet/entitlements/'
+      ? { complimentary_trial_warning: state ? { state, ends_at: end } : null } as any : [])
+  }
+  beforeEach(() => { window.localStorage.clear(); setup() })
+  it.each(['dismiss', 'cta'])('persists %s for this user and trial only', async (action) => {
+    const view = renderView()
+    await view.findByText(copy)
+    const control = action === 'dismiss' ? view.getByRole('button', { name: 'Закрити повідомлення' }) : view.getByRole('link', { name: 'Перейти на Pro' })
+    if (action === 'cta') expect(control).toHaveAttribute('href', '/cabinet/billing')
+    if (action === 'cta') control.addEventListener('click', (event) => event.preventDefault())
+    await fireEvent.click(control)
+    expect(view.queryByText(copy)).not.toBeInTheDocument()
+    const key = window.localStorage.key(0)!
+    expect(key).toContain(':1:')
+    expect(decodeURIComponent(key)).toContain(endsAt)
+    expect(window.localStorage.getItem(key)).toBe('1')
+    view.unmount()
+    const same = renderView()
+    await flushPromises()
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/'))
+    expect(same.queryByText(copy)).not.toBeInTheDocument()
+    same.unmount()
+    setup('EXPIRED', '2026-11-09T10:00:00Z')
+    const different = renderView()
+    expect(await different.findByText(copy)).toBeInTheDocument()
+  })
+  it('does not share dismissal with another user', async () => {
+    const view = renderView()
+    await view.findByText(copy)
+    await fireEvent.click(view.getByRole('button', { name: 'Закрити повідомлення' }))
+    view.unmount()
+    setup()
+    mockMe.value.user.id = 2
+    expect(await renderView().findByText(copy)).toBeInTheDocument()
+  })
+  it.each(['EXPIRING', null] as const)('does not show expired notice for %s', async (state) => {
+    setup(state)
+    const view = renderView()
+    await flushPromises()
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/'))
+    expect(view.queryByText(copy)).not.toBeInTheDocument()
+  })
+  it('remains usable when localStorage is unavailable', async () => {
+    const read = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+    const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    try {
+      const view = renderView()
+      await view.findByText(copy)
+      await fireEvent.click(view.getByRole('button', { name: 'Закрити повідомлення' }))
+      expect(view.queryByText(copy)).not.toBeInTheDocument()
+    } finally { read.mockRestore(); write.mockRestore() }
   })
 })

@@ -21,6 +21,15 @@
       </RouterLink>
     </header>
 
+    <section v-if="showExpiredTrialNotice" class="panel expired-trial-notice" role="alert" aria-labelledby="expired-trial-title">
+      <h2 id="expired-trial-title">Тестовий доступ до Pro завершився</h2>
+      <p>Ваш тариф змінено на Start. Email-нагадування про сесії вимкнені. Нагадування в застосунку залишаються.</p>
+      <div class="expired-trial-notice__actions">
+        <RouterLink class="btn" to="/cabinet/billing" @click="dismissExpiredTrialNotice">Перейти на Pro</RouterLink>
+        <button class="btn btn--ghost" type="button" @click="dismissExpiredTrialNotice">Закрити повідомлення</button>
+      </div>
+    </section>
+
     <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
       <section v-if="attentionItems.length" class="panel panel--wide panel--attention" aria-label="Потребує уваги">
         <div class="panel__header panel__header--compact">
@@ -527,6 +536,7 @@ type AttentionItem = {
 }
 
 type CabinetEntitlementsSnapshot = {
+  complimentary_trial_warning?: { state: 'EXPIRING' | 'EXPIRED'; ends_at: string } | null
   plan?: string | null
   effective_plan?: string | null
   active_client_limit?: number | null
@@ -663,6 +673,33 @@ function createEmptyWorkQueue(): CabinetWorkQueue {
 const allSessions = ref<CabinetSession[]>([])
 const chatClientNames = ref<Record<number, string>>({})
 const entitlementsSnapshot = ref<CabinetEntitlementsSnapshot | null>(null)
+const dismissedTrialNoticeKey = ref<string | null>(null)
+const expiredTrialNoticeKey = computed(() => {
+  const warning = entitlementsSnapshot.value?.complimentary_trial_warning
+  const userId = me.value?.user?.id
+  if (warning?.state !== 'EXPIRED' || !warning.ends_at || userId == null) return null
+  return `proconsult:expired-trial:${userId}:${encodeURIComponent(warning.ends_at)}`
+})
+const showExpiredTrialNotice = computed(() => {
+  const key = expiredTrialNoticeKey.value
+  if (!key || dismissedTrialNoticeKey.value === key) return false
+  try {
+    return window.localStorage.getItem(key) !== '1'
+  } catch {
+    return true
+  }
+})
+function dismissExpiredTrialNotice() {
+  const key = expiredTrialNoticeKey.value
+  if (!key) return
+  dismissedTrialNoticeKey.value = key
+  try {
+    window.localStorage.setItem(key, '1')
+  } catch {
+    // Storage may be unavailable; dismissal still applies for this mounted view.
+  }
+}
+
 const workQueue = ref<CabinetWorkQueue>(createEmptyWorkQueue())
 const workQueueLoading = ref(false)
 const workQueueError = ref('')
@@ -1509,6 +1546,18 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.expired-trial-notice {
+  border: 1px solid var(--pc-border);
+  padding: 16px;
+  border-radius: var(--pc-radius-panel);
+  background: var(--pc-primary-soft);
+}
+.expired-trial-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .cabinet {
   display: grid;
   gap: 14px;

@@ -629,6 +629,7 @@ describe('BillingView downgrade semantics', () => {
     })
 
     expect(screen.getByText(/15\.09\.2026.*13:30/)).toBeInTheDocument()
+    expect(screen.getByText(/Email-нагадування про сесії вимкнуться; нагадування в застосунку залишаться/)).toBeInTheDocument()
     const button = screen.getByRole('button', { name: 'Перейти на Pro' })
     await fireEvent.click(button)
     expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
@@ -655,6 +656,7 @@ describe('BillingView downgrade semantics', () => {
     expect(
       screen.getAllByText(/Поточна практика, клієнти та сесії збережені/)
     ).toHaveLength(1)
+    expect(screen.getByText('Ваш тариф змінено на Start. Email-нагадування про сесії вимкнені. Нагадування в застосунку залишаються.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Продовжити Pro' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перейти на Pro' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Подати заявку на Pro' })).not.toBeInTheDocument()
