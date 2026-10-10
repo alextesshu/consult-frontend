@@ -232,6 +232,75 @@
           <div><span>Неявки</span><strong>{{ practiceAnalytics.sessions.no_show }}</strong></div>
           <div><span>Нові запити</span><strong>{{ practiceAnalytics.acquisition.guest_booking_requests }}</strong></div>
         </div>
+        <section
+          v-if="!practiceAnalyticsLoading && !practiceAnalyticsError && practicePayments"
+          class="practice-payments"
+          aria-labelledby="practice-payments-title"
+        >
+          <h3 id="practice-payments-title">Оплати за сесії</h3>
+          <p class="muted practice-payments__explanation">
+            Клієнти оплачують консультації безпосередньо вам. Pro Consult не приймає й не переказує кошти — тут відображається лише зафіксований статус оплати.
+          </p>
+          <p v-if="!hasPracticeFinancialData" class="muted">
+            За вибраний період ще немає сесій з даними про оплату.
+          </p>
+          <div v-else class="practice-payments__cards">
+            <article v-if="practicePayments.paid_total_by_currency.length" class="practice-payments__card" aria-label="Оплачено">
+              <h4>Оплачено</h4>
+              <ul class="practice-payments__amounts">
+                <li v-for="row in practicePayments.paid_total_by_currency" :key="row.currency">{{ formatPracticeAmount(row) }}</li>
+              </ul>
+              <p class="muted">Сесії цього періоду, оплату яких ви підтвердили.</p>
+            </article>
+            <article v-if="practicePayments.unconfirmed_count > 0" class="practice-payments__card practice-payments__card--action" aria-label="Не підтверджено оплату">
+              <h4>Не підтверджено оплату</h4>
+              <ul class="practice-payments__amounts">
+                <li v-for="row in practicePayments.unconfirmed_total_by_currency" :key="row.currency">{{ formatPracticeAmount(row) }}</li>
+              </ul>
+              <p>Сесій: {{ practicePayments.unconfirmed_count }}</p>
+              <p class="muted">Оплата ще не підтверджена в Pro Consult.</p>
+              <a class="practice-payments__action" href="#practice-payment-actions">Перевірити сесії</a>
+            </article>
+            <article v-if="practicePayments.review_count > 0" class="practice-payments__card" aria-label="На перевірці">
+              <h4>На перевірці</h4>
+              <strong class="practice-payments__count">{{ practicePayments.review_count }}</strong>
+              <p class="muted">Підтвердження оплати потребують перевірки або уточнення.</p>
+            </article>
+            <article v-if="practiceUpcomingPrices.length" class="practice-payments__card" aria-label="Заплановано попереду">
+              <h4>Заплановано попереду</h4>
+              <ul class="practice-payments__amounts">
+                <li v-for="row in practiceUpcomingPrices" :key="row.currency">{{ formatPracticeAmount(row) }}</li>
+              </ul>
+              <p class="muted">Очікувана вартість майбутніх запланованих і підтверджених сесій у вибраному періоді.</p>
+            </article>
+            <article v-if="practicePayments.no_price_count > 0" class="practice-payments__card" aria-label="Без ціни">
+              <h4>Без ціни</h4>
+              <strong class="practice-payments__count">{{ practicePayments.no_price_count }}</strong>
+              <p class="muted">Завершені сесії без зазначеної ціни не входять у суми оплат.</p>
+            </article>
+          </div>
+          <section v-if="practicePayments.unconfirmed_count > 0" id="practice-payment-actions" class="practice-payments__actions" aria-labelledby="practice-payment-actions-title">
+            <h4 id="practice-payment-actions-title">Потрібно перевірити оплату</h4>
+            <ul class="practice-payments__sessions">
+              <li v-for="session in practicePayments.unconfirmed_sessions" :key="session.session_id">
+                <div class="practice-payments__session-info">
+                  <strong>{{ session.client_name || 'Клієнт' }}</strong>
+                  <span class="muted">{{ formatDateTime(session.starts_at) }}</span>
+                  <span>{{ formatPracticeAmount({ currency: session.price_currency, amount: session.price_amount }) }}</span>
+                  <span class="muted">{{ practicePaymentStateLabel(session.payment_state) }}</span>
+                </div>
+                <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.session_id}`" :aria-label="`Відкрити сесію: ${session.client_name || 'Клієнт'}`">Відкрити сесію</RouterLink>
+              </li>
+            </ul>
+            <p v-if="practicePayments.unconfirmed_count > practicePayments.unconfirmed_sessions.length" class="muted">
+              Ще {{ practicePayments.unconfirmed_count - practicePayments.unconfirmed_sessions.length }} сесій потребують перевірки оплати.
+            </p>
+          </section>
+          <p v-if="practicePayments.coverage.external_guest_sessions_count > 0" class="muted practice-payments__coverage">
+            Сесії без реєстрації мають окремий облік оплат і не входять у цей фінансовий підсумок.
+            <RouterLink to="/cabinet/external-sessions">Переглянути сесії без реєстрації</RouterLink>
+          </p>
+        </section>
       </section>
       <section class="panel panel--wide panel--quick-actions" aria-label="Швидкі дії">
         <h2 class="panel__title panel__title--compact">Швидкі дії</h2>
@@ -541,9 +610,42 @@ type CabinetWorkQueue = {
 
 type PracticeAnalyticsRange = '7d' | '30d' | '90d'
 
+type PracticeCurrencyAmount = { currency: string; amount: string }
+type PracticeUnconfirmedSession = {
+  session_id: number
+  client_record_id: number | null
+  client_user_id: number | null
+  client_name: string | null
+  starts_at: string
+  price_amount: string
+  price_currency: string
+  payment_state: 'NOT_CONFIRMED' | 'AWAITING_CLIENT'
+  last_payment_action_at: string | null
+}
+type PracticePaymentOverview = {
+  paid_total_by_currency: PracticeCurrencyAmount[]
+  unconfirmed_total_by_currency: PracticeCurrencyAmount[]
+  unconfirmed_count: number
+  unconfirmed_sessions: PracticeUnconfirmedSession[]
+  review_count: number
+  no_price_count: number
+  coverage: {
+    ordinary_sessions_included: true
+    external_guest_sessions_included: false
+    external_guest_sessions_count: number
+  }
+}
+
 type PracticeAnalyticsPayload = {
   sessions: { completed: number; cancelled: number; no_show: number }
   acquisition: { guest_booking_requests: number }
+  // Additive fields may be absent until the backend rollout completes.
+  payments?: PracticePaymentOverview
+  prices?: {
+    scheduled_total_by_currency: PracticeCurrencyAmount[]
+    upcoming_scheduled_total_by_currency: PracticeCurrencyAmount[]
+    average_completed_by_currency: PracticeCurrencyAmount[]
+  }
 }
 
 function createEmptyWorkQueue(): CabinetWorkQueue {
@@ -570,6 +672,15 @@ const practiceAnalytics = ref<PracticeAnalyticsPayload | null>(null)
 const practiceAnalyticsLoading = ref(false)
 const practiceAnalyticsError = ref('')
 const practiceAnalyticsRanges: PracticeAnalyticsRange[] = ['7d', '30d', '90d']
+const practicePayments = computed(() => practiceAnalytics.value?.payments)
+const practiceUpcomingPrices = computed(() => practiceAnalytics.value?.prices?.upcoming_scheduled_total_by_currency || [])
+const hasPracticeFinancialData = computed(() => {
+  const payments = practicePayments.value
+  return Boolean(payments && (
+    payments.paid_total_by_currency.length || payments.unconfirmed_count ||
+    payments.review_count || payments.no_price_count || practiceUpcomingPrices.value.length
+  ))
+})
 const heroSessionsLoading = ref(false)
 const heroSessionsError = ref('')
 const profileLoading = ref(false)
@@ -787,6 +898,17 @@ function workQueueSessionStatusLabel(session: WorkQueueSessionPreviewItem) {
 
 function practiceAnalyticsRangeLabel(range: PracticeAnalyticsRange) {
   return `${range.replace('d', '')} днів`
+}
+
+function formatPracticeAmount(row: PracticeCurrencyAmount) {
+  const [whole = '', fraction = ''] = row.amount.split('.')
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')
+  const decimal = /^0*$/.test(fraction) ? '' : fraction
+  return `${grouped}${decimal ? `,${decimal}` : ''} ${row.currency === 'UAH' ? 'грн' : row.currency}`
+}
+
+function practicePaymentStateLabel(state: PracticeUnconfirmedSession['payment_state']) {
+  return state === 'AWAITING_CLIENT' ? 'Очікуємо від клієнта' : 'Не підтверджено'
 }
 
 function preferredSessionClientName(session: CabinetSession) {
@@ -1786,6 +1908,102 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
+.practice-payments {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--pc-border);
+  min-width: 0;
+}
+
+.practice-payments h3,
+.practice-payments h4,
+.practice-payments p {
+  margin: 0;
+}
+
+.practice-payments > p,
+.practice-payments > div,
+.practice-payments > section {
+  margin-top: 12px;
+}
+
+.practice-payments__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+
+.practice-payments__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  overflow-wrap: anywhere;
+}
+
+.practice-payments__card--action {
+  border-color: var(--pc-warning);
+  background: var(--pc-peach-100);
+}
+
+.practice-payments__amounts,
+.practice-payments__sessions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-payments__amounts,
+.practice-payments__count {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.practice-payments__action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: auto;
+  color: var(--pc-navy-900);
+}
+
+.practice-payments__sessions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.practice-payments__sessions > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+}
+
+.practice-payments__session-info {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.practice-payments__sessions .btn {
+  min-height: 44px;
+}
+
+.practice-payments__coverage a {
+  color: var(--pc-navy-900);
+}
+
 .quick-actions a {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-control);
@@ -2393,6 +2611,20 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 520px) {
+  .panel--practice-summary .panel__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .practice-summary__ranges {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .practice-summary__ranges .btn {
+    min-height: 44px;
+  }
+
   .cabinet {
     gap: 10px;
     padding: 10px;
