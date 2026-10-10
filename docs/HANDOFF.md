@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -8,7 +8,7 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-KAN-131 mobile specialist discovery and KAN-134 authenticated mobile header are production-closed, production-smoke verified, and Done. Runtime PR #36 merged to `main` as `7dac8b790d663609691b8f790da4ab50c3f48eeb`. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. No backend contract or deployment-process change was introduced.
+KAN-135 homepage product explanation is production-closed, production-smoke verified, and Done. Runtime PR #38 merged `dev -> main` as `d398067a7a6a0e3cf6c8369c8b2bbd7f9e6edba9`. The homepage now presents Pro Consult as a connected consultation-practice workflow, makes direct specialist payment / 0% consultation commission explicit, surfaces payment-control capabilities without accounting claims, and gives the 30-day Pro trial proper conversion weight. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. No backend contract, migration, or deployment-process change was introduced.
 
 
 KAN-82 adds the browser-only consent gate required before KAN-80 product
@@ -792,20 +792,14 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
-- KAN-135 homepage explanation is implemented locally, pending review: the
-  existing hero and cards explain one connected consultation-practice workflow,
-  with two capability groups and client discovery after blog content, before
-  pricing. CTA routes, analytics, auth, pricing, and the hero mockup are unchanged;
-  this patch is not committed, pushed, or deployed.
-
 - KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
 - KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
 - KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
-- KAN-131 and KAN-134 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
+- KAN-131, KAN-134, and KAN-135 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
 
 ## Immediate Next Step
 
-Take KAN-114 next as a focused tablet-header audit/remediation around 768–820 px. Preserve the now-verified narrow-mobile header behavior, KAN-130 desktop discovery layout, and KAN-131 mobile discovery density. Keep KAN-133 isolated as test debt and KAN-129 as parallel growth work.
+Take KAN-136 next: add a simple practice financial overview and unpaid-session debt tracking on top of the existing direct-payment/status/history model, without turning Pro Consult into accounting software. After KAN-136, continue the agreed product order with KAN-137 reminders and KAN-138 informed consent. Keep KAN-114 as separate tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
 
 ## Validation Commands
 

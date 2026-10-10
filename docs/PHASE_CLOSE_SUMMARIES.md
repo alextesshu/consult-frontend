@@ -10,6 +10,53 @@ Usage:
 
 ---
 
+## 2026-10-10 - KAN-135 Homepage Product Explanation Production Close
+
+### Context
+- KAN-135 broadened the homepage explanation without an aggressive redesign.
+- Goal: explain Pro Consult as one connected consultation-practice workflow, from professional presence and first client contact through recurring work and practice management.
+- Runtime PR #38 merged `dev -> main` as `d398067a7a6a0e3cf6c8369c8b2bbd7f9e6edba9`.
+- Frontend-only release; no backend contract, migration, pricing-economics, or deployment-process change.
+
+### Done
+- Hero now leads with `Консультаційна практика — в одному спокійному просторі`.
+- Homepage flow now connects five stages from professional presence through ongoing client work.
+- Capabilities are grouped into `Покажіть свою практику` and `Ведіть свою практику`.
+- Client discovery remains immediately accessible while the larger client-entry block now appears after product/content explanation and before pricing.
+- Existing direct-payment capability is explained accurately: the client pays the specialist directly; Pro Consult does not take a consultation commission.
+- Existing payment status/history/proof controls are surfaced as `Оплати під контролем` without accounting/bookkeeping claims.
+- Pricing presentation now gives explicit weight to `0% комісії` and `30 днів Pro безкоштовно`.
+- CTA routes, authentication behavior, analytics deduplication, pricing amounts/limits, and the hero product mockup remain unchanged.
+- KAN-135 is Done after production acceptance.
+
+### Validation
+- Initial focused HomeView tests: 7 PASS; build PASS; typecheck introduced 0 new diagnostics; `git diff --check` PASS.
+- Refinement focused HomeView tests: 8 PASS; `git diff --check` PASS.
+- Dev push CI #929 and #930 PASS; PR CI #931 PASS.
+- Canonical staging deploy at `772021c7523c18044bcc91c2b4a39cb52bd08775`; `/healthz` and `/readyz` PASS.
+- Staging responsive review covered 375 px, ~820 px, and 1440 px; final focused 375 px smoke passed with no horizontal overflow.
+- Canonical production deploy at `d398067a7a6a0e3cf6c8369c8b2bbd7f9e6edba9`; production `/healthz` and `/readyz` PASS.
+- Operator-confirmed focused production 375 px smoke PASS for the KAN-135 conversion/message refinements.
+
+### Deferred / Not in Scope
+- KAN-136 owns financial overview / unpaid-session debt tracking.
+- KAN-137 owns automatic client session reminders.
+- KAN-138 owns informed-consent / practice-agreement workflow.
+- KAN-139 owns pricing economics and annual-plan framing.
+- KAN-140 owns verified privacy/security trust messaging.
+- KAN-142 owns deeper public-profile content UX.
+- No accounting, tax, bank-sync, automatic collection, or payment-processing capability was introduced.
+
+### Key Commits
+- `9beabe4` — broaden homepage product explanation.
+- `772021c` — refine homepage conversion messaging.
+- `d398067` — production merge commit from PR #38.
+
+### Merge Readiness
+- Runtime release is production-closed. This documentation closeout is evidence-only and requires no production redeploy.
+
+---
+
 ## 2026-10-09 - KAN-131 / KAN-134 Mobile Discovery and Authenticated Header Production Close
 
 ### Context
