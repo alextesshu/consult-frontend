@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, waitFor } from '@testing-library/vue'
+﻿import { fireEvent, render, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import {
@@ -140,6 +140,39 @@ function renderView() {
         },
       },
     },
+  })
+}
+
+function createPracticeAnalyticsPayload() {
+  return {
+    sessions: { completed: 6, cancelled: 2, no_show: 1 },
+    acquisition: { guest_booking_requests: 3 },
+    prices: {
+      scheduled_total_by_currency: [{ currency: 'UAH', amount: '99999.00' }],
+      upcoming_scheduled_total_by_currency: [] as Array<{ currency: string; amount: string }>,
+      average_completed_by_currency: [],
+    },
+    payments: {
+      paid_total_by_currency: [] as Array<{ currency: string; amount: string }>,
+      unconfirmed_total_by_currency: [] as Array<{ currency: string; amount: string }>,
+      unconfirmed_count: 0,
+      unconfirmed_sessions: [] as Array<{
+        session_id: number; client_record_id: number | null; client_user_id: number | null
+        client_name: string | null; starts_at: string; price_amount: string; price_currency: string
+        payment_state: 'NOT_CONFIRMED' | 'AWAITING_CLIENT'; last_payment_action_at: string | null
+      }>,
+      review_count: 0,
+      no_price_count: 0,
+      coverage: { ordinary_sessions_included: true, external_guest_sessions_included: false, external_guest_sessions_count: 0 },
+    },
+  }
+}
+
+function mockPracticeAnalytics(payload: ReturnType<typeof createPracticeAnalyticsPayload>) {
+  mockedApiGet.mockImplementation(async (url, config) => {
+    if (url === '/cabinet/practice-analytics/') return payload as any
+    if (config?.params?.upcoming === true || config?.params?.upcoming === false) return []
+    return createWorkQueuePayload()
   })
 }
 
@@ -1919,5 +1952,160 @@ describe('CabinetView', () => {
     await fireEvent.click(view.getAllByRole('button', { name: 'Повторити' }).at(-1)!)
     await waitFor(() => expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/practice-analytics/').length).toBeGreaterThan(1))
     expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/work-queue/')).toHaveLength(workQueueCalls)
+  })
+
+  describe('practice payment overview', () => {
+    it('renders paid amount, period copy and preserved operational metrics from one request', async () => {
+      const payload = createPracticeAnalyticsPayload()
+      payload.payments.paid_total_by_currency = [{ currency: 'UAH', amount: '12000.00' }]
+      mockPracticeAnalytics(payload)
+      const view = renderView()
+      const paid = await view.findByRole('article', { name: 'Оплачено' })
+      expect(paid).toHaveTextContent('12 000 грн')
+      expect(paid).toHaveTextContent('Сесії цього періоду, оплату яких ви підтвердили.')
+      const summary = view.getByRole('region', { name: 'Підсумок практики' })
+      for (const label of ['Завершено сесій', 'Скасовано', 'Неявки', 'Нові запити']) expect(summary).toHaveTextContent(label)
+      expect(summary).toHaveTextContent('Клієнти оплачують консультації безпосередньо вам. Pro Consult не приймає й не переказує кошти — тут відображається лише зафіксований статус оплати.')
+      expect(summary.textContent).not.toMatch(/борг|заборгован|не сплачено|бухгалтер|дохід за місяць|Цей місяць/i)
+      expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/practice-analytics/')).toHaveLength(1)
+      expect(view.queryByRole('article', { name: 'Без ціни' })).not.toBeInTheDocument()
+      expect(view.container.querySelector('.practice-payments__coverage')).not.toBeInTheDocument()
+    })
+
+    it('keeps currencies separate and formats decimal strings without precision loss or addition', async () => {
+      const payload = createPracticeAnalyticsPayload()
+      payload.payments.paid_total_by_currency = [
+        { currency: 'UAH', amount: '12000.25' },
+        { currency: 'USD', amount: '200.00' },
+        { currency: 'EUR', amount: '9007199254740993.01' },
+      ]
+      mockPracticeAnalytics(payload)
+      const view = renderView()
+      const paid = await view.findByRole('article', { name: 'Оплачено' })
+      const amounts = within(paid).getAllByRole('listitem')
+      expect(amounts).toHaveLength(3)
+      expect(amounts[0]).toHaveTextContent('12 000,25 грн')
+      expect(amounts[1]).toHaveTextContent('200 USD')
+      expect(amounts[2]).toHaveTextContent('9 007 199 254 740 993,01 EUR')
+      expect(paid).not.toHaveTextContent('12 200')
+    })
+
+    it('renders unconfirmed amounts, states, exact session links and remaining count', async () => {
+      const payload = createPracticeAnalyticsPayload()
+      payload.payments.unconfirmed_total_by_currency = [{ currency: 'UAH', amount: '3500.50' }]
+      payload.payments.unconfirmed_count = 9
+      payload.payments.review_count = 2
+      payload.payments.unconfirmed_sessions = [
+        { session_id: 801, client_record_id: 51, client_user_id: null, client_name: 'Manual Client', starts_at: '2026-10-10T10:00:00Z', price_amount: '1500.50', price_currency: 'UAH', payment_state: 'NOT_CONFIRMED', last_payment_action_at: null },
+        { session_id: 802, client_record_id: 52, client_user_id: 61, client_name: 'Registered Client', starts_at: '2026-10-09T10:00:00Z', price_amount: '200.00', price_currency: 'USD', payment_state: 'AWAITING_CLIENT', last_payment_action_at: '2026-10-10T12:00:00Z' },
+      ]
+      mockPracticeAnalytics(payload)
+      const view = renderView()
+      const unconfirmed = await view.findByRole('article', { name: 'Не підтверджено оплату' })
+      expect(unconfirmed).toHaveTextContent('3 500,50 грн')
+      expect(unconfirmed).toHaveTextContent('Сесій: 9')
+      expect(unconfirmed).toHaveTextContent('Оплата ще не підтверджена в Pro Consult.')
+      expect(within(unconfirmed).getByRole('link', { name: 'Перевірити сесії' })).toHaveAttribute('href', '#practice-payment-actions')
+      const actions = view.getByRole('region', { name: 'Потрібно перевірити оплату' })
+      expect(within(actions).getAllByRole('listitem')).toHaveLength(2)
+      expect(within(actions).getByRole('link', { name: 'Відкрити сесію: Manual Client' })).toHaveAttribute('href', '/cabinet/sessions/801')
+      expect(within(actions).getByRole('link', { name: 'Відкрити сесію: Registered Client' })).toHaveAttribute('href', '/cabinet/sessions/802')
+      expect(actions).toHaveTextContent('Не підтверджено')
+      expect(actions).toHaveTextContent('Очікуємо від клієнта')
+      expect(actions).toHaveTextContent('200 USD')
+      expect(actions).toHaveTextContent('10.10.2026')
+      expect(actions).toHaveTextContent('Ще 7 сесій потребують перевірки оплати.')
+      const review = view.getByRole('article', { name: 'На перевірці' })
+      expect(review.querySelector('strong')).toHaveTextContent('2')
+      expect(review).not.toHaveTextContent(/грн|USD/)
+    })
+
+    it('shows review attention without inventing unconfirmed amounts or actionable sessions', async () => {
+      const payload = createPracticeAnalyticsPayload()
+      payload.payments.review_count = 3
+      mockPracticeAnalytics(payload)
+      const view = renderView()
+      const review = await view.findByRole('article', { name: 'На перевірці' })
+      expect(review).toHaveTextContent('Підтвердження оплати потребують перевірки або уточнення.')
+      expect(view.queryByRole('article', { name: 'Не підтверджено оплату' })).not.toBeInTheDocument()
+      expect(view.queryByRole('region', { name: 'Потрібно перевірити оплату' })).not.toBeInTheDocument()
+    })
+
+    it('shows future-only expected value even when all payment metrics are empty', async () => {
+      const payload = createPracticeAnalyticsPayload()
+      payload.prices.upcoming_scheduled_total_by_currency = [{ currency: 'USD', amount: '120.00' }]
+      mockPracticeAnalytics(payload)
+      const view = renderView()
+      const expected = await view.findByRole('article', { name: 'Заплановано попереду' })
+      expect(expected).toHaveTextContent('120 USD')
+      expect(expected).toHaveTextContent('Очікувана вартість майбутніх запланованих і підтверджених сесій у вибраному періоді.')
+      expect(view.container).not.toHaveTextContent('99 999 грн')
+      expect(view.queryByText('За вибраний період ще немає сесій з даними про оплату.')).not.toBeInTheDocument()
+      expect(view.queryByRole('article', { name: 'Оплачено' })).not.toBeInTheDocument()
+    })
+
+    it('renders a calm zero-data state without zero-heavy monetary cards', async () => {
+      mockPracticeAnalytics(createPracticeAnalyticsPayload())
+      const view = renderView()
+      expect(await view.findByText('За вибраний період ще немає сесій з даними про оплату.')).toBeInTheDocument()
+      expect(view.container.querySelectorAll('.practice-payments__card')).toHaveLength(0)
+      expect(view.queryByRole('region', { name: 'Потрібно перевірити оплату' })).not.toBeInTheDocument()
+    })
+
+    it('renders no-price count and external coverage without adding guest money', async () => {
+      const payload = createPracticeAnalyticsPayload()
+      payload.payments.no_price_count = 2
+      payload.payments.coverage.external_guest_sessions_count = 4
+      mockPracticeAnalytics(payload)
+      const view = renderView()
+      const noPrice = await view.findByRole('article', { name: 'Без ціни' })
+      expect(noPrice.querySelector('strong')).toHaveTextContent('2')
+      expect(noPrice).not.toHaveTextContent('0 грн')
+      expect(view.container).toHaveTextContent('Сесії без реєстрації мають окремий облік оплат і не входять у цей фінансовий підсумок.')
+      expect(view.getByRole('link', { name: 'Переглянути сесії без реєстрації' })).toHaveAttribute('href', '/cabinet/external-sessions')
+      expect(view.queryByRole('article', { name: 'Оплачено' })).not.toBeInTheDocument()
+    })
+
+    it('keeps financial metrics behind existing loading and error states', async () => {
+      let resolveAnalytics!: (value: ReturnType<typeof createPracticeAnalyticsPayload>) => void
+      mockedApiGet.mockImplementation(async (url, config) => {
+        if (url === '/cabinet/practice-analytics/') return new Promise((resolve) => { resolveAnalytics = resolve }) as any
+        if (config?.params?.upcoming === true || config?.params?.upcoming === false) return []
+        return createWorkQueuePayload()
+      })
+      const view = renderView()
+      expect(await view.findByText('Завантаження підсумку практики...')).toBeInTheDocument()
+      expect(view.queryByRole('heading', { name: 'Оплати за сесії' })).not.toBeInTheDocument()
+      resolveAnalytics(createPracticeAnalyticsPayload())
+      expect(await view.findByRole('heading', { name: 'Оплати за сесії' })).toBeInTheDocument()
+      mockedApiGet.mockImplementation(async (url) => {
+        if (url === '/cabinet/practice-analytics/') throw new Error('Unavailable')
+        return []
+      })
+      await fireEvent.click(view.getByRole('button', { name: '7 днів' }))
+      expect(await view.findByText('Не вдалося завантажити підсумок практики.')).toBeInTheDocument()
+      expect(view.queryByRole('heading', { name: 'Оплати за сесії' })).not.toBeInTheDocument()
+    })
+
+    it('refreshes backend financial totals with the same 7d, 30d and 90d request', async () => {
+      mockedApiGet.mockImplementation(async (url, config) => {
+        if (url === '/cabinet/practice-analytics/') {
+          const payload = createPracticeAnalyticsPayload()
+          const amount = config?.params?.range === '7d' ? '7.00' : config?.params?.range === '90d' ? '90.00' : '30.00'
+          payload.payments.paid_total_by_currency = [{ currency: 'UAH', amount }]
+          return payload as any
+        }
+        if (config?.params?.upcoming === true || config?.params?.upcoming === false) return []
+        return createWorkQueuePayload()
+      })
+      const view = renderView()
+      expect(await view.findByRole('article', { name: 'Оплачено' })).toHaveTextContent('30 грн')
+      for (const [label, amount] of [['7 днів', '7 грн'], ['90 днів', '90 грн'], ['30 днів', '30 грн']]) {
+        await fireEvent.click(view.getByRole('button', { name: label! }))
+        await waitFor(() => expect(view.getByRole('article', { name: 'Оплачено' })).toHaveTextContent(amount!))
+      }
+      expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/practice-analytics/')).toHaveLength(4)
+      expect(view.container).not.toHaveTextContent('Цей місяць')
+    })
   })
 })
