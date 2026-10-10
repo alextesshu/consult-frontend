@@ -1,6 +1,6 @@
 import { flushPromises } from '@vue/test-utils'
 ﻿import { fireEvent, render, waitFor, within } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import {
   apiGet,
@@ -187,6 +187,8 @@ async function openOnboardingDetails(container: Element) {
 
 describe('CabinetView', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 10, 7, 0, 0))
     mockedApiGet.mockReset()
     mockedFetchChatThreads.mockReset()
     mockedFetchSpecialistOnboardingState.mockReset()
@@ -202,6 +204,10 @@ describe('CabinetView', () => {
       cta_target: null,
     } as any)
     mockedFetchChatThreads.mockResolvedValue([])
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders guest quota row in plan metrics when guest entitlement fields are available', async () => {
