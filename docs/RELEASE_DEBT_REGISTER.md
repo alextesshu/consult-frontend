@@ -341,6 +341,32 @@
         "deployed_source_sha": "2363e84d791382cb76d1144613fc1388a35476e5",
         "runtime_evidence": "PR CI #934 SUCCESS; canonical production frontend deploy exit 0; frontend running; production checkout main clean at 2363e84d791382cb76d1144613fc1388a35476e5; /healthz and /readyz HTTP 200. Authenticated /cabinet payment overview PASS; 7/30/90 controls PASS; 375 CSS px horizontal controls, title one row and no horizontal overflow PASS; /cabinet/analytics PASS. Deployed practice analytics handler confirmed payments and prices.upcoming_scheduled_total_by_currency for all three periods in a READ ONLY transaction; existing account empty financial state verified, not populated production financial data. Exact UTC production acceptance completion and promotion decision timestamps were not independently captured."
       }
+    },
+    {
+      "id": "kan-137-session-reminders",
+      "ticket": "KAN-137",
+      "repository": "consult-frontend",
+      "status": "RELEASED",
+      "historical_evidence": false,
+      "historical_reason": null,
+      "evidence_snapshot_at": null,
+      "staging": {
+        "sha": "f9c707c6024941eeb8e539cf9e0972706f81b257",
+        "acceptance_completed_at": null,
+        "evidence": "Frontend push CI #937 SUCCESS; canonical staging frontend deploy PASS at f9c707c6024941eeb8e539cf9e0972706f81b257; staging frontend HTTP 200. Operator-confirmed acceptance covered Pro/Leader and Start notification capability states, EXPIRED Billing copy, the one-time Cabinet downgrade notice, and dismissal persistence. Focused remediation tests were 112 PASS, 0 FAIL. Exact UTC staging acceptance completion timestamp was not independently captured and remains null."
+      },
+      "release_owner": "Oleksandr Konstantinov",
+      "decision": {
+        "kind": "PROMOTE",
+        "at": null,
+        "reason": null,
+        "next_review_at": null
+      },
+      "production": {
+        "pr": "https://github.com/alextesshu/consult-frontend/pull/42",
+        "deployed_source_sha": "2bb128b9cf9861e13ba97cb1787556fbc639e0ba",
+        "runtime_evidence": "PR CI #938 / run 38127906479 SUCCESS. Canonical production frontend deploy completed successfully on 2026-10-11; production frontend checkout was verified at 2bb128b9cf9861e13ba97cb1787556fbc639e0ba; public homepage returned HTTP 200. Operator-confirmed production /cabinet/settings/notifications smoke PASS: separate in-app reminder controls plus active email reminder control with 24h/1h specialist/client copy. Exact UTC production acceptance completion timestamp was not independently captured."
+      }
     }
   ]
 }
@@ -399,6 +425,7 @@ promotion policy is in the backend repository's `docs/GIT_CI_PROMOTION.md`.
 | KAN-134 compact authenticated mobile header | `137cc2c`; dev CI #927 PASS; canonical staging deploy PASS; health/ready PASS; operator-confirmed authenticated 375×667 header one-row smoke PASS on `/cabinet` and `/specialists`; 412×924 retained full label | PROMOTE executed via [PR #36](https://github.com/alextesshu/consult-frontend/pull/36); release owner Oleksandr Konstantinov | `7dac8b7`; canonical production frontend deploy PASS; health/ready PASS; authenticated 375×667 header one-row smoke PASS; guest and wider mobile variants showed no release-specific regression |
 | KAN-135 homepage product explanation | `772021c`; dev CI #930 PASS; canonical staging frontend deploy PASS; health/ready PASS; responsive staging review covered 375 px, ~820 px, and 1440 px; final focused 375 px smoke PASS with no observed horizontal overflow | PROMOTE executed via [PR #38](https://github.com/alextesshu/consult-frontend/pull/38); release owner Oleksandr Konstantinov | `d398067`; PR CI #931 PASS; canonical production frontend deploy PASS; production checkout verified at exact merge SHA; health/ready PASS; operator-confirmed focused 375 px production smoke PASS |
 | KAN-136 practice payment overview | `4a44491`; push CI #933 SUCCESS; canonical staging deploy, health/readiness and responsive acceptance including 375 px PASS; exact acceptance time unknown | PROMOTE via [PR #40](https://github.com/alextesshu/consult-frontend/pull/40); owner Oleksandr Konstantinov; exact decision time unknown | `2363e84`; PR CI #934 SUCCESS; canonical deploy exit 0, frontend running, main clean, health/readiness HTTP 200; cabinet/period controls/375 CSS px/no overflow/analytics PASS; read-only endpoint keys and empty financial state verified |
+| KAN-137 automatic session reminders | `f9c707c`; push CI #937 SUCCESS; canonical staging deploy PASS; staging HTTP 200; focused remediation 112 PASS; operator-confirmed Pro/Leader, Start and EXPIRED downgrade states PASS; exact acceptance time unknown | PROMOTE via [PR #42](https://github.com/alextesshu/consult-frontend/pull/42); owner Oleksandr Konstantinov; exact decision time unknown | `2bb128b`; PR CI #938 / run `38127906479` SUCCESS; canonical production frontend deploy PASS; checkout verified at exact merge SHA; homepage HTTP 200; operator-confirmed `/cabinet/settings/notifications` smoke PASS |
 
 Source commit `79e3b9a` is patch-equivalent to KAN-107 release commit
 `87c0f85`; both analytics file blobs match between current main and dev.
@@ -420,6 +447,8 @@ KAN-134 is `RELEASED`. Commit `137cc2cf144706981b97f77da45e2204d0c56df8` passed 
 KAN-135 is `RELEASED`. Implementation commit `9beabe44bab5c16c4efded4b9c78eab938548bb0` passed dev CI #929; refinement commit `772021c7523c18044bcc91c2b4a39cb52bd08775` passed focused HomeView tests, `git diff --check`, and dev CI #930. Canonical staging deploy/health/readiness passed, with responsive review at 375 px, ~820 px, and 1440 px and final focused 375 px acceptance without observed horizontal overflow. PR #38 passed PR CI #931 and merged to `main` as `d398067a7a6a0e3cf6c8369c8b2bbd7f9e6edba9`; canonical production deploy, exact checkout verification, health/readiness, and focused 375 px production smoke passed. Exact UTC staging and production acceptance timestamps were not independently captured and remain null.
 
 KAN-136 is `RELEASED` on 2026-10-10 with production source `2363e84d791382cb76d1144613fc1388a35476e5` and focused cross-stack acceptance PASS. Clients pay specialists directly; the release exposes payment-state visibility, not debt/accounting or payment processing. Exact staging/production acceptance completion and decision timestamps were not independently captured; staging `acceptance_completed_at` and decision `at` remain null. Existing historical records are preserved; this release does not resolve unrelated historical ambiguities. Full suites were intentionally not rerun.
+
+KAN-137 is `RELEASED` on 2026-10-11 with accepted staging source `f9c707c6024941eeb8e539cf9e0972706f81b257` and production source `2bb128b9cf9861e13ba97cb1787556fbc639e0ba`. Push CI #937 and PR CI #938 passed; canonical staging and production frontend deploys passed; production checkout and public HTTP 200 were verified. Operator-confirmed production notification-settings smoke showed separate in-app and email reminder controls with the 24h/1h specialist/client contract. Exact staging/production acceptance completion and promotion-decision timestamps were not independently captured and remain null.
 
 After a future staging PASS, add or update a ticket row immediately, record
 its actual acceptance time and named decision owner, then decide PROMOTE or

@@ -797,3 +797,52 @@ KAN-136 adds practice financial overview/payment-state visibility to the special
 ### Merge Readiness
 
 Runtime release already merged, deployed and accepted; KAN-136 is Done. This follow-up is local documentation only, pending separate review/commit/push approval.
+
+---
+
+## 2026-10-11 - KAN-137 Automatic Session Reminders Production Close
+
+### Context
+
+KAN-137 audited and strengthened automatic session reminders across the existing consultation workflow. The release is cross-stack: backend owns reminder eligibility, queuing/delivery safety and the durable preference; frontend exposes plan-aware settings, reminder state and trial-transition UX.
+
+### Done
+
+- Pro/Leader entitlement and active Pro trial access can use email reminders at 24 hours and 1 hour for the specialist and client when the client has an email; Start retains in-app reminders while email reminder capability remains visible but unavailable.
+- Frontend settings separate in-app preferences from the durable email-reminder preference and never PATCH the read-only capability field.
+- Upcoming session detail can explain reminder availability, disabled preference, and missing client email without promising delivery that the backend cannot perform.
+- Complimentary-trial EXPIRING/EXPIRED copy explains that email reminders are a Pro capability while in-app reminders remain on Start.
+- The one-time Cabinet downgrade notice is keyed by user plus trial end and persists dismissal without blocking the cabinet when localStorage is unavailable.
+- Post-trial conversion copy names the larger active-client limit, email reminders and `Власний блог` as concrete Pro differences.
+- Backend delivery-time entitlement checks remain authoritative; queued email is not sent after plan loss or preference opt-out.
+
+### Validation
+
+- Backend production release `ce63f6ec349e53c4f0473e01bbbe32eef3628ffb` deployed successfully; migration `booking.0095_therapistprofile_notify_session_reminders_email` applied; health/readiness passed; reminder worker smoke returned `processed=0 sent=0 failed=0`.
+- Frontend feature/remediation commits `7396b98ed9b4a963c5daaf85b1f6d2ea1941d2f6`, `9252707ea4dc5032c81ffda2067a6a73178cb71a`, and `f9c707c6024941eeb8e539cf9e0972706f81b257`; push CI #937 SUCCESS.
+- Focused remediation tests: 112 PASS, 0 FAIL; staging deployed `f9c707c6024941eeb8e539cf9e0972706f81b257` and returned HTTP 200.
+- Operator-confirmed staging acceptance covered Pro/Leader and Start notification capability states, EXPIRED Billing copy, the one-time Cabinet downgrade notice, and dismissal persistence.
+- PR #42 CI #938 / run `38127906479` SUCCESS; PR #42 merged as `2bb128b9cf9861e13ba97cb1787556fbc639e0ba`.
+- Canonical production frontend deploy completed successfully on 2026-10-11; production checkout was verified at `2bb128b9cf9861e13ba97cb1787556fbc639e0ba`; public homepage returned HTTP 200.
+- Operator-confirmed production smoke on `/cabinet/settings/notifications` showed separate in-app reminders and active email reminders with the 24h/1h specialist/client contract.
+- Exact UTC staging and production acceptance completion timestamps were not independently captured and remain unknown.
+
+### Deferred / Not in Scope
+
+- Google Calendar integration remains a separate future capability.
+- KAN-143 false booking-conflict behavior is a separate bug and is not evidence of reminder-delivery failure.
+- No broad notification-system rewrite or new communication channel was introduced.
+- Not every reminder-state permutation was manually repeated in production; regression coverage and staging evidence remain part of the release evidence.
+
+### Key Commits
+
+- `7396b98` — add plan-aware session reminder UX.
+- `9252707` — stabilize CabinetView time-sensitive tests.
+- `f9c707c` — refine post-trial Pro conversion UX; accepted staging source.
+- `2bb128b` — frontend production merge via PR #42.
+- Cross-stack backend production: `ce63f6e`.
+
+### Merge Readiness
+
+Runtime release is production-closed and KAN-137 is Done. This documentation closeout is evidence-only and requires no production redeploy or repeated runtime smoke.
+
