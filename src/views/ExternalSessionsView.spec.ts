@@ -11,6 +11,8 @@ import {
   createSessionFromCabinetGuestBookingRequest,
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
+  fetchCabinetGuestBookingRequest,
+  fetchGuestRequestClientRecordCandidates,
   fetchExternalSessions,
   fetchSpecialistProfile,
   getApiErrorMessage,
@@ -56,6 +58,8 @@ vi.mock('../lib/api', async () => {
     fetchExternalSessions: vi.fn(),
     createExternalSessionInvite: vi.fn(),
     fetchCabinetGuestBookingRequests: vi.fn(),
+    fetchCabinetGuestBookingRequest: vi.fn(),
+    fetchGuestRequestClientRecordCandidates: vi.fn(),
     createExternalSession: vi.fn(),
     declineCabinetGuestBookingRequest: vi.fn(),
     createSessionFromCabinetGuestBookingRequest: vi.fn(),
@@ -70,6 +74,8 @@ const mockedCreateCabinetGuestBookingTimeProposal = vi.mocked(createCabinetGuest
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchExternalSessions = vi.mocked(fetchExternalSessions)
 const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookingRequests)
+const mockedFetchCabinetGuestBookingRequest = vi.mocked(fetchCabinetGuestBookingRequest)
+const mockedFetchGuestRequestClientRecordCandidates = vi.mocked(fetchGuestRequestClientRecordCandidates)
 const mockedCreateExternalSession = vi.mocked(createExternalSession)
 const mockedCreateExternalSessionInvite = vi.mocked(createExternalSessionInvite)
 const mockedDeclineCabinetGuestBookingRequest = vi.mocked(declineCabinetGuestBookingRequest)
@@ -206,6 +212,8 @@ function renderView() {
 describe('ExternalSessionsView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockedFetchGuestRequestClientRecordCandidates.mockReset().mockRejectedValue(new Error('Discovery unavailable'))
+    mockedFetchCabinetGuestBookingRequest.mockReset().mockResolvedValue(buildGuestRequest({ id: 64 }) as any)
     mockRoute.query = {}
     mockRoute.hash = ''
     Element.prototype.scrollIntoView = vi.fn()
@@ -1629,6 +1637,207 @@ describe('ExternalSessionsView', () => {
     expect(toast.success).toHaveBeenCalledWith('Запит відхилено.')
   })
 
+  function candidateResponse(token = 'resolution-token') {
+    return {
+      guest_request_id: 64,
+      resolution_token: token,
+      candidates: [
+        { id: 901, display_name: 'Picker Guest', matching_contacts: [{ type: 'email' as const, value: 'picker@example.test' }], last_completed_session_at: '2026-10-01T12:00:00Z', exact_name_match: true },
+        { id: 902, display_name: 'Інша картка', matching_contacts: [{ type: 'email' as const, value: 'picker@example.test' }], last_completed_session_at: null, exact_name_match: false },
+      ],
+    }
+  }
+
+  const ambiguity = { response: { status: 409, data: { code: 'CLIENT_RECORD_CONTACT_AMBIGUITY' } } }
+
+  async function openResolutionPicker(action: 'create' | 'confirm' = 'create', discovery = Promise.resolve(candidateResponse())) {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([buildGuestRequest({
+      id: 64, guest_name: 'Picker Guest', client_name: 'Picker Guest', contact_value: 'picker@example.test', message: 'Потрібна консультація.',
+      ...(action === 'create' ? { slot_id: null, has_slot: false, is_slotless_request: true, requested_slot_start: null, requested_slot_end: null } : {}),
+    })] as any)
+    mockedFetchGuestRequestClientRecordCandidates.mockReturnValueOnce(discovery)
+    const mutation = action === 'create' ? mockedCreateSessionFromCabinetGuestBookingRequest : mockedConfirmCabinetGuestBookingRequestSession
+    mutation.mockReset().mockResolvedValue({ request: buildGuestRequest({ status: 'approved' }), session: { id: 701 } } as any).mockRejectedValueOnce(ambiguity)
+    const view = renderView()
+    if (action === 'create') {
+      await screen.findByText('Запит без обраного часу')
+      await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+      const modal = within(await screen.findByRole('dialog', { name: 'Створити сесію' }))
+      await fireEvent.update(modal.getByLabelText('Дата'), '20.06.2099')
+      await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+      await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+    } else {
+      await screen.findByText('Picker Guest')
+      const card = getGuestRequestCardByName('Picker Guest')
+      await fireEvent.update(card.meetingInput!, 'https://meet.example.test/picker')
+      await fireEvent.click(card.approveButton)
+    }
+    const dialog = within(await screen.findByRole('dialog', { name: 'Оберіть картку клієнта' }))
+    return { view, dialog, mutation, originalPayload: mutation.mock.calls[0]?.[1] }
+  }
+
+  it('renders original guest context and candidates without selecting an exact-name hint', async () => {
+    const { dialog } = await openResolutionPicker()
+    await dialog.findByRole('radio', { name: 'Picker Guest' })
+    const context = dialog.getByRole('region', { name: 'Оригінальний запит' })
+    expect(context).toHaveTextContent('Picker Guest')
+    expect(context).toHaveTextContent('picker@example.test')
+    expect(context).toHaveTextContent('Потрібна консультація.')
+    expect(context).toHaveTextContent('2099')
+    expect(context).toHaveTextContent('Онлайн')
+    expect(context).toHaveTextContent('Europe/Kyiv')
+    expect(dialog.getByText('Ім’я збігається — перевірте контакт')).toBeVisible()
+    expect(dialog.getByText(/Остання завершена сесія:/)).toBeVisible()
+    dialog.getAllByRole('radio').forEach((radio) => expect(radio).not.toBeChecked())
+    expect(dialog.getByRole('button', { name: 'Продовжити' })).toBeDisabled()
+    expect(mockedFetchGuestRequestClientRecordCandidates).toHaveBeenCalledWith(64)
+  })
+
+  it.each(['create', 'confirm'] as const)('submits explicit card choice with the original %s payload', async (action) => {
+    const { dialog, mutation, originalPayload } = await openResolutionPicker(action)
+    await fireEvent.click(await dialog.findByRole('radio', { name: 'Інша картка' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    await waitFor(() => expect(mutation).toHaveBeenCalledTimes(2))
+    expect(mutation).toHaveBeenLastCalledWith(64, { ...originalPayload, client_resolution: { mode: 'select_existing', client_record_id: 902, resolution_token: 'resolution-token' } })
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Оберіть картку клієнта' })).not.toBeInTheDocument())
+    expect(toast.success).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['create', 'confirm'] as const)('requires a separate create-new confirmation and can return to card selection for %s', async (action) => {
+    const { dialog, mutation, originalPayload } = await openResolutionPicker(action)
+    await fireEvent.click(await dialog.findByRole('radio', { name: 'Жодна картка не підходить' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    expect(dialog.getByText(/нову картку клієнта з тим самим контактом/)).toBeVisible()
+    expect(mutation).toHaveBeenCalledTimes(1)
+    await fireEvent.click(dialog.getByRole('button', { name: 'Назад до вибору' }))
+    expect(dialog.getByRole('radio', { name: 'Жодна картка не підходить' })).toBeChecked()
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Підтвердити створення нової картки' }))
+    await waitFor(() => expect(mutation).toHaveBeenCalledTimes(2))
+    expect(mutation).toHaveBeenLastCalledWith(64, { ...originalPayload, client_resolution: { mode: 'create_new', confirmed: true, resolution_token: 'resolution-token' } })
+  })
+
+  it.each(['create', 'confirm'] as const)('reloads stale candidates, clears selection and retries with the retained %s draft and fresh token', async (action) => {
+    const { dialog, mutation, originalPayload } = await openResolutionPicker(action)
+    mutation.mockRejectedValueOnce({ response: { status: 409, data: { code: 'CLIENT_RECORD_SELECTION_STALE' } } })
+    mockedFetchGuestRequestClientRecordCandidates.mockResolvedValueOnce(candidateResponse('fresh-token'))
+    mockedFetchCabinetGuestBookingRequest.mockResolvedValueOnce(buildGuestRequest({ id: 64, guest_name: 'Оновлене ім’я', contact_value: 'updated@example.test', message: 'Оновлений запит' }) as any)
+    await fireEvent.click(await dialog.findByRole('radio', { name: 'Інша картка' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    await waitFor(() => expect(mockedFetchGuestRequestClientRecordCandidates).toHaveBeenCalledTimes(2))
+    await dialog.findByRole('radio', { name: 'Picker Guest' })
+    expect(dialog.getByRole('alert')).toHaveTextContent('Картки або дані запиту змінилися')
+    expect(dialog.getByRole('region', { name: 'Оригінальний запит' })).toHaveTextContent('Оновлене ім’я')
+    expect(dialog.getByRole('region', { name: 'Оригінальний запит' })).toHaveTextContent('updated@example.test')
+    expect(mockedFetchCabinetGuestBookingRequest).toHaveBeenCalledWith(64)
+    dialog.getAllByRole('radio').forEach((radio) => expect(radio).not.toBeChecked())
+    expect(dialog.getByRole('button', { name: 'Продовжити' })).toBeDisabled()
+    await fireEvent.click(dialog.getByRole('radio', { name: 'Інша картка' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    await waitFor(() => expect(mutation).toHaveBeenCalledTimes(3))
+    expect(mutation).toHaveBeenLastCalledWith(64, { ...originalPayload, client_resolution: { mode: 'select_existing', client_record_id: 902, resolution_token: 'fresh-token' } })
+  })
+
+  it.each(['MANUAL_SESSION_TIME_CONFLICT', 'SESSION_OVERLAP', 'ACTIVE_CLIENT_LIMIT_REACHED'])('preserves separate %s error handling in the picker', async (code) => {
+    const { dialog, mutation } = await openResolutionPicker()
+    const failure = { response: { status: code === 'ACTIVE_CLIENT_LIMIT_REACHED' ? 403 : 409, data: { code } } }
+    mutation.mockRejectedValueOnce(failure)
+    if (code === 'ACTIVE_CLIENT_LIMIT_REACHED') mockedGetApiErrorMessage.mockReturnValueOnce('Досягнуто ліміт активних клієнтів.')
+    await fireEvent.click(await dialog.findByRole('radio', { name: 'Інша картка' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    const alert = await dialog.findByRole('alert')
+    if (code === 'ACTIVE_CLIENT_LIMIT_REACHED') {
+      expect(alert).toHaveTextContent('Досягнуто ліміт активних клієнтів.')
+      expect(alert).not.toHaveTextContent('цей час перетинається')
+      expect(mockedGetApiErrorMessage).toHaveBeenCalledWith(failure, 'Не вдалося створити сесію.')
+    } else expect(alert).toHaveTextContent('цей час перетинається')
+    expect(mockedFetchGuestRequestClientRecordCandidates).toHaveBeenCalledTimes(1)
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('prevents duplicate resolution submissions while the conversion is pending', async () => {
+    const { dialog, mutation } = await openResolutionPicker()
+    const pending = createDeferred<any>()
+    mutation.mockReturnValueOnce(pending.promise)
+    await fireEvent.click(await dialog.findByRole('radio', { name: 'Інша картка' }))
+    const continueButton = dialog.getByRole('button', { name: 'Продовжити' })
+    await fireEvent.click(continueButton)
+    await fireEvent.click(continueButton)
+    expect(mutation).toHaveBeenCalledTimes(2)
+    expect(continueButton).toBeDisabled()
+    expect(dialog.getByRole('button', { name: 'Закрити' })).toBeDisabled()
+    pending.resolve({})
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Оберіть картку клієнта' })).not.toBeInTheDocument())
+  })
+
+  it('ignores obsolete discovery responses after cancel and restores the session draft', async () => {
+    const pending = createDeferred<ReturnType<typeof candidateResponse>>()
+    const { dialog } = await openResolutionPicker('create', pending.promise)
+    expect(dialog.getByRole('status')).toHaveTextContent('Завантажуємо')
+    await fireEvent.click(dialog.getByRole('button', { name: 'Закрити' }))
+    const draft = within(await screen.findByRole('dialog', { name: 'Створити сесію' }))
+    expect(draft.getByLabelText('Дата')).toHaveValue('20.06.2099')
+    expect(draft.getByLabelText('Час початку')).toHaveValue('10:00')
+    expect(draft.getByLabelText('Час початку')).not.toBeDisabled()
+    pending.resolve(candidateResponse('obsolete-token'))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Оберіть картку клієнта' })).not.toBeInTheDocument())
+    expect(screen.queryByRole('radio', { name: 'Picker Guest' })).not.toBeInTheDocument()
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('ignores pending discovery when the view unmounts', async () => {
+    const pending = createDeferred<ReturnType<typeof candidateResponse>>()
+    const { view } = await openResolutionPicker('confirm', pending.promise)
+    view.unmount()
+    pending.reject(new Error('Late failure'))
+    await Promise.resolve()
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('does not let an old discovery response overwrite a reopened dialog token', async () => {
+    const pending = createDeferred<ReturnType<typeof candidateResponse>>()
+    const { dialog, mutation } = await openResolutionPicker('create', pending.promise)
+    await fireEvent.click(dialog.getByRole('button', { name: 'Закрити' }))
+    mutation.mockRejectedValueOnce(ambiguity)
+    mockedFetchGuestRequestClientRecordCandidates.mockResolvedValueOnce(candidateResponse('reopened-token'))
+    const draft = within(await screen.findByRole('dialog', { name: 'Створити сесію' }))
+    await fireEvent.update(draft.getByLabelText('Час початку'), '10:30')
+    await fireEvent.click(draft.getByRole('button', { name: 'Створити сесію' }))
+    const reopened = within(await screen.findByRole('dialog', { name: 'Оберіть картку клієнта' }))
+    await reopened.findByRole('radio', { name: 'Інша картка' })
+    pending.resolve(candidateResponse('obsolete-token'))
+    await pending.promise
+    await fireEvent.click(reopened.getByRole('radio', { name: 'Інша картка' }))
+    await fireEvent.click(reopened.getByRole('button', { name: 'Продовжити' }))
+    await waitFor(() => expect(mutation).toHaveBeenCalledTimes(3))
+    expect(mutation.mock.calls[2]?.[1]).toEqual({ ...mutation.mock.calls[1]?.[1], client_resolution: { mode: 'select_existing', client_record_id: 902, resolution_token: 'reopened-token' } })
+  })
+
+  it('does not show success from a pending resolution conversion after unmount', async () => {
+    const { dialog, mutation, view } = await openResolutionPicker('confirm')
+    const pending = createDeferred<any>()
+    mutation.mockReturnValueOnce(pending.promise)
+    await fireEvent.click(await dialog.findByRole('radio', { name: 'Інша картка' }))
+    await fireEvent.click(dialog.getByRole('button', { name: 'Продовжити' }))
+    view.unmount()
+    pending.resolve({})
+    await pending.promise
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('traps keyboard focus and allows Escape to cancel without selecting a candidate', async () => {
+    const { dialog } = await openResolutionPicker('confirm')
+    await dialog.findByRole('radio', { name: 'Picker Guest' })
+    const close = dialog.getByRole('button', { name: 'Закрити' })
+    close.focus()
+    await fireEvent.keyDown(close, { key: 'Tab', shiftKey: true })
+    expect(dialog.getByRole('radio', { name: 'Жодна картка не підходить' })).toHaveFocus()
+    await fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: 'Оберіть картку клієнта' })).not.toBeInTheDocument()
+    expect(mockedConfirmCabinetGuestBookingRequestSession).toHaveBeenCalledTimes(1)
+  })
+
   it.each(['create', 'confirm'])('shows contact ambiguity without overlap wording for %s-session', async (action) => {
     const isCreate = action === 'create'
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
@@ -1659,7 +1868,7 @@ describe('ExternalSessionsView', () => {
       await fireEvent.click(card.approveButton)
     }
     const copy = 'Не вдалося однозначно визначити картку клієнта: є кілька активних карток із цим контактом. Перевірте дублікати карток клієнта перед створенням сесії.'
-    expect(await screen.findAllByText(copy)).toHaveLength(isCreate ? 2 : 1)
+    await waitFor(() => expect(screen.getAllByText(copy)).toHaveLength(isCreate ? 2 : 1))
     expect(mutation).toHaveBeenCalledTimes(1)
     expect(mutation).toHaveBeenCalledWith(64, expect.any(Object))
     expect(screen.queryByText(/цей час перетинається/)).not.toBeInTheDocument()

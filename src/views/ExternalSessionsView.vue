@@ -548,7 +548,7 @@
     </div>
 
     <div
-      v-if="slotlessSessionModalOpen"
+      v-if="slotlessSessionModalOpen && !clientResolution"
       class="request-session-modal"
       role="dialog"
       aria-modal="true"
@@ -662,11 +662,61 @@
         </div>
       </div>
     </div>
+    <div v-if="clientResolution" class="request-session-modal" role="dialog" aria-modal="true"
+      aria-labelledby="client-resolution-title" @keydown="handleClientResolutionKeydown">
+      <button class="request-session-modal__backdrop" type="button" aria-label="Скасувати вибір картки"
+        :disabled="clientResolutionSaving" @click="closeClientResolution"></button>
+      <div ref="clientResolutionContent" class="request-session-modal__content client-resolution">
+        <div class="request-session-modal__header">
+          <h2 id="client-resolution-title" class="panel__title" tabindex="-1">Оберіть картку клієнта</h2>
+          <button class="btn btn--ghost" type="button" :disabled="clientResolutionSaving" @click="closeClientResolution">Закрити</button>
+        </div>
+        <section aria-label="Оригінальний запит" class="client-resolution__context">
+          <strong>{{ clientResolution.request.guest_name }}</strong>
+          <p>{{ clientResolution.request.contact_channel }}: {{ clientResolution.request.contact_value }}</p>
+          <p v-if="clientResolution.request.message">{{ clientResolution.request.message }}</p>
+          <p>{{ clientResolutionSchedule }}</p>
+        </section>
+        <p v-if="clientResolutionLoading" role="status">Завантажуємо картки…</p>
+        <p v-if="clientResolutionError" class="form-error" role="alert">{{ clientResolutionError }}</p>
+        <template v-if="!clientResolutionLoading && clientResolutionCandidates">
+          <template v-if="!clientResolutionCreateConfirmation">
+            <fieldset class="client-resolution__choices" :disabled="clientResolutionSaving">
+              <legend>Яка картка відповідає цьому клієнту?</legend>
+              <label v-for="candidate in clientResolutionCandidates.candidates" :key="candidate.id" class="client-resolution__choice">
+                <input v-model="clientResolutionChoice" type="radio" name="guest-client-resolution" :value="candidate.id"
+                  :aria-label="candidate.display_name" />
+                <span>
+                  <strong>{{ candidate.display_name }}</strong>
+                  <span v-if="candidate.exact_name_match" class="muted">Ім’я збігається — перевірте контакт</span>
+                  <span v-for="contact in candidate.matching_contacts" :key="contact.type">{{ contact.type }}: {{ contact.value }}</span>
+                  <span v-if="candidate.last_completed_session_at" class="muted">Остання завершена сесія: {{ formatDateTime(candidate.last_completed_session_at) }}</span>
+                </span>
+              </label>
+              <label class="client-resolution__choice">
+                <input v-model="clientResolutionChoice" type="radio" name="guest-client-resolution" value="new" />
+                <span>Жодна картка не підходить</span>
+              </label>
+            </fieldset>
+            <button class="btn" type="button" :disabled="clientResolutionChoice === null || clientResolutionSaving"
+              @click="continueClientResolution">{{ clientResolutionSaving ? 'Створюємо…' : 'Продовжити' }}</button>
+          </template>
+          <template v-else>
+            <h3>Створити окрему картку клієнта?</h3>
+            <p>Буде створено нову картку клієнта з тим самим контактом. Наявні картки не будуть об’єднані або змінені.</p>
+            <div class="actions-row">
+              <button class="btn" type="button" :disabled="clientResolutionSaving" @click="submitClientResolution(true)">Підтвердити створення нової картки</button>
+              <button class="btn btn--ghost" type="button" :disabled="clientResolutionSaving" @click="clientResolutionCreateConfirmation = false">Назад до вибору</button>
+            </div>
+          </template>
+        </template>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ConfirmModal from '../components/ConfirmModal.vue'
@@ -682,12 +732,18 @@ import {
   createSessionFromCabinetGuestBookingRequest,
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
+  fetchCabinetGuestBookingRequest,
+  fetchGuestRequestClientRecordCandidates,
   fetchExternalSessions,
   fetchSpecialistProfile,
   getApiErrorMessage,
   requestTopicLabel,
   type ExternalSessionRecord,
   type GuestBookingRequestRecord,
+  type GuestBookingRequestCreateSessionPayload,
+  type GuestBookingRequestConfirmSessionPayload,
+  type GuestRequestClientCandidates,
+  type GuestRequestClientResolution,
   type SessionFormat,
   type SpecialistProfile,
 } from '../lib/api'
@@ -786,6 +842,28 @@ const slotlessSessionModalOpen = ref(false)
 const slotlessSessionRequest = ref<GuestBookingRequestRecord | null>(null)
 const slotlessSessionSaving = ref(false)
 const slotlessSessionError = ref('')
+type ClientResolutionContext = { request: GuestBookingRequestRecord } & (
+  | { action: 'create'; payload: GuestBookingRequestCreateSessionPayload }
+  | { action: 'confirm'; payload: GuestBookingRequestConfirmSessionPayload }
+)
+const clientResolution = ref<ClientResolutionContext | null>(null)
+const clientResolutionCandidates = ref<GuestRequestClientCandidates | null>(null)
+const clientResolutionChoice = ref<number | 'new' | null>(null)
+const clientResolutionCreateConfirmation = ref(false)
+const clientResolutionLoading = ref(false)
+const clientResolutionSaving = ref(false)
+const clientResolutionError = ref('')
+const clientResolutionContent = ref<HTMLElement | null>(null)
+let clientResolutionGeneration = 0
+let resolutionReturnFocus: HTMLElement | null = null
+let disposed = false
+const clientResolutionSchedule = computed(() => {
+  const context = clientResolution.value
+  if (!context) return ''
+  return context.action === 'create'
+    ? `${formatDateTime(context.payload.starts_at)} · ${formatDateTime(context.payload.ends_at)} · ${context.payload.timezone} · ${context.payload.session_format === 'online' ? 'Онлайн' : 'Офлайн'}`
+    : `${formatRequestedSlotRange(context.request)} · ${context.request.slot_snapshot_timezone} · ${context.request.session_format === 'online' ? 'Онлайн' : 'Офлайн'}`
+})
 const slotlessSessionDateDisplay = ref('')
 const slotlessDatePickerRef = ref<InstanceType<typeof DatePickerField> | null>(null)
 const slotlessProfileLoaded = ref(false)
@@ -1845,6 +1923,7 @@ async function submitCreate() {
 }
 
 async function approveRequest(request: GuestBookingRequestRecord) {
+  if (isRequestActionLoading(request.id, 'approve') || clientResolution.value) return
   if (!isPendingRequest(request.status)) return
   if (isSlotlessRequest(request)) {
     setRequestActionError(
@@ -1869,15 +1948,19 @@ async function approveRequest(request: GuestBookingRequestRecord) {
   }
 
   setRequestActionLoading(request.id, 'approve', true)
+  const payload: GuestBookingRequestConfirmSessionPayload = request.session_format === 'online' ? { meeting_url: meetingUrl } : {}
   try {
     await confirmCabinetGuestBookingRequestSession(
       request.id,
-      request.session_format === 'online' ? { meeting_url: meetingUrl } : {}
+      payload
     )
     toast.success('Запит погоджено. Сесію створено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
     setRequestActionError(request.id, localizeGuestRequestApiError(err, 'Не вдалося погодити запит без реєстрації.'))
+    if (getApiErrorCode(err) === 'CLIENT_RECORD_CONTACT_AMBIGUITY' && !disposed) {
+      void openClientResolution({ request, action: 'confirm', payload })
+    }
   } finally {
     setRequestActionLoading(request.id, 'approve', false)
   }
@@ -1898,6 +1981,7 @@ async function declineRequest(requestId: number, options?: { successMessage?: st
 }
 
 async function submitSlotlessSession() {
+  if (slotlessSessionSaving.value || clientResolution.value) return
   const request = slotlessSessionRequest.value
   if (!request) return
 
@@ -1918,15 +2002,16 @@ async function submitSlotlessSession() {
   slotlessSessionSaving.value = true
   setRequestActionError(request.id, '')
   setRequestActionLoading(request.id, 'create-session', true)
+  const payload: GuestBookingRequestCreateSessionPayload = {
+    starts_at: startsAtIso,
+    ends_at: endsAtIso,
+    timezone: resolvedSlotlessSessionTimezone(),
+    session_format: slotlessSessionDraft.value.session_format,
+    meeting_url: slotlessSessionDraft.value.meeting_url.trim(),
+    offline_location: slotlessSessionDraft.value.offline_location.trim(),
+  }
   try {
-    await createSessionFromCabinetGuestBookingRequest(request.id, {
-      starts_at: startsAtIso,
-      ends_at: endsAtIso,
-      timezone: resolvedSlotlessSessionTimezone(),
-      session_format: slotlessSessionDraft.value.session_format,
-      meeting_url: slotlessSessionDraft.value.meeting_url.trim(),
-      offline_location: slotlessSessionDraft.value.offline_location.trim(),
-    })
+    await createSessionFromCabinetGuestBookingRequest(request.id, payload)
     slotlessSessionSaving.value = false
     closeSlotlessSessionModal()
     toast.success('Запит погоджено. Сесію створено.')
@@ -1935,11 +2020,139 @@ async function submitSlotlessSession() {
     const message = localizeGuestRequestApiError(err, 'Не вдалося створити сесію.')
     slotlessSessionError.value = message
     setRequestActionError(request.id, message)
+    if (getApiErrorCode(err) === 'CLIENT_RECORD_CONTACT_AMBIGUITY' && !disposed) {
+      void openClientResolution({ request, action: 'create', payload })
+    }
   } finally {
     slotlessSessionSaving.value = false
     setRequestActionLoading(request.id, 'create-session', false)
   }
 }
+
+function closeClientResolution() {
+  if (clientResolutionSaving.value) return
+  ++clientResolutionGeneration
+  clientResolution.value = null
+  clientResolutionCandidates.value = null
+  clientResolutionChoice.value = null
+  clientResolutionCreateConfirmation.value = false
+  clientResolutionLoading.value = false
+  void nextTick(() => {
+    if (disposed) return
+    if (resolutionReturnFocus?.isConnected) resolutionReturnFocus.focus()
+    else document.getElementById('slotless-session-modal-title')?.closest('[role="dialog"]')?.querySelector<HTMLButtonElement>('button.btn')?.focus()
+  })
+}
+
+async function loadClientResolutionCandidates(refreshRequest = false) {
+  const context = clientResolution.value
+  if (!context) return
+  const generation = ++clientResolutionGeneration
+  clientResolutionCandidates.value = null
+  clientResolutionChoice.value = null
+  clientResolutionCreateConfirmation.value = false
+  clientResolutionLoading.value = true
+  try {
+    const [data, currentRequest] = await Promise.all([
+      fetchGuestRequestClientRecordCandidates(context.request.id),
+      refreshRequest ? fetchCabinetGuestBookingRequest(context.request.id) : Promise.resolve(context.request),
+    ])
+    if (disposed || generation !== clientResolutionGeneration || clientResolution.value !== context) return
+    if (data.guest_request_id !== context.request.id || currentRequest.id !== context.request.id || !isPendingRequest(currentRequest.status) || !data.resolution_token) throw new Error('Invalid candidate context')
+    context.request = currentRequest
+    clientResolutionCandidates.value = data
+  } catch {
+    if (disposed || generation !== clientResolutionGeneration) return
+    // Preserve Phase A's actionable fallback when discovery is unavailable.
+    const message = localizeGuestRequestApiError({ response: { data: { code: 'CLIENT_RECORD_CONTACT_AMBIGUITY' } } }, '')
+    setRequestActionError(context.request.id, message)
+    if (context.action === 'create') slotlessSessionError.value = message
+    clientResolutionSaving.value = false
+    closeClientResolution()
+  } finally {
+    if (!disposed && generation === clientResolutionGeneration) clientResolutionLoading.value = false
+  }
+}
+
+async function openClientResolution(context: ClientResolutionContext) {
+  resolutionReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  clientResolution.value = context
+  clientResolutionError.value = ''
+  await nextTick()
+  clientResolutionContent.value?.querySelector<HTMLElement>('#client-resolution-title')?.focus()
+  await loadClientResolutionCandidates()
+}
+
+function continueClientResolution() {
+  if (clientResolutionSaving.value) return
+  if (clientResolutionChoice.value === 'new') {
+    clientResolutionCreateConfirmation.value = true
+    void nextTick(() => clientResolutionContent.value?.querySelector<HTMLButtonElement>('.actions-row button')?.focus())
+  } else {
+    void submitClientResolution(false)
+  }
+}
+
+async function submitClientResolution(confirmNew: boolean) {
+  const context = clientResolution.value
+  const data = clientResolutionCandidates.value
+  const choice = clientResolutionChoice.value
+  if (!context || !data || choice === null || clientResolutionSaving.value || clientResolutionLoading.value) return
+  if (choice === 'new' && (!confirmNew || !clientResolutionCreateConfirmation.value)) return
+  const resolution: GuestRequestClientResolution = choice === 'new'
+    ? { mode: 'create_new', confirmed: true, resolution_token: data.resolution_token }
+    : { mode: 'select_existing', client_record_id: choice, resolution_token: data.resolution_token }
+  const generation = clientResolutionGeneration
+  clientResolutionSaving.value = true
+  clientResolutionError.value = ''
+  const action = context.action === 'create' ? 'create-session' : 'approve'
+  setRequestActionLoading(context.request.id, action, true)
+  try {
+    if (context.action === 'create') {
+      await createSessionFromCabinetGuestBookingRequest(context.request.id, { ...context.payload, client_resolution: resolution })
+    } else {
+      await confirmCabinetGuestBookingRequestSession(context.request.id, { ...context.payload, client_resolution: resolution })
+    }
+    if (disposed || generation !== clientResolutionGeneration) return
+    clientResolutionSaving.value = false
+    closeClientResolution()
+    if (context.action === 'create') closeSlotlessSessionModal()
+    toast.success('Запит погоджено. Сесію створено.')
+    await Promise.all([loadGuestRequests(), loadSessions()])
+  } catch (err) {
+    if (disposed || generation !== clientResolutionGeneration) return
+    const code = getApiErrorCode(err)
+    if (code === 'CLIENT_RECORD_SELECTION_STALE' || code === 'CLIENT_RECORD_CONTACT_AMBIGUITY') {
+      clientResolutionError.value = 'Картки або дані запиту змінилися. Перевірте оновлений список і оберіть картку знову.'
+      await loadClientResolutionCandidates(true)
+    } else {
+      clientResolutionError.value = localizeGuestRequestApiError(err, 'Не вдалося створити сесію.')
+      setRequestActionError(context.request.id, clientResolutionError.value)
+    }
+  } finally {
+    if (!disposed) {
+      clientResolutionSaving.value = false
+      setRequestActionLoading(context.request.id, action, false)
+    }
+  }
+}
+
+function handleClientResolutionKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') { event.preventDefault(); closeClientResolution(); return }
+  if (event.key !== 'Tab') return
+  const controls = Array.from(clientResolutionContent.value?.querySelectorAll<HTMLElement>('button, input, [tabindex="0"]') || [])
+    .filter((element) => !element.matches(':disabled'))
+  const first = controls[0]
+  const last = controls[controls.length - 1]
+  if (!first || !last) return
+  if (event.shiftKey && (document.activeElement === first || !controls.includes(document.activeElement as HTMLElement))) {
+    event.preventDefault(); last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault(); first.focus()
+  }
+}
+
+onBeforeUnmount(() => { disposed = true; ++clientResolutionGeneration })
 
 onMounted(async () => {
   await Promise.all([loadSessions(), loadGuestRequests(), loadGuestQuota()])
@@ -2417,6 +2630,20 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 12px;
 }
+
+.client-resolution {
+  width: min(620px, calc(100vw - 36px));
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.client-resolution__context p { margin: 6px 0; }
+.client-resolution__choices { display: grid; gap: 10px; padding: 0; border: 0; min-width: 0; }
+.client-resolution__choices legend { margin-bottom: 10px; }
+.client-resolution__choice { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 12px; border: 1px solid var(--pc-border); border-radius: var(--pc-radius-card); cursor: pointer; }
+.client-resolution__choice > span { display: grid; gap: 4px; }
+.client-resolution__choice input { flex-shrink: 0; margin-top: 4px; }
+.client-resolution__choice:focus-within { outline: 2px solid var(--pc-text); outline-offset: 2px; }
 
 .request-session-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));

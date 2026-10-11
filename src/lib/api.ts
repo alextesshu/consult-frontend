@@ -3464,6 +3464,28 @@ export type GuestBookingRequestApproveResponse = {
   invite: GuestBookingRequestInviteSnapshot | null
 }
 
+export type GuestRequestClientResolution =
+  | { mode: 'select_existing'; client_record_id: number; resolution_token: string }
+  | { mode: 'create_new'; confirmed: true; resolution_token: string }
+
+export type GuestRequestClientCandidates = {
+  guest_request_id: number
+  resolution_token: string
+  candidates: {
+    id: number
+    display_name: string
+    matching_contacts: { type: 'email' | 'phone' | 'telegram'; value: string }[]
+    last_completed_session_at: string | null
+    exact_name_match: boolean
+  }[]
+}
+
+export type GuestBookingRequestConfirmSessionPayload = {
+  meeting_url?: string | null
+  offline_location_snapshot?: string | null
+  client_resolution?: GuestRequestClientResolution
+}
+
 export type GuestBookingRequestCreateSessionPayload = {
   starts_at: string
   ends_at: string
@@ -3471,6 +3493,7 @@ export type GuestBookingRequestCreateSessionPayload = {
   session_format: SessionFormat
   meeting_url?: string
   offline_location?: string
+  client_resolution?: GuestRequestClientResolution
 }
 
 export type GuestBookingRequestCreateSessionResponse = {
@@ -4079,12 +4102,24 @@ export async function approveCabinetGuestBookingRequest(
 
 export async function confirmCabinetGuestBookingRequestSession(
   requestId: number,
-  payload?: { meeting_url?: string | null; offline_location_snapshot?: string | null }
+  payload?: GuestBookingRequestConfirmSessionPayload
 ): Promise<GuestBookingRequestConfirmSessionResponse> {
   const resp = await http.post<GuestBookingRequestConfirmSessionResponse>(
     `/cabinet/guest-booking-requests/${requestId}/confirm-session/`,
     payload ?? {}
   )
+  return resp.data
+}
+
+export async function fetchGuestRequestClientRecordCandidates(requestId: number): Promise<GuestRequestClientCandidates> {
+  const resp = await http.get<GuestRequestClientCandidates>(
+    `/cabinet/guest-booking-requests/${requestId}/client-record-candidates/`
+  )
+  return resp.data
+}
+
+export async function fetchCabinetGuestBookingRequest(requestId: number): Promise<GuestBookingRequestRecord> {
+  const resp = await http.get<GuestBookingRequestRecord>(`/cabinet/guest-booking-requests/${requestId}/`)
   return resp.data
 }
 
