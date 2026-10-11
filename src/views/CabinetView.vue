@@ -23,10 +23,12 @@
 
     <section v-if="showExpiredTrialNotice" class="panel expired-trial-notice" role="alert" aria-labelledby="expired-trial-title">
       <h2 id="expired-trial-title">Тестовий доступ до Pro завершився</h2>
-      <p>Ваш тариф змінено на Start. Email-нагадування про сесії вимкнені. Нагадування в застосунку залишаються.</p>
+      <p>Ваш простір перейшов на тариф Start. Частина можливостей Pro більше недоступна — зокрема більший ліміт активних клієнтів, email-нагадування про сесії та власний блог.</p>
+      <p>Нагадування в застосунку залишаються доступними.</p>
       <div class="expired-trial-notice__actions">
-        <RouterLink class="btn" to="/cabinet/billing" @click="dismissExpiredTrialNotice">Перейти на Pro</RouterLink>
-        <button class="btn btn--ghost" type="button" @click="dismissExpiredTrialNotice">Закрити повідомлення</button>
+        <RouterLink class="btn" to="/cabinet/billing" @click="dismissExpiredTrialNotice">Повернути Pro</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/cabinet/billing" @click="dismissExpiredTrialNotice">Дізнатися більше</RouterLink>
+        <button class="btn btn--ghost" type="button" @click="dismissExpiredTrialNotice">Залишитися на Start</button>
       </div>
     </section>
 

@@ -2119,7 +2119,7 @@ describe('CabinetView', () => {
 
 describe('expired trial reminder notice', () => {
   const endsAt = '2026-10-09T10:00:00Z'
-  const copy = 'Ваш тариф змінено на Start. Email-нагадування про сесії вимкнені. Нагадування в застосунку залишаються.'
+  const copy = 'Ваш простір перейшов на тариф Start. Частина можливостей Pro більше недоступна — зокрема більший ліміт активних клієнтів, email-нагадування про сесії та власний блог.'
   function setup(state: 'EXPIRED' | 'EXPIRING' | null = 'EXPIRED', end = endsAt) {
     mockMe.value = createMePayload()
     mockLoadMe.mockResolvedValue(undefined)
@@ -2129,12 +2129,17 @@ describe('expired trial reminder notice', () => {
       ? { complimentary_trial_warning: state ? { state, ends_at: end } : null } as any : [])
   }
   beforeEach(() => { window.localStorage.clear(); setup() })
-  it.each(['dismiss', 'cta'])('persists %s for this user and trial only', async (action) => {
+  it.each(['dismiss', 'cta', 'details'])('persists %s for this user and trial only', async (action) => {
     const view = renderView()
     await view.findByText(copy)
-    const control = action === 'dismiss' ? view.getByRole('button', { name: 'Закрити повідомлення' }) : view.getByRole('link', { name: 'Перейти на Pro' })
-    if (action === 'cta') expect(control).toHaveAttribute('href', '/cabinet/billing')
-    if (action === 'cta') control.addEventListener('click', (event) => event.preventDefault())
+    expect(view.getByText('Нагадування в застосунку залишаються доступними.')).toBeInTheDocument()
+    expect(view.getByRole('heading', { name: 'Тестовий доступ до Pro завершився' })).toBeInTheDocument()
+    expect(view.getByRole('link', { name: 'Повернути Pro' })).toHaveAttribute('href', '/cabinet/billing')
+    expect(view.getByRole('link', { name: 'Дізнатися більше' })).toHaveAttribute('href', '/cabinet/billing')
+    expect(view.getByRole('button', { name: 'Залишитися на Start' })).toBeInTheDocument()
+    const control = action === 'dismiss' ? view.getByRole('button', { name: 'Залишитися на Start' }) : view.getByRole('link', { name: action === 'cta' ? 'Повернути Pro' : 'Дізнатися більше' })
+    if (action !== 'dismiss') expect(control).toHaveAttribute('href', '/cabinet/billing')
+    if (action !== 'dismiss') control.addEventListener('click', (event) => event.preventDefault())
     await fireEvent.click(control)
     expect(view.queryByText(copy)).not.toBeInTheDocument()
     const key = window.localStorage.key(0)!
@@ -2154,7 +2159,7 @@ describe('expired trial reminder notice', () => {
   it('does not share dismissal with another user', async () => {
     const view = renderView()
     await view.findByText(copy)
-    await fireEvent.click(view.getByRole('button', { name: 'Закрити повідомлення' }))
+    await fireEvent.click(view.getByRole('button', { name: 'Залишитися на Start' }))
     view.unmount()
     setup()
     mockMe.value.user.id = 2
@@ -2173,7 +2178,7 @@ describe('expired trial reminder notice', () => {
     try {
       const view = renderView()
       await view.findByText(copy)
-      await fireEvent.click(view.getByRole('button', { name: 'Закрити повідомлення' }))
+      await fireEvent.click(view.getByRole('button', { name: 'Залишитися на Start' }))
       expect(view.queryByText(copy)).not.toBeInTheDocument()
     } finally { read.mockRestore(); write.mockRestore() }
   })
