@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ExternalSessionsView from './ExternalSessionsView.vue'
 import {
   apiGet,
@@ -1473,6 +1473,62 @@ describe('ExternalSessionsView', () => {
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Запропонувати інший час' })).not.toBeInTheDocument()
   })
 
+  describe('future slot-less session defaults', () => {
+    afterEach(() => vi.useRealTimers())
+
+    async function openForm() {
+      mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+        buildGuestRequest({ slot_id: null, has_slot: false, is_slotless_request: true,
+          requested_slot_start: null, requested_slot_end: null }),
+      ] as any)
+      renderView()
+      await screen.findByText('Запит без обраного часу')
+      await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+      return within(await screen.findByRole('dialog', { name: 'Створити сесію' }))
+    }
+
+    it.each([
+      ['2026-10-12T14:46:00Z', 'Europe/Kyiv', '12.10.2026', '17:50', '2026-10-12T14:50:00.000Z'],
+      ['2026-10-12T20:50:00Z', 'Europe/Kyiv', '13.10.2026', '07:00', '2026-10-13T04:00:00.000Z'],
+      ['2026-10-12T21:01:00Z', 'Europe/Kyiv', '13.10.2026', '07:00', '2026-10-13T04:00:00.000Z'],
+      ['2026-10-12T00:46:00Z', 'America/New_York', '11.10.2026', '20:50', '2026-10-12T00:50:00.000Z'],
+      ['2026-10-25T15:46:00Z', 'Europe/Kyiv', '25.10.2026', '17:50', '2026-10-25T15:50:00.000Z'],
+    ])('chooses a future valid default at %s in %s', async (now, timezone, date, time, iso) => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date(now))
+      mockedFetchSpecialistProfile.mockResolvedValue({ standard_session_duration_minutes: 50, timezone } as any)
+      const modal = await openForm()
+      await waitFor(() => {
+        expect(modal.getByLabelText('Дата')).toHaveValue(date)
+        expect(modal.getByLabelText('Час початку')).toHaveValue(time)
+      })
+      await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+      await waitFor(() => expect(mockedCreateSessionFromCabinetGuestBookingRequest).toHaveBeenCalledWith(
+        51, expect.objectContaining({ starts_at: iso, timezone })
+      ))
+      expect(Date.parse(iso)).toBeGreaterThan(Date.now())
+    })
+
+    it('preserves manual date, time and other draft fields when the profile arrives late', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-10-12T14:46:00Z'))
+      const profile = createDeferred<any>()
+      mockedFetchSpecialistProfile.mockReturnValueOnce(profile.promise)
+      const modal = await openForm()
+      await fireEvent.update(modal.getByLabelText('Дата'), '15.10.2026')
+      await fireEvent.update(modal.getByLabelText('Час початку'), '18:20')
+      await fireEvent.update(modal.getByLabelText('Тривалість'), '80')
+      await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/manual')
+      profile.resolve({ standard_session_duration_minutes: 60, timezone: 'America/New_York' })
+      await waitFor(() => expect(modal.getByLabelText('Тривалість')).toHaveValue(80))
+      await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+      await waitFor(() => expect(mockedCreateSessionFromCabinetGuestBookingRequest).toHaveBeenCalledWith(
+        51, expect.objectContaining({ starts_at: '2026-10-15T22:20:00.000Z', ends_at: '2026-10-15T23:40:00.000Z',
+          timezone: 'America/New_York', meeting_url: 'https://meet.example.com/manual' })
+      ))
+    })
+  })
+
   it('creates manual session from slot-less guest request and refreshes data', async () => {
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
       buildGuestRequest({
@@ -1526,8 +1582,8 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.google.com/manual')
     await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
 
-    const expectedStartsAt = new Date('2099-06-20T09:10').toISOString()
-    const expectedEndsAt = new Date(new Date('2099-06-20T09:10').getTime() + 50 * 60000).toISOString()
+    const expectedStartsAt = '2099-06-20T06:10:00.000Z'
+    const expectedEndsAt = '2099-06-20T07:00:00.000Z'
 
     await waitFor(() => {
       expect(mockedCreateSessionFromCabinetGuestBookingRequest).toHaveBeenCalledWith(62, {
