@@ -1322,6 +1322,9 @@ function localizeGuestRequestActionError(message: string) {
 
 function localizeGuestRequestApiError(err: unknown, fallback: string) {
   const code = getApiErrorCode(err)
+  if (code === 'CLIENT_RECORD_CONTACT_AMBIGUITY') {
+    return 'Не вдалося однозначно визначити картку клієнта: є кілька активних карток із цим контактом. Перевірте дублікати карток клієнта перед створенням сесії.'
+  }
   const detailText = apiErrorDetailText(err)
   if (isPastSessionTimeErrorText(detailText)) {
     return PAST_SESSION_TIME_ERROR_MESSAGE

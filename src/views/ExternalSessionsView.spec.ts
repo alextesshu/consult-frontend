@@ -1629,7 +1629,46 @@ describe('ExternalSessionsView', () => {
     expect(toast.success).toHaveBeenCalledWith('Запит відхилено.')
   })
 
-  it('shows Ukrainian conflict error for slot-less create-session failure', async () => {
+  it.each(['create', 'confirm'])('shows contact ambiguity without overlap wording for %s-session', async (action) => {
+    const isCreate = action === 'create'
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64, guest_name: 'Ambiguous Guest', client_name: 'Ambiguous Guest',
+        ...(isCreate ? { slot_id: null, has_slot: false, is_slotless_request: true,
+          requested_slot_start: null, requested_slot_end: null } : {}),
+      }),
+    ] as any)
+    const rejection = { response: { status: 409, data: {
+      code: 'CLIENT_RECORD_CONTACT_AMBIGUITY',
+      detail: 'Several active client records match this guest contact.',
+    } } }
+    const mutation = isCreate ? mockedCreateSessionFromCabinetGuestBookingRequest : mockedConfirmCabinetGuestBookingRequestSession
+    mutation.mockRejectedValueOnce(rejection)
+    renderView()
+    await screen.findByText(isCreate ? 'Запит без обраного часу' : 'Ambiguous Guest')
+    if (isCreate) {
+      await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+      const modal = within(await screen.findByRole('dialog', { name: 'Створити сесію' }))
+      await fireEvent.update(modal.getByLabelText('Дата'), '20.06.2099')
+      await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+      await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+    } else {
+      const card = getGuestRequestCardByName('Ambiguous Guest')
+      if (!card.meetingInput) throw new Error('Expected meeting input')
+      await fireEvent.update(card.meetingInput, 'https://meet.example.com/ambiguity')
+      await fireEvent.click(card.approveButton)
+    }
+    const copy = 'Не вдалося однозначно визначити картку клієнта: є кілька активних карток із цим контактом. Перевірте дублікати карток клієнта перед створенням сесії.'
+    expect(await screen.findAllByText(copy)).toHaveLength(isCreate ? 2 : 1)
+    expect(mutation).toHaveBeenCalledTimes(1)
+    expect(mutation).toHaveBeenCalledWith(64, expect.any(Object))
+    expect(screen.queryByText(/цей час перетинається/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Several active client records match this guest contact.')).not.toBeInTheDocument()
+    expect(mockedGetApiErrorMessage).not.toHaveBeenCalledWith(rejection, expect.any(String))
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it.each(['MANUAL_SESSION_TIME_CONFLICT', 'SESSION_OVERLAP'])('shows Ukrainian conflict error for slot-less create-session %s', async (code) => {
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
       buildGuestRequest({
         id: 64,
@@ -1643,8 +1682,9 @@ describe('ExternalSessionsView', () => {
     ] as any)
     mockedCreateSessionFromCabinetGuestBookingRequest.mockRejectedValueOnce({
       response: {
+        status: 409,
         data: {
-          code: 'MANUAL_SESSION_TIME_CONFLICT',
+          code,
         },
       },
     })
