@@ -1,5 +1,6 @@
+import { flushPromises } from '@vue/test-utils'
 ﻿import { fireEvent, render, waitFor, within } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import {
   apiGet,
@@ -186,6 +187,8 @@ async function openOnboardingDetails(container: Element) {
 
 describe('CabinetView', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 10, 7, 0, 0))
     mockedApiGet.mockReset()
     mockedFetchChatThreads.mockReset()
     mockedFetchSpecialistOnboardingState.mockReset()
@@ -201,6 +204,10 @@ describe('CabinetView', () => {
       cta_target: null,
     } as any)
     mockedFetchChatThreads.mockResolvedValue([])
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders guest quota row in plan metrics when guest entitlement fields are available', async () => {
@@ -2107,5 +2114,72 @@ describe('CabinetView', () => {
       expect(mockedApiGet.mock.calls.filter(([url]) => url === '/cabinet/practice-analytics/')).toHaveLength(4)
       expect(view.container).not.toHaveTextContent('Цей місяць')
     })
+  })
+})
+
+describe('expired trial reminder notice', () => {
+  const endsAt = '2026-10-09T10:00:00Z'
+  const copy = 'Ваш простір перейшов на тариф Start. Частина можливостей Pro більше недоступна — зокрема більший ліміт активних клієнтів, email-нагадування про сесії та власний блог.'
+  function setup(state: 'EXPIRED' | 'EXPIRING' | null = 'EXPIRED', end = endsAt) {
+    mockMe.value = createMePayload()
+    mockLoadMe.mockResolvedValue(undefined)
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({ readiness: true, missing_items: [], warnings: [], next_actions: [] } as any)
+    mockedApiGet.mockImplementation(async (url) => url === '/cabinet/entitlements/'
+      ? { complimentary_trial_warning: state ? { state, ends_at: end } : null } as any : [])
+  }
+  beforeEach(() => { window.localStorage.clear(); setup() })
+  it.each(['dismiss', 'cta', 'details'])('persists %s for this user and trial only', async (action) => {
+    const view = renderView()
+    await view.findByText(copy)
+    expect(view.getByText('Нагадування в застосунку залишаються доступними.')).toBeInTheDocument()
+    expect(view.getByRole('heading', { name: 'Тестовий доступ до Pro завершився' })).toBeInTheDocument()
+    expect(view.getByRole('link', { name: 'Повернути Pro' })).toHaveAttribute('href', '/cabinet/billing')
+    expect(view.getByRole('link', { name: 'Дізнатися більше' })).toHaveAttribute('href', '/cabinet/billing')
+    expect(view.getByRole('button', { name: 'Залишитися на Start' })).toBeInTheDocument()
+    const control = action === 'dismiss' ? view.getByRole('button', { name: 'Залишитися на Start' }) : view.getByRole('link', { name: action === 'cta' ? 'Повернути Pro' : 'Дізнатися більше' })
+    if (action !== 'dismiss') expect(control).toHaveAttribute('href', '/cabinet/billing')
+    if (action !== 'dismiss') control.addEventListener('click', (event) => event.preventDefault())
+    await fireEvent.click(control)
+    expect(view.queryByText(copy)).not.toBeInTheDocument()
+    const key = window.localStorage.key(0)!
+    expect(key).toContain(':1:')
+    expect(decodeURIComponent(key)).toContain(endsAt)
+    expect(window.localStorage.getItem(key)).toBe('1')
+    view.unmount()
+    const same = renderView()
+    await flushPromises()
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/'))
+    expect(same.queryByText(copy)).not.toBeInTheDocument()
+    same.unmount()
+    setup('EXPIRED', '2026-11-09T10:00:00Z')
+    const different = renderView()
+    expect(await different.findByText(copy)).toBeInTheDocument()
+  })
+  it('does not share dismissal with another user', async () => {
+    const view = renderView()
+    await view.findByText(copy)
+    await fireEvent.click(view.getByRole('button', { name: 'Залишитися на Start' }))
+    view.unmount()
+    setup()
+    mockMe.value.user.id = 2
+    expect(await renderView().findByText(copy)).toBeInTheDocument()
+  })
+  it.each(['EXPIRING', null] as const)('does not show expired notice for %s', async (state) => {
+    setup(state)
+    const view = renderView()
+    await flushPromises()
+    await waitFor(() => expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/'))
+    expect(view.queryByText(copy)).not.toBeInTheDocument()
+  })
+  it('remains usable when localStorage is unavailable', async () => {
+    const read = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+    const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    try {
+      const view = renderView()
+      await view.findByText(copy)
+      await fireEvent.click(view.getByRole('button', { name: 'Залишитися на Start' }))
+      expect(view.queryByText(copy)).not.toBeInTheDocument()
+    } finally { read.mockRestore(); write.mockRestore() }
   })
 })

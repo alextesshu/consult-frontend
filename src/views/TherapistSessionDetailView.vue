@@ -13,6 +13,10 @@
 
     <template v-else-if="session">
       <section class="panel panel--summary">
+        <p v-if="sessionReminderNotice" class="detail-meta" role="status">
+          {{ sessionReminderNotice.text }}
+          <RouterLink v-if="sessionReminderNotice.route" :to="sessionReminderNotice.route">{{ sessionReminderNotice.link }}</RouterLink>
+        </p>
         <div class="panel__header">
           <div>
             <h2 class="panel__title">{{ statusLabel(session) }}</h2>
@@ -862,6 +866,8 @@ import { useRoute, useRouter } from 'vue-router'
 import DatePickerField from '../components/DatePickerField.vue'
 import TimeSelectField from '../components/TimeSelectField.vue'
 import {
+  fetchNotificationSettings,
+  type NotificationSettings,
   apiGet,
   apiPatch,
   apiPost,
@@ -1127,6 +1133,43 @@ const toast = useToast()
 const sessionId = computed(() => Number(route.params.id))
 const hasValidSessionId = computed(() => Number.isInteger(sessionId.value) && sessionId.value > 0)
 const session = ref<SessionDetail | null>(null)
+const reminderSettings = ref<NotificationSettings | null>(null)
+const upcomingReminderSession = computed(() => {
+  const current = session.value
+  if (!current || !['SCHEDULED', 'CONFIRMED'].includes(current.status)) return false
+  return new Date(getSessionStartAt(current) || '').getTime() > Date.now()
+})
+const sessionReminderNotice = computed(() => {
+  if (!upcomingReminderSession.value || !reminderSettings.value) return null
+  const settings = reminderSettings.value
+  if (settings.email_session_reminders_available === false) {
+    return { text: 'Email-нагадування не надсилаються на тарифі Start.', route: '/cabinet/billing', link: 'Перейти на Pro' }
+  }
+  if (settings.email_session_reminders_available !== true) return null
+  if (settings.notify_session_reminders_email === false) {
+    return { text: 'Email-нагадування вимкнені в налаштуваннях.', route: '/cabinet/settings/notifications', link: 'Налаштувати сповіщення' }
+  }
+  if (settings.notify_session_reminders_email !== true) return null
+  const current = session.value!
+  const hasClientEmail = [current.client_contact_email, current.client_account_email, current.client_email]
+    .some((email) => typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+  return { text: hasClientEmail
+    ? 'Email-нагадування активні: за 24 години та за 1 годину.'
+    : 'Email клієнта не вказаний — клієнт не отримає email-нагадування.', route: null, link: '' }
+})
+let reminderSettingsRequest = 0
+async function loadSessionReminderSettings() {
+  const request = ++reminderSettingsRequest
+  reminderSettings.value = null
+  if (!upcomingReminderSession.value) return
+  try {
+    const settings = await fetchNotificationSettings()
+    if (request === reminderSettingsRequest) reminderSettings.value = settings
+  } catch {
+    // Optional reminder context must not block session actions.
+  }
+}
+
 const loading = ref(false)
 const error = ref('')
 const pageError = ref('')
@@ -2145,6 +2188,8 @@ async function loadSession() {
     pageError.value = 'Некоректний ідентифікатор сесії.'
     return
   }
+  reminderSettingsRequest += 1
+  reminderSettings.value = null
   loading.value = true
   error.value = ''
   pageError.value = ''
@@ -2152,6 +2197,7 @@ async function loadSession() {
   try {
     const nextSession = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = nextSession
+    void loadSessionReminderSettings()
     syncPaymentResolutionDraft(nextSession)
   } catch (err: any) {
     session.value = null

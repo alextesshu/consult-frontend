@@ -612,6 +612,19 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.queryByText('Тестовий доступ до Pro завершується')).not.toBeInTheDocument()
   })
 
+  it('uses the own-blog terminology for author_journal capability', async () => {
+    setCurrentPlan('START', {
+      features: [{ code: 'author_journal', available: false, required_plan: 'PRO', reason: 'Доступно у тарифі Pro' }],
+    })
+    const view = renderView()
+    await waitFor(() => {
+      const row = view.container.querySelector('.feature-row')
+      expect(row).toHaveTextContent('Власний блог')
+      expect(row).toHaveTextContent('Доступно у тарифі Pro')
+    })
+    expect(screen.queryByText('Публікації у профілі')).not.toBeInTheDocument()
+  })
+
   it('shows an expiring complimentary trial warning with local date and Pro CTA', async () => {
     setCurrentPlan('START', {
       plan: 'PRO',
@@ -629,6 +642,7 @@ describe('BillingView downgrade semantics', () => {
     })
 
     expect(screen.getByText(/15\.09\.2026.*13:30/)).toBeInTheDocument()
+    expect(screen.getByText(/Email-нагадування про сесії вимкнуться; нагадування в застосунку залишаться/)).toBeInTheDocument()
     const button = screen.getByRole('button', { name: 'Перейти на Pro' })
     await fireEvent.click(button)
     expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
@@ -655,7 +669,14 @@ describe('BillingView downgrade semantics', () => {
     expect(
       screen.getAllByText(/Поточна практика, клієнти та сесії збережені/)
     ).toHaveLength(1)
-    expect(screen.getByRole('button', { name: 'Продовжити Pro' })).toBeInTheDocument()
+    expect(screen.getByText('Ваш простір перейшов на тариф Start. Ви можете й надалі вести консультаційну практику, але порівняно з Pro тепер діють такі обмеження:')).toBeInTheDocument()
+    expect(screen.getByText('до 3 активних клієнтів замість 20;')).toBeInTheDocument()
+    expect(screen.getByText('email-нагадування про сесії для вас і клієнтів недоступні;')).toBeInTheDocument()
+    expect(screen.getByText('власний блог недоступний.')).toBeInTheDocument()
+    expect(screen.getByText('Нагадування в застосунку залишаються доступними.')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Повернути Pro' })).toHaveLength(1)
+    await fireEvent.click(screen.getByRole('button', { name: 'Повернути Pro' }))
+    expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({ requested_plan: 'PRO', note: 'upgrade_from:START' })
     expect(screen.queryByRole('button', { name: 'Перейти на Pro' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Подати заявку на Pro' })).not.toBeInTheDocument()
   })

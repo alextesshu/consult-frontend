@@ -33,6 +33,14 @@
           <p v-if="complimentaryTrialWarningCopy" class="complimentary-trial-warning__copy">
             {{ complimentaryTrialWarningCopy }}
           </p>
+          <template v-if="complimentaryTrialWarning.state === 'EXPIRED'">
+            <ul>
+              <li>до 3 активних клієнтів замість 20;</li>
+              <li>email-нагадування про сесії для вас і клієнтів недоступні;</li>
+              <li>власний блог недоступний.</li>
+            </ul>
+            <p class="complimentary-trial-warning__copy">Нагадування в застосунку залишаються доступними.</p>
+          </template>
         </div>
         <button
           v-if="complimentaryTrialWarning.state === 'EXPIRING'"
@@ -168,7 +176,7 @@
           :disabled="isRequesting || hasPendingRequest"
           @click="requestRenewal"
         >
-          Продовжити Pro
+          {{ complimentaryTrialWarning?.state === 'EXPIRED' ? 'Повернути Pro' : 'Продовжити Pro' }}
         </button>
         <button
           v-if="!hasCanonicalRenewalAction"
@@ -668,10 +676,9 @@ const complimentaryTrialWarningCopy = computed(() => {
   const warning = complimentaryTrialWarning.value
   if (!warning) return ''
   if (warning.state === 'EXPIRED') {
-    if (requiresRenewal.value) return ''
-    return 'Ваші клієнти, сесії та дані збережені. Зараз діють можливості тарифу Start; нове зростання та частина Pro-функцій обмежені.'
+    return 'Ваш простір перейшов на тариф Start. Ви можете й надалі вести консультаційну практику, але порівняно з Pro тепер діють такі обмеження:'
   }
-  return `Тестовий доступ до Pro завершується ${formatDateTime(warning.ends_at)}. Щоб зберегти Pro після цієї дати, подайте заявку на продовження.`
+  return `Тестовий доступ до Pro завершується ${formatDateTime(warning.ends_at)}. Щоб зберегти Pro після цієї дати, подайте заявку на продовження. Email-нагадування про сесії вимкнуться; нагадування в застосунку залишаться.`
 })
 
 const trialDateLines = computed(() => {
@@ -868,7 +875,7 @@ const featureLabels: Record<string, string> = {
   group_room: 'Групові зустрічі',
   group_room_broadcast: 'Трансляції',
   reminders: 'Нагадування',
-  author_journal: 'Публікації у профілі',
+  author_journal: 'Власний блог',
   public_events: 'Публічні події',
   priority_support: 'Розширена підтримка',
   guest_sessions: 'Сесії без реєстрації',

@@ -1,6 +1,7 @@
 ﻿import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  fetchNotificationSettings,
   apiGet,
   apiPatch,
   apiPost,
@@ -51,6 +52,7 @@ vi.mock('../composables/useToast', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  fetchNotificationSettings: vi.fn(),
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
@@ -240,6 +242,8 @@ describe('TherapistSessionDetailView', () => {
     mockRoute.query = {}
     mockRouter.push.mockReset()
     mockRouter.replace.mockReset()
+    vi.mocked(fetchNotificationSettings).mockReset()
+    vi.mocked(fetchNotificationSettings).mockResolvedValue({ email_session_reminders_available: true, notify_session_reminders_email: true } as any)
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
@@ -2485,5 +2489,67 @@ describe('TherapistSessionDetailView', () => {
     })
 
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+  })
+})
+
+describe('session email reminder context', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockRoute.params.id = '42'
+    mockRoute.query = {}
+    vi.mocked(fetchNotificationSettings).mockReset()
+    vi.mocked(fetchNotificationSettings).mockResolvedValue({
+      email_session_reminders_available: true, notify_session_reminders_email: true,
+    } as any)
+  })
+  it.each([
+    [false, true, 'client@example.com', 'Email-нагадування не надсилаються на тарифі Start.', '/cabinet/billing'],
+    [true, false, null, 'Email-нагадування вимкнені в налаштуваннях.', '/cabinet/settings/notifications'],
+    [true, true, null, 'Email клієнта не вказаний — клієнт не отримає email-нагадування.', null],
+    [true, true, 'client@example.com', 'Email-нагадування активні: за 24 години та за 1 годину.', null],
+  ])('uses backend capability %s and preference %s', async (available, enabled, email, copy, route) => {
+    vi.mocked(fetchNotificationSettings).mockResolvedValue({ email_session_reminders_available: available, notify_session_reminders_email: enabled } as any)
+    mockDetailContext(() => buildSession({ client_email: email }), { requests: [] })
+    const view = renderView()
+    expect(await view.findByText(copy)).toBeInTheDocument()
+    if (route) expect(view.getByRole('status').querySelector('a')).toHaveAttribute('href', route)
+  })
+  it.each(['client_contact_email', 'client_account_email', 'client_email'])('recognizes usable %s', async (field) => {
+    vi.mocked(fetchNotificationSettings).mockResolvedValue({ email_session_reminders_available: true, notify_session_reminders_email: true } as any)
+    mockDetailContext(() => buildSession({ client_email: null, [field]: 'usable@example.com' }), { requests: [] })
+    const view = renderView()
+    expect(await view.findByText('Email-нагадування активні: за 24 години та за 1 годину.')).toBeInTheDocument()
+  })
+  it.each(['COMPLETED', 'CANCELLED', 'NO_SHOW'])('omits reminder status for %s', async (status) => {
+    vi.mocked(fetchNotificationSettings).mockClear()
+    mockDetailContext(() => buildSession({ status }), { requests: [] })
+    const view = renderView()
+    await view.findByRole('heading', { name: 'Деталі сесії' })
+    await waitFor(() => expect(endpointCalls('/booking/sessions/42/')).toBeGreaterThan(0))
+    expect(view.queryByRole('status')).not.toBeInTheDocument()
+    expect(fetchNotificationSettings).not.toHaveBeenCalled()
+  })
+  it('does not show upcoming reminder context for a past confirmed session', async () => {
+    vi.mocked(fetchNotificationSettings).mockClear()
+    mockDetailContext(() => buildSession({ status: 'CONFIRMED', slot_start_at: '2000-06-15T10:00:00Z' }), { requests: [] })
+    const view = renderView()
+    await view.findByText('client@example.com')
+    expect(view.queryByRole('status')).not.toBeInTheDocument()
+    expect(fetchNotificationSettings).not.toHaveBeenCalled()
+  })
+  it('omits unknown capability rather than inferring Start', async () => {
+    vi.mocked(fetchNotificationSettings).mockResolvedValue({ notify_session_reminders_email: true } as any)
+    mockDetailContext(() => buildSession(), { requests: [] })
+    const view = renderView()
+    await view.findByText('client@example.com')
+    expect(view.queryByRole('status')).not.toBeInTheDocument()
+  })
+  it('omits optional context on fetch failure without breaking the session', async () => {
+    vi.mocked(fetchNotificationSettings).mockRejectedValue(new Error('offline'))
+    mockDetailContext(() => buildSession(), { requests: [] })
+    const view = renderView()
+    await view.findByText('client@example.com')
+    expect(view.queryByRole('status')).not.toBeInTheDocument()
+    expect(view.getByRole('button', { name: 'Підтвердити' })).toBeEnabled()
   })
 })

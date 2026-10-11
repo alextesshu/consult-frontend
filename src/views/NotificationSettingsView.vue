@@ -10,6 +10,8 @@
     <section class="panel">
       <div v-if="loading" class="muted">Завантаження...</div>
       <div v-else class="prefs">
+        <h2>У застосунку</h2>
+        <p class="muted">Ці сповіщення бачите ви у Pro Consult.</p>
         <label class="pref-item">
           <input v-model="form.notify_session_booked_in_app" type="checkbox" />
           <span>
@@ -41,8 +43,25 @@
         </label>
       </div>
 
+      <section v-if="!loading && settingsLoaded" class="prefs" aria-labelledby="email-reminders-title">
+        <h2 id="email-reminders-title">Email-нагадування про сесію</h2>
+        <label class="pref-item" :class="{ 'pref-item--disabled': form.email_session_reminders_available !== true }">
+          <input v-model="form.notify_session_reminders_email" type="checkbox"
+            :disabled="form.email_session_reminders_available !== true" />
+          <span>
+            <strong>Email-нагадування про сесію</strong>
+            <small v-if="form.email_session_reminders_available === true">За 24 години та за 1 годину — вам і клієнту, якщо у клієнта вказаний email.</small>
+          </span>
+        </label>
+        <template v-if="form.email_session_reminders_available === false">
+          <p class="muted">Email-нагадування недоступні на тарифі Start.</p>
+          <p class="muted">Нагадування в застосунку залишаються доступними.</p>
+          <RouterLink class="btn btn--ghost" to="/cabinet/billing">Перейти на Pro</RouterLink>
+        </template>
+      </section>
+
       <div class="actions">
-        <button class="btn" type="button" :disabled="saving || loading" @click="save">
+        <button class="btn" type="button" :disabled="saving || loading || !settingsLoaded" @click="save">
           {{ saving ? 'Зберігаємо...' : 'Зберегти' }}
         </button>
       </div>
@@ -60,17 +79,21 @@ import SettingsSubnav from '../components/SettingsSubnav.vue'
 const toast = useToast()
 const loading = ref(true)
 const saving = ref(false)
+const settingsLoaded = ref(false)
 const form = ref<NotificationSettings>({
   notify_session_booked_in_app: true,
   notify_session_confirmed_in_app: true,
   notify_session_starts_24h_in_app: true,
   notify_session_starts_1h_in_app: true,
+  notify_session_reminders_email: true,
+  email_session_reminders_available: false,
 })
 
 async function load() {
   loading.value = true
   try {
     form.value = await fetchNotificationSettings()
+    settingsLoaded.value = true
   } catch (err) {
     toast.error(getApiErrorMessage(err, 'Не вдалося завантажити налаштування сповіщень.'))
   } finally {
@@ -81,7 +104,13 @@ async function load() {
 async function save() {
   saving.value = true
   try {
-    form.value = await updateNotificationSettings(form.value)
+    form.value = await updateNotificationSettings({
+      notify_session_booked_in_app: form.value.notify_session_booked_in_app,
+      notify_session_confirmed_in_app: form.value.notify_session_confirmed_in_app,
+      notify_session_starts_24h_in_app: form.value.notify_session_starts_24h_in_app,
+      notify_session_starts_1h_in_app: form.value.notify_session_starts_1h_in_app,
+      notify_session_reminders_email: form.value.notify_session_reminders_email,
+    })
     toast.success('Налаштування сповіщень збережено.')
   } catch (err) {
     toast.error(getApiErrorMessage(err, 'Не вдалося зберегти налаштування сповіщень.'))
@@ -200,6 +229,11 @@ onMounted(load)
 
 .pref-item input[type="checkbox"] {
   accent-color: var(--pc-navy-900);
+}
+
+.pref-item--disabled {
+  cursor: not-allowed;
+  color: var(--pc-text-muted);
 }
 
 .pref-item strong {
