@@ -681,6 +681,7 @@
         <p v-if="clientResolutionError" class="form-error" role="alert">{{ clientResolutionError }}</p>
         <template v-if="!clientResolutionLoading && clientResolutionCandidates">
           <template v-if="!clientResolutionCreateConfirmation">
+            <p class="muted">{{ CLIENT_RECORD_CONTACT_AMBIGUITY_MESSAGE }}</p>
             <fieldset class="client-resolution__choices" :disabled="clientResolutionSaving">
               <legend>Яка картка відповідає цьому клієнту?</legend>
               <label v-for="candidate in clientResolutionCandidates.candidates" :key="candidate.id" class="client-resolution__choice">
@@ -1398,10 +1399,13 @@ function localizeGuestRequestActionError(message: string) {
   return normalized
 }
 
+const CLIENT_RECORD_CONTACT_AMBIGUITY_MESSAGE = 'Із цим контактом пов’язано кілька активних карток клієнта. Оберіть потрібну картку для створення сесії.'
+const CLIENT_RECORD_DISCOVERY_FAILURE_MESSAGE = 'Із цим контактом пов’язано кілька активних карток клієнта. Не вдалося завантажити список для вибору. Сесію не створено. Спробуйте ще раз.'
+
 function localizeGuestRequestApiError(err: unknown, fallback: string) {
   const code = getApiErrorCode(err)
   if (code === 'CLIENT_RECORD_CONTACT_AMBIGUITY') {
-    return 'Не вдалося однозначно визначити картку клієнта: є кілька активних карток із цим контактом. Перевірте дублікати карток клієнта перед створенням сесії.'
+    return CLIENT_RECORD_CONTACT_AMBIGUITY_MESSAGE
   }
   const detailText = apiErrorDetailText(err)
   if (isPastSessionTimeErrorText(detailText)) {
@@ -2063,8 +2067,8 @@ async function loadClientResolutionCandidates(refreshRequest = false) {
     clientResolutionCandidates.value = data
   } catch {
     if (disposed || generation !== clientResolutionGeneration) return
-    // Preserve Phase A's actionable fallback when discovery is unavailable.
-    const message = localizeGuestRequestApiError({ response: { data: { code: 'CLIENT_RECORD_CONTACT_AMBIGUITY' } } }, '')
+    // Do not offer selection when candidate discovery is unavailable.
+    const message = CLIENT_RECORD_DISCOVERY_FAILURE_MESSAGE
     setRequestActionError(context.request.id, message)
     if (context.action === 'create') slotlessSessionError.value = message
     clientResolutionSaving.value = false

@@ -1676,9 +1676,11 @@ describe('ExternalSessionsView', () => {
     return { view, dialog, mutation, originalPayload: mutation.mock.calls[0]?.[1] }
   }
 
-  it('renders original guest context and candidates without selecting an exact-name hint', async () => {
-    const { dialog } = await openResolutionPicker()
+  it.each(['create', 'confirm'] as const)('renders selection guidance and original guest context without selecting an exact-name hint for %s', async (action) => {
+    const { dialog } = await openResolutionPicker(action)
     await dialog.findByRole('radio', { name: 'Picker Guest' })
+    expect(dialog.getByText('Із цим контактом пов’язано кілька активних карток клієнта. Оберіть потрібну картку для створення сесії.')).toBeVisible()
+    expect(dialog.queryByText(/Перевірте дублікати/)).not.toBeInTheDocument()
     const context = dialog.getByRole('region', { name: 'Оригінальний запит' })
     expect(context).toHaveTextContent('Picker Guest')
     expect(context).toHaveTextContent('picker@example.test')
@@ -1838,7 +1840,7 @@ describe('ExternalSessionsView', () => {
     expect(mockedConfirmCabinetGuestBookingRequestSession).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['create', 'confirm'])('shows contact ambiguity without overlap wording for %s-session', async (action) => {
+  it.each(['create', 'confirm'])('shows truthful contact ambiguity fallback when candidate discovery fails for %s-session', async (action) => {
     const isCreate = action === 'create'
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
       buildGuestRequest({
@@ -1853,6 +1855,7 @@ describe('ExternalSessionsView', () => {
     } } }
     const mutation = isCreate ? mockedCreateSessionFromCabinetGuestBookingRequest : mockedConfirmCabinetGuestBookingRequestSession
     mutation.mockRejectedValueOnce(rejection)
+    mockedFetchGuestRequestClientRecordCandidates.mockRejectedValueOnce(new Error('Discovery unavailable'))
     renderView()
     await screen.findByText(isCreate ? 'Запит без обраного часу' : 'Ambiguous Guest')
     if (isCreate) {
@@ -1867,8 +1870,12 @@ describe('ExternalSessionsView', () => {
       await fireEvent.update(card.meetingInput, 'https://meet.example.com/ambiguity')
       await fireEvent.click(card.approveButton)
     }
-    const copy = 'Не вдалося однозначно визначити картку клієнта: є кілька активних карток із цим контактом. Перевірте дублікати карток клієнта перед створенням сесії.'
+    const copy = 'Із цим контактом пов’язано кілька активних карток клієнта. Не вдалося завантажити список для вибору. Сесію не створено. Спробуйте ще раз.'
     await waitFor(() => expect(screen.getAllByText(copy)).toHaveLength(isCreate ? 2 : 1))
+    expect(screen.queryByRole('dialog', { name: 'Оберіть картку клієнта' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Із цим контактом пов’язано кілька активних карток клієнта. Оберіть потрібну картку для створення сесії.')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Перевірте дублікати карток/)).not.toBeInTheDocument()
+    expect(mockedFetchGuestRequestClientRecordCandidates).toHaveBeenCalledWith(64)
     expect(mutation).toHaveBeenCalledTimes(1)
     expect(mutation).toHaveBeenCalledWith(64, expect.any(Object))
     expect(screen.queryByText(/цей час перетинається/)).not.toBeInTheDocument()
