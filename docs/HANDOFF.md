@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -8,7 +8,7 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-KAN-136 practice financial overview is production-closed, focused production acceptance PASS, and Jira Done. PR #40 released frontend source `2363e84d791382cb76d1144613fc1388a35476e5` with backend PR #41 / `b477429d5d013d458c3ce970ab6709cd1d597615`. The cabinet shows payment-state visibility for direct specialist payments, not bookkeeping or payment processing. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. Exact acceptance timestamps were not independently captured; no migration or new endpoint was introduced.
+KAN-137 automatic session reminders is production-closed, focused production acceptance PASS, and Jira Done. Backend production release `ce63f6ec349e53c4f0473e01bbbe32eef3628ffb` added the durable email-reminder preference and migration `booking.0095_therapistprofile_notify_session_reminders_email`; frontend PR #42 released as `2bb128b9cf9861e13ba97cb1787556fbc639e0ba`. Pro/Leader and active Pro trial access can use 24h/1h email reminders for specialist and client when eligible; Start keeps in-app reminders while email reminder capability remains visible but unavailable. Post-trial UX now explains the Start fallback and lost Pro capabilities without implying data loss. Release evidence is canonical in `docs/RELEASE_DEBT_REGISTER.md`; the closed phase is archived in `docs/PHASE_CLOSE_SUMMARIES.md`. KAN-143 remains a separate booking-conflict bug and must not be conflated with reminder delivery.
 
 
 KAN-82 adds the browser-only consent gate required before KAN-80 product
@@ -803,11 +803,12 @@ Frontend production-closure slice is now integrated:
 - KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
 - KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
 - KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
-- KAN-131, KAN-134, KAN-135, and KAN-136 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
+- KAN-143 — investigate the false conflict that can block session creation from a guest request despite visibly free schedule; distinguish schedule overlap, duplicate ClientRecord ambiguity, guest-resolution conflict, and timezone/date conversion before remediation.
+- KAN-131, KAN-134, KAN-135, KAN-136, and KAN-137 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
 
 ## Immediate Next Step
 
-Continue the agreed product order with KAN-137 reminders, then KAN-138 informed consent under separate approved scope. KAN-136 payment-state visibility is released; Pro Consult does not accept, process, or transfer consultation payments. Keep KAN-114 as separate tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
+Investigate KAN-143 as a separate evidence-first booking-conflict bug before changing runtime behavior; do not assume that the visible free slot is the actual failure source. KAN-138 informed consent remains the next planned product phase under separate approved scope. KAN-137 reminders is released; keep KAN-114 as tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
 
 ## Validation Commands
 
