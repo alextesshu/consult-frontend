@@ -869,6 +869,7 @@ const slotlessSessionDateDisplay = ref('')
 const slotlessDatePickerRef = ref<InstanceType<typeof DatePickerField> | null>(null)
 const slotlessProfileLoaded = ref(false)
 const slotlessProfileTimezone = ref('')
+const slotlessProfileDuration = ref(50)
 const slotlessSessionTimezone = ref(
   Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Kyiv'
 )
@@ -1507,13 +1508,6 @@ function normalizeCreateStartTime() {
   createDraft.value.start_time = normalizeTimeValue(createDraft.value.start_time)
 }
 
-function localDateInputValue(value: Date) {
-  const year = value.getFullYear()
-  const month = String(value.getMonth() + 1).padStart(2, '0')
-  const day = String(value.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 function closeSlotlessDatePicker() {
   slotlessDatePickerRef.value?.closeCalendar()
 }
@@ -1564,7 +1558,7 @@ function applySlotlessProfileDefaults(
   const duration = Number(profile.standard_session_duration_minutes)
   const profileTimezone = normalizeSlotlessTimezone(String(profile.timezone || '').trim())
   if (Number.isFinite(duration) && duration > 0 && duration <= 480) {
-    slotlessSessionDraft.value.duration_minutes = Math.round(duration)
+    slotlessProfileDuration.value = Math.round(duration)
   }
   if (profileTimezone) {
     slotlessProfileTimezone.value = profileTimezone
@@ -1577,26 +1571,72 @@ async function loadSlotlessProfileDefaults() {
     const profile = await fetchSpecialistProfile()
     applySlotlessProfileDefaults(profile)
   } catch {
-    if (!Number.isFinite(slotlessSessionDraft.value.duration_minutes) || slotlessSessionDraft.value.duration_minutes <= 0) {
-      slotlessSessionDraft.value.duration_minutes = 50
-    }
+    // Keep the safe defaults when the profile cannot be loaded.
   } finally {
     slotlessProfileLoaded.value = true
   }
 }
 
+function slotlessDateTimeParts(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: resolvedSlotlessSessionTimezone(),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value
+  return {
+    date: `${part('year')}-${part('month')}-${part('day')}`,
+    time: `${part('hour')}:${part('minute')}:${part('second')}`,
+  }
+}
+
+function combineSlotlessDateTimeToIso(dateValue: string, timeValue: string) {
+  const wallTime = Date.parse(`${dateValue}T${timeValue}:00Z`)
+  if (!Number.isFinite(wallTime)) return ''
+  let instant = wallTime
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const local = slotlessDateTimeParts(new Date(instant))
+    const offset = Date.parse(`${local.date}T${local.time}Z`) - instant
+    instant = wallTime - offset
+  }
+  const local = slotlessDateTimeParts(new Date(instant))
+  // Reject nonexistent local times rather than silently shifting the user's selection.
+  return local.date === dateValue && local.time === `${timeValue}:00`
+    ? new Date(instant).toISOString()
+    : ''
+}
+
+function futureSlotlessStart() {
+  const now = new Date()
+  let date = slotlessDateTimeParts(now).date
+  for (;;) {
+    for (const time of slotlessTimeOptions) {
+      const iso = combineSlotlessDateTimeToIso(date, time)
+      if (iso && Date.parse(iso) > now.getTime()) return { date, time }
+    }
+    const nextDay = new Date(`${date}T00:00:00Z`)
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1)
+    date = nextDay.toISOString().slice(0, 10)
+  }
+}
+
 function resetSlotlessSessionForm(request: GuestBookingRequestRecord) {
-  const duration = Number(request.duration_minutes || slotlessSessionDraft.value.duration_minutes || 50)
-  const startDate = localDateInputValue(new Date())
+  const duration = Number(request.duration_minutes || slotlessProfileDuration.value)
+  const start = futureSlotlessStart()
   slotlessSessionDraft.value = {
-    start_date: startDate,
-    start_time: '09:00',
+    start_date: start.date,
+    start_time: start.time,
     duration_minutes: Number.isFinite(duration) && duration > 0 ? Math.min(Math.round(duration), 480) : 50,
     session_format: request.session_format === 'offline' ? 'offline' : 'online',
     meeting_url: '',
     offline_location: request.offline_location_snapshot || '',
   }
-  slotlessSessionDateDisplay.value = formatIsoDateForDisplay(startDate)
+  slotlessSessionDateDisplay.value = formatIsoDateForDisplay(start.date)
   slotlessSessionTimezone.value = resolvedSlotlessSessionTimezone()
   slotlessSessionError.value = ''
 }
@@ -1607,8 +1647,24 @@ async function openSlotlessSessionModal(request: GuestBookingRequestRecord) {
   slotlessSessionSaving.value = false
   slotlessSessionError.value = ''
   resetSlotlessSessionForm(request)
+  const initialDraft = { ...slotlessSessionDraft.value }
+  const initialDateDisplay = slotlessSessionDateDisplay.value
   await loadSlotlessProfileDefaults()
-  resetSlotlessSessionForm(request)
+  if (!slotlessSessionModalOpen.value || slotlessSessionRequest.value !== request) return
+  slotlessSessionTimezone.value = resolvedSlotlessSessionTimezone()
+  if (
+    slotlessSessionDateDisplay.value === initialDateDisplay &&
+    slotlessSessionDraft.value.start_date === initialDraft.start_date &&
+    slotlessSessionDraft.value.start_time === initialDraft.start_time
+  ) {
+    const start = futureSlotlessStart()
+    slotlessSessionDraft.value.start_date = start.date
+    slotlessSessionDraft.value.start_time = start.time
+    slotlessSessionDateDisplay.value = formatIsoDateForDisplay(start.date)
+  }
+  if (slotlessSessionDraft.value.duration_minutes === initialDraft.duration_minutes) {
+    slotlessSessionDraft.value.duration_minutes = request.duration_minutes || slotlessProfileDuration.value
+  }
 }
 
 function closeSlotlessSessionModal() {
@@ -1628,7 +1684,7 @@ function validateSlotlessSessionDraft() {
   if (!slotlessTimeOptions.includes(slotlessSessionDraft.value.start_time)) {
     return INVALID_SESSION_TIME_FORMAT_MESSAGE
   }
-  const startsAtIso = combineDateTimeToIso(
+  const startsAtIso = combineSlotlessDateTimeToIso(
     isoDate,
     slotlessSessionDraft.value.start_time
   )
@@ -1996,7 +2052,7 @@ async function submitSlotlessSession() {
     return
   }
 
-  const startsAtIso = combineDateTimeToIso(
+  const startsAtIso = combineSlotlessDateTimeToIso(
     slotlessSessionDraft.value.start_date,
     slotlessSessionDraft.value.start_time
   )
