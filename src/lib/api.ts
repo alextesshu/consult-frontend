@@ -1917,6 +1917,42 @@ export async function fetchNotificationSettings(): Promise<NotificationSettings>
   return resp.data
 }
 
+export type TelegramPreferences = {
+  notify_guest_requests: boolean
+  notify_session_booked: boolean
+  notify_session_reminders: boolean
+  notify_activation_nudges: boolean
+}
+
+export type TelegramConnection = {
+  available: boolean
+  delivery_available: boolean
+  state: 'unlinked' | 'pending' | 'active' | 'stopped'
+  account: { display_name: string; username: string } | null
+  pending: { id: string; display_name: string; username: string; expires_at: string } | null
+  preferences: TelegramPreferences
+}
+
+export async function fetchTelegramConnection(): Promise<TelegramConnection> {
+  return (await http.get<TelegramConnection>('/cabinet/telegram/')).data
+}
+
+export async function createTelegramLink(): Promise<{ url: string; expires_at: string }> {
+  return (await http.post<{ url: string; expires_at: string }>('/cabinet/telegram/link-token/')).data
+}
+
+export async function confirmTelegramLink(pendingId: string): Promise<TelegramConnection> {
+  return (await http.post<TelegramConnection>('/cabinet/telegram/confirm/', { pending_id: pendingId, confirm: true })).data
+}
+
+export async function disconnectTelegram(): Promise<TelegramConnection> {
+  return (await http.delete<TelegramConnection>('/cabinet/telegram/')).data
+}
+
+export async function updateTelegramPreferences(preferences: TelegramPreferences): Promise<TelegramConnection> {
+  return (await http.patch<TelegramConnection>('/cabinet/telegram/', preferences)).data
+}
+
 export async function updateNotificationSettings(
   payload: Partial<Omit<NotificationSettings, 'email_session_reminders_available'>>
 ): Promise<NotificationSettings> {
