@@ -100,10 +100,14 @@
           <button v-if="telegram.state === 'unlinked' || telegram.state === 'stopped'" class="btn" type="button" :disabled="telegramBusy || !telegram.available" @click="connectTelegram">{{ telegram.state === 'stopped' ? 'Підключити знову' : 'Підключити Telegram' }}</button>
           <button v-if="telegram.state !== 'unlinked' || telegramLinkUrl" class="btn btn--ghost" type="button" :disabled="telegramBusy" @click="unlinkTelegram">{{ telegram.state === 'pending' || telegramLinkUrl ? 'Скасувати підключення' : 'Відключити Telegram' }}</button>
         </div>
-        <p v-if="telegramLinkUrl">
-          <a :href="telegramLinkUrl" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Відкрити Telegram</a>
-          <span class="muted"> — натисніть Start у боті, потім поверніться сюди та оновіть стан. Не пересилайте це посилання.</span>
-        </p>
+        <div v-if="telegramLinkUrl" class="prefs telegram-link-step">
+          <p id="telegram-link-help">Відкрийте Telegram-бота за кнопкою нижче та натисніть Start. Потім поверніться до Pro Consult і натисніть «Оновити стан Telegram».</p>
+          <a class="btn telegram-open-link" :href="telegramLinkUrl" target="_blank"
+            rel="noopener noreferrer" referrerpolicy="no-referrer"
+            aria-describedby="telegram-link-help telegram-link-safety telegram-link-external">Відкрити Telegram-бота</a>
+          <p id="telegram-link-external" class="muted">Відкриється в новій вкладці.</p>
+          <p id="telegram-link-safety" class="muted">Посилання діє 10 хвилин. Не пересилайте це посилання.</p>
+        </div>
       </template>
       <button class="btn btn--ghost" type="button" :disabled="telegramBusy" @click="loadTelegram">Оновити стан Telegram</button>
     </section>
@@ -407,6 +411,18 @@ onBeforeUnmount(() => {
 }
 
 .telegram-actions { flex-wrap: wrap; }
+
+.telegram-open-link {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  white-space: normal;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .telegram-open-link { width: 100%; }
+}
 
 .actions .btn {
   border-color: var(--pc-navy-900);
