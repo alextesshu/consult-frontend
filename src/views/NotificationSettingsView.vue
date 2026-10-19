@@ -66,15 +66,61 @@
         </button>
       </div>
     </section>
+    <section class="panel" aria-labelledby="telegram-title" :aria-busy="telegramBusy">
+      <h2 id="telegram-title">Telegram</h2>
+      <p class="muted">Підключіть свій Telegram і окремо оберіть, які сповіщення хочете отримувати. Дані клієнтів у Telegram не передаються.</p>
+      <p v-if="telegramError" role="alert">{{ telegramError }}</p>
+      <p v-if="telegramLinkExpired" role="status">Посилання прострочене. Створіть нове посилання для підключення Telegram.</p>
+      <p v-if="telegramBusy" role="status">Завантажуємо налаштування Telegram...</p>
+      <template v-if="telegram">
+        <p v-if="!telegram.available" class="muted">Підключення Telegram наразі недоступне.</p>
+        <p v-if="!telegram.delivery_available" class="muted">Надсилання повідомлень ще не ввімкнене.</p>
+        <p v-if="telegram.state === 'unlinked'">Telegram не підключено.</p>
+        <p v-else-if="telegram.state === 'stopped'">Сповіщення Telegram зупинено командою /stop. Для відновлення підтвердьте підключення знову.</p>
+        <p v-else-if="telegram.state === 'active'">Telegram підключено: {{ telegram.account?.display_name }}<span v-if="telegram.account?.username"> (@{{ telegram.account.username }})</span>.</p>
+        <div v-if="telegram.pending" class="prefs">
+          <p>Очікує підтвердження: {{ telegram.pending.display_name }}<span v-if="telegram.pending.username"> (@{{ telegram.pending.username }})</span>.</p>
+          <p class="muted">Переконайтеся, що це ваш акаунт Telegram. Якщо посилання відкрив хтось інший, скасуйте підключення. Посилання діє 10 хвилин.</p>
+          <label class="pref-item">
+            <input v-model="telegramIdentityConfirmed" type="checkbox" :disabled="telegramBusy || !telegram.available" />
+            <span>Це мій акаунт Telegram</span>
+          </label>
+          <button class="btn" type="button" :disabled="telegramBusy || !telegramIdentityConfirmed || !telegram.available" @click="confirmTelegram">Підтвердити підключення</button>
+        </div>
+        <div v-if="telegram.state === 'active'" class="prefs">
+          <h3>Згода на сповіщення</h3>
+          <p class="muted">Жодна категорія не вмикається автоматично. Ці налаштування не змінюють email і сповіщення в застосунку.</p>
+          <label v-for="option in telegramOptions" :key="option.key" class="pref-item">
+            <input v-model="telegramPreferences[option.key]" type="checkbox" :disabled="telegramBusy || !telegram.available" />
+            <span>{{ option.label }}</span>
+          </label>
+          <button class="btn" type="button" :disabled="telegramBusy || !telegram.available" @click="saveTelegram">Зберегти налаштування Telegram</button>
+        </div>
+        <div class="actions telegram-actions">
+          <button v-if="telegram.state === 'unlinked' || telegram.state === 'stopped'" class="btn" type="button" :disabled="telegramBusy || !telegram.available" @click="connectTelegram">{{ telegram.state === 'stopped' ? 'Підключити знову' : 'Підключити Telegram' }}</button>
+          <button v-if="telegram.state !== 'unlinked' || telegramLinkUrl" class="btn btn--ghost" type="button" :disabled="telegramBusy" @click="unlinkTelegram">{{ telegram.state === 'pending' || telegramLinkUrl ? 'Скасувати підключення' : 'Відключити Telegram' }}</button>
+        </div>
+        <div v-if="telegramLinkUrl" class="prefs telegram-link-step">
+          <p id="telegram-link-help">Відкрийте Telegram-бота за кнопкою нижче та натисніть Start. Потім поверніться до Pro Consult і натисніть «Оновити стан Telegram».</p>
+          <a class="btn telegram-open-link" :href="telegramLinkUrl" target="_blank"
+            rel="noopener noreferrer" referrerpolicy="no-referrer"
+            aria-describedby="telegram-link-help telegram-link-safety telegram-link-external">Відкрити Telegram-бота</a>
+          <p id="telegram-link-external" class="muted">Відкриється в новій вкладці.</p>
+          <p id="telegram-link-safety" class="muted">Посилання діє 10 хвилин. Не пересилайте це посилання.</p>
+        </div>
+      </template>
+      <button class="btn btn--ghost" type="button" :disabled="telegramBusy" @click="loadTelegram">Оновити стан Telegram</button>
+    </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { fetchNotificationSettings, updateNotificationSettings, type NotificationSettings } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
+import { confirmTelegramLink, createTelegramLink, disconnectTelegram, fetchTelegramConnection, updateTelegramPreferences, type TelegramConnection, type TelegramPreferences } from '../lib/api'
 
 const toast = useToast()
 const loading = ref(true)
@@ -119,7 +165,121 @@ async function save() {
   }
 }
 
-onMounted(load)
+const telegram = ref<TelegramConnection | null>(null)
+const telegramBusy = ref(false)
+const telegramError = ref('')
+const telegramLinkUrl = ref('')
+const telegramLinkExpiresAt = ref('')
+const telegramLinkExpired = ref(false)
+let telegramLinkTimer: ReturnType<typeof setTimeout> | undefined
+const telegramIdentityConfirmed = ref(false)
+const emptyTelegramPreferences = (): TelegramPreferences => ({ notify_guest_requests: false, notify_session_booked: false, notify_session_reminders: false, notify_activation_nudges: false })
+const telegramPreferences = ref<TelegramPreferences>(emptyTelegramPreferences())
+const telegramOptions: { key: keyof TelegramPreferences; label: string }[] = [
+  { key: 'notify_guest_requests', label: 'Нові звернення від клієнтів' },
+  { key: 'notify_session_booked', label: 'Нові запити на сесії' },
+  { key: 'notify_session_reminders', label: 'Нагадування про сесії' },
+  { key: 'notify_activation_nudges', label: 'Поради для повернення до роботи з практикою' },
+]
+let telegramRequest = 0
+
+function clearTelegramLink(expired = false) {
+  if (telegramLinkTimer !== undefined) clearTimeout(telegramLinkTimer)
+  telegramLinkTimer = undefined
+  telegramLinkUrl.value = ''
+  telegramLinkExpiresAt.value = ''
+  telegramLinkExpired.value = expired
+}
+
+function expireTelegramLink() {
+  if (telegramLinkExpiresAt.value && Date.parse(telegramLinkExpiresAt.value) <= Date.now()) clearTelegramLink(true)
+}
+
+function setTelegramLink(link: { url: string; expires_at: string }) {
+  clearTelegramLink()
+  const remaining = Date.parse(link.expires_at) - Date.now()
+  if (!Number.isFinite(remaining) || remaining <= 0) {
+    clearTelegramLink(true)
+    return
+  }
+  telegramLinkUrl.value = link.url
+  telegramLinkExpiresAt.value = link.expires_at
+  telegramLinkTimer = setTimeout(expireTelegramLink, remaining)
+}
+
+function telegramErrorCopy(err: unknown): string {
+  const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code
+  if (code === 'TELEGRAM_LINK_STALE') return 'Підключення прострочене. Оновіть стан і створіть нове посилання.'
+  if (code === 'TELEGRAM_IDENTITY_CONFLICT') return 'Цей Telegram уже підключено або не відповідає поточному акаунту. Відключіть поточний Telegram перед зміною.'
+  if (code === 'TELEGRAM_UNAVAILABLE') return 'Підключення Telegram наразі недоступне. Спробуйте пізніше.'
+  return 'Не вдалося оновити Telegram. Оновіть стан і спробуйте ще раз.'
+}
+
+async function telegramAction(operation: () => Promise<TelegramConnection>) {
+  if (telegramBusy.value) return
+  const request = ++telegramRequest
+  telegramBusy.value = true
+  telegramError.value = ''
+  try {
+    const state = await operation()
+    if (request !== telegramRequest) return
+    telegram.value = state
+    telegramPreferences.value = { ...state.preferences }
+    telegramIdentityConfirmed.value = false
+    if (state.pending || state.state === 'active' || state.state === 'stopped') clearTelegramLink()
+    else expireTelegramLink()
+  } catch (err) {
+    if (request === telegramRequest) {
+      telegramError.value = telegramErrorCopy(err)
+      telegramIdentityConfirmed.value = false
+      if ((err as { response?: { data?: { code?: string } } })?.response?.data?.code === 'TELEGRAM_LINK_STALE') clearTelegramLink(true)
+    }
+  } finally {
+    if (request === telegramRequest) telegramBusy.value = false
+  }
+}
+
+function loadTelegram() {
+  return telegramAction(() => {
+    // A refresh cannot establish whether a previously issued link was revoked in another tab.
+    clearTelegramLink()
+    return fetchTelegramConnection()
+  })
+}
+function connectTelegram() {
+  return telegramAction(async () => {
+    const request = telegramRequest
+    clearTelegramLink()
+    const link = await createTelegramLink()
+    if (request === telegramRequest) setTelegramLink(link)
+    return fetchTelegramConnection()
+  })
+}
+function confirmTelegram() {
+  const pendingId = telegram.value?.pending?.id
+  if (!pendingId || !telegramIdentityConfirmed.value) return
+  return telegramAction(() => confirmTelegramLink(pendingId))
+}
+function unlinkTelegram() {
+  return telegramAction(async () => {
+    const state = await disconnectTelegram()
+    clearTelegramLink()
+    return state
+  })
+}
+function saveTelegram() { return telegramAction(() => updateTelegramPreferences({ ...telegramPreferences.value })) }
+
+onMounted(() => {
+  void load(); void loadTelegram()
+  window.addEventListener('focus', expireTelegramLink)
+  document.addEventListener('visibilitychange', expireTelegramLink)
+})
+onBeforeUnmount(() => {
+  telegramRequest += 1
+  clearTelegramLink()
+  window.removeEventListener('focus', expireTelegramLink)
+  document.removeEventListener('visibilitychange', expireTelegramLink)
+})
 </script>
 
 <style scoped>
@@ -248,6 +408,20 @@ onMounted(load)
   margin-top: 8px;
   display: flex;
   gap: 8px;
+}
+
+.telegram-actions { flex-wrap: wrap; }
+
+.telegram-open-link {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  white-space: normal;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .telegram-open-link { width: 100%; }
 }
 
 .actions .btn {
