@@ -32,6 +32,7 @@
 - Frontend handoff: `docs/HANDOFF.md`
 - Handoff governance: `docs/HANDOFF_RULES.md`
 - Design system: `docs/DESIGN_SYSTEM.md`, `docs/UI_SHAPE_STANDARD.md`
+- UI v2 migration: `docs/ui-v2/README.md` (inactive reference package, source, mockups, approval gates)
 - Product/public profile rules: `docs/PROFILE_PUBLIC_URLS.md`
 - Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 - Backend API/product contract, when needed: `..\backend\docs\AI_CONTRACT.md`
