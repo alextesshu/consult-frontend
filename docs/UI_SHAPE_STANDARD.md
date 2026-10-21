@@ -1,5 +1,8 @@
 # UI Shape Standard
 
+> Applies to UI v1 only. For opt-in UI v2, see `DESIGN_SYSTEM.md` section 8.
+> The v1 rules below remain unchanged.
+
 ## Purpose
 Lock a consistent, less-rounded SaaS visual language for header, landing, and cabinet surfaces.
 

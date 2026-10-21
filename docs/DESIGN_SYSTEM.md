@@ -1,9 +1,9 @@
 # PRO CONSULT — Design System & Visual Migration Guide
 
-> **UI v2 Stage 0A - reference import only (2026-10-21).** UI v1 remains active.
-> Sections 5-12 and 15 include the inactive v2 reference and explicitly preserved v1 rules.
-> Sections 1-4 and all other product/safety policies are unchanged. Stage 0B activation
-> requires separate approval; see [UI v2 handoff](ui-v2/README.md) and
+> **UI v2 Stage 0B - opt-in infrastructure (2026-10-21).** Default remains v1.
+> Sections 5-12 and 15 describe opt-in v2 and explicitly preserved v1 rules.
+> Sections 1-4 and all other product/safety policies are unchanged. Stage 0B is locally implemented, awaiting acceptance; page redesign and rollout
+> require separate approval; see [UI v2 handoff](ui-v2/README.md) and
 > [Master TZ](ui-v2/PROCONSULT_UI_V2_CODEX_MASTER_TZ.md).
 
 ## 1. Purpose
@@ -218,7 +218,7 @@ Do not casually change:
 
 ## 5. Color — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 > UI v2 (active under `<html data-ui="v2">`). Tokens live in `src/styles/tokens-v2.css`. Never hard-code a hex in components — use the variable.
 
@@ -234,7 +234,7 @@ Do not casually change:
 | Text main | `--pc-text-main` | #12233A | Headings, body on light |
 | Text body | `--pc-text-body` | #3F4B5E | Long paragraphs |
 | Text muted | `--pc-text-muted` | #657287 | Secondary copy (≥13px) |
-| Text soft | `--pc-text-soft` | #8B95A7 | Meta, captions, placeholders only |
+| Text soft | `--pc-text-soft` | #8B95A7 | Decorative/disabled use only; readable text uses muted |
 | Hairline | `--pc-border-hair` | #EDE7DE | Card borders, header divider |
 | Border | `--pc-border` | #E6E0D8 | Input idle |
 | Border strong | `--pc-border-strong` | #D4CCC2 | Input hover, card hover |
@@ -248,7 +248,7 @@ Do not casually change:
 Rules:
 - Navy is the only action color. Teal/peach are tints with their own ink color — never a button fill, never text on cream.
 - Text on a tint always uses that tint's ink token (contrast ≥ 4.5:1).
-- `--pc-text-soft` fails 4.5:1 on cream at body size — meta/captions only.
+- `--pc-text-soft` fails 4.5:1 on cream at body size. Placeholders, kickers and navigation use `--pc-text-muted`; informational text must meet readable contrast.
 - Status color never carries meaning alone; the label says the state.
 
 ### UI v1 baseline - still active
@@ -381,7 +381,7 @@ Do not use red for decorative purposes.
 
 ## 6. Typography — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 Font: **Onest** 400 / 500 / 600 (Google Fonts, cyrillic subset). Replaces Inter in v2. Chosen for Cyrillic quality and a warmer, less generic texture than Inter.
 
@@ -503,7 +503,7 @@ line-height: 1.5;
 
 ## 7. Layout System — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 - Container: `--pc-container` 1240px, gutter `clamp(20px, 4vw, 48px)`.
 - Spacing: 4px base — 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48 / 64 / 80 / 96 (`--pc-space-*`).
@@ -609,7 +609,7 @@ grid-template-columns: 1fr;
 
 ## 8. Shape, Radius, Shadow — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 Decision: **16px is the card radius**, inside a scale. Supersedes the v1 shape rules for v2 only. `UI_SHAPE_STANDARD.md` describes 6–20px radii; v1 workspace tokens also use 2–4px. Both remain valid for v1.
 
@@ -678,7 +678,7 @@ Avoid harsh black shadows.
 
 ## 9. Buttons — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 Classes in `components-v2.css`.
 
@@ -759,11 +759,11 @@ Visual:
 
 ## 10. Cards — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 `.pc2-card`: white, 1px `--pc-border-hair`, 16px radius, 24px padding, **no shadow**.
 Modifiers: `--lg` (24px radius, clamp(24px,3vw,36px) padding), `--soft` (cream-soft fill, no border), `--raised` (`--pc-shadow-md`), `--interactive` (hover: strong border + sm shadow).
-Kicker: `.pc2-kicker` 12px uppercase soft text above the title.
+Kicker: `.pc2-kicker` 12px uppercase muted text above the title.
 Max two card styles per screen.
 
 ### UI v1 baseline - still active
@@ -808,7 +808,7 @@ Avoid:
 
 ## 11. Badges and Statuses — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 `.pc2-tag` (8px radius) or `.pc2-tag--pill`. Tones: teal, peach, neutral, success, warning, danger, info — each pairs a soft bg with its ink color. Status names come from the backend unchanged (§2): `Потребує рішення`, `Очікує відповідь клієнта`, `Потрібно надіслати посилання`, `Завершено`.
 
@@ -869,7 +869,7 @@ Do not use status color only. Text must clearly explain the state.
 
 ## 12. Inputs and Forms — UI v2
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 > **Behavior gate:** single-password/minimal-signup text is a future target.
 > Preserve confirmation fields and validation through visual stages 1.3a/2.3a.
@@ -992,7 +992,7 @@ Rules:
 
 ## 15. Icon Style
 
-### UI v2 reference - inactive until Stage 0B
+### UI v2 - active only under html[data-ui="v2"]
 
 Phosphor Icons (Regular weight, 1.5px look), 16 / 20 / 24px, `currentColor`. Icon wells: 40px, 12px radius, teal-100 or peach-100 bg with the matching ink. Rules from v1 below still apply.
 

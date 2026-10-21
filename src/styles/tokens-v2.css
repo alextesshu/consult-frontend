@@ -1,6 +1,6 @@
 /* PRO CONSULT — UI v2 tokens.
    Active only when <html data-ui="v2">. Legacy tokens in style.css stay untouched.
-   Source of truth: handoff/DESIGN_SYSTEM.md §5–12. */
+   Source of truth: docs/DESIGN_SYSTEM.md §5–12. */
 
 html[data-ui="v2"] {
   /* Brand */
@@ -80,6 +80,9 @@ html[data-ui="v2"] {
   --pc-container: 1240px;
   --pc-gutter: clamp(20px, 4vw, 48px);
 
+  --pc-focus-width: 2px;
+  --pc-focus-offset: 2px;
+
   /* Controls */
   --pc-control-h: 48px;     /* app */
   --pc-control-h-lg: 54px;  /* auth / public forms */
@@ -122,9 +125,7 @@ html[data-ui="v2"] body {
   line-height: var(--pc-lh-body);
 }
 html[data-ui="v2"] body::before { display: none; } /* drop radial gradients */
-html[data-ui="v2"] a { color: var(--pc-navy-900); }
-html[data-ui="v2"] a:hover { color: var(--pc-navy-950); }
-html[data-ui="v2"] :focus-visible { outline: 2px solid var(--pc-navy-900); outline-offset: 2px; }
+html[data-ui="v2"] :focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
 html[data-ui="v2"] ::selection { background: var(--pc-teal-200); color: var(--pc-text-main); }
 html[data-ui="v2"] h1, html[data-ui="v2"] h2, html[data-ui="v2"] h3 {
   font-weight: var(--pc-fw-medium); letter-spacing: var(--pc-ls-head); line-height: var(--pc-lh-head); text-wrap: balance;

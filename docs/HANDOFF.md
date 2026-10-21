@@ -800,7 +800,7 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
-- UI v2 Stage 0A: local reference import awaiting review; see `docs/ui-v2/README.md` and the Master TZ there. Source CSS/TypeScript and mockups are not connected to the app; v1 remains active. Stage 0B and all commit/push/PR/deploy actions require separate approval.
+- UI v2 Stage 0A merged via PR #49. Stage 0B opt-in infrastructure passed local final review and acceptance for the tested scope; see `docs/ui-v2/README.md`. Default v1 is retained; routes/pages/API/permissions/stores are unchanged. One commit, feature-branch push and Draft PR to dev are authorized; Ready, merge, page migrations and deployment remain separately gated.
 - KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
 - KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
 - KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
@@ -809,7 +809,7 @@ Frontend production-closure slice is now integrated:
 
 ## Immediate Next Step
 
-Review the isolated UI v2 Stage 0A import before any commit/push/PR. Stage 0B remains pending separate approval and must address storage exceptions, reactive SPA switching, CSS specificity/isolation, and v1/v2 validation. Existing product work below remains separate.
+Finalize Stage 0B as one commit and one Draft PR to dev, then stop before Ready or merge. Focused Vitest: 113/113 PASS; build: PASS with the existing chunk-size warning. Typecheck: 9 unchanged Stage 0A baseline errors, 0 new. Browser acceptance: PASS for tested public routes and viewports (375x677, 768x900, 1280x900, 1440x900), UI switching, refresh/SPA/history, focus, reduced motion, overflow and font fallback. Storage-getter P1 is fixed and browser-verified; mounting survives denied storage, and available storage retains first-touch attribution and TTL. Real authenticated backend workflows were not covered; session/permission checks used synthetic API responses. Keep v1 default; all page-level migrations and rollout remain out of scope. Existing product work below remains separate.
 
 Investigate KAN-143 as a separate evidence-first booking-conflict bug before changing runtime behavior; do not assume that the visible free slot is the actual failure source. KAN-138 informed consent remains the next planned product phase under separate approved scope. KAN-137 reminders is released; keep KAN-114 as tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
 
