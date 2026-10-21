@@ -1961,3 +1961,71 @@ Follow-up (same date, hero parity adjustments):
   * `npm run test:run -- src/views/CabinetView.spec.ts src/views/TherapistClientsView.spec.ts src/views/ExternalSessionsView.spec.ts src/views/AnalyticsView.spec.ts src/views/BillingView.spec.ts src/views/SlotsView.spec.ts src/views/ChatView.spec.ts src/views/TherapistProfileView.spec.ts` - passed, 136 tests.
   * `npm run typecheck` - passed.
   * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+---
+
+## UI v2 - staged migration (reference; activation not approved)
+
+Imported from `handoff/MIGRATION_PLAN_V2.md`; the earlier migration history is unchanged.
+Master TZ and explicit stage approvals override the source prompts.
+Stage 0A is locally implemented, awaiting review; no commit, push, PR, activation, or deployment.
+Stage 0B and all page migrations remain pending separate approval.
+
+## Принцип
+- Одна сторінка = один PR. Кожна сторінка під v2 отримує нову розмітку на класах `.pc2-*`, перемикання через `isUiV2()` або CSS-селектор `html[data-ui="v2"] .x`.
+- Логіка, store, API, роути не змінюються. Якщо сторінці потрібна нова поведінка (напр., реєстрація з 3 полів), вона йде **окремим PR** після візуального.
+- v1 лишається робочим до етапу 5. Кожен PR перевіряється в обох режимах (`?ui=v1`, `?ui=v2`).
+
+### Stage 0A - reference import only
+
+- Import source CSS/TypeScript unchanged and unreferenced by the app.
+- Import seven mockups and their four reference images under `docs/ui-v2/mockups/`.
+- Preserve v1 design rules and product sections 1-4; production logos stay unchanged.
+- Exclude `support.js`; do not execute mockup logic or connect its CDN dependencies.
+- Verify source hashes, exact file scope, and unchanged runtime inputs.
+- Local implementation is awaiting review; this is not an accepted/merged/released phase.
+
+### Stage 0B - activation (not authorized)
+
+Separate approval is required before applying [PATCHES.md](ui-v2/PATCHES.md).
+Resolve localStorage exceptions, reactive SPA switching, link/button specificity, and
+component-selector isolation before importing styles or calling the helper.
+Default remains v1; preserve Inter and all existing routing/auth/bootstrap behavior.
+Test query > storage > env, invalid values, storage failures, persistence, and SPA navigation.
+Then run targeted tests, typecheck/build, and v1/v2 browser smoke before acceptance.
+
+## Етап 1 — публічні сторінки для спеціалістів
+| # | Сторінка | Vue | Макет | Що змінюється | Ризик | Smoke |
+|---|---|---|---|---|---|---|
+| 1.1 | Header/Footer публічні | `App.vue` (topbar), footer | Home.dc.html | `.pc2-header` 76px, лого 40px, вкладки «Для спеціалістів / Для клієнтів» | Сер. | Усі посилання ведуть туди ж; мобільне меню |
+| 1.2 | Головна | `HomeView.vue` | Home.dc.html | Hero + схема «сторінка → запит → сесія → робота» з живою карткою; блок практики (варіант 2c); тарифи — копі без змін | Сер. | CTA → `/signup`, «Увійти», ціни з поточних даних |
+| 1.3 | Реєстрація спеціаліста | `SignupView.vue` | Signup.dc.html | Візуал: `.pc2-input--lg`, `.pc2-password`, `.pc2-chips`, `.pc2-steps`. **Окремий PR (поведінка):** прибрати «повторити пароль», лишити ім'я/email/пароль + 1 питання (спеціалізація), решту — в онбординг | Вис. | Валідація, помилки бекенду, редирект після реєстрації |
+
+## Етап 2 — публічні сторінки для клієнтів
+| # | Сторінка | Vue | Макет | Що змінюється | Ризик | Smoke |
+|---|---|---|---|---|---|---|
+| 2.1 | Профіль спеціаліста | `PublicProfileView.vue`, `components/public-profile/*` | Specialist-Profile.dc.html | 2 колонки, `.pc2-request-panel` (липка; на мобільному — нижній лист). Оффери → вільний час → контакт у панелі покроково | **Вис.** | Request-first: вибір вікна = запит, не підтверджена сесія; приховані оффери лишаються прихованими; slug-роут |
+| 2.2 | Пошук спеціаліста | `PublicTherapistsView.vue`, `PublicSpecialistCard.vue` | Find-Specialist.dc.html | Фільтри-чипи, картки `.pc2-card--interactive` 16px | Сер. | Без рейтингів/«топ»; фільтри й пагінація як були |
+| 2.3 | Реєстрація клієнта | `ClientSignupView.vue` | Client-Signup.dc.html | Як 1.3: один пароль + «Показати», 1 питання | Сер. | Запит без реєстрації не ламається |
+
+## Етап 3 — кабінет клієнта
+| # | Сторінка | Vue | Макет | Що змінюється | Ризик | Smoke |
+|---|---|---|---|---|---|---|
+| 3.1 | Кабінет клієнта | `ClientDashboardView.vue` | Client-Cabinet.dc.html | Hero-блок найближчої сесії (24px), матеріали — картки 16px, статуси — `.pc2-tag` | Сер. | Лише опубліковані матеріали; посилання на сесію; стани оплати окремо від підтвердження |
+
+## Етап 4 — кабінет спеціаліста (без нових макетів)
+Застосувати токени й компоненти без зміни структури: dashboard → sessions → session detail → clients → client detail → calendar → billing → settings → admin. Для кожної: замінити кнопки/поля/картки/теги на `.pc2-*`, радіуси за шкалою, прибрати font-weight 700 з заголовків. Макети для них — окремий раунд дизайну, якщо потрібно.
+
+## Етап 5 — увімкнення за замовчуванням
+1. Only after separate operational approval: staging `VITE_UI_V2=true` ≥ 1 тиждень, smoke за `STAGING_FE_SMOKE_TEST_TEMPLATE.md`.
+2. Only after separate explicit production rollout approval: production `VITE_UI_V2=true`; `?ui=v1` ще працює як аварійний відкат.
+3. Only after two stable releases and a separate removal decision: видалити v1-гілки розмітки, Inter з `style.css`, legacy-токени (`--sky-*`, `--color-primary-*` тощо), примітку v1 в `UI_SHAPE_STANDARD.md`.
+
+## Чекліст для кожного PR
+- [ ] `?ui=v1` виглядає як до PR
+- [ ] `?ui=v2` відповідає макету (кольори/радіуси — лише токени)
+- [ ] 375 / 768 / 1280 / 1440px без горизонтального скролу
+- [ ] Клавіатура: Tab доходить до всіх дій, видно фокус
+- [ ] Стани loading / empty / error / disabled на місці
+- [ ] Тексти не змінені (окрім узгоджених у макеті)
+- [ ] `npm run test` зелений

@@ -800,6 +800,7 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
+- UI v2 Stage 0A: local reference import awaiting review; see `docs/ui-v2/README.md` and the Master TZ there. Source CSS/TypeScript and mockups are not connected to the app; v1 remains active. Stage 0B and all commit/push/PR/deploy actions require separate approval.
 - KAN-114 — fix tablet header overlap around 768–820 px; keep this separate from the closed narrow-mobile KAN-131/KAN-134 work.
 - KAN-129 — improve organic Threads distribution and generate measurable discovery traffic; parallel product/growth work.
 - KAN-133 — stabilize CabinetView tests across the midnight boundary; test debt only, discovered during KAN-132 CI and not a runtime regression.
@@ -807,6 +808,8 @@ Frontend production-closure slice is now integrated:
 - KAN-131, KAN-134, KAN-135, KAN-136, and KAN-137 are production-closed and Done; do not reopen their scope unless new production evidence shows a regression.
 
 ## Immediate Next Step
+
+Review the isolated UI v2 Stage 0A import before any commit/push/PR. Stage 0B remains pending separate approval and must address storage exceptions, reactive SPA switching, CSS specificity/isolation, and v1/v2 validation. Existing product work below remains separate.
 
 Investigate KAN-143 as a separate evidence-first booking-conflict bug before changing runtime behavior; do not assume that the visible free slot is the actual failure source. KAN-138 informed consent remains the next planned product phase under separate approved scope. KAN-137 reminders is released; keep KAN-114 as tablet-header debt, KAN-133 as isolated test debt, and KAN-129 as parallel growth work.
 

@@ -1,5 +1,11 @@
 # PRO CONSULT — Design System & Visual Migration Guide
 
+> **UI v2 Stage 0A - reference import only (2026-10-21).** UI v1 remains active.
+> Sections 5-12 and 15 include the inactive v2 reference and explicitly preserved v1 rules.
+> Sections 1-4 and all other product/safety policies are unchanged. Stage 0B activation
+> requires separate approval; see [UI v2 handoff](ui-v2/README.md) and
+> [Master TZ](ui-v2/PROCONSULT_UI_V2_CODEX_MASTER_TZ.md).
+
 ## 1. Purpose
 
 This document is the canonical design reference for the PRO CONSULT frontend.
@@ -210,7 +216,46 @@ Do not casually change:
 
 ---
 
-## 5. Brand Color Palette
+## 5. Color — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+> UI v2 (active under `<html data-ui="v2">`). Tokens live in `src/styles/tokens-v2.css`. Never hard-code a hex in components — use the variable.
+
+| Role | Token | Value | Use |
+| --- | --- | --- | --- |
+| Primary | `--pc-navy-900` | #12345A | Primary buttons, active nav, links, focus ring, progress |
+| Primary hover | `--pc-navy-950` | #0E2D52 | Hover of primary |
+| Primary pressed | `--pc-navy-800` | #183E68 | :active |
+| Page | `--pc-bg-main` | #FBF9F5 | Default background, all pages (flat — no radial gradients) |
+| Card | `--pc-bg-card` | #FFFFFF | Cards, inputs, panels |
+| Soft | `--pc-bg-soft` | #F6F1EA | Inset blocks, segmented bg, ghost hover |
+| Sunk | `--pc-bg-sunk` | #F1EBE2 | Idle chips, step bars, skeletons |
+| Text main | `--pc-text-main` | #12233A | Headings, body on light |
+| Text body | `--pc-text-body` | #3F4B5E | Long paragraphs |
+| Text muted | `--pc-text-muted` | #657287 | Secondary copy (≥13px) |
+| Text soft | `--pc-text-soft` | #8B95A7 | Meta, captions, placeholders only |
+| Hairline | `--pc-border-hair` | #EDE7DE | Card borders, header divider |
+| Border | `--pc-border` | #E6E0D8 | Input idle |
+| Border strong | `--pc-border-strong` | #D4CCC2 | Input hover, card hover |
+| Teal tint / ink | `--pc-teal-100` / `--pc-teal-ink` | #EEF8F7 / #1F5E5A | Soft positive tags, icon wells |
+| Peach tint / ink | `--pc-peach-100` / `--pc-peach-ink` | #FFF1E3 / #8A4B16 | Warm highlights, "new" |
+| Success | `--pc-success` / `-soft` | #2F7A55 / #EEF8F1 | Paid, confirmed |
+| Warning | `--pc-warning` / `-soft` | #B5651F / #FFF1E3 | Awaiting, pending |
+| Danger | `--pc-danger` / `-soft` | #B83232 / #FDE8E8 | Destructive, unpaid, errors |
+| Info | `--pc-info` / `-soft` | #2F6FA8 / #EEF4FA | Planned, neutral info |
+
+Rules:
+- Navy is the only action color. Teal/peach are tints with their own ink color — never a button fill, never text on cream.
+- Text on a tint always uses that tint's ink token (contrast ≥ 4.5:1).
+- `--pc-text-soft` fails 4.5:1 on cream at body size — meta/captions only.
+- Status color never carries meaning alone; the label says the state.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Use CSS variables where possible.
 
@@ -332,7 +377,37 @@ Do not use red for decorative purposes.
 
 ---
 
-## 6. Typography
+</details>
+
+## 6. Typography — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+Font: **Onest** 400 / 500 / 600 (Google Fonts, cyrillic subset). Replaces Inter in v2. Chosen for Cyrillic quality and a warmer, less generic texture than Inter.
+
+| Token | Size | LH | Weight | Use |
+| --- | --- | --- | --- | --- |
+| `--pc-fs-display` | clamp(40px, 5vw, 60px) | 1.08, ls −0.03em | 500 | Home hero h1 only |
+| `--pc-fs-h1` | clamp(32px, 3.4vw, 42px) | 1.18, ls −0.02em | 500 | Page / section titles |
+| `--pc-fs-h2` | clamp(26px, 2.6vw, 32px) | 1.18 | 500 | Sub-sections, cabinet page title |
+| `--pc-fs-h3` | 20px | 1.3 | 500 | Card titles |
+| `--pc-fs-lead` | clamp(17px, 1.6vw, 19px) | 1.6 | 400 | Intro paragraph under h1 |
+| `--pc-fs-body` | 16px | 1.6 | 400 | Body, inputs |
+| `--pc-fs-ui` | 15px | 1 | 500 | Buttons, in-app controls |
+| `--pc-fs-small` | 14px | 1.5 | 400/500 | Lists, nav, chips, labels |
+| `--pc-fs-meta` | 13px | 1.45 | 400 | Meta, hints, tags |
+| `--pc-fs-micro` | 12px | 1.3 | 500, uppercase, ls .08em | Kickers only |
+
+Rules:
+- Headings are **500**, never 700. Hierarchy comes from size and space. 600 only for numbers (dashboard counters, prices).
+- Body weight is 400 (v1 used 200 — unreadable in Cyrillic at 14–16px).
+- `text-wrap: balance` on headings, `pretty` on paragraphs.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### General rule
 
@@ -424,7 +499,25 @@ line-height: 1.5;
 
 ---
 
-## 7. Layout System
+</details>
+
+## 7. Layout System — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+- Container: `--pc-container` 1240px, gutter `clamp(20px, 4vw, 48px)`.
+- Spacing: 4px base — 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48 / 64 / 80 / 96 (`--pc-space-*`).
+- Section rhythm: `--pc-section-y` = clamp(56px, 8vw, 104px).
+- Public pages are left-aligned; content hugs the left, whitespace on the right. Centered text only for single short CTAs.
+- Public profile: `minmax(0,1fr) 380px` with the request panel sticky at top 96px; below 860px the panel becomes a bottom sheet.
+- Cabinet: `minmax(0,1fr) minmax(320px, 400px)`, gap 24px; single column below 960px.
+- Prefer flex/grid + `gap` over margins between siblings.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### Page containers
 
@@ -512,7 +605,40 @@ grid-template-columns: 1fr;
 
 ---
 
-## 8. Shape, Radius, Shadow
+</details>
+
+## 8. Shape, Radius, Shadow — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+Decision: **16px is the card radius**, inside a scale. Supersedes the v1 shape rules for v2 only. `UI_SHAPE_STANDARD.md` describes 6–20px radii; v1 workspace tokens also use 2–4px. Both remain valid for v1.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--pc-radius-xs` | 8px | Tags, small badges, avatar thumbs, password toggle |
+| `--pc-radius-sm` | 12px | Inputs, square buttons, menus, dropdowns |
+| `--pc-radius-md` | **16px** | Cards, panels, sticky request panel, list items |
+| `--pc-radius-lg` | 24px | Hero blocks, large section cards, dialogs, bottom sheets |
+| `--pc-radius-pill` | 999px | Primary CTAs, chips, segmented control, status pills |
+
+Nested radius: inner = outer − padding (e.g. a 16px card with 8px inset holds 8px children).
+
+Elevation — one shadow per element, never stacked:
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--pc-shadow-sm` | 0 4px 12px rgba(18,35,58,.08) | Active segment, card hover |
+| `--pc-shadow-md` | 0 16px 40px rgba(18,35,58,.08) | Raised cards, request panel |
+| `--pc-shadow-lg` | 0 24px 60px rgba(18,35,58,.10) | Dialogs, bottom sheet, live UI card on Home |
+| `--pc-ring` | 0 0 0 4px rgba(18,52,90,.08) | Input focus halo |
+
+Default cards are flat (hairline border, no shadow).
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### Border radius
 
@@ -548,7 +674,30 @@ Avoid harsh black shadows.
 
 ---
 
-## 9. Buttons
+</details>
+
+## 9. Buttons — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+Classes in `components-v2.css`.
+
+| Variant | Class | Look | Use |
+| --- | --- | --- | --- |
+| Primary | `.pc2-btn--primary` | Navy fill, white text, pill | One per view: main action |
+| Secondary | `.pc2-btn--secondary` | 1px navy outline → fills navy on hover | Second action |
+| Ghost | `.pc2-btn--ghost` | Muted text → soft bg on hover | Tertiary, "Назад", "Скасувати" |
+| Danger | `.pc2-btn--danger` | Red text + 40% red outline | Destructive, always with confirm |
+
+Sizes: default 48px, `--lg` 56px (hero, auth submit), `--sm` 36px (in-row actions). `--square` switches to 12px radius for dense toolbars/tables.
+
+States (borrowed logic from Nocturne, our colors): hover = one ramp step darker; pressed = `--pc-navy-800`; keyboard focus = `:focus-visible` 2px navy outline, 2px offset; disabled = 45% opacity, no pointer events. Never leave browser-default focus.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### Primary button
 
@@ -606,7 +755,22 @@ Visual:
 
 ---
 
-## 10. Cards
+</details>
+
+## 10. Cards — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+`.pc2-card`: white, 1px `--pc-border-hair`, 16px radius, 24px padding, **no shadow**.
+Modifiers: `--lg` (24px radius, clamp(24px,3vw,36px) padding), `--soft` (cream-soft fill, no border), `--raised` (`--pc-shadow-md`), `--interactive` (hover: strong border + sm shadow).
+Kicker: `.pc2-kicker` 12px uppercase soft text above the title.
+Max two card styles per screen.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Cards are one of the main design primitives.
 
@@ -640,7 +804,19 @@ Avoid:
 
 ---
 
-## 11. Badges and Statuses
+</details>
+
+## 11. Badges and Statuses — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+`.pc2-tag` (8px radius) or `.pc2-tag--pill`. Tones: teal, peach, neutral, success, warning, danger, info — each pairs a soft bg with its ink color. Status names come from the backend unchanged (§2): `Потребує рішення`, `Очікує відповідь клієнта`, `Потрібно надіслати посилання`, `Завершено`.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Badges should be small, readable, and semantically colored.
 
@@ -689,7 +865,33 @@ Do not use status color only. Text must clearly explain the state.
 
 ---
 
-## 12. Inputs and Forms
+</details>
+
+## 12. Inputs and Forms — UI v2
+
+### UI v2 reference - inactive until Stage 0B
+
+> **Behavior gate:** single-password/minimal-signup text is a future target.
+> Preserve confirmation fields and validation through visual stages 1.3a/2.3a.
+> Stages 1.3b/2.3b require separate approval and verified backend payload/onboarding
+> support. Password-reset behavior is outside Stage 0A/0B.
+
+- `.pc2-input`: 48px (app) / 54px `--lg` (auth, public forms), 12px radius, 1.5px `--pc-border`, white, 16px text (prevents iOS zoom).
+- Hover: `--pc-border-strong`. Focus: navy border + `--pc-ring`. Invalid: `aria-invalid="true"` → danger border + `.pc2-error` text below.
+- Label above field (14px/500), hint below (13px muted). No floating labels.
+- **Password: single field + "Показати / Сховати" toggle** (`.pc2-password`). No "repeat password" field. Min 8 chars hint shown before typing. Applies to specialist and client signup and password reset.
+- Signup is minimal: name, email, password + one question as chips (`.pc2-chips`). Everything else moves to onboarding after the first login.
+- Multi-step flows show `.pc2-steps` bars; progressive disclosure uses `.pc2-reveal` (grid-rows transition, 400ms).
+- Preserve all existing validation, backend error mapping, loading and disabled states.
+
+### Motion
+Barely noticeable: 150 / 200 / 400ms, `cubic-bezier(.4,0,.2,1)`. Only opacity, color, border, small translate (≤8px), grid-rows. No bounce, no parallax, no scroll-jacking. `prefers-reduced-motion` collapses everything to 1ms.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Inputs should be:
 
@@ -731,6 +933,8 @@ Forms should preserve:
 - success states
 
 ---
+
+</details>
 
 ## 13. Tables and Lists
 
@@ -788,6 +992,16 @@ Rules:
 
 ## 15. Icon Style
 
+### UI v2 reference - inactive until Stage 0B
+
+Phosphor Icons (Regular weight, 1.5px look), 16 / 20 / 24px, `currentColor`. Icon wells: 40px, 12px radius, teal-100 or peach-100 bg with the matching ink. Rules from v1 below still apply.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
+
 Target icon style:
 
 - simple line icons
@@ -810,6 +1024,8 @@ Icon rules:
 - every icon-only button must have accessible label
 
 ---
+
+</details>
 
 ## 16. Public Page Patterns
 
