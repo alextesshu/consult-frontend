@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
+import './styles/tokens-v2.css'
+import './styles/components-v2.css'
+import { applyUiVersion } from './lib/uiVersion'
 import App from './App.vue'
 import { useAuthStore } from './stores/auth'
 import {
@@ -20,12 +23,16 @@ import {
 } from './lib/analyticsConsent'
 
 async function bootstrapApplication() {
+  applyUiVersion()
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
   captureEmailVerificationTokenFromLocation()
 
   const { default: router } = await import('./router')
+  router.afterEach((_to, _from, failure) => {
+    if (!failure) applyUiVersion()
+  })
   app.use(router)
 
   const authStore = useAuthStore(pinia)
@@ -35,7 +42,12 @@ async function bootstrapApplication() {
   onAnalyticsConsentPreferenceChange((preference) => {
     productAnalytics.setConsentPreference(preference)
   })
-  authStore.initFromStorage()
+  try {
+    authStore.initFromStorage()
+  } catch {
+    // This action only removes legacy storage keys. Cookie-based restore must
+    // still run when storage cleanup is unavailable; no stored tokens are used.
+  }
   authStore.restoreSession().catch(() => {})
 
   router.isReady().then(() => {

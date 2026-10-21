@@ -1964,12 +1964,13 @@ Follow-up (same date, hero parity adjustments):
 
 ---
 
-## UI v2 - staged migration (reference; activation not approved)
+## UI v2 - staged migration (default v1; per-stage acceptance required)
 
 Imported from `handoff/MIGRATION_PLAN_V2.md`; the earlier migration history is unchanged.
 Master TZ and explicit stage approvals override the source prompts.
-Stage 0A is locally implemented, awaiting review; no commit, push, PR, activation, or deployment.
-Stage 0B and all page migrations remain pending separate approval.
+Stage 0A merged in PR #49 at `7a101daede5c0f69fe806d2814e7175273c2bb7a`.
+Stage 0B opt-in infrastructure is implemented locally, awaiting acceptance.
+All page migrations, Git finalization, and deployment remain separately gated.
 
 ## Принцип
 - Одна сторінка = один PR. Кожна сторінка під v2 отримує нову розмітку на класах `.pc2-*`, перемикання через `isUiV2()` або CSS-селектор `html[data-ui="v2"] .x`.
@@ -1983,13 +1984,13 @@ Stage 0B and all page migrations remain pending separate approval.
 - Preserve v1 design rules and product sections 1-4; production logos stay unchanged.
 - Exclude `support.js`; do not execute mockup logic or connect its CDN dependencies.
 - Verify source hashes, exact file scope, and unchanged runtime inputs.
-- Local implementation is awaiting review; this is not an accepted/merged/released phase.
+- Stage 0A reference import is merged; this does not authorize rollout or page migrations.
 
-### Stage 0B - activation (not authorized)
+### Stage 0B - opt-in activation (local implementation awaiting acceptance)
 
-Separate approval is required before applying [PATCHES.md](ui-v2/PATCHES.md).
-Resolve localStorage exceptions, reactive SPA switching, link/button specificity, and
-component-selector isolation before importing styles or calling the helper.
+Implemented the approved [PATCHES.md](ui-v2/PATCHES.md) scope locally: independent
+storage fallback, reactive successful-navigation synchronization, v2-only selectors,
+component link colors and explicit focus. New readable text uses existing muted tokens.
 Default remains v1; preserve Inter and all existing routing/auth/bootstrap behavior.
 Test query > storage > env, invalid values, storage failures, persistence, and SPA navigation.
 Then run targeted tests, typecheck/build, and v1/v2 browser smoke before acceptance.

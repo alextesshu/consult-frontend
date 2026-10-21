@@ -1,52 +1,59 @@
-# Зміни у frontend — що куди покласти
+# UI v2 Stage 0B - implemented local infrastructure
 
-> Stage 0B instructions only - not applied in Stage 0A.
-> Source CSS/TypeScript was imported unchanged, without runtime imports.
-> Before activation, resolve storage exceptions, reactive SPA updates, link/button
-> specificity, and component-selector isolation; add tests and verify v1 smoke.
-> See [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md). No deployment is authorized here.
+Status: locally implemented, awaiting acceptance. Default remains v1.
+See [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md). No commit, push, PR,
+page migration, or deployment is authorized by this document.
 
-Обсяг: **токени + спільні компоненти**, усе за прапорцем `data-ui="v2"`. Сторінки, бізнес-логіка, роути, API — не чіпаються. За замовчуванням v1, тож без прапорця нічого не змінюється.
+## Bootstrap and CSS
 
-## 1. Нові файли (скопіювати як є)
-- `src/styles/tokens-v2.css`
-- `src/styles/components-v2.css`
-- `src/lib/uiVersion.ts`
+`src/main.ts` imports `style.css`, `styles/tokens-v2.css`, then
+`styles/components-v2.css`. `applyUiVersion()` runs before `createApp()` and the
+existing verification-token URL sanitizer. The router is still imported after
+that sanitizer. A successful `router.afterEach` reapplies the UI selection; failed
+or aborted navigation is ignored. Routes, API, permissions and Pinia are unchanged.
+The existing legacy-token cleanup action is guarded at its bootstrap call site so
+denied storage cannot prevent cookie-based session restore. No stored token is used.
 
-## 2. `src/main.ts`
-```ts
-import './style.css'
-import './styles/tokens-v2.css'      // після style.css — має перекривати legacy-змінні
-import './styles/components-v2.css'
-import { applyUiVersion } from './lib/uiVersion'
+All v2 selector branches, including media queries and pseudo-elements, require
+`html[data-ui="v2"]`. V1 CSS is unchanged. Token bridging and base v2 body,
+heading/focus/selection/reduced-motion rules are intentional; page geometry is
+not redesigned. Generic anchor-color overrides were removed so legacy links
+and button-links keep their own colors. V2 inputs have explicit focus-visible
+outlines after their base outline reset. Placeholders, kickers and inactive
+navigation use existing `--pc-text-muted` for contrast.
 
-applyUiVersion() // до createApp(), щоб не було спалаху v1
-```
+## Selection and storage
 
-## 3. `index.html` — шрифт Onest (кирилиця)
-У `<head>`, до будь-яких стилів:
-```html
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap&subset=cyrillic,latin" rel="stylesheet">
-```
-Inter з `../../src/style.css` (рядок 1) поки лишається — він потрібен для v1. Прибрати після етапу 5.
+- Only exact `v1` and `v2` are accepted. The first `ui` query value takes priority.
+- A valid query is applied and persisted to `pc.ui` when possible.
+- Read and write failures (including the storage accessor) are caught independently.
+- A failed query write is remembered in this document ahead of stale storage.
+- Otherwise valid storage wins over exact `VITE_UI_V2 === 'true'`, then v1.
+- A denied read can reuse the last applied version; no storage failure blocks bootstrap.
+- Reactive consumers through `isUiV2()` and `html[data-ui]` are updated together.
+- Memory is not durable across refresh: without query or accessible persistence,
+  a fresh document uses the build default (v1 unless separately changed).
+- Query changes, redirects and browser Back/Forward are handled through successful
+  router navigation; no history monkey-patching or route changes are introduced.
 
-## 4. `.env.example`
-```
-# UI v2 за замовчуванням для всіх (true) або лише за ?ui=v2 (порожньо)
-VITE_UI_V2=
-```
+## Fonts and environment
 
-## 5. Перемикання для тесту
-- `?ui=v2` вмикає (запам'ятовується в localStorage `pc.ui`), `?ui=v1` вимикає.
-- Staging: `VITE_UI_V2=true`. Production: порожньо до окремого погодження rollout на етапі 5; завершення етапу 4 не є дозволом.
+`index.html` declares preconnects and one Onest 400/500/600 stylesheet with
+`display=swap`, outside the managed metadata block. The resource is available in
+both modes; Onest is applied only by v2 CSS. Existing Inter is retained for v1.
+The app does not await font loading; system fonts remain a readable fallback.
+`.env.example` has `VITE_UI_V2=`. This is a build-time default; runtime environment
+changes alone do not update the bundle. No deployment configuration is changed.
 
-## 6. Тести
-- `uiVersion.spec.ts`: query > localStorage > env; невалідні значення ігноруються.
-- Snapshot/visual-тести, що звіряють `border-radius: 4px` (UI_SHAPE_STANDARD.md), запускати з `data-ui="v1"` — для v2 стандарт форми змінено, див. DESIGN_SYSTEM.md §8.
+## Verification and rollback
 
-## 7. Конфлікти з чинними документами
-- `docs/UI_SHAPE_STANDARD.md` описує радіуси 6–20px; v1 workspace tokens також використовують 2–4px. Для v2 його замінює шкала 8/12/16/24 + pill. Додати в нього примітку «v1 only».
-- `style.css` `body { font-weight: 200 }` — у v2 перекрито на 400 (200 погано читається на кирилиці).
-- Radial-градієнти фону `body` / `body::before` у v2 вимкнено.
+Focused tests: `src/lib/uiVersion.spec.ts`, `src/main.spec.ts`,
+`src/styles/uiV2.spec.ts`, `src/__tests__/app.spec.ts`. Run `npm run typecheck`,
+`npm run build`, and `git diff --check`. CSS contract tests do not substitute for
+browser cascade/keyboard verification. Report executed browser checks separately.
+Use 375x677, 768, 1280, and 1440px, default/v1/v2, refresh/SPA/history,
+storage failure, focus, reduced motion, overflow and font fallback.
+
+Rollback: open the existing route with `?ui=v1`; this overrides storage/env even
+when persistence is denied. Existing v1 markup and CSS are retained. Source
+mockups remain documentation-only; `support.js` and mockup CDN execution stay excluded.

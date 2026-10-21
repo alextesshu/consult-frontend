@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   captureSpecialistRegistrationFirstTouch,
   clearSpecialistRegistrationAttribution,
+  getSpecialistRegistrationAttribution,
   specialistRegistrationAttributionStorageKey,
 } from './registrationAttribution'
 
@@ -20,8 +21,10 @@ function environment(options: Partial<{ href: string; origin: string; referrer: 
 
 describe('specialist registration first-touch attribution', () => {
   afterEach(() => {
+    vi.restoreAllMocks()
     clearSpecialistRegistrationAttribution()
     window.localStorage.clear()
+    window.history.replaceState({}, '', '/')
   })
 
   it('keeps UTM first touch after later navigation removes or changes query parameters', () => {
@@ -88,5 +91,111 @@ describe('specialist registration first-touch attribution', () => {
       environment({ href: 'https://proconsult.space/signup', now: () => 31 * 24 * 60 * 60 * 1000 })
     )
     expect(afterExpiry).toEqual({ first_landing_path: '/signup' })
+  })
+
+  it('preserves first touch in memory when the localStorage getter throws', () => {
+    window.history.replaceState({}, '', '/signup?utm_source=threads')
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('Storage denied', 'SecurityError')
+    })
+
+    expect(captureSpecialistRegistrationFirstTouch()).toEqual({
+      first_landing_path: '/signup', utm_source: 'threads',
+    })
+    window.history.replaceState({}, '', '/login?utm_source=facebook')
+    expect(getSpecialistRegistrationAttribution()).toEqual({
+      first_landing_path: '/signup', utm_source: 'threads',
+    })
+    expect(() => clearSpecialistRegistrationAttribution()).not.toThrow()
+  })
+
+  it('still writes first touch when reading storage throws', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Read denied', 'SecurityError')
+    })
+    window.history.replaceState({}, '', '/signup?utm_source=threads')
+
+    const payload = captureSpecialistRegistrationFirstTouch()
+    expect(setItem).toHaveBeenCalledWith(specialistRegistrationAttributionStorageKey, expect.any(String))
+    const record = JSON.parse(setItem.mock.calls[0]![1])
+    expect(record.payload).toEqual(payload)
+    expect(record.expiresAt).toBeGreaterThan(Date.now())
+  })
+
+  it('still reads storage and retains memory when writing storage throws', () => {
+    const getItem = vi.spyOn(Storage.prototype, 'getItem')
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Write denied', 'SecurityError')
+    })
+    window.history.replaceState({}, '', '/signup?utm_source=threads')
+
+    const first = captureSpecialistRegistrationFirstTouch()
+    expect(getItem).toHaveBeenCalledWith(specialistRegistrationAttributionStorageKey)
+    window.history.replaceState({}, '', '/login?utm_source=facebook')
+    expect(getSpecialistRegistrationAttribution()).toEqual(first)
+  })
+
+  it('reads an unexpired stored record without replacing first touch or extending its TTL', () => {
+    const record = {
+      expiresAt: Date.now() + 60_000,
+      payload: { first_landing_path: '/specialists', utm_source: 'threads' },
+    }
+    const raw = JSON.stringify(record)
+    window.localStorage.setItem(specialistRegistrationAttributionStorageKey, raw)
+    window.history.replaceState({}, '', '/signup?utm_source=facebook')
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+
+    expect(captureSpecialistRegistrationFirstTouch()).toEqual(record.payload)
+    expect(setItem).not.toHaveBeenCalled()
+    expect(window.localStorage.getItem(specialistRegistrationAttributionStorageKey)).toBe(raw)
+  })
+
+  it('does not swallow unrelated environment errors', () => {
+    const failure = new Error('Clock failure')
+    expect(() => captureSpecialistRegistrationFirstTouch(environment({ now: () => { throw failure } }))).toThrow(failure)
+  })
+
+  it.each(['v1', 'v2'])('mounts the application with a denied storage getter in %s', async (version) => {
+    vi.resetModules()
+    const { h } = await import('vue')
+    const { createRouter, createWebHistory } = await import('vue-router')
+    window.history.replaceState({}, '', `/login?utm_source=threads${version === 'v2' ? '&ui=v2' : ''}`)
+    const router = createRouter({
+      history: createWebHistory(),
+      routes: [{ path: '/login', component: { render: () => null } }],
+    })
+    const restoreSession = vi.fn(() => Promise.resolve())
+    vi.doMock('../App.vue', () => ({ default: { render: () => h('main', { id: 'attribution-bootstrap-mounted' }, 'Mounted') } }))
+    vi.doMock('../router', () => ({ default: router }))
+    vi.doMock('../stores/auth', () => ({ useAuthStore: () => ({
+      initFromStorage: () => window.localStorage.removeItem('legacy'), restoreSession,
+    }) }))
+    vi.doMock('./productAnalytics', () => ({
+      browserAttributionForAnalytics: () => ({}), normalizedLandingRoute: () => null,
+      productAnalytics: { capture: vi.fn(), setConsentPreference: vi.fn() },
+    }))
+    document.body.innerHTML = '<div id="app"></div>'
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('Storage denied', 'SecurityError')
+    })
+    try {
+      // Keep the real attribution module on the actual main.ts bootstrap path.
+      await import('../main')
+      await vi.waitFor(() => expect(document.querySelector('#app #attribution-bootstrap-mounted')).not.toBeNull())
+      expect(document.documentElement.dataset.ui).toBe(version)
+      expect(restoreSession).toHaveBeenCalledOnce()
+      const attribution = await import('./registrationAttribution')
+      expect(attribution.getSpecialistRegistrationAttribution()).toEqual({
+        first_landing_path: '/login', utm_source: 'threads',
+      })
+      attribution.clearSpecialistRegistrationAttribution()
+    } finally {
+      router.options.history.destroy()
+      document.body.innerHTML = ''
+      delete document.documentElement.dataset.ui
+      for (const module of ['../App.vue', '../router', '../stores/auth', './productAnalytics']) vi.doUnmock(module)
+      vi.resetModules()
+    }
   })
 })
