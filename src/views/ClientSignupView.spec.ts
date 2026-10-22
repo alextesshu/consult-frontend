@@ -1,12 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { reactive } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { reactive, computed } from 'vue'
+import { applyUiVersion } from '../lib/uiVersion'
+import { useRoute, useRouter, stringifyQuery, type LocationQuery } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import ClientSignupView from './ClientSignupView.vue'
 
-vi.mock('vue-router', () => ({
+vi.mock('vue-router', async () => ({
+  ...await vi.importActual<typeof import('vue-router')>('vue-router'),
   RouterLink: {
     props: ['to'],
     template: '<a><slot /></a>',
@@ -17,8 +19,20 @@ vi.mock('vue-router', () => ({
 
 const mockedUseRoute = vi.mocked(useRoute)
 const mockedUseRouter = vi.mocked(useRouter)
-const routeState = reactive({ query: {} as Record<string, string> })
+const routeState = reactive({ query: {} as LocationQuery })
 const routerPush = vi.fn()
+
+const accountRouterLinkStub = {
+  props: ['to'],
+  setup(props: any) {
+    return { href: computed(() => {
+      if (typeof props.to === 'string') return props.to
+      const query = stringifyQuery(props.to.query ?? {})
+      return props.to.path + (query ? '?' + query : '')
+    }) }
+  },
+  template: '<a :href="href"><slot /></a>',
+}
 
 function renderView() {
   const pinia = createPinia()
@@ -30,10 +44,7 @@ function renderView() {
     global: {
       plugins: [pinia],
       stubs: {
-        RouterLink: {
-          props: ['to'],
-          template: '<a><slot /></a>',
-        },
+        RouterLink: accountRouterLinkStub,
       },
     },
   })
@@ -51,6 +62,7 @@ async function submitSignup(container: Element) {
 describe('ClientSignupView', () => {
   beforeEach(() => {
     cleanup()
+    applyUiVersion('v1')
     routeState.query = {}
     routerPush.mockReset()
     mockedUseRoute.mockReturnValue(routeState as any)
@@ -128,4 +140,74 @@ describe('ClientSignupView', () => {
     expect(confirmInput.type).toBe('password')
     expect(auth.signupClient).not.toHaveBeenCalled()
   })
+
+  it('shows the client as selected before fields only under v2', () => {
+    applyUiVersion('v2')
+    const { container } = renderView()
+    expect(screen.getByRole('navigation', { name: 'Тип акаунта' }).querySelectorAll('a')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: /Я клієнт/ })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /Я спеціаліст/ })).toHaveAttribute('href', '/signup?ui=v2')
+    expect(screen.getByRole('link', { name: /Я спеціаліст/ })).not.toHaveAttribute('aria-current')
+    expect(container.querySelector('nav')!.compareDocumentPosition(container.querySelector('input')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Реєстрація спеціаліста' })).toBeNull()
+  })
+
+  it('retains the legacy account link without a selector in v1', () => {
+    renderView()
+    expect(screen.queryByRole('navigation', { name: 'Тип акаунта' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Реєстрація спеціаліста' })).toHaveAttribute('href', '/signup')
+  })
+
+  it('forwards acquisition query and safe invitation redirect and preserves the existing submit destination', async () => {
+    applyUiVersion('v2')
+    routeState.query = { redirect: '/client/invite/local-fixture', utm_medium: 'social', utm_source: 'source', access_token: 'not-forwarded' }
+    const { container, auth } = renderView()
+    const url = new URL(screen.getByRole('link', { name: /Я спеціаліст/ }).getAttribute('href')!, 'http://localhost')
+    expect(Object.fromEntries(url.searchParams)).toEqual({ ui: 'v2', utm_source: 'source', utm_medium: 'social', redirect: '/client/invite/local-fixture' })
+    await submitSignup(container)
+    expect(auth.signupClient).toHaveBeenCalledWith('client@example.com', 'password123', 'password123')
+    await waitFor(() => expect(routerPush).toHaveBeenCalledWith('/client/invite/local-fixture'))
+  })
+
+  it.each(['https://example.test', '//example.test'])('keeps the existing unsafe redirect fallback for %j', async (redirect) => {
+    applyUiVersion('v2')
+    routeState.query = { redirect }
+    const { container } = renderView()
+    expect(screen.getByRole('link', { name: /Я спеціаліст/ })).toHaveAttribute('href', '/signup?ui=v2')
+    await submitSignup(container)
+    await waitFor(() => expect(routerPush).toHaveBeenCalledWith('/client'))
+  })
+
+  it('shows a non-interactive example and public discovery without changing the field contract', () => {
+    applyUiVersion('v2')
+    const { container } = renderView()
+    const preview = screen.getByRole('complementary', { name: 'Ваші запити й сесії — в одному місці' })
+    expect(preview.textContent).toContain('Ілюстрація інтерфейсу. Це не ваші дані та не підтверджене бронювання.')
+    expect(preview.querySelectorAll('a, button, input, [tabindex], img')).toHaveLength(0)
+    expect(screen.getByRole('link', { name: 'Знайти спеціаліста →' })).toHaveAttribute('href', '/specialists?ui=v2')
+    expect([...container.querySelectorAll('input')].map(input => [input.name, input.autocomplete])).toEqual([
+      ['email', 'email'], ['password', 'new-password'], ['password_confirm', 'new-password'],
+    ])
+    expect(screen.getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'Умовами користування' })).toHaveAttribute('href', '/terms')
+    expect(screen.getByRole('link', { name: 'Політикою конфіденційності' })).toHaveAttribute('href', '/privacy')
+  })
+
+  it('preserves values, errors and validation while reactively switching the client design', async () => {
+    applyUiVersion('v2')
+    const { container, auth } = renderView()
+    await fireEvent.update(screen.getByLabelText('Ел. пошта'), 'client@example.com')
+    await fireEvent.submit(container.querySelector('form')!)
+    expect(screen.getByRole('alert')).toHaveTextContent('Заповніть усі поля.')
+    expect(auth.signupClient).not.toHaveBeenCalled()
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.querySelector('.pc2-client-preview')).toBeNull())
+    expect(screen.getByLabelText('Ел. пошта')).toHaveValue('client@example.com')
+    expect(screen.getByText('Заповніть усі поля.')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).toBeNull()
+    applyUiVersion('v2')
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Заповніть усі поля.'))
+    expect(screen.getByLabelText('Ел. пошта')).toHaveValue('client@example.com')
+  })
+
 })
