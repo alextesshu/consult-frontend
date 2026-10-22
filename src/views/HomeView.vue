@@ -1,5 +1,164 @@
 <template>
-  <section class="home-lite">
+  <section v-if="isUiV2()" class="pc2-home">
+    <div class="pc2-home__container">
+      <section class="pc2-home__hero" aria-labelledby="home-hero-title">
+        <p class="pc2-home__eyebrow">Pro Consult · простір для вашої практики</p>
+        <h1 id="home-hero-title">Менше адміністрування.<br>Більше уваги до клієнта.</h1>
+        <p class="pc2-home__lead">Професійна сторінка, звернення від клієнтів, сесії та щоденна робота — в одному спокійному просторі.</p>
+        <div class="pc2-home__actions">
+          <button v-if="isAuthenticated" class="pc2-btn pc2-btn--primary" type="button" @click="goToCabinet">Перейти до кабінету</button>
+          <RouterLink v-else class="pc2-btn pc2-btn--primary" to="/signup">Створити свій простір</RouterLink>
+          <RouterLink class="pc2-btn pc2-btn--secondary" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+        </div>
+        <p class="pc2-home__meta">Start — 0 грн · 30 днів Pro безкоштовно · 0% комісії з консультацій</p>
+      </section>
+
+      <section class="pc2-home__journey" aria-labelledby="workflow-title">
+        <h2 id="workflow-title" class="pc2-home__sr-only">Від знайомства до регулярної роботи</h2>
+        <div class="pc2-home__steps" role="group" aria-label="Етапи роботи">
+          <button v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__step" type="button" :aria-pressed="activeJourneyStep === index" aria-controls="home-journey-panel" @click="activeJourneyStep = index">
+            <span class="pc2-home__step-number" aria-hidden="true">{{ index + 1 }}</span>{{ step.label }}
+          </button>
+        </div>
+        <div id="home-journey-panel" class="pc2-home__journey-panel" role="region" aria-label="Опис обраного етапу" aria-live="polite" aria-atomic="true">
+          <div class="pc2-home__journey-copy">
+            <p class="pc2-home__eyebrow">Крок {{ activeJourneyStep + 1 }} з 4</p>
+            <h2>{{ journeySteps[activeJourneyStep]!.title }}</h2>
+            <p>{{ journeySteps[activeJourneyStep]!.copy }}</p>
+          </div>
+          <div class="pc2-home__illustration">
+            <p class="pc2-home__meta">Ілюстрація роботи сервісу</p>
+            <div class="pc2-home__preview" :class="`pc2-home__preview--${activeJourneyStep}`">
+              <span class="pc2-home__preview-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path v-for="path in iconPaths[journeySteps[activeJourneyStep]!.icon]" :key="path" :d="path" /></svg>
+              </span>
+              <h3>{{ journeySteps[activeJourneyStep]!.preview }}</h3>
+              <p>{{ journeySteps[activeJourneyStep]!.detail }}</p>
+              <div class="pc2-home__preview-lines" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="pc2-home__status">{{ journeySteps[activeJourneyStep]!.status }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pc2-home__truth" aria-labelledby="truth-title">
+        <h2 id="truth-title">Чесні умови для вашої практики</h2>
+        <div><h3>0% комісії</h3><p>Клієнт оплачує консультацію напряму вам.</p></div>
+        <div><h3>30 днів Pro</h3><p>Спробуйте розширені можливості безкоштовно.</p></div>
+        <div><h3>Без рейтингів</h3><p>Клієнт обирає за своїм запитом і вашим підходом.</p></div>
+      </section>
+
+      <section id="features" class="pc2-home__section" aria-labelledby="value-title">
+        <h2 id="value-title">Усе для практики — без зайвого</h2>
+        <section v-for="group in capabilityGroups" :key="group.id" class="pc2-home__capabilities" :aria-labelledby="group.id">
+          <h3 :id="group.id">{{ group.title }}</h3>
+          <div class="pc2-home__bento">
+            <article v-for="item in group.items" :key="item.title" class="pc2-home__feature pc2-card">
+              <svg class="pc2-home__feature-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path v-for="path in iconPaths[item.icon]" :key="path" :d="path" /></svg>
+              <h3>{{ item.title }}</h3><p>{{ item.copy }}</p>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section class="pc2-home__blog" aria-labelledby="blog-title">
+        <div><p class="pc2-home__eyebrow">Власний блог</p><h2 id="blog-title">Дайте клієнту можливість познайомитись з вами до консультації</h2></div>
+        <div><p>Не кожен готовий звернутись одразу.</p><p>Професійна сторінка і власний блог допомагають клієнту зрозуміти, з чим ви працюєте, як мислите і чи відгукується йому ваш підхід.</p><p>Публікуйте статті, відповіді на часті запитання та матеріали, які ви хочете зробити доступними клієнтам.</p></div>
+      </section>
+      <section class="pc2-home__client" aria-labelledby="client-entry-title">
+        <div><h2 id="client-entry-title">Шукаєте спеціаліста?</h2><p>Опишіть свій запит або оберіть напрям, перегляньте професійні сторінки й зверніться напряму до спеціаліста, який вам підходить.</p><p>Без обов'язкової реєстрації для першого звернення.</p></div>
+        <RouterLink class="pc2-btn pc2-btn--primary" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+      </section>
+      <section id="pricing" class="pc2-home__pricing" aria-labelledby="pricing-title">
+        <div class="pc2-home__heading">
+          <h2 id="pricing-title" class="pc2-home__title">Тарифи</h2>
+          <p class="pc2-home__lead">
+            Start — для знайомства з Pro Consult і невеликої практики. Pro — для регулярної роботи з більшою кількістю клієнтів і розширеними інструментами.
+          </p>
+        </div>
+
+        <div class="pc2-home__cycles" role="group" aria-label="Період оплати">
+          <button
+            class="pc2-home__cycle"
+            :aria-pressed="billingCycle === 'monthly'"
+            type="button"
+            @click="billingCycle = 'monthly'"
+          >
+            Місяць
+          </button>
+          <button
+            class="pc2-home__cycle"
+            :aria-pressed="billingCycle === 'yearly'"
+            type="button"
+            @click="billingCycle = 'yearly'"
+          >
+            Рік
+          </button>
+        </div>
+
+        <div class="pc2-home__plans">
+          <article v-for="plan in pricingPlans" :key="plan.name" class="pc2-home__plan" :class="{ 'pc2-home__plan--pro': plan.name === 'Pro' }">
+            <p v-if="plan.badge" class="pc2-home__plan-badge">{{ plan.badge }}</p>
+            <h3>{{ plan.name }}</h3>
+            <p class="pc2-home__plan-price">{{ plan.price }}</p>
+            <p class="pc2-home__plan-scenario">{{ plan.scenario }}</p>
+            <p v-if="plan.helper" class="pc2-home__plan-helper">{{ plan.helper }}</p>
+            <ul>
+              <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
+            </ul>
+            <p v-if="plan.note" class="pc2-home__plan-note">{{ plan.note }}</p>
+            <RouterLink class="pc2-btn pc2-btn--primary" :class="{ 'pc2-btn--secondary': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
+          </article>
+        </div>
+        <article class="pc2-home__conditions" aria-labelledby="commission-title">
+          <div>
+            <h3 id="commission-title">Ваш дохід від консультацій залишається вашим</h3>
+            <p>Pro Consult не бере відсоток із консультацій. Клієнт оплачує безпосередньо спеціалісту, а в кабінеті ви контролюєте статуси та історію оплат.</p>
+            <p>Ви оплачуєте доступ до професійного простору — не комісію з кожної проведеної консультації.</p>
+          </div>
+        </article>
+        <article class="pc2-home__conditions" aria-labelledby="trial-title">
+          <div>
+            <h3 id="trial-title">30 днів Pro безкоштовно</h3>
+            <p>Після реєстрації ви отримуєте 30 днів доступу до розширених можливостей Pro Consult без оплати.</p>
+            <p>Спробуйте Pro на своїй реальній практиці: працюйте з клієнтами, ведіть сесії, контролюйте оплати, використовуйте блог, матеріали, аналітику та інші інструменти.</p>
+            <p>Після 30 днів вирішіть, що підходить саме вам: залишитись на Start, розширити ліміт клієнтів або продовжити роботу на Pro.</p>
+          </div>
+          <RouterLink class="pc2-btn pc2-btn--secondary" to="/signup">Спробувати Pro 30 днів безкоштовно</RouterLink>
+        </article>
+        <article class="pc2-home__conditions" aria-labelledby="leader-custom-title">
+          <div>
+            <h3 id="leader-custom-title">Потрібно більше простору для практики?</h3>
+            <p>
+              Для спеціалістів із більшим навантаженням можемо підібрати індивідуальний
+              формат: до 60 активних клієнтів, розширена аналітика, до 3 дошок задач і
+              пріоритетна підтримка.
+            </p>
+          </div>
+          <RouterLink class="pc2-btn pc2-btn--secondary" to="/support-and-data-requests">Обговорити формат</RouterLink>
+        </article>
+        <article class="pc2-home__limits" aria-labelledby="pricing-details-title">
+          <div>
+            <h3 id="pricing-details-title">Як рахуються ліміти</h3>
+            <p>
+              Активний клієнт — це клієнт, з яким ви ведете поточну роботу в кабінеті.
+            </p>
+          </div>
+          <ul>
+            <li v-for="detail in pricingLimitDetails" :key="detail">{{ detail }}</li>
+          </ul>
+        </article>
+      </section>
+
+
+      <section class="pc2-home__final" aria-labelledby="home-final-title">
+        <h2 id="home-final-title">Створіть свій простір за кілька хвилин</h2>
+        <RouterLink v-if="!isAuthenticated" class="pc2-btn pc2-btn--primary" to="/signup">Створити свій простір</RouterLink>
+        <button v-else class="pc2-btn pc2-btn--primary" type="button" @click="goToCabinet">Створити свій простір</button>
+      </section>
+    </div>
+  </section>
+  <section v-else class="home-lite">
     <div class="home-lite__container">
       <section class="home-hero reveal" aria-labelledby="home-hero-title">
         <span class="home-hero__wash home-hero__wash--teal" aria-hidden="true"></span>
@@ -359,10 +518,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { productAnalytics } from '../lib/productAnalytics'
+import { isUiV2 } from '../lib/uiVersion'
 import heroSpecialistDemo from '../assets/home/hero-specialist-demo.webp'
 
 type IconKey =
@@ -383,6 +543,16 @@ const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const billingCycle = ref<'monthly' | 'yearly'>('monthly')
 let clientEntryCtaTracked = false
+
+// Presentation only: all navigation, pricing and attribution remain shared with v1.
+const activeJourneyStep = ref(0)
+const journeySteps: Array<{ label: string; title: string; copy: string; icon: IconKey; preview: string; detail: string; status: string }> = [
+  { label: 'Профіль', title: 'Покажіть свою практику', copy: 'Створіть професійну сторінку: розкажіть про свій підхід, теми роботи, формат консультацій і вартість. Ви самі вирішуєте, коли її публікувати.', icon: 'profile', preview: 'Професійна сторінка', detail: 'Ваш підхід · теми роботи · формат консультацій', status: 'Публікація під вашим контролем' },
+  { label: 'Запит', title: 'Знайомство починається із запиту', copy: 'Клієнт переглядає вашу сторінку й залишає звернення без обов’язкової реєстрації. Запит не є підтвердженим записом: деталі та час ви погоджуєте разом.', icon: 'booking', preview: 'Звернення від клієнта', detail: 'Запит → обговорення деталей → погодження часу', status: 'Потребує погодження' },
+  { label: 'Сесія', title: 'Проведіть консультацію', copy: 'Погоджуйте час, плануйте сесії та тримайте робочий календар в одному місці. Клієнт оплачує консультацію безпосередньо вам.', icon: 'session', preview: 'Планування сесії', detail: 'Формат і час — за домовленістю зі спеціалістом', status: 'Час погоджується окремо' },
+  { label: 'Подальша робота', title: 'Продовжуйте роботу з клієнтом', copy: 'Регулярні сесії, приватні нотатки, матеріали й задачі залишаються в контексті вашої роботи. Клієнту відкривається лише те, чим ви свідомо ділитеся.', icon: 'materials', preview: 'Контекст роботи', detail: 'Сесії · приватні нотатки · матеріали · задачі', status: 'Приватність під вашим контролем' },
+]
+
 
 function trackClientEntryCta() {
   if (clientEntryCtaTracked) return
@@ -533,7 +703,9 @@ const goToCabinet = async () => {
 
 let revealObserver: IntersectionObserver | null = null
 
-onMounted(() => {
+function setupRevealObserver() {
+  revealObserver?.disconnect()
+  revealObserver = null
   const targets = Array.from(document.querySelectorAll<HTMLElement>('.reveal'))
   if (!targets.length) return
 
@@ -556,7 +728,10 @@ onMounted(() => {
   )
 
   targets.forEach((el) => revealObserver?.observe(el))
-})
+}
+
+onMounted(setupRevealObserver)
+watch(isUiV2, setupRevealObserver, { flush: 'post' })
 
 onBeforeUnmount(() => {
   revealObserver?.disconnect()
@@ -3762,4 +3937,112 @@ onBeforeUnmount(() => {
   }
 }
 
+</style>
+
+<style>
+/* Home v2 is opt-in. Legacy scoped styles above remain unchanged. */
+html[data-ui="v2"] .pc2-home { background: var(--pc-bg-main); color: var(--pc-text-body); font-family: var(--pc-font); padding-bottom: var(--pc-space-20); }
+html[data-ui="v2"] .pc2-home__container { max-width: var(--pc-container); margin-inline: auto; padding-inline: var(--pc-gutter); }
+html[data-ui="v2"] .pc2-home h1,
+html[data-ui="v2"] .pc2-home h2,
+html[data-ui="v2"] .pc2-home h3 { color: var(--pc-text-main); font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-home h2 { font-size: var(--pc-fs-h1); }
+html[data-ui="v2"] .pc2-home h3 { font-size: var(--pc-fs-h3); }
+html[data-ui="v2"] .pc2-home p { margin-block: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-home__hero { text-align: center; padding-block: var(--pc-space-20) var(--pc-space-12); }
+html[data-ui="v2"] .pc2-home__hero h1 { font-size: var(--pc-fs-display); line-height: var(--pc-lh-tight); letter-spacing: var(--pc-ls-display); margin: var(--pc-space-6) auto; max-width: 18ch; }
+html[data-ui="v2"] .pc2-home__lead { max-width: 65ch; margin-inline: auto; font-size: var(--pc-fs-lead); }
+html[data-ui="v2"] .pc2-home__eyebrow { color: var(--pc-text-muted); font-size: var(--pc-fs-small); font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-home__meta { color: var(--pc-text-muted); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__actions { display: flex; justify-content: center; gap: var(--pc-space-3); flex-wrap: wrap; margin-block: var(--pc-space-8) var(--pc-space-5); }
+html[data-ui="v2"] .pc2-home__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pc-space-2); padding-bottom: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-home__step { display: flex; align-items: center; justify-content: center; gap: var(--pc-space-3); min-height: var(--pc-control-h); padding: var(--pc-space-3); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); background: var(--pc-bg-main); color: var(--pc-text-body); font: inherit; cursor: pointer; }
+html[data-ui="v2"] .pc2-home__step-number { display: grid; place-items: center; width: var(--pc-space-8); height: var(--pc-space-8); flex-shrink: 0; border-radius: var(--pc-radius-pill); background: var(--pc-bg-sunk); }
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] { background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] .pc2-home__step-number { background: var(--pc-bg-card); color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-home__step:hover:not([aria-pressed="true"]) { background: var(--pc-teal-100); border-color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__journey-panel { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); overflow: hidden; }
+html[data-ui="v2"] .pc2-home__journey-copy { padding: var(--pc-space-12); align-self: center; }
+html[data-ui="v2"] .pc2-home__journey-copy h2 { margin-block: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-home__illustration { background: var(--pc-teal-100); padding: var(--pc-space-8); display: grid; align-content: center; }
+html[data-ui="v2"] .pc2-home__preview { padding: var(--pc-space-8); background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); box-shadow: var(--pc-shadow-sm); }
+html[data-ui="v2"] .pc2-home__preview-icon { display: grid; place-items: center; width: var(--pc-space-12); height: var(--pc-space-12); background: var(--pc-teal-200); color: var(--pc-teal-ink); border-radius: var(--pc-radius-sm); }
+html[data-ui="v2"] .pc2-home__preview-icon svg,
+html[data-ui="v2"] .pc2-home__feature-icon { width: var(--pc-space-6); height: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-home__preview-lines { display: grid; gap: var(--pc-space-3); margin-block: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-home__preview-lines span { height: var(--pc-space-2); background: var(--pc-bg-sunk); border-radius: var(--pc-radius-pill); }
+html[data-ui="v2"] .pc2-home__preview-lines span:last-child { width: 65%; }
+html[data-ui="v2"] .pc2-home__status { display: inline-block; padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-peach-100); color: var(--pc-peach-ink); border-radius: var(--pc-radius-xs); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__truth { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-6); background: var(--pc-navy-900); color: var(--pc-bg-card); border-radius: var(--pc-radius-lg); padding: var(--pc-space-12); margin-top: var(--pc-space-12); }
+html[data-ui="v2"] .pc2-home__truth h2 { grid-column: 1 / -1; margin: 0; color: inherit; }
+html[data-ui="v2"] .pc2-home__truth h3 { color: inherit; }
+html[data-ui="v2"] .pc2-home__section,
+html[data-ui="v2"] .pc2-home__blog,
+html[data-ui="v2"] .pc2-home__pricing { margin-block: var(--pc-section-y); }
+html[data-ui="v2"] .pc2-home__capabilities { margin-top: var(--pc-space-10); }
+html[data-ui="v2"] .pc2-home__bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-home__feature { padding: var(--pc-space-8); min-width: 0; }
+html[data-ui="v2"] .pc2-home__feature:first-child { grid-column: span 2; background: var(--pc-teal-100); }
+html[data-ui="v2"] .pc2-home__feature-icon { color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__blog { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-12); padding: var(--pc-space-12); background: var(--pc-peach-100); border-radius: var(--pc-radius-lg); }
+html[data-ui="v2"] .pc2-home__client { display: flex; align-items: center; gap: var(--pc-space-10); padding: var(--pc-space-10); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-lg); }
+html[data-ui="v2"] .pc2-home__client > div { flex: 1; }
+html[data-ui="v2"] .pc2-home__client > a { flex-shrink: 0; }
+html[data-ui="v2"] .pc2-home__heading { text-align: center; }
+html[data-ui="v2"] .pc2-home__cycles { display: flex; justify-content: center; gap: var(--pc-space-2); margin-block: var(--pc-space-8); }
+html[data-ui="v2"] .pc2-home__cycle { min-height: var(--pc-control-h); padding-inline: var(--pc-space-6); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; cursor: pointer; }
+html[data-ui="v2"] .pc2-home__cycle[aria-pressed="true"] { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__cycle:hover { border-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-home__plans { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-home__plan { display: flex; flex-direction: column; align-items: flex-start; padding: var(--pc-space-10); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__plan--pro { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__plan--pro h3 { color: inherit; }
+html[data-ui="v2"] .pc2-home__plan-price { font-size: var(--pc-fs-h1); font-weight: var(--pc-fw-strong); line-height: var(--pc-lh-head); }
+html[data-ui="v2"] .pc2-home__plan-badge { font-size: var(--pc-fs-small); padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-teal-200); color: var(--pc-teal-ink); border-radius: var(--pc-radius-pill); }
+html[data-ui="v2"] .pc2-home__plan ul { padding-left: var(--pc-space-5); margin-bottom: var(--pc-space-8); }
+html[data-ui="v2"] .pc2-home__plan li { padding-block: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-home__plan > a { margin-top: auto; }
+html[data-ui="v2"] .pc2-home__plan--pro > a { background: var(--pc-bg-card); color: var(--pc-navy-900); border-color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__plan--pro > a:hover { background: var(--pc-teal-200); border-color: var(--pc-teal-200); }
+html[data-ui="v2"] .pc2-home__conditions,
+html[data-ui="v2"] .pc2-home__limits { margin-top: var(--pc-space-6); padding: var(--pc-space-8); background: var(--pc-bg-soft); border-radius: var(--pc-radius-md); }
+html[data-ui="v2"] .pc2-home__conditions > a { margin-top: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-home__final { text-align: center; padding-block: var(--pc-space-12); }
+html[data-ui="v2"] .pc2-home__final h2 { max-width: 24ch; margin: 0 auto var(--pc-space-8); }
+html[data-ui="v2"] .pc2-home :focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+html[data-ui="v2"] .pc2-home__plan--pro :focus-visible,
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"]:focus-visible { outline-color: var(--pc-navy-900); box-shadow: 0 0 0 var(--pc-space-1) var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 900px) {
+  html[data-ui="v2"] .pc2-home__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html[data-ui="v2"] .pc2-home__journey-copy,
+  html[data-ui="v2"] .pc2-home__illustration { padding: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html[data-ui="v2"] .pc2-home__blog { padding: var(--pc-space-8); gap: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-home__client { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 600px) {
+  html[data-ui="v2"] .pc2-home__hero { padding-top: var(--pc-space-12); }
+  html[data-ui="v2"] .pc2-home__actions { flex-direction: column; }
+  html[data-ui="v2"] .pc2-home__step { flex-direction: column; gap: var(--pc-space-2); border-radius: var(--pc-radius-md); }
+  html[data-ui="v2"] .pc2-home__journey-panel,
+  html[data-ui="v2"] .pc2-home__truth,
+  html[data-ui="v2"] .pc2-home__bento,
+  html[data-ui="v2"] .pc2-home__blog,
+  html[data-ui="v2"] .pc2-home__plans { grid-template-columns: 1fr; }
+  html[data-ui="v2"] .pc2-home__feature:first-child { grid-column: auto; }
+  html[data-ui="v2"] .pc2-home__truth,
+  html[data-ui="v2"] .pc2-home__feature,
+  html[data-ui="v2"] .pc2-home__blog,
+  html[data-ui="v2"] .pc2-home__client,
+  html[data-ui="v2"] .pc2-home__plan,
+  html[data-ui="v2"] .pc2-home__conditions,
+  html[data-ui="v2"] .pc2-home__limits { padding: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-home__preview { padding: var(--pc-space-5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-home *,
+  html[data-ui="v2"] .pc2-home *::before,
+  html[data-ui="v2"] .pc2-home *::after { animation: none; transition: none; scroll-behavior: auto; }
+}
 </style>
