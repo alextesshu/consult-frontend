@@ -101,11 +101,101 @@ html[data-ui="v2"] .pc2-request-panel { position: sticky; top: 96px; background:
 }
 
 /* Public header */
-html[data-ui="v2"] .pc2-header { position: sticky; top: 0; z-index: 20; height: 76px; display: flex; align-items: center; gap: clamp(12px, 3vw, 32px); background: var(--pc-bg-main); border-bottom: 1px solid var(--pc-border-hair); }
-html[data-ui="v2"] .pc2-header__logo { height: 40px; width: auto; }
+html[data-ui="v2"] .pc2-header { position: sticky; top: 0; z-index: 20; height: var(--pc-header-h); display: flex; align-items: center; gap: clamp(12px, 3vw, 32px); background: var(--pc-bg-main); border-bottom: 1px solid var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-header__logo { height: var(--pc-header-logo-h); width: auto; }
 html[data-ui="v2"] .pc2-header__link { padding: 8px 12px; font-size: var(--pc-fs-small); color: var(--pc-text-muted); border-bottom: 2px solid transparent; }
 html[data-ui="v2"] .pc2-header__link:hover { color: var(--pc-text-main); }
 html[data-ui="v2"] .pc2-header__link.is-active { color: var(--pc-text-main); font-weight: var(--pc-fw-medium); border-bottom-color: var(--pc-navy-900); }
+
+/* App's existing scoped navigation rules are more specific than generic buttons.
+   Keep these overrides attached to the guest header, never authenticated chrome. */
+html[data-ui="v2"] .pc2-header.topbar--guest {
+  display: block; height: auto; min-height: var(--pc-header-h);
+  background: var(--pc-bg-main); color: var(--pc-text-main);
+  border: 0; border-bottom: 1px solid var(--pc-border-hair);
+  box-shadow: none; backdrop-filter: none; font-family: var(--pc-font);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest::after { display: none; }
+html[data-ui="v2"] .shell.shell--public-header-v2 .pc2-header.topbar--guest .topbar__inner {
+  width: 100%; max-width: var(--pc-container); min-height: calc(var(--pc-header-h) - 1px);
+  margin-inline: auto; padding: 0 var(--pc-gutter);
+  display: flex; flex-wrap: nowrap; align-items: center; gap: var(--pc-space-6);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .brand { flex: 0 0 auto; }
+html[data-ui="v2"] .pc2-header.topbar--guest .brand__tagline,
+html[data-ui="v2"] .pc2-header.topbar--guest .brand__logo--mark,
+html[data-ui="v2"] .pc2-header.topbar--guest .brand__mobile-name { display: none; }
+html[data-ui="v2"] .pc2-header.topbar--guest .brand__logo--full {
+  display: block; height: var(--pc-header-logo-h); width: auto; max-width: none;
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience {
+  display: flex; align-items: center; gap: var(--pc-space-1); flex: 0 0 auto;
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .nav {
+  margin-left: auto; width: auto; flex-wrap: nowrap; gap: var(--pc-space-2);
+  align-items: center; font-weight: var(--pc-fw-medium);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__link {
+  min-height: var(--pc-header-row-h); display: inline-flex; align-items: center;
+  padding: var(--pc-space-2) var(--pc-space-3); white-space: nowrap;
+  border: 0; border-bottom: var(--pc-focus-width) solid transparent; border-radius: 0;
+  background: transparent; box-shadow: none; color: var(--pc-text-muted);
+  font: var(--pc-fw-regular) var(--pc-fs-small)/var(--pc-lh-body) var(--pc-font);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__link:hover,
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__link.router-link-active,
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__link.is-active {
+  background: transparent; box-shadow: none; color: var(--pc-text-main);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__link.is-active {
+  border-bottom-color: var(--pc-navy-900); font-weight: var(--pc-fw-medium);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-btn--primary {
+  min-height: var(--pc-header-row-h); padding: 0 var(--pc-space-4);
+  border: 1px solid var(--pc-navy-900); border-radius: var(--pc-radius-pill);
+  background: var(--pc-navy-900); color: var(--pc-bg-card); box-shadow: none;
+  font: var(--pc-fw-medium) var(--pc-fs-small)/1 var(--pc-font);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-btn--primary:hover {
+  background: var(--pc-navy-950); border-color: var(--pc-navy-950);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-btn--primary:active {
+  background: var(--pc-navy-800); border-color: var(--pc-navy-800);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest a:focus-visible {
+  outline: var(--pc-focus-width) solid var(--pc-navy-900);
+  outline-offset: var(--pc-focus-offset);
+}
+/* Vue Router scrolls to the target box. Keep its text below the sticky header
+   without changing Home markup or the route's shared scroll behavior. */
+html[data-ui="v2"] .shell--public-header-v2 {
+  --pc-header-anchor-offset: calc(var(--pc-header-h) + var(--pc-space-10));
+}
+html[data-ui="v2"] .shell--public-header-v2 #client-entry-title,
+html[data-ui="v2"] .shell--public-header-v2 #pricing {
+  padding-top: var(--pc-header-anchor-offset);
+  margin-top: calc(-1 * var(--pc-header-anchor-offset));
+}
+@media (max-width: 1100px) {
+  html[data-ui="v2"] .shell--public-header-v2 {
+    --pc-header-h: calc(var(--pc-header-row-h) * 2 + var(--pc-space-2) * 3);
+  }
+  html[data-ui="v2"] .shell.shell--public-header-v2 .pc2-header.topbar--guest .topbar__inner {
+    flex-wrap: wrap; gap: var(--pc-space-2) var(--pc-space-3); padding-block: var(--pc-space-2);
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience {
+    order: 3; flex-basis: 100%; justify-content: center;
+  }
+}
+@media (max-width: 640px) {
+  html[data-ui="v2"] .shell--home .pc2-header.topbar--guest .nav .nav__guest-catalog,
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .nav__guest-catalog.router-link-exact-active { display: none; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav { gap: var(--pc-space-1); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .pc2-header__link { padding-inline: var(--pc-space-2); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-btn--primary { padding-inline: var(--pc-space-3); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav__guest-cta-full { display: none; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav__guest-cta-short { display: inline; }
+}
 
 /* Containers */
 html[data-ui="v2"] .pc2-container { max-width: var(--pc-container); margin-inline: auto; padding-inline: var(--pc-gutter); }

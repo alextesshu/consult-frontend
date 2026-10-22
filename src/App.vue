@@ -7,6 +7,7 @@
         'shell--minimal': useMinimalShell,
         'shell--authenticated': isAuthenticatedLayout,
         'shell--public-profile': isPublicProfilePage,
+        'shell--public-header-v2': usePublicHeaderV2,
       },
     ]"
   >
@@ -14,13 +15,21 @@
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
           <span class="brand__logo-frame">
-            <img class="brand__logo brand__logo--full" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <img class="brand__logo brand__logo--full" :class="{ 'pc2-header__logo': usePublicHeaderV2 }" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
             <span class="brand__mobile-name" aria-hidden="true">Pro Consult</span>
             <span class="brand__text-fallback" aria-hidden="true">PRO CONSULT</span>
           </span>
           <span class="brand__tagline">простір для ведення консультацій</span>
         </RouterLink>
+        <nav v-if="usePublicHeaderV2 && !isSpecialistOwnedSurface" class="pc2-header__audience" aria-label="Для кого Pro Consult">
+          <RouterLink to="/" class="pc2-header__link" active-class="" exact-active-class=""
+            :class="{ 'is-active': isHome && !isClientEntry }"
+            :aria-current="isHome && !isClientEntry ? 'location' : 'false'">Для спеціалістів</RouterLink>
+          <RouterLink to="/#client-entry-title" class="pc2-header__link" active-class="" exact-active-class=""
+            :class="{ 'is-active': isClientEntry }"
+            :aria-current="isClientEntry ? 'location' : 'false'">Для клієнтів</RouterLink>
+        </nav>
         <nav class="nav">
         <RouterLink
           v-if="isAuthenticated && hasSupportedCabinetRole"
@@ -38,7 +47,7 @@
           Спеціалісти
         </RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Знайти спеціаліста</RouterLink>
-        <RouterLink v-if="showGuestCatalogNav" class="nav__guest-catalog" to="/specialists">
+        <RouterLink v-if="showGuestCatalogNav" class="nav__guest-catalog" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/specialists">
           Знайти спеціаліста
         </RouterLink>
         <RouterLink v-if="isAuthenticated && isClient && !isSpecialist && !isSpecialistOwnedSurface" class="nav__desktop-only" to="/signup">
@@ -55,9 +64,9 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
-        <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" to="/signup">
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
+        <RouterLink v-if="!isAuthenticated" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary': usePublicHeaderV2 }" to="/signup">
           <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
           <span class="nav__guest-cta-short">Спробувати</span>
         </RouterLink>
@@ -519,6 +528,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { isUiV2 } from './lib/uiVersion'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner.vue'
@@ -547,6 +557,8 @@ const isAuthenticatedCabinetRoute = computed(
   () => route.path.startsWith('/cabinet') || route.path.startsWith('/client')
 )
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
+const usePublicHeaderV2 = computed(() => isUiV2() && !isAuthenticated.value && !useMinimalShell.value)
+const isClientEntry = computed(() => isHome.value && route.hash === '#client-entry-title')
 const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
@@ -703,6 +715,7 @@ const topbarClass = computed(() => [
     'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
+    'pc2-header': usePublicHeaderV2.value,
   },
 ])
 

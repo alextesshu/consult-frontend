@@ -30,6 +30,28 @@ function contrast(a: string, b: string) {
 }
 
 describe('UI v2 CSS contract', () => {
+  it('uses approved header dimensions and guest-only resets for legacy chrome', () => {
+    expect(vars['--pc-header-h']).toBe('76px')
+    expect(vars['--pc-header-logo-h']).toBe('40px')
+    expect(vars['--pc-header-row-h']).toBe('44px')
+    const guest = declarations(`${gate} .pc2-header.topbar--guest`)
+    expect(guest.background).toBe('var(--pc-bg-main)')
+    expect(guest['box-shadow']).toBe('none')
+    expect(guest['backdrop-filter']).toBe('none')
+    expect(declarations(`${gate} .pc2-header.topbar--guest::after`).display).toBe('none')
+    const focus = declarations(`${gate} .pc2-header.topbar--guest a:focus-visible`)
+    expect(resolve(focus.outline!)).toBe('2px solid #12345a')
+    expect(resolve(focus['outline-offset']!)).toBe('2px')
+  })
+
+  it('preserves accessible CTA colors despite legacy guest navigation selectors', () => {
+    const selector = `${gate} .pc2-header.topbar--guest .nav a.pc2-btn--primary`
+    for (const state of ['', ':hover', ':active']) {
+      const style = { ...declarations(selector), ...declarations(`${selector}${state}`) }
+      expect(contrast(resolve(style.color!), resolve(style.background!))).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
   it('gates every selector branch, including nested media queries, away from v1', () => {
     let count = 0
     for (const root of [tokens, components]) {

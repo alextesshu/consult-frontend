@@ -4,6 +4,7 @@ import { defineComponent, type Component } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.vue'
+import { applyUiVersion } from '../lib/uiVersion'
 import appRouter from '../router'
 import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import {
@@ -269,6 +270,7 @@ async function renderWithProviders(options?: {
 
 describe('App shell', () => {
   beforeEach(() => {
+    applyUiVersion('v1')
     vi.clearAllMocks()
     localStorage.clear()
     sessionStorage.clear()
@@ -277,6 +279,67 @@ describe('App shell', () => {
     mockToast.error.mockReset()
     mockToast.warning.mockReset()
     mockToast.info.mockReset()
+  })
+
+  it('keeps v1 guest markup free of the new public header', async () => {
+    await renderWithProviders()
+    expect(document.querySelector('header.pc2-header')).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Для кого Pro Consult' })).not.toBeInTheDocument()
+    expect(document.querySelector('.brand__logo--full')).not.toHaveClass('pc2-header__logo')
+  })
+
+  it('adds accessible v2 audience links while preserving guest destinations and CTA wording', async () => {
+    applyUiVersion('v2')
+    await renderWithProviders()
+    const header = document.querySelector('header.pc2-header') as HTMLElement
+    const audience = within(header).getByRole('navigation', { name: 'Для кого Pro Consult' })
+    expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('href', '/')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/#client-entry-title')
+    expect(within(header).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
+    expect(within(header).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
+    expect(within(header).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
+    expect(within(header).getByRole('link', { name: /Спробувати безкоштовно/ })).toHaveClass('pc2-btn', 'pc2-btn--primary')
+    expect(header.querySelector('.pc2-header__logo')).toHaveAttribute('src', '/brand/proconsult-logo-dark.png')
+    expect(within(header).queryByRole('button', { name: 'Меню' })).not.toBeInTheDocument()
+  })
+
+  it('reactively switches header versions and tracks the actual client-entry hash', async () => {
+    const { router } = await renderWithProviders()
+    applyUiVersion('v2')
+    await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeInTheDocument())
+    const audience = screen.getByRole('navigation', { name: 'Для кого Pro Consult' })
+    await router.push('/#client-entry-title')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
+    expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('aria-current', 'false')
+    applyUiVersion('v1')
+    await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeNull())
+    expect(screen.queryByRole('navigation', { name: 'Для кого Pro Consult' })).not.toBeInTheDocument()
+  })
+
+  it.each([['CLIENT'], ['SPECIALIST'], ['ADMIN'], ['CLIENT', 'SPECIALIST'], ['CLIENT', 'SPECIALIST', 'ADMIN']])(
+    'retains authenticated header controls with v2 for roles %j', async (...roles) => {
+      applyUiVersion('v2')
+      await renderWithProviders({ roles })
+      const header = document.querySelector('header.topbar') as HTMLElement
+      expect(header).not.toHaveClass('pc2-header')
+      expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
+      await fireEvent.click(within(header).getByRole('button', { name: 'Меню' }))
+      expect(header.querySelector('.mobile-menu')).toBeInTheDocument()
+      await fireEvent.keyDown(document, { key: 'Escape' })
+      expect(header.querySelector('.mobile-menu')).toBeNull()
+    }
+  )
+
+  it('retains v2 specialist-owned promotion restrictions and minimal-shell boundaries', async () => {
+    applyUiVersion('v2')
+    const { router } = await renderWithProviders({ initialPath: '/s/olena' })
+    const header = document.querySelector('header.pc2-header') as HTMLElement
+    expect(within(header).getByRole('link', { name: 'Вхід' })).toBeInTheDocument()
+    expect(header.querySelector('.pc2-header__audience')).toBeNull()
+    expect(header.querySelector('.nav__guest-cta')).toBeNull()
+    expect(within(header).queryByRole('link', { name: 'Знайти спеціаліста' })).not.toBeInTheDocument()
+    await router.push('/guest/external-session/test-token')
+    expect(document.querySelector('header')).toBeNull()
   })
 
   it('removes catalog and product promotion from a guest specialist profile header', async () => {
