@@ -33,6 +33,7 @@
 - Handoff governance: `docs/HANDOFF_RULES.md`
 - Design system: `docs/DESIGN_SYSTEM.md`, `docs/UI_SHAPE_STANDARD.md`
 - UI v2 migration: `docs/ui-v2/README.md` (opt-in v2 infrastructure, reference mockups, approval gates; default v1)
+- Every future UI v2 implementation must identify the exact Claude snapshot ID and full archive SHA-256; follow `docs/ui-v2/DESIGN_SYNC_CHECKLIST.md` and its current audit before editing.
 - Product/public profile rules: `docs/PROFILE_PUBLIC_URLS.md`
 - Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 - Backend API/product contract, when needed: `..\backend\docs\AI_CONTRACT.md`

@@ -6,6 +6,15 @@
 **Вихідні матеріали:** `TZ_CODEX.md` і `Модернізація дизайну сайту ProConsult.zip` (`handoff/`).  
 **Статус:** планування. **Жодне редагування, commit, push, PR, merge чи deployment не санкціоновані цим документом.**
 
+## Current design snapshot — 2026-10-23
+
+The latest supplied UX/UI snapshot is `claude-design-2026-10-23-265f221a`, SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. It is not automatically synchronized with Claude.
+Read the [Design Sync audit / page matrix / contract gates](DESIGN_SYNC_2026-10-23.md), [manifest](SNAPSHOT_MANIFEST.json) and [mandatory future-task checklist](DESIGN_SYNC_CHECKLIST.md). The supplied ZIP defines visual intent; prototype controls/copy do not establish backend capability or authorize implementation.
+
+Every future implementation and PR must identify this exact snapshot (or a separately imported newer one), Git base and unresolved contract gates. Preserve runtime hardening, product rules and v1. Source-only task prompts never authorize replacing runtime files or deploying.
+
+**Further Stage 3.1 Client Dashboard implementation is HOLD** until its updated UX is approved and backend dependencies are verified. Draft #54–#57 and backend #63 retain their states. Earlier acceptance used the previous Git references, not this updated design.
+
 ## 0. Інструкція виконання (обов'язково)
 
 Codex працює **малими незалежними етапами**, не переносить весь сайт за одне завдання. Для кожного етапу:
@@ -47,7 +56,9 @@ Codex працює **малими незалежними етапами**, не 
 
 ## 3. Вхідний ZIP: inventory та правила імпорту
 
-Архів має 21 файл, усі під `handoff/`:
+**Historical Stage 0A inventory (superseded as current inventory):** the earlier archive had 21 files under `handoff/`. The new snapshot inventory and selective import map are in [SNAPSHOT_MANIFEST.json](SNAPSHOT_MANIFEST.json); do not reuse this historical count as the current package.
+
+Earlier inventory:
 
 **Документація:**
 - `handoff/README.md`
@@ -168,7 +179,11 @@ Codex працює **малими незалежними етапами**, не 
 
 ### Етап 4 — Кабінет спеціаліста (одна сторінка — один PR)
 
-Порядок: **dashboard → sessions → session detail → clients → client detail → calendar → billing → settings → admin**. Макетів для цих сторінок немає; **не вигадувати UX структури чи нові блоки**. Замінювати лише візуальні класи кнопок, інпутів, карток, тегів, радіуси, типографіку. Перед кожною сторінкою перевірити фактичну назву файлу. Зберегти ролі, статуси, приватність, форми й різні permission gates. Admin — окремо, лише якщо підтверджено сферу змін.
+The 2026-10-23 ZIP supplies Stage 4 mockups; the former blanket assumption that none exist is obsolete. Use `Cabinet-Dashboard.dc.html`, `Cabinet-Drawer.dc.html`, `Sessions.dc.html`, `Clients.dc.html`, `Admin.dc.html`, and `Cabinet-Mobile.dc.html` under [mockups](README.md).
+
+Source splits: 4.1a dashboard visual / 4.1b drawer/actions; 4.2a/b/c session views/detail/drag; 4.3a/b/c clients/detail/workbook privacy; 4.9a/b/c admin; 4.10 responsive behavior; 4.11 brand. For Clients is its own stage 4.12, sourced from the new README/CODEX_TASKS/For-Clients mockup despite the missing source TZ subsection.
+
+Follow the [prioritized roadmap and contract findings](DESIGN_SYNC_2026-10-23.md). Keep actual status/permission/transaction semantics; visual prototypes cannot authorize undo, route-default changes, private-data access or new APIs. Pages still lacking dedicated references require applicable design or a specifically authorized limited token pass. No implementation is performed by this sync.
 
 ### Етап 5 — Глобальний rollout і видалення v1 (заборонено без окремої команди)
 

@@ -10,6 +10,9 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
 <style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input{font:inherit;color:inherit}input::placeholder{color:#A0A8B6}</style>
 </helmet>
 <div style="min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
@@ -98,7 +101,7 @@
 
         <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:22px">
-            <span style="width:56px;height:56px;border-radius:50%;background:#EEF8F1;color:#2F7A55;display:flex;align-items:center;justify-content:center;font-size:24px">✓</span>
+            <div style="display:flex"><x-import component-from-global-scope="PCListen" size="72" color="#0F2D52" ring="#2F8C86" rings="2" dur="2.2" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
             <div>
               <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Простір готовий, {{ firstName }}</h1>
               <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">30 днів Pro вже активні. Ось що зробити далі — у будь-якому порядку.</p>

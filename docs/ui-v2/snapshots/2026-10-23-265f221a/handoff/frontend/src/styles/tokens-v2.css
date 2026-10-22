@@ -1,0 +1,148 @@
+/* PRO CONSULT — UI v2 tokens.
+   Active only when <html data-ui="v2">. Legacy tokens in style.css stay untouched.
+   Source of truth: handoff/DESIGN_SYSTEM.md §5–12. */
+
+html[data-ui="v2"] {
+  /* Brand */
+  --pc-navy-950: #0e2d52;   /* hover / pressed of primary */
+  --pc-navy-900: #12345a;   /* primary: buttons, active nav, links, headings accent */
+  --pc-navy-800: #183e68;
+
+  /* Grounds */
+  --pc-bg-main: #fbf9f5;    /* page background (was #faf7f2 / #f9f3d9) */
+  --pc-bg-card: #ffffff;
+  --pc-bg-soft: #f6f1ea;    /* inset blocks, segmented bg */
+  --pc-bg-sunk: #f1ebe2;    /* chips idle, skeletons */
+
+  /* Accents — decorative / soft tints only, never primary */
+  --pc-teal-500: #8fcbc8;
+  --pc-teal-200: #ddf1ef;
+  --pc-teal-100: #eef8f7;
+  --pc-teal-ink: #1f5e5a;   /* text on teal tints (4.5:1+) */
+  --pc-peach-500: #f7b77e;
+  --pc-peach-200: #ffe2c4;
+  --pc-peach-100: #fff1e3;
+  --pc-peach-ink: #8a4b16;  /* text on peach tints */
+
+  /* Text */
+  --pc-text-main: #12233a;
+  --pc-text-body: #3f4b5e;
+  --pc-text-muted: #657287;  /* secondary copy, min 13px */
+  --pc-text-soft: #8b95a7;   /* captions/meta only, never body */
+
+  /* Lines */
+  --pc-border-hair: #ede7de; /* card + section dividers */
+  --pc-border: #e6e0d8;      /* inputs idle */
+  --pc-border-strong: #d4ccc2;
+
+  /* Status (text always explains the state) */
+  --pc-success: #2f7a55;  --pc-success-soft: #eef8f1;
+  --pc-warning: #b5651f;  --pc-warning-soft: #fff1e3;
+  --pc-danger:  #b83232;  --pc-danger-soft:  #fde8e8;
+  --pc-info:    #2f6fa8;  --pc-info-soft:    #eef4fa;
+
+  /* Session status (Sessions.dc.html) — block bg / ink / border, pill bg / ink */
+  --pc-ses-scheduled-bg: var(--pc-peach-100);  --pc-ses-scheduled-ink: var(--pc-peach-ink); --pc-ses-scheduled-bd: var(--pc-peach-500);
+  --pc-ses-confirmed-bg: var(--pc-navy-900);   --pc-ses-confirmed-ink: #fff;               --pc-ses-confirmed-bd: var(--pc-navy-900);
+  --pc-ses-wrap-bg: var(--pc-peach-200);       --pc-ses-wrap-ink: var(--pc-text-main);     --pc-ses-wrap-bd: var(--pc-peach-500);
+  --pc-ses-completed-bg: var(--pc-success-soft); --pc-ses-completed-ink: #1f5e3f;          --pc-ses-completed-bd: #cde8d6;
+  --pc-ses-gone-bg: var(--pc-bg-soft);         --pc-ses-gone-ink: var(--pc-text-soft);     --pc-ses-gone-bd: var(--pc-border);
+  --pc-ses-hour: 48px;      /* week grid: px per hour, 8:00–21:00 */
+  --pc-panel-w: 460px;      /* side detail panel */
+  --pc-toast-ms: 5000;      /* undo window, ms (read in JS) */
+
+  /* Type */
+  --pc-font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pc-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --pc-fw-regular: 400;
+  --pc-fw-medium: 500;     /* headings + UI labels; never above 600 */
+  --pc-fw-strong: 600;     /* numbers only */
+
+  --pc-fs-display: clamp(40px, 5vw, 60px);   /* hero h1 */
+  --pc-fs-h1: clamp(32px, 3.4vw, 42px);      /* page / section title */
+  --pc-fs-h2: clamp(26px, 2.6vw, 32px);
+  --pc-fs-h3: 20px;                          /* card title */
+  --pc-fs-lead: clamp(17px, 1.6vw, 19px);
+  --pc-fs-body: 16px;
+  --pc-fs-ui: 15px;                          /* buttons, inputs inside app */
+  --pc-fs-small: 14px;
+  --pc-fs-meta: 13px;
+  --pc-fs-micro: 12px;                       /* uppercase kickers only */
+
+  --pc-lh-tight: 1.08;   /* display */
+  --pc-lh-head: 1.18;
+  --pc-lh-body: 1.6;
+  --pc-ls-display: -0.03em;
+  --pc-ls-head: -0.02em;
+
+  /* Radius scale */
+  --pc-radius-xs: 8px;     /* tags, small badges, avatar thumbs */
+  --pc-radius-sm: 12px;    /* inputs, buttons (non-pill), menus */
+  --pc-radius-md: 16px;    /* cards, panels, sticky request panel */
+  --pc-radius-lg: 24px;    /* hero blocks, big section cards, dialogs */
+  --pc-radius-pill: 999px; /* primary CTAs, chips, segmented, status pills */
+
+  /* Spacing (4px base) */
+  --pc-space-1: 4px;  --pc-space-2: 8px;  --pc-space-3: 12px; --pc-space-4: 16px;
+  --pc-space-5: 20px; --pc-space-6: 24px; --pc-space-8: 32px; --pc-space-10: 40px;
+  --pc-space-12: 48px; --pc-space-16: 64px; --pc-space-20: 80px; --pc-space-24: 96px;
+  --pc-section-y: clamp(56px, 8vw, 104px);
+  --pc-container: 1240px;
+  --pc-gutter: clamp(20px, 4vw, 48px);
+
+  /* Controls */
+  --pc-control-h: 48px;     /* app */
+  --pc-control-h-lg: 54px;  /* auth / public forms */
+  --pc-control-h-sm: 36px;
+
+  /* Elevation — edge + ambient, never stacked */
+  --pc-shadow-sm: 0 4px 12px rgba(18, 35, 58, 0.08);
+  --pc-shadow-md: 0 16px 40px rgba(18, 35, 58, 0.08);
+  --pc-shadow-lg: 0 24px 60px rgba(18, 35, 58, 0.10);
+  --pc-ring: 0 0 0 4px rgba(18, 52, 90, 0.08);  /* input focus halo */
+
+  /* Motion — barely noticeable */
+  --pc-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pc-dur-fast: 150ms;
+  --pc-dur: 200ms;
+  --pc-dur-slow: 400ms;
+
+  /* Bridge legacy names so untouched components inherit v2 */
+  --bg: var(--pc-bg-main);
+  --surface: var(--pc-bg-card);
+  --surface-2: var(--pc-bg-soft);
+  --text: var(--pc-text-main);
+  --border: var(--pc-border-hair);
+  --primary: var(--pc-navy-900);
+  --primary-hover: var(--pc-navy-950);
+  --muted: var(--pc-text-muted);
+  --font-sans: var(--pc-font);
+  --font-display: var(--pc-font);
+  --pc-radius-card: var(--pc-radius-md);
+  --pc-radius-panel: var(--pc-radius-md);
+  --pc-radius-control: var(--pc-radius-sm);
+}
+
+html[data-ui="v2"] body {
+  background: var(--pc-bg-main);
+  color: var(--pc-text-main);
+  font-family: var(--pc-font);
+  font-weight: var(--pc-fw-regular); /* was 200 */
+  font-size: var(--pc-fs-body);
+  line-height: var(--pc-lh-body);
+}
+html[data-ui="v2"] body::before { display: none; } /* drop radial gradients */
+html[data-ui="v2"] a { color: var(--pc-navy-900); }
+html[data-ui="v2"] a:hover { color: var(--pc-navy-950); }
+html[data-ui="v2"] :focus-visible { outline: 2px solid var(--pc-navy-900); outline-offset: 2px; }
+html[data-ui="v2"] ::selection { background: var(--pc-teal-200); color: var(--pc-text-main); }
+html[data-ui="v2"] h1, html[data-ui="v2"] h2, html[data-ui="v2"] h3 {
+  font-weight: var(--pc-fw-medium); letter-spacing: var(--pc-ls-head); line-height: var(--pc-lh-head); text-wrap: balance;
+}
+html[data-ui="v2"] p { text-wrap: pretty; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] *, html[data-ui="v2"] *::before, html[data-ui="v2"] *::after {
+    animation-duration: 1ms !important; transition-duration: 1ms !important;
+  }
+}
