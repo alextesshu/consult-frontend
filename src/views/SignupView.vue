@@ -12,12 +12,14 @@
         </RouterLink>
       </nav>
       <div class="badge">Реєстрація</div>
-      <h1 class="title auth__title">Створіть профіль спеціаліста в Pro Consult.</h1>
-      <p class="muted auth__subtitle">
+      <h1 class="title auth__title">{{ uiV2 && !isClientOnly ? ['Як вас звати?', 'З чим ви працюєте?', 'Останній крок'][step] : 'Створіть профіль спеціаліста в Pro Consult.' }}</h1>
+      <p v-if="!uiV2 || isClientOnly" class="muted auth__subtitle">
         Ранній доступ активується автоматично після реєстрації. Під час раннього доступу ви можете спробувати
         розширені можливості без промокоду, а далі залишитися на Start, розширити ліміт активних клієнтів або
         перейти на PRO.
       </p>
+
+      <p v-if="uiV2 && !isClientOnly" class="muted auth__subtitle">{{ ['Почнімо з імені для вашого акаунта.', 'Оберіть напрям — решту профілю заповните пізніше.', 'Пошта для входу та сповіщень про нові запити.'][step] }}</p>
 
       <div v-if="isClientOnly" class="form" :aria-busy="uiV2 ? dualRoleLoading : undefined">
         <p class="muted auth__subtitle">
@@ -33,6 +35,25 @@
       </div>
 
       <form v-else class="form" :aria-busy="uiV2 ? loading || signupInFlight : undefined" :aria-describedby="uiV2 && error ? 'signup-error' : undefined" @submit.prevent="onSubmit">
+        <div v-if="uiV2" class="pc2-steps" aria-label="Прогрес реєстрації">
+          <ol><li v-for="(label, index) in ['Ім’я', 'Практика', 'Акаунт']" :key="label" :aria-current="step === index ? 'step' : undefined" :class="{ 'pc2-steps__complete': step > index }">{{ index + 1 }}. {{ label }}</li></ol>
+          <p role="status">Крок {{ step + 1 }} з 3</p>
+        </div>
+        <label v-if="uiV2 && step === 0" class="field pc2-field">
+          <span>Ім’я</span>
+          <input v-model="firstName" class="input pc2-input pc2-input--lg" name="first_name" autocomplete="given-name" aria-required="true" :aria-invalid="!!fieldErrors.first_name" :aria-describedby="fieldErrors.first_name ? 'signup-name-error' : 'signup-name-help'" />
+          <small id="signup-name-help">Ваше ім’я для акаунта. Профіль не публікується автоматично.</small>
+          <span v-if="fieldErrors.first_name" id="signup-name-error" class="form-error" role="alert">{{ fieldErrors.first_name }}</span>
+        </label>
+        <fieldset v-if="uiV2 && step === 1" class="pc2-practices" :aria-describedby="fieldErrors.professional_focus ? 'signup-focus-error' : undefined">
+          <legend>Напрям практики</legend>
+          <label v-for="option in professionalFocusOptions" :key="option.value" class="pc2-practices__option">
+            <input v-model="professionalFocus" type="radio" name="professional_focus" :value="option.value" :aria-invalid="!!fieldErrors.professional_focus" />
+            <span>{{ option.label }}</span>
+          </label>
+          <p v-if="fieldErrors.professional_focus" id="signup-focus-error" class="form-error" role="alert">{{ fieldErrors.professional_focus }}</p>
+        </fieldset>
+        <template v-if="!uiV2 || step === 2">
         <label class="field" :class="{ 'pc2-field': uiV2 }">
           <span>Ел. пошта</span>
           <input
@@ -40,6 +61,8 @@
             class="input" :class="uiV2 ? 'pc2-input pc2-input--lg' : undefined"
             type="email"
             name="email"
+            :aria-invalid="uiV2 && fieldErrors.email ? true : undefined"
+            :aria-describedby="uiV2 && fieldErrors.email ? 'signup-email-error' : undefined"
             autocomplete="email"
             :aria-required="uiV2 ? true : undefined"
             placeholder="name@example.com"
@@ -53,6 +76,8 @@
               class="input password-input" :class="uiV2 ? 'pc2-input pc2-input--lg' : undefined"
               :type="showPassword ? 'text' : 'password'"
               name="password"
+              :aria-invalid="uiV2 && fieldErrors.password ? true : undefined"
+              :aria-describedby="uiV2 && fieldErrors.password ? 'signup-password-error' : undefined"
               autocomplete="new-password"
               :aria-required="uiV2 ? true : undefined"
               placeholder="********"
@@ -67,7 +92,7 @@
             </button>
           </div>
         </label>
-        <label class="field" :class="{ 'pc2-field': uiV2 }">
+        <label v-if="!uiV2" class="field" :class="{ 'pc2-field': uiV2 }">
           <span>Підтвердження пароля</span>
           <div class="password-input-wrap" :class="{ 'pc2-password': uiV2 }">
             <input
@@ -93,12 +118,16 @@
             </button>
           </div>
         </label>
-        <p class="muted auth__field-helper">
+        </template>
+        <p v-if="uiV2 && step === 2 && fieldErrors.email" class="form-error" role="alert" id="signup-email-error">{{ fieldErrors.email }}</p>
+        <p v-if="uiV2 && step === 2 && fieldErrors.password" class="form-error" role="alert" id="signup-password-error">{{ fieldErrors.password }}</p>
+        <p v-if="!uiV2 || step === 2" class="muted auth__field-helper">
           Ранній доступ не потребує промокоду: доступні можливості визначаються поточними умовами сервісу.
         </p>
         <p v-if="error" class="form-error" :id="uiV2 ? 'signup-error' : undefined" :role="uiV2 ? 'alert' : undefined" :aria-atomic="uiV2 ? true : undefined">{{ error }}</p>
+        <button v-if="uiV2 && step > 0" class="btn pc2-wizard-back" type="button" :disabled="loading || signupInFlight" @click="moveStep(step - 1)">Назад</button>
         <button class="btn" :class="uiV2 ? 'pc2-btn pc2-btn--primary pc2-btn--lg pc2-btn--block' : undefined" type="submit" :disabled="loading || signupInFlight">
-          {{ loading || signupInFlight ? 'Створення акаунта...' : 'Створити акаунт' }}
+          {{ loading || signupInFlight ? 'Створення акаунта...' : uiV2 && step < 2 ? 'Далі' : 'Створити акаунт' }}
         </button>
         <p class="muted auth__reassurance">
           Без картки. Профіль не публікується автоматично. Можна почати зі Start — 0 грн.
@@ -148,11 +177,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { enableSpecialist, getApiErrorMessage } from '../lib/api'
+import { enableSpecialist, getApiErrorMessage, normalizeRegistrationName, registrationNameError, RegistrationError, type RegistrationField } from '../lib/api'
+import { professionalFocusOptions, professionalFocusValues, type ProfessionalFocus } from '../constants/professionalFocus'
 import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
@@ -162,6 +192,10 @@ import { isUiV2 } from '../lib/uiVersion'
 
 const uiV2 = computed(isUiV2)
 const signupInFlight = ref(false)
+const step = ref(0)
+const firstName = ref('')
+const professionalFocus = ref<ProfessionalFocus | ''>('')
+const fieldErrors = ref<Partial<Record<RegistrationField, string>>>({})
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
@@ -228,14 +262,36 @@ async function onEnableSpecialist() {
   }
 }
 
+async function moveStep(value: number) {
+  step.value = value
+  await nextTick()
+  document.querySelector<HTMLElement>('.pc2-signup form input')?.focus()
+}
+
 async function onSubmit() {
   if (signupInFlight.value || loading.value) return
   error.value = ''
-  if (!email.value || !password.value || !passwordConfirm.value) {
+  fieldErrors.value = {}
+  if (uiV2.value) {
+    const nameError = registrationNameError(firstName.value)
+    if (nameError) {
+      fieldErrors.value.first_name = nameError
+      await moveStep(0)
+      return
+    }
+    if (step.value === 0) { await moveStep(1); return }
+    if (!professionalFocusValues.includes(professionalFocus.value as ProfessionalFocus)) {
+      fieldErrors.value.professional_focus = 'Оберіть напрям практики.'
+      await moveStep(1)
+      return
+    }
+    if (step.value === 1) { await moveStep(2); return }
+  }
+  if (!email.value || !password.value || (!uiV2.value && !passwordConfirm.value)) {
     error.value = 'Заповніть усі поля.'
     return
   }
-  if (password.value !== passwordConfirm.value) {
+  if (!uiV2.value && password.value !== passwordConfirm.value) {
     error.value = 'Паролі не збігаються.'
     return
   }
@@ -244,10 +300,16 @@ async function onSubmit() {
     await auth.signup(
       email.value.trim(),
       password.value,
-      passwordConfirm.value
+      uiV2.value ? undefined : passwordConfirm.value,
+      ...uiV2.value ? [{ registration_contract_version: 2 as const, first_name: normalizeRegistrationName(firstName.value), professional_focus: professionalFocus.value as ProfessionalFocus }] as const : []
     )
     router.push('/cabinet')
   } catch (err) {
+    if (uiV2.value && err instanceof RegistrationError) {
+      fieldErrors.value = err.fields
+      if (err.fields.first_name) await moveStep(0)
+      else if (err.fields.professional_focus) await moveStep(1)
+    }
     error.value = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
   } finally {
     signupInFlight.value = false
@@ -450,4 +512,20 @@ html[data-ui="v2"] .pc2-signup :is(input, button, a) { scroll-margin-top: var(--
   html[data-ui="v2"] .pc2-signup *::before,
   html[data-ui="v2"] .pc2-signup *::after { animation: none; transition: none; }
 }
+
+html[data-ui="v2"] .pc2-signup .pc2-steps { display: block; }
+html[data-ui="v2"] .pc2-signup .pc2-steps ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-2); list-style: none; padding: 0; margin: 0; font-size: var(--pc-fs-meta); }
+html[data-ui="v2"] .pc2-signup .pc2-steps li { border-top: var(--pc-focus-width) solid var(--pc-border); padding-top: var(--pc-space-2); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-signup .pc2-steps li[aria-current="step"],
+html[data-ui="v2"] .pc2-signup .pc2-steps .pc2-steps__complete { border-color: var(--pc-navy-900); color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-signup .pc2-steps p,
+html[data-ui="v2"] .pc2-signup .field small { color: var(--pc-text-muted); font-size: var(--pc-fs-meta); }
+html[data-ui="v2"] .pc2-signup .pc2-practices { display: grid; gap: var(--pc-space-3); min-width: 0; padding: 0; margin: 0; border: 0; }
+html[data-ui="v2"] .pc2-signup .pc2-practices legend { margin-bottom: var(--pc-space-3); font-size: var(--pc-fs-small); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-signup .pc2-practices__option { display: flex; align-items: center; gap: var(--pc-space-3); min-height: var(--pc-control-h-lg); padding: var(--pc-space-3); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-sm); cursor: pointer; }
+html[data-ui="v2"] .pc2-signup .pc2-practices__option:has(:checked) { background: var(--pc-bg-soft); border-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-signup .pc2-practices__option input { accent-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-signup .pc2-wizard-back { background: var(--pc-bg-card); color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-signup .pc2-wizard-back:hover:not(:disabled),
+html[data-ui="v2"] .pc2-signup .pc2-wizard-back:active:not(:disabled) { background: var(--pc-bg-soft); color: var(--pc-navy-950); }
 </style>

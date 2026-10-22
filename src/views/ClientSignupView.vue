@@ -21,13 +21,18 @@
       </p>
 
       <form class="form" :aria-busy="uiV2 ? loading : undefined" @submit.prevent="onSubmit">
+        <label v-if="uiV2" class="field">
+          <span>Ім’я</span>
+          <input v-model="firstName" class="input" name="first_name" autocomplete="given-name" aria-required="true" :aria-invalid="!!fieldErrors.first_name" :aria-describedby="fieldErrors.first_name ? 'client-name-error' : undefined" />
+          <span v-if="fieldErrors.first_name" id="client-name-error" class="form-error" role="alert">{{ fieldErrors.first_name }}</span>
+        </label>
         <label class="field">
           <span>Ел. пошта</span>
           <input
             v-model="email"
             class="input"
             type="email"
-            name="email"
+            name="email" :aria-invalid="uiV2 && fieldErrors.email ? true : undefined" :aria-describedby="uiV2 && fieldErrors.email ? 'client-email-error' : undefined"
             autocomplete="email"
             placeholder="name@example.com"
           />
@@ -39,7 +44,7 @@
               v-model="password"
               class="input password-input"
               :type="showPassword ? 'text' : 'password'"
-              name="password"
+              name="password" :aria-invalid="uiV2 && fieldErrors.password ? true : undefined" :aria-describedby="uiV2 && fieldErrors.password ? 'client-password-error' : undefined"
               autocomplete="new-password"
               placeholder="********"
             />
@@ -53,7 +58,7 @@
             </button>
           </div>
         </label>
-        <label class="field">
+        <label v-if="!uiV2" class="field">
           <span>Підтвердження пароля</span>
           <div class="password-input-wrap">
             <input
@@ -78,9 +83,11 @@
             </button>
           </div>
         </label>
+        <p v-if="uiV2 && fieldErrors.email" class="form-error" role="alert" id="client-email-error">{{ fieldErrors.email }}</p>
+        <p v-if="uiV2 && fieldErrors.password" class="form-error" role="alert" id="client-password-error">{{ fieldErrors.password }}</p>
         <p v-if="error" class="form-error" :role="uiV2 ? 'alert' : undefined" :aria-atomic="uiV2 ? 'true' : undefined">{{ error }}</p>
-        <button class="btn" type="submit" :disabled="loading">
-          {{ loading ? 'Створення акаунта...' : 'Створити акаунт' }}
+        <button class="btn" type="submit" :disabled="loading || signupInFlight">
+          {{ loading || signupInFlight ? 'Створення акаунта...' : 'Створити акаунт' }}
         </button>
         <p class="muted auth__footer">
           Вже маєте акаунт?
@@ -151,8 +158,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { isUiV2 } from '../lib/uiVersion'
+import { normalizeRegistrationName, registrationNameError, RegistrationError, type RegistrationField } from '../lib/api'
 
 const uiV2 = computed(isUiV2)
+const firstName = ref('')
+const signupInFlight = ref(false)
+const fieldErrors = ref<Partial<Record<RegistrationField, string>>>({})
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
@@ -205,20 +216,31 @@ function safeRedirectPath() {
 }
 
 async function onSubmit() {
+  if (signupInFlight.value || loading.value) return
   error.value = ''
-  if (!email.value || !password.value || !passwordConfirm.value) {
+  fieldErrors.value = {}
+  if (uiV2.value) {
+    const nameError = registrationNameError(firstName.value)
+    if (nameError) { fieldErrors.value.first_name = nameError; return }
+  }
+  if (!email.value || !password.value || (!uiV2.value && !passwordConfirm.value)) {
     error.value = 'Заповніть усі поля.'
     return
   }
-  if (password.value !== passwordConfirm.value) {
+  if (!uiV2.value && password.value !== passwordConfirm.value) {
     error.value = 'Паролі не збігаються.'
     return
   }
+  signupInFlight.value = true
   try {
-    await auth.signupClient(email.value.trim(), password.value, passwordConfirm.value)
+    await auth.signupClient(email.value.trim(), password.value, uiV2.value ? undefined : passwordConfirm.value,
+      ...uiV2.value ? [{ registration_contract_version: 2 as const, first_name: normalizeRegistrationName(firstName.value) }] as const : [])
     router.push(safeRedirectPath())
   } catch (err) {
+    if (uiV2.value && err instanceof RegistrationError) fieldErrors.value = err.fields
     error.value = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
+  } finally {
+    signupInFlight.value = false
   }
 }
 </script>
