@@ -83,6 +83,11 @@ html[data-ui="v2"] {
   --pc-focus-width: 2px;
   --pc-focus-offset: 2px;
 
+  --pc-header-h: 76px;
+  --pc-header-logo-h: 40px;
+  --pc-header-row-h: 44px;
+  --pc-header-anchor-offset: calc(var(--pc-header-h) + var(--pc-space-10));
+
   /* Controls */
   --pc-control-h: 48px;     /* app */
   --pc-control-h-lg: 54px;  /* auth / public forms */
