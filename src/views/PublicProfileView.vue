@@ -1,5 +1,12 @@
 ﻿<template>
-  <section class="public">
+  <section class="public" :class="{ 'pc2-public-profile': uiV2 }">
+    <dialog v-if="uiV2" ref="profileRequestSheetRef" class="pc2-profile-sheet" aria-labelledby="pc2-profile-sheet-title" @close="profileSheetOpen = false" @click="closeProfileSheetBackdrop">
+        <div class="pc2-profile-sheet__header">
+          <h2 id="pc2-profile-sheet-title">Запит до спеціаліста</h2>
+          <button class="pc2-btn pc2-btn--ghost" type="button" @click="closeProfileRequestSheet">Закрити панель</button>
+        </div>
+        <div id="pc2-profile-mobile-content"></div>
+      </dialog>
     <div v-if="loading" class="muted" role="status" aria-live="polite">Завантаження профілю...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
       <div class="panel__header">
@@ -37,7 +44,13 @@
         />
       </section>
 
-      <aside class="public__sidebar">
+      <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
+      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && showGuestBookingModal }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep">
+        <ol v-if="uiV2" class="pc2-profile-steps" aria-label="Кроки запиту">
+          <li :aria-current="!showGuestBookingModal && profilePickStep === 'offer' ? 'step' : undefined">1. Послуга</li>
+          <li :aria-current="!showGuestBookingModal && profilePickStep === 'time' ? 'step' : undefined">2. Час</li>
+          <li :aria-current="showGuestBookingModal ? 'step' : undefined">3. Контакт</li>
+        </ol>
         <PublicProfileIdentityRail
           :profile="profile"
           :hero-cta-title="heroCtaTitle"
@@ -89,7 +102,10 @@
             </button>
           </template>
         </PublicProfileIdentityRail>
+        <div v-show="uiV2" id="pc2-profile-time"></div>
+        <div v-show="uiV2" id="pc2-profile-contact"></div>
       </aside>
+      </Teleport>
 
       <section class="public__grid">
         <PublicProfileAboutSection
@@ -173,6 +189,7 @@
         </template>
       </section>
 
+      <Teleport :to="uiV2 && profileTargetsReady ? profileTeleportTarget('pc2-profile-time') : 'body'" :disabled="!uiV2 || !profileTargetsReady">
       <div v-if="publicDirectBookingEnabled" class="panel panel--slots" id="slots">
         <div class="panel__header">
           <div>
@@ -334,7 +351,7 @@
             type="button"
             :aria-label="slotActionLabel(slot.id)"
             :disabled="isSlotBusy(slot.id)"
-            @click="handleBookingClick(slot.id)"
+            @click="handleProfileBookingClick(slot.id)"
           >
             <div class="slot-time">{{ formatSlotTime(slot.start_at) }}</div>
           </button>
@@ -418,6 +435,7 @@
           </article>
         </div>
       </div>
+      </Teleport>
 
       <PublicProfileJournalPreviewSection
         :has-public-journal-posts="hasPublicJournalPosts"
@@ -488,6 +506,10 @@
       />
       </section>
     </section>
+
+    <template v-if="uiV2 && profile && !loading && !error && !ownerUnpublishedProfile">
+      <button v-if="compactProfile" ref="profileRequestButtonRef" class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">Послуги та запит</button>
+    </template>
 
     <div v-if="showContactChooserModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeContactChooserModal"></div>
@@ -592,17 +614,20 @@
       </div>
     </div>
 
+    <Teleport :to="uiV2 && !compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || compactProfile || !profileTargetsReady">
     <div
       v-if="showGuestBookingModal"
       ref="guestBookingModalRef"
       class="setting-modal"
-      role="dialog"
-      aria-modal="true"
+      :class="{ 'pc2-profile-inline': uiV2 && !compactProfile }"
+      :role="uiV2 && !compactProfile ? 'region' : 'dialog'"
+      :aria-modal="!uiV2 || compactProfile ? true : undefined"
       aria-labelledby="guest-booking-modal-title"
     >
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
       <div class="setting-modal__content guest-booking-modal">
         <div class="setting-modal__header">
+          <p v-if="uiV2" class="pc2-profile-contact-step">3. Контакт · Реєстрація не потрібна</p>
           <h3 id="guest-booking-modal-title">{{ guestBookingModalTitle }}</h3>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeGuestBookingModal">
             Закрити
@@ -850,6 +875,8 @@
       </div>
     </div>
 
+    </Teleport>
+
     <div v-if="showClientBookingConfirmModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeClientBookingConfirmModal"></div>
       <div class="setting-modal__content booking-confirm-modal">
@@ -956,7 +983,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { isUiV2 } from '../lib/uiVersion'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
@@ -1047,6 +1075,66 @@ import {
   getClientAcquisitionContext,
   type ClientAcquisitionPayload,
 } from '../lib/clientAcquisitionAttribution'
+
+const uiV2 = computed(isUiV2)
+const compactProfile = ref(false)
+const profileTargetsReady = ref(false)
+const profileSheetOpen = ref(false)
+const profilePickStep = ref<'offer' | 'time'>('offer')
+const profileRequestSheetRef = ref<HTMLDialogElement | null>(null)
+const profileRequestButtonRef = ref<HTMLButtonElement | null>(null)
+let profileMedia: MediaQueryList | undefined
+let profileOverflowBefore: string | undefined
+let profileGuestReturnFocus: HTMLElement | null = null
+
+function syncProfileRequestStep(event: FocusEvent) {
+  if (!uiV2.value || !(event.target instanceof HTMLElement)) return
+  if (event.target.closest('#pc2-profile-time')) profilePickStep.value = 'time'
+  else if (event.target.closest('.identity-rail__services')) profilePickStep.value = 'offer'
+}
+function profileTeleportTarget(id: string) {
+  return document.getElementById(id) ?? document.body
+}
+function syncProfileViewport() {
+  compactProfile.value = profileMedia?.matches ?? false
+  if (!compactProfile.value) closeProfileRequestSheet()
+}
+function openProfileRequestSheet() {
+  if (!uiV2.value || !compactProfile.value || !profileRequestSheetRef.value) return
+  profileRequestSheetRef.value.showModal()
+  profileSheetOpen.value = true
+}
+function closeProfileRequestSheet() {
+  if (profileRequestSheetRef.value?.open) profileRequestSheetRef.value.close()
+  profileSheetOpen.value = false
+}
+function closeProfileSheetBackdrop(event: MouseEvent) {
+  const sheet = profileRequestSheetRef.value
+  if (!sheet || event.target !== sheet) return
+  const rect = sheet.getBoundingClientRect()
+  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeProfileRequestSheet()
+}
+function handleProfileBookingClick(slotId: number) {
+  if (uiV2.value) closeProfileRequestSheet()
+  return handleBookingClick(slotId)
+}
+function profileDialogKeydown(event: KeyboardEvent) {
+  if (!uiV2.value || !compactProfile.value || !showGuestBookingModal.value) return
+  if (event.key === 'Escape') { event.preventDefault(); closeGuestBookingModal(); return }
+  if (event.key !== 'Tab') return
+  const controls = Array.from(guestBookingModalRef.value?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]') ?? [])
+    .filter(el => getComputedStyle(el).display !== 'none' && !el.closest('[hidden]'))
+  const first = controls[0], last = controls[controls.length - 1]
+  if (!first || !last) return
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
+}
+onMounted(() => {
+  profileMedia = window.matchMedia?.('(max-width: 859px)')
+  profileMedia?.addEventListener('change', syncProfileViewport)
+  syncProfileViewport()
+  document.addEventListener('keydown', profileDialogKeydown)
+})
 
 type PublicSlot = {
   id: number
@@ -3245,6 +3333,7 @@ async function changeVisibleMonth(amount: number) {
 }
 
 function scrollToSlots() {
+  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
   window.location.hash = '#slots'
   focusSlotsSection()
 }
@@ -3254,12 +3343,17 @@ function scrollToInquiry() {
   focusInquirySection()
 }
 
+function profileScrollBehavior(): ScrollBehavior {
+  return uiV2.value && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth'
+}
+
 function focusInquirySection() {
-  document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document.getElementById('inquiry')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' })
 }
 
 function focusSlotsSection() {
-  document.getElementById('slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
+  document.getElementById('slots')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' })
 }
 
 function openProfileVideoModal() {
@@ -3989,6 +4083,7 @@ function closeGuestBookingModal() {
 }
 
 function openGuestBookingModal(slotId?: number) {
+  if (uiV2.value) closeProfileRequestSheet()
   const selectedSlot =
     typeof slotId === 'number'
       ? slots.value.find((slot) => slot.id === slotId) || null
@@ -4648,7 +4743,39 @@ watch(
   { immediate: true }
 )
 
+watch([uiV2, profile, loading, error, ownerUnpublishedProfile], () => {
+  profileTargetsReady.value = Boolean(uiV2.value && !loading.value && !error.value && !ownerUnpublishedProfile.value && document.getElementById('pc2-profile-time') && document.getElementById('pc2-profile-contact'))
+}, { flush: 'post' })
+watch([uiV2, compactProfile, profile, loading, error, ownerUnpublishedProfile], () => {
+  if (!uiV2.value || !compactProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
+})
+watch(() => uiV2.value && (profileSheetOpen.value || (compactProfile.value && showGuestBookingModal.value)), (active) => {
+  if (active && profileOverflowBefore === undefined) {
+    profileOverflowBefore = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  } else if (!active && profileOverflowBefore !== undefined) {
+    document.body.style.overflow = profileOverflowBefore
+    profileOverflowBefore = undefined
+  }
+}, { flush: 'post' })
+watch([showGuestBookingModal, uiV2], async ([open, version], old) => {
+  if (open && version) {
+    profileGuestReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    await nextTick()
+    guestBookingModalRef.value?.querySelector<HTMLElement>('button:not(:disabled), input:not(:disabled)')?.focus()
+  } else if (old?.[0] && old?.[1]) {
+    await nextTick()
+    const target = compactProfile.value && uiV2.value ? profileRequestButtonRef.value : profileGuestReturnFocus
+    if (target?.isConnected) target.focus()
+    profileGuestReturnFocus = null
+  }
+}, { flush: 'post' })
+
 onBeforeUnmount(() => {
+  profileMedia?.removeEventListener('change', syncProfileViewport)
+  document.removeEventListener('keydown', profileDialogKeydown)
+  if (profileRequestSheetRef.value?.open) profileRequestSheetRef.value.close()
+  if (profileOverflowBefore !== undefined) document.body.style.overflow = profileOverflowBefore
   profileLoadSequence += 1
   resetPublicPageMetadata()
   clearContactActionFallbackTimer()
