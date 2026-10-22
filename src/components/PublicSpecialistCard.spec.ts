@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { applyUiVersion } from '../lib/uiVersion'
 import PublicSpecialistCard from './PublicSpecialistCard.vue'
 
 type CardItem = {
@@ -52,6 +53,28 @@ async function renderCard(overrides: Partial<CardItem> = {}) {
 }
 
 describe('PublicSpecialistCard', () => {
+  beforeEach(() => applyUiVersion('v1'))
+
+  it('switches presentation reactively without changing public content or the single profile link', async () => {
+    const { container } = await renderCard({ price: null, offers_offline: false })
+    const before = container.innerHTML
+    const link = screen.getByRole('link', { name: 'Відкрити профіль Олена Коваль' })
+    expect(link).not.toHaveClass('pc2-specialist-card')
+    applyUiVersion('v2')
+    await waitFor(() => expect(link).toHaveClass('pc2-card', 'pc2-card--interactive'))
+    expect(link).toHaveAttribute('href', '/s/olena')
+    expect(screen.queryByText('Київ')).not.toBeInTheDocument()
+    expect(screen.queryByText(/грн|рейтинг|найкращ/i)).not.toBeInTheDocument()
+    expect(container.querySelectorAll('a')).toHaveLength(1)
+    expect(container.querySelector('button')).toBeNull()
+    link.focus()
+    expect(link).toHaveFocus()
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.innerHTML).toBe(before))
+    await fireEvent.click(link)
+    await waitFor(() => expect(link).toHaveAttribute('href', '/s/olena'))
+  })
+
   it('uses one accessible canonical whole-card profile link', async () => {
     const { container } = await renderCard()
 

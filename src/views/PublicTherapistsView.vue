@@ -1,19 +1,29 @@
 <template>
-  <section class="discovery-page">
+  <section class="discovery-page" :class="{ 'pc2-discovery': uiV2 }">
     <header class="discovery-page__hero">
       <div class="discovery-page__hero-copy">
         <h1 class="title">{{ landing?.heading || 'Знайдіть спеціаліста для вашого запиту' }}</h1>
         <p class="muted">{{ landing?.intro || 'Оберіть напрям або опишіть своїми словами, з чим хочете звернутися.' }}</p>
+        <p v-if="uiV2" class="pc2-discovery__guest">Перше звернення — без реєстрації.</p>
       </div>
       <RouterLink v-if="landing" class="btn btn--ghost hero-home-link" to="/specialists">{{ landing.broadDiscoveryLinkLabel }}</RouterLink>
       <RouterLink v-else class="btn btn--ghost hero-home-link" to="/">← На головну</RouterLink>
     </header>
 
+    <form v-if="uiV2 && mode === 'request'" class="query-form pc2-discovery__search" @submit.prevent="submitQuery">
+      <label for="discovery-query">Опишіть запит своїми словами</label>
+      <div class="query-form__row">
+        <input id="discovery-query" v-model="queryDraft" class="input pc2-input" type="text" placeholder="Наприклад: не можу впоратися з тривогою" :aria-invalid="fieldError?.field === 'q' ? 'true' : undefined" :aria-describedby="fieldError?.field === 'q' ? 'discovery-query-error' : undefined" />
+        <button class="btn pc2-btn pc2-btn--primary" type="submit">Знайти</button>
+      </div>
+      <p v-if="fieldError?.field === 'q'" id="discovery-query-error" class="form-error" role="alert">{{ fieldError.detail }}</p>
+    </form>
+
     <section class="discovery-controls" aria-label="Пошук спеціалістів">
       <div class="discovery-controls__toolbar">
         <fieldset class="control-group">
           <legend>Спосіб пошуку</legend>
-          <div class="segmented-control segmented-control--modes">
+          <div class="segmented-control segmented-control--modes" :class="{ 'pc2-chips': uiV2 }">
             <label><input name="specialist-discovery-mode" value="request" type="radio" :checked="mode === 'request'" @change="setMode('request')" />За запитом</label>
             <label><input name="specialist-discovery-mode" value="direction" type="radio" aria-label="За професійним напрямом" :checked="mode === 'direction'" @change="setMode('direction')" /><span class="control-label--full" aria-hidden="true">За професійним напрямом</span><span class="control-label--short" aria-hidden="true">За напрямом</span></label>
           </div>
@@ -21,7 +31,7 @@
 
         <fieldset class="control-group">
           <legend>Формат</legend>
-          <div class="segmented-control segmented-control--format">
+          <div class="segmented-control segmented-control--format" :class="{ 'pc2-chips': uiV2 }">
             <label><input name="specialist-format" value="" type="radio" aria-label="Усі формати" :checked="format === null" @change="setFormat(null)" /><span class="control-label--full" aria-hidden="true">Усі формати</span><span class="control-label--short" aria-hidden="true">Усі</span></label>
             <label><input name="specialist-format" value="online" type="radio" :checked="format === 'online'" @change="setFormat('online')" />Онлайн</label>
             <label><input name="specialist-format" value="offline" type="radio" :checked="format === 'offline'" @change="setFormat('offline')" />Офлайн</label>
@@ -32,7 +42,7 @@
       <template v-if="mode === 'request'">
         <fieldset class="control-group">
           <legend>Оберіть запит</legend>
-          <div class="choice-list request-group-controls__desktop">
+          <div class="choice-list request-group-controls__desktop" :class="{ 'pc2-chips': uiV2 }">
             <label v-for="option in REQUEST_GROUP_OPTIONS" :key="option.code" class="choice-button">
               <input name="specialist-request-group" :value="option.code" type="radio" :checked="requestGroup === option.code" @change="setRequestGroup(option.code)" />
               <span>{{ option.label }}</span>
@@ -47,7 +57,7 @@
             </select>
           </label>
         </fieldset>
-        <form class="query-form" @submit.prevent="submitQuery">
+        <form v-if="!uiV2" class="query-form" @submit.prevent="submitQuery">
           <label for="discovery-query">Опишіть запит своїми словами</label>
           <div class="query-form__row">
             <input id="discovery-query" v-model="queryDraft" class="input" type="text" placeholder="Наприклад: не можу впоратися з тривогою" :aria-invalid="fieldError?.field === 'q' ? 'true' : undefined" :aria-describedby="fieldError?.field === 'q' ? 'discovery-query-error' : undefined" />
@@ -59,7 +69,7 @@
 
       <fieldset v-else class="control-group">
         <legend>Оберіть професійний напрям</legend>
-        <div class="choice-list">
+        <div class="choice-list" :class="{ 'pc2-chips': uiV2 }">
           <template v-for="option in DIRECTION_OPTIONS" :key="option.code">
             <RouterLink
               v-if="isPsychologicalSupportLink(option.code)"
@@ -83,7 +93,7 @@
       <p v-if="fieldError && fieldError.field !== 'q'" class="form-error" role="alert">
         {{ fieldError.detail }}
       </p>
-      <details class="legacy-lookup">
+      <details v-if="!uiV2" class="legacy-lookup">
         <summary>Знайти конкретного спеціаліста</summary>
         <div class="legacy-lookup__content">
           <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
@@ -131,6 +141,39 @@
       </template>
     </section>
 
+    <aside v-if="uiV2" class="pc2-discovery__help" aria-label="Як звернутися до спеціаліста">
+      <section class="pc2-discovery__optional">
+        <h2>Кабінет клієнта — за бажанням</h2>
+        <p>Звернутися до спеціаліста можна без реєстрації. Кабінет допомагає зберігати вашу роботу в одному місці.</p>
+        <RouterLink class="pc2-btn" to="/signup-client">Створити кабінет</RouterLink>
+      </section>
+      <section class="pc2-discovery__guide">
+        <h2>Як це працює</h2>
+        <ol>
+          <li>Відкрийте сторінку спеціаліста й познайомтесь із підходом.</li>
+          <li>Залиште запит — можна без вибору часу.</li>
+          <li>Спеціаліст відповість і запропонує зустріч.</li>
+        </ol>
+      </section>
+      <section class="pc2-discovery__lookup">
+        <details class="legacy-lookup">
+          <summary>Знайти конкретного спеціаліста</summary>
+          <div class="legacy-lookup__content">
+            <p class="muted">Введіть ім’я спеціаліста або вставте частину посилання на його публічний профіль.</p>
+            <form class="query-form" @submit.prevent="submitLegacySearch">
+              <label for="legacy-specialist-search">Ім’я або посилання</label>
+              <div class="query-form__row"><input id="legacy-specialist-search" v-model="legacyQuery" class="input" type="text" autocomplete="off" /><button class="btn" type="submit">Знайти профіль</button></div>
+              <p v-if="legacyValidation" class="form-error">{{ legacyValidation }}</p>
+            </form>
+            <LoadingSkeleton v-if="legacyLoading" variant="card" :count="2" height="150px" />
+            <EmptyState v-else-if="legacyError" title="Не вдалося виконати пошук" description="Спробуйте ще раз трохи пізніше."><template #actions><button class="btn btn--ghost" type="button" @click="retryLegacySearch">Спробувати ще раз</button></template></EmptyState>
+            <EmptyState v-else-if="legacySearched && legacyResults.length === 0" title="Профіль не знайдено" description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання." />
+            <div v-else-if="legacyResults.length" class="result-list legacy-lookup__results"><PublicSpecialistCard v-for="item in legacyResults" :key="item.public_profile_path || item.public_slug || item.slug" :item="item" /></div>
+          </div>
+        </details>
+      </section>
+    </aside>
+
   </section>
 </template>
 
@@ -145,8 +188,10 @@ import { DIRECTION_OPTIONS, REQUEST_GROUP_OPTIONS, useSpecialistDiscovery } from
 import { markClientAcquisitionDiscoveryUsed } from '../lib/clientAcquisitionAttribution'
 import { productAnalytics } from '../lib/productAnalytics'
 import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
+import { isUiV2 } from '../lib/uiVersion'
 import { PSYCHOLOGICAL_SUPPORT_LANDING } from '../lib/specialistDiscoveryLanding'
 
+const uiV2 = computed(isUiV2)
 const discovery = useSpecialistDiscovery()
 const route = useRoute()
 const landing = computed(() => (
@@ -329,5 +374,73 @@ onBeforeUnmount(resetPublicPageMetadata)
   .query-form__row { flex-wrap: wrap; }
   .query-form__row .input { flex: 1 1 190px; min-height: 44px; }
   .query-form__row .btn { flex: 0 0 auto; min-height: 44px; }
+}
+</style>
+
+<style>
+html[data-ui="v2"] .pc2-discovery { gap: var(--pc-space-8); padding-block: var(--pc-space-12) var(--pc-space-16); font-family: var(--pc-font); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-discovery .discovery-page__hero { align-items: start; padding: 0; gap: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-discovery .discovery-page__hero-copy { max-width: calc(var(--pc-container) * 2 / 3); }
+html[data-ui="v2"] .pc2-discovery .title { font-size: var(--pc-fs-h1); font-weight: var(--pc-fw-medium); line-height: var(--pc-lh-head); letter-spacing: var(--pc-ls-head); }
+html[data-ui="v2"] .pc2-discovery .discovery-page__hero .muted { display: block; font-size: var(--pc-fs-lead); margin-top: var(--pc-space-4); color: var(--pc-text-body); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__guest { color: var(--pc-text-muted); margin: var(--pc-space-2) 0 0; }
+html[data-ui="v2"] .pc2-discovery .hero-home-link { flex-shrink: 0; }
+html[data-ui="v2"] .pc2-discovery .discovery-controls { border: 0; border-bottom: 1px solid var(--pc-border-hair); border-radius: 0; background: transparent; padding: 0 0 var(--pc-space-8); gap: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-discovery .discovery-controls__toolbar { align-items: start; gap: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-discovery .control-group legend,
+html[data-ui="v2"] .pc2-discovery .query-form label { font-size: var(--pc-fs-small); font-weight: var(--pc-fw-medium); margin-bottom: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-discovery .pc2-chips { gap: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-discovery .request-group-controls__mobile { display: none; }
+html[data-ui="v2"] .pc2-discovery .pc2-chips label,
+html[data-ui="v2"] .pc2-discovery .pc2-chips .choice-button { min-height: var(--pc-control-h); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); padding: var(--pc-space-2) var(--pc-space-4); background: var(--pc-bg-card); color: var(--pc-text-body); font: var(--pc-fw-medium) var(--pc-fs-small)/var(--pc-lh-body) var(--pc-font); gap: var(--pc-space-2); text-decoration: none; transition: border-color var(--pc-dur) var(--pc-ease), background var(--pc-dur) var(--pc-ease); }
+html[data-ui="v2"] .pc2-discovery .pc2-chips input { accent-color: var(--pc-navy-900); margin: 0; flex-shrink: 0; }
+html[data-ui="v2"] .pc2-discovery .pc2-chips label:has(input:checked) { background: var(--pc-navy-900); color: var(--pc-bg-card); border-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-discovery .pc2-chips label:hover,
+html[data-ui="v2"] .pc2-discovery .pc2-chips .choice-button:hover { border-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-discovery .pc2-chips label:has(input:focus-visible),
+html[data-ui="v2"] .pc2-discovery :is(a, button, input, select, summary):focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+html[data-ui="v2"] .pc2-discovery .query-form { gap: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__search { max-width: calc(var(--pc-container) * 2 / 3); width: 100%; }
+html[data-ui="v2"] .pc2-discovery .query-form__row { gap: var(--pc-space-2); align-items: stretch; }
+html[data-ui="v2"] .pc2-discovery .input { height: var(--pc-control-h-lg); min-height: var(--pc-control-h-lg); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-sm); background: var(--pc-bg-card); padding: 0 var(--pc-space-4); color: var(--pc-text-main); font: var(--pc-fs-body) var(--pc-font); box-shadow: none; }
+html[data-ui="v2"] .pc2-discovery .input::placeholder { color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-discovery .input:focus { border-color: var(--pc-navy-900); box-shadow: var(--pc-ring); }
+html[data-ui="v2"] .pc2-discovery .input[aria-invalid="true"] { border-color: var(--pc-danger); }
+html[data-ui="v2"] .pc2-discovery .btn { min-height: var(--pc-control-h); padding: var(--pc-space-3) var(--pc-space-5); border: 1px solid var(--pc-navy-900); border-radius: var(--pc-radius-pill); background: var(--pc-navy-900); color: var(--pc-bg-card); font: var(--pc-fw-medium) var(--pc-fs-ui)/var(--pc-lh-head) var(--pc-font); box-shadow: none; text-decoration: none; }
+html[data-ui="v2"] .pc2-discovery .btn:hover { background: var(--pc-navy-950); transform: none; }
+html[data-ui="v2"] .pc2-discovery .btn:active { background: var(--pc-navy-800); }
+html[data-ui="v2"] .pc2-discovery .btn--ghost { color: var(--pc-navy-900); background: transparent; border-color: var(--pc-border); }
+html[data-ui="v2"] .pc2-discovery .btn--ghost:hover { background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-discovery .form-error { color: var(--pc-danger); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-discovery .active-search { background: var(--pc-bg-soft); border-radius: var(--pc-radius-md); padding: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-discovery .legacy-lookup { border-color: var(--pc-border-hair); margin-top: 0; padding-top: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-discovery .legacy-lookup summary { font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-discovery .results { gap: var(--pc-space-8); }
+html[data-ui="v2"] .pc2-discovery .results h2 { font-size: var(--pc-fs-h3); font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-discovery .results__header .muted { margin-bottom: 0; font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-discovery .result-group { gap: var(--pc-space-4); padding-top: 0; }
+html[data-ui="v2"] .pc2-discovery .result-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--pc-container) / 2 - var(--pc-space-24))), 1fr)); gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__help { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--pc-container) / 4)), 1fr)); gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__help section { border-radius: var(--pc-radius-md); padding: var(--pc-space-6); display: flex; flex-direction: column; align-items: start; gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__lookup { background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__lookup .legacy-lookup { border: 0; padding: 0; width: 100%; }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__lookup .result-list { grid-template-columns: minmax(0, 1fr); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__help h2 { margin: 0; font-size: var(--pc-fs-h3); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__help p { margin: 0; }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__optional { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__optional h2 { color: inherit; }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__optional .pc2-btn { margin-top: auto; background: var(--pc-bg-card); color: var(--pc-navy-900); text-decoration: none; }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__optional .pc2-btn:hover { background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__optional .pc2-btn:focus-visible { outline-color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__guide { background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__guide h2 { color: inherit; }
+html[data-ui="v2"] .pc2-discovery .pc2-discovery__guide ol { margin: 0; padding-left: var(--pc-space-6); display: grid; gap: var(--pc-space-2); }
+@media (max-width: 720px) {
+  html[data-ui="v2"] .pc2-discovery { padding-top: var(--pc-space-8); gap: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-discovery .pc2-discovery__help { grid-template-columns: minmax(0, 1fr); }
+  html[data-ui="v2"] .pc2-discovery .query-form__row { flex-wrap: wrap; }
+  html[data-ui="v2"] .pc2-discovery .query-form__row .input { flex: 1 1 100%; }
+  html[data-ui="v2"] .pc2-discovery .query-form__row .btn { flex: 1; }
+  html[data-ui="v2"] .pc2-discovery .hero-home-link { align-self: start; }
 }
 </style>

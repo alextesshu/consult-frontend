@@ -1,5 +1,5 @@
 <template>
-  <RouterLink class="result-card" :to="profileRoute" :aria-label="profileLinkLabel">
+  <RouterLink class="result-card" :class="{ 'pc2-specialist-card pc2-card pc2-card--interactive': uiV2 }" :to="profileRoute" :aria-label="profileLinkLabel">
     <div class="result-card__media">
       <img v-if="item.photo_url" :src="item.photo_url" :alt="publicName" class="result-card__photo" />
       <div v-else class="result-card__photo result-card__photo--empty" aria-hidden="true">Фото</div>
@@ -32,6 +32,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isUiV2 } from '../lib/uiVersion'
+
+const uiV2 = computed(isUiV2)
 
 const props = defineProps<{
   item: {
@@ -113,5 +116,29 @@ const profileRoute = computed(() => {
   .result-card__price { font-size: 15px; }
   .result-card__summary { -webkit-line-clamp: 2; }
   .result-card__details { display: grid; gap: 5px; }
+}
+</style>
+
+<style>
+html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: var(--pc-space-24) minmax(0, 1fr); gap: var(--pc-space-5); padding: var(--pc-space-6); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); background: var(--pc-bg-card); color: var(--pc-text-main); font-family: var(--pc-font); box-shadow: none; transition: border-color var(--pc-dur) var(--pc-ease), box-shadow var(--pc-dur) var(--pc-ease); }
+html[data-ui="v2"] .pc2-specialist-card:hover { border-color: var(--pc-border-strong); box-shadow: var(--pc-shadow-sm); transform: none; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-specialist-card:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__photo { border-radius: var(--pc-radius-sm); background: var(--pc-bg-soft); color: var(--pc-text-muted); font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__body,
+html[data-ui="v2"] .pc2-specialist-card .result-card__identity { gap: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__identity { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; }
+html[data-ui="v2"] .pc2-specialist-card .result-card__name { grid-column: 1; grid-row: 1; font-size: var(--pc-fs-h3); font-weight: var(--pc-fw-medium); line-height: var(--pc-lh-head); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__headline { grid-column: 1 / -1; grid-row: 2; font-size: var(--pc-fs-small); color: var(--pc-text-muted); font-weight: var(--pc-fw-regular); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__price { grid-column: 2; grid-row: 1; font-size: var(--pc-fs-ui); font-weight: var(--pc-fw-strong); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__summary { font-size: var(--pc-fs-ui); line-height: var(--pc-lh-body); color: var(--pc-text-body); -webkit-line-clamp: 2; }
+html[data-ui="v2"] .pc2-specialist-card .result-card__topics { gap: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__topics li { padding: var(--pc-space-1) var(--pc-space-2); border-radius: var(--pc-radius-pill); background: var(--pc-teal-100); color: var(--pc-teal-ink); font-size: var(--pc-fs-meta); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__details { gap: var(--pc-space-2) var(--pc-space-4); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__detail { flex-wrap: wrap; font-size: var(--pc-fs-meta); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-specialist-card .result-card__detail dt { text-transform: none; font-size: inherit; font-weight: var(--pc-fw-medium); color: inherit; }
+@media (max-width: 480px) {
+  html[data-ui="v2"] .pc2-specialist-card .result-card__identity { grid-template-columns: minmax(0, 1fr); }
+  html[data-ui="v2"] .pc2-specialist-card .result-card__price { grid-column: 1; grid-row: 3; }
+  html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: var(--pc-space-16) minmax(0, 1fr); gap: var(--pc-space-3); padding: var(--pc-space-4); }
 }
 </style>
