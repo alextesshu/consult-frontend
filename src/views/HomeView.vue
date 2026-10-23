@@ -2,9 +2,10 @@
   <section v-if="isUiV2()" class="pc2-home">
     <div class="pc2-home__container">
       <section class="pc2-home__hero" aria-labelledby="home-hero-title">
-        <p class="pc2-home__eyebrow">Pro Consult · простір для вашої практики</p>
+        <img class="pc2-home__hero-mark" :src="homeMarkNavy" alt="" width="112" height="111" aria-hidden="true">
+        <p class="pc2-home__eyebrow">Для психологів, терапевтів і консультантів</p>
         <h1 id="home-hero-title">Менше адміністрування.<br>Більше уваги до клієнта.</h1>
-        <p class="pc2-home__lead">Професійна сторінка, звернення від клієнтів, сесії та щоденна робота — в одному спокійному просторі.</p>
+        <p class="pc2-home__lead">Публічна сторінка, запити, сесії й нотатки — один зрозумілий шлях від першого звернення до регулярної роботи.</p>
         <div class="pc2-home__actions">
           <button v-if="isAuthenticated" class="pc2-btn pc2-btn--primary" type="button" @click="goToCabinet">Перейти до кабінету</button>
           <RouterLink v-else class="pc2-btn pc2-btn--primary" to="/signup">Створити свій простір</RouterLink>
@@ -34,7 +35,20 @@
               </span>
               <h3>{{ journeySteps[activeJourneyStep]!.preview }}</h3>
               <p>{{ journeySteps[activeJourneyStep]!.detail }}</p>
-              <div class="pc2-home__preview-lines" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div v-if="activeJourneyStep === 0" class="pc2-home__profile-preview" aria-hidden="true">
+                <span>Підхід і теми роботи</span><span>Формат і вартість</span><span class="pc2-home__preview-action">Залишити запит</span>
+              </div>
+              <ol v-else-if="activeJourneyStep === 1" class="pc2-home__request-preview" aria-label="Шлях звернення">
+                <li>Запит</li><li>Узгодження</li><li>Сесія</li>
+              </ol>
+              <div v-else-if="activeJourneyStep === 2" class="pc2-home__session-preview">
+                <span>Час і формат консультації</span><span>За домовленістю</span>
+              </div>
+              <ul v-else class="pc2-home__work-preview">
+                <li>Нотатки спеціаліста <span>Приватно</span></li>
+                <li>Матеріали для клієнта <span>Лише опубліковані</span></li>
+                <li>Оплати <span>Ручне підтвердження</span></li>
+              </ul>
               <span class="pc2-home__status">{{ journeySteps[activeJourneyStep]!.status }}</span>
             </div>
           </div>
@@ -42,6 +56,7 @@
       </section>
 
       <section class="pc2-home__truth" aria-labelledby="truth-title">
+        <span class="pc2-home__peek" aria-hidden="true"><img :src="homeMarkBand" alt="" width="128" height="127" loading="lazy"></span>
         <h2 id="truth-title">Чесні умови для вашої практики</h2>
         <div><h3>0% комісії</h3><p>Клієнт оплачує консультацію напряму вам.</p></div>
         <div><h3>30 днів Pro</h3><p>Спробуйте розширені можливості безкоштовно.</p></div>
@@ -50,26 +65,37 @@
 
       <section id="features" class="pc2-home__section" aria-labelledby="value-title">
         <h2 id="value-title">Усе для практики — без зайвого</h2>
-        <section v-for="group in capabilityGroups" :key="group.id" class="pc2-home__capabilities" :aria-labelledby="group.id">
-          <h3 :id="group.id">{{ group.title }}</h3>
-          <div class="pc2-home__bento">
-            <article v-for="item in group.items" :key="item.title" class="pc2-home__feature pc2-card">
-              <svg class="pc2-home__feature-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path v-for="path in iconPaths[item.icon]" :key="path" :d="path" /></svg>
-              <h3>{{ item.title }}</h3><p>{{ item.copy }}</p>
-            </article>
-          </div>
-        </section>
+        <div class="pc2-home__bento">
+          <article v-for="feature in homeV2Features" :key="feature.key" class="pc2-home__feature pc2-card" :class="`pc2-home__feature--${feature.key}`">
+            <div class="pc2-home__feature-copy">
+              <p class="pc2-home__eyebrow">{{ feature.scope }}</p>
+              <div><h3>{{ feature.title }}</h3><p>{{ feature.copy }}</p></div>
+            </div>
+            <div v-if="feature.key === 'profile'" class="pc2-home__mini-profile" aria-label="Ілюстрація професійної сторінки">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path v-for="path in iconPaths.profile" :key="path" :d="path" /></svg>
+              <span>Ваша професійна сторінка</span><span>Підхід · теми · формат</span>
+              <span class="pc2-home__preview-action">Залишити запит</span>
+            </div>
+            <div v-if="feature.key === 'sessions'" class="pc2-home__mini-calendar" aria-label="Ілюстрація організації сесій">
+              <span>Час консультації</span><span>Посилання на зустріч</span><span>Підтвердження спеціаліста</span>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section class="pc2-home__blog" aria-labelledby="blog-title">
-        <div><p class="pc2-home__eyebrow">Власний блог</p><h2 id="blog-title">Дайте клієнту можливість познайомитись з вами до консультації</h2></div>
-        <div><p>Не кожен готовий звернутись одразу.</p><p>Професійна сторінка і власний блог допомагають клієнту зрозуміти, з чим ви працюєте, як мислите і чи відгукується йому ваш підхід.</p><p>Публікуйте статті, відповіді на часті запитання та матеріали, які ви хочете зробити доступними клієнтам.</p></div>
+        <div><h2 id="blog-title">Дайте клієнту можливість познайомитись з вами до консультації</h2><p>Не кожен готовий звернутись одразу. Професійна сторінка і власний блог допомагають зрозуміти ваш підхід.</p></div>
+        <ul class="pc2-home__blog-formats" aria-label="Можливості власного блогу">
+          <li v-for="format in homeV2BlogFormats" :key="format.title" class="pc2-card"><span>{{ format.label }}</span><h3>{{ format.title }}</h3><p>{{ format.copy }}</p></li>
+        </ul>
       </section>
       <section class="pc2-home__client" aria-labelledby="client-entry-title">
-        <div><h2 id="client-entry-title">Шукаєте спеціаліста?</h2><p>Опишіть свій запит або оберіть напрям, перегляньте професійні сторінки й зверніться напряму до спеціаліста, який вам підходить.</p><p>Без обов'язкової реєстрації для першого звернення.</p></div>
+        <img :src="homeMarkNavy" alt="" width="56" height="55" loading="lazy" aria-hidden="true">
+        <div><h2 id="client-entry-title">Шукаєте спеціаліста для себе?</h2><p>Опишіть запит і зверніться напряму. Без обов'язкової реєстрації для першого звернення.</p></div>
         <RouterLink class="pc2-btn pc2-btn--primary" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
       </section>
       <section id="pricing" class="pc2-home__pricing" aria-labelledby="pricing-title">
+        <div class="pc2-home__pricing-header">
         <div class="pc2-home__heading">
           <h2 id="pricing-title" class="pc2-home__title">Тарифи</h2>
           <p class="pc2-home__lead">
@@ -96,6 +122,7 @@
           </button>
         </div>
 
+        </div>
         <div class="pc2-home__plans">
           <article v-for="plan in pricingPlans" :key="plan.name" class="pc2-home__plan" :class="{ 'pc2-home__plan--pro': plan.name === 'Pro' }">
             <p v-if="plan.badge" class="pc2-home__plan-badge">{{ plan.badge }}</p>
@@ -522,6 +549,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { productAnalytics } from '../lib/productAnalytics'
+import homeMarkNavy from '../assets/home-v2/mark-navy.png'
+import homeMarkBand from '../assets/home-v2/mark-band.png'
 import { isUiV2 } from '../lib/uiVersion'
 import heroSpecialistDemo from '../assets/home/hero-specialist-demo.webp'
 
@@ -551,6 +580,22 @@ const journeySteps: Array<{ label: string; title: string; copy: string; icon: Ic
   { label: 'Запит', title: 'Знайомство починається із запиту', copy: 'Клієнт переглядає вашу сторінку й залишає звернення без обов’язкової реєстрації. Запит не є підтвердженим записом: деталі та час ви погоджуєте разом.', icon: 'booking', preview: 'Звернення від клієнта', detail: 'Запит → обговорення деталей → погодження часу', status: 'Потребує погодження' },
   { label: 'Сесія', title: 'Проведіть консультацію', copy: 'Погоджуйте час, плануйте сесії та тримайте робочий календар в одному місці. Клієнт оплачує консультацію безпосередньо вам.', icon: 'session', preview: 'Планування сесії', detail: 'Формат і час — за домовленістю зі спеціалістом', status: 'Час погоджується окремо' },
   { label: 'Подальша робота', title: 'Продовжуйте роботу з клієнтом', copy: 'Регулярні сесії, приватні нотатки, матеріали й задачі залишаються в контексті вашої роботи. Клієнту відкривається лише те, чим ви свідомо ділитеся.', icon: 'materials', preview: 'Контекст роботи', detail: 'Сесії · приватні нотатки · матеріали · задачі', status: 'Приватність під вашим контролем' },
+]
+
+
+// Claude snapshot 2026-10-23-265f221a: presentation only, no simulated account data.
+const homeV2Features = [
+  { key: 'profile', scope: 'Публічне', title: 'Професійна сторінка', copy: 'Підхід, теми, формат і вартість — на сторінці, якою зручно ділитися.' },
+  { key: 'requests', scope: 'Публічне', title: 'Запит без реєстрації', copy: 'Клієнту не обов’язково мати кабінет. Запит потребує вашого погодження.' },
+  { key: 'discovery', scope: 'Публічне', title: 'Блог і пошук', copy: 'Клієнти можуть познайомитися з вашим підходом і знайти вашу сторінку. Без рейтингів.' },
+  { key: 'notes', scope: 'Приватне', title: 'Нотатки', copy: 'Внутрішні записи спеціаліста залишаються приватними. Матеріали для клієнта публікуються окремо.' },
+  { key: 'sessions', scope: 'Приватне', title: 'Сесії та календар', copy: 'Час, посилання й підтвердження — в одному робочому просторі.' },
+  { key: 'payments', scope: 'Приватне', title: 'Оплати', copy: 'Клієнт оплачує напряму вам. Тут ви фіксуєте й підтверджуєте статуси оплат.' },
+]
+const homeV2BlogFormats = [
+  { label: 'Статті', title: 'Розкажіть про свій підхід', copy: 'Публікуйте власні тексти для знайомства з вашою практикою.' },
+  { label: 'Часті питання', title: 'Поясніть, як проходить робота', copy: 'Дайте відповіді на питання перед першим зверненням.' },
+  { label: 'Матеріали', title: 'Поділіться корисним', copy: 'Ви самі обираєте, що публікувати для читачів.' },
 ]
 
 
@@ -3943,62 +3988,62 @@ onBeforeUnmount(() => {
 /* Home v2 is opt-in. Legacy scoped styles above remain unchanged. */
 html[data-ui="v2"] .pc2-home { background: var(--pc-bg-main); color: var(--pc-text-body); font-family: var(--pc-font); padding-bottom: var(--pc-space-20); }
 html[data-ui="v2"] .pc2-home__container { max-width: var(--pc-container); margin-inline: auto; padding-inline: var(--pc-gutter); }
+html[data-ui="v2"] .pc2-home #pricing,
+html[data-ui="v2"] .pc2-home #client-entry-title { scroll-margin-top: var(--pc-header-anchor-offset); }
 html[data-ui="v2"] .pc2-home h1,
 html[data-ui="v2"] .pc2-home h2,
 html[data-ui="v2"] .pc2-home h3 { color: var(--pc-text-main); font-weight: var(--pc-fw-medium); }
 html[data-ui="v2"] .pc2-home h2 { font-size: var(--pc-fs-h1); }
 html[data-ui="v2"] .pc2-home h3 { font-size: var(--pc-fs-h3); }
 html[data-ui="v2"] .pc2-home p { margin-block: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__hero { text-align: center; padding-block: var(--pc-space-20) var(--pc-space-12); }
+html[data-ui="v2"] .pc2-home__hero { text-align: center; padding-block: var(--pc-section-y) var(--pc-space-12); }
 html[data-ui="v2"] .pc2-home__hero h1 { font-size: var(--pc-fs-display); line-height: var(--pc-lh-tight); letter-spacing: var(--pc-ls-display); margin: var(--pc-space-6) auto; max-width: 18ch; }
 html[data-ui="v2"] .pc2-home__lead { max-width: 65ch; margin-inline: auto; font-size: var(--pc-fs-lead); }
 html[data-ui="v2"] .pc2-home__eyebrow { color: var(--pc-text-muted); font-size: var(--pc-fs-small); font-weight: var(--pc-fw-medium); }
 html[data-ui="v2"] .pc2-home__meta { color: var(--pc-text-muted); font-size: var(--pc-fs-small); }
 html[data-ui="v2"] .pc2-home__actions { display: flex; justify-content: center; gap: var(--pc-space-3); flex-wrap: wrap; margin-block: var(--pc-space-8) var(--pc-space-5); }
 html[data-ui="v2"] .pc2-home__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pc-space-2); padding-bottom: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__step { display: flex; align-items: center; justify-content: center; gap: var(--pc-space-3); min-height: var(--pc-control-h); padding: var(--pc-space-3); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); background: var(--pc-bg-main); color: var(--pc-text-body); font: inherit; cursor: pointer; }
-html[data-ui="v2"] .pc2-home__step-number { display: grid; place-items: center; width: var(--pc-space-8); height: var(--pc-space-8); flex-shrink: 0; border-radius: var(--pc-radius-pill); background: var(--pc-bg-sunk); }
-html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] { background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card); }
-html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] .pc2-home__step-number { background: var(--pc-bg-card); color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-home__step { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--pc-space-3); min-height: var(--pc-control-h); padding: var(--pc-space-2); border: 0; border-radius: var(--pc-radius-sm); background: var(--pc-bg-main); color: var(--pc-text-muted); font: inherit; cursor: pointer; }
+html[data-ui="v2"] .pc2-home__step-number { display: grid; place-items: center; position: relative; width: var(--pc-space-10); height: var(--pc-space-10); flex-shrink: 0; border-radius: var(--pc-radius-pill); background: var(--pc-bg-sunk); }
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] { color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] .pc2-home__step-number { background: var(--pc-navy-900); color: var(--pc-bg-card); }
 html[data-ui="v2"] .pc2-home__step:hover:not([aria-pressed="true"]) { background: var(--pc-teal-100); border-color: var(--pc-teal-ink); }
-html[data-ui="v2"] .pc2-home__journey-panel { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); overflow: hidden; }
-html[data-ui="v2"] .pc2-home__journey-copy { padding: var(--pc-space-12); align-self: center; }
+html[data-ui="v2"] .pc2-home__journey-panel { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-8); padding: var(--pc-space-10); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__journey-copy { min-width: 0; align-self: center; }
 html[data-ui="v2"] .pc2-home__journey-copy h2 { margin-block: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__illustration { background: var(--pc-teal-100); padding: var(--pc-space-8); display: grid; align-content: center; }
-html[data-ui="v2"] .pc2-home__preview { padding: var(--pc-space-8); background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); box-shadow: var(--pc-shadow-sm); }
+html[data-ui="v2"] .pc2-home__illustration { min-width: 0; min-height: calc(var(--pc-space-20) * 4); background: var(--pc-bg-soft); border-radius: var(--pc-radius-md); padding: var(--pc-space-6); display: grid; align-content: center; }
+html[data-ui="v2"] .pc2-home__preview { min-width: 0; padding: var(--pc-space-6); background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); box-shadow: var(--pc-shadow-sm); }
 html[data-ui="v2"] .pc2-home__preview-icon { display: grid; place-items: center; width: var(--pc-space-12); height: var(--pc-space-12); background: var(--pc-teal-200); color: var(--pc-teal-ink); border-radius: var(--pc-radius-sm); }
 html[data-ui="v2"] .pc2-home__preview-icon svg,
 html[data-ui="v2"] .pc2-home__feature-icon { width: var(--pc-space-6); height: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__preview-lines { display: grid; gap: var(--pc-space-3); margin-block: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__preview-lines span { height: var(--pc-space-2); background: var(--pc-bg-sunk); border-radius: var(--pc-radius-pill); }
-html[data-ui="v2"] .pc2-home__preview-lines span:last-child { width: 65%; }
 html[data-ui="v2"] .pc2-home__status { display: inline-block; padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-peach-100); color: var(--pc-peach-ink); border-radius: var(--pc-radius-xs); font-size: var(--pc-fs-small); }
-html[data-ui="v2"] .pc2-home__truth { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-6); background: var(--pc-navy-900); color: var(--pc-bg-card); border-radius: var(--pc-radius-lg); padding: var(--pc-space-12); margin-top: var(--pc-space-12); }
+html[data-ui="v2"] .pc2-home__truth { position: relative; align-items: start; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-6); background: var(--pc-navy-900); color: var(--pc-bg-card); border-radius: var(--pc-radius-lg); padding: var(--pc-space-12); margin-top: var(--pc-space-12); }
 html[data-ui="v2"] .pc2-home__truth h2 { grid-column: 1 / -1; margin: 0; color: inherit; }
-html[data-ui="v2"] .pc2-home__truth h3 { color: inherit; }
+html[data-ui="v2"] .pc2-home__truth h3 { color: inherit; font-size: var(--pc-fs-h1); margin: var(--pc-space-4) 0; }
 html[data-ui="v2"] .pc2-home__section,
 html[data-ui="v2"] .pc2-home__blog,
 html[data-ui="v2"] .pc2-home__pricing { margin-block: var(--pc-section-y); }
 html[data-ui="v2"] .pc2-home__capabilities { margin-top: var(--pc-space-10); }
-html[data-ui="v2"] .pc2-home__bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__feature { padding: var(--pc-space-8); min-width: 0; }
-html[data-ui="v2"] .pc2-home__feature:first-child { grid-column: span 2; background: var(--pc-teal-100); }
+html[data-ui="v2"] .pc2-home__bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-home__feature { display: flex; justify-content: space-between; gap: var(--pc-space-6); padding: var(--pc-space-8); min-width: 0; min-height: calc(var(--pc-space-20) * 2 + var(--pc-space-16)); }
+html[data-ui="v2"] .pc2-home__feature--profile,
+html[data-ui="v2"] .pc2-home__feature--sessions { grid-column: span 2; }
 html[data-ui="v2"] .pc2-home__feature-icon { color: var(--pc-teal-ink); }
-html[data-ui="v2"] .pc2-home__blog { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-12); padding: var(--pc-space-12); background: var(--pc-peach-100); border-radius: var(--pc-radius-lg); }
-html[data-ui="v2"] .pc2-home__client { display: flex; align-items: center; gap: var(--pc-space-10); padding: var(--pc-space-10); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-lg); }
+html[data-ui="v2"] .pc2-home__blog { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: var(--pc-space-16); }
+html[data-ui="v2"] .pc2-home__client { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pc-space-6); padding: var(--pc-space-10); background: var(--pc-teal-100); color: var(--pc-teal-ink); border-radius: var(--pc-radius-lg); }
 html[data-ui="v2"] .pc2-home__client > div { flex: 1; }
 html[data-ui="v2"] .pc2-home__client > a { flex-shrink: 0; }
-html[data-ui="v2"] .pc2-home__heading { text-align: center; }
-html[data-ui="v2"] .pc2-home__cycles { display: flex; justify-content: center; gap: var(--pc-space-2); margin-block: var(--pc-space-8); }
-html[data-ui="v2"] .pc2-home__cycle { min-height: var(--pc-control-h); padding-inline: var(--pc-space-6); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; cursor: pointer; }
-html[data-ui="v2"] .pc2-home__cycle[aria-pressed="true"] { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__heading { flex: 1; }
+html[data-ui="v2"] .pc2-home__cycles { display: flex; align-self: flex-end; justify-content: center; gap: var(--pc-space-1); padding: var(--pc-space-1); background: var(--pc-bg-sunk); border-radius: var(--pc-radius-pill); }
+html[data-ui="v2"] .pc2-home__cycle { min-height: var(--pc-control-h); padding-inline: var(--pc-space-6); border: 1px solid transparent; border-radius: var(--pc-radius-pill); background: none; color: var(--pc-text-main); font: inherit; cursor: pointer; }
+html[data-ui="v2"] .pc2-home__cycle[aria-pressed="true"] { background: var(--pc-bg-card); color: var(--pc-navy-900); box-shadow: var(--pc-shadow-sm); }
 html[data-ui="v2"] .pc2-home__cycle:hover { border-color: var(--pc-navy-900); }
 html[data-ui="v2"] .pc2-home__plans { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-6); }
 html[data-ui="v2"] .pc2-home__plan { display: flex; flex-direction: column; align-items: flex-start; padding: var(--pc-space-10); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); }
 html[data-ui="v2"] .pc2-home__plan--pro { background: var(--pc-navy-900); color: var(--pc-bg-card); }
 html[data-ui="v2"] .pc2-home__plan--pro h3 { color: inherit; }
 html[data-ui="v2"] .pc2-home__plan-price { font-size: var(--pc-fs-h1); font-weight: var(--pc-fw-strong); line-height: var(--pc-lh-head); }
-html[data-ui="v2"] .pc2-home__plan-badge { font-size: var(--pc-fs-small); padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-teal-200); color: var(--pc-teal-ink); border-radius: var(--pc-radius-pill); }
+html[data-ui="v2"] .pc2-home__plan-badge { font-size: var(--pc-fs-small); padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-peach-200); color: var(--pc-peach-ink); border-radius: var(--pc-radius-pill); }
 html[data-ui="v2"] .pc2-home__plan ul { padding-left: var(--pc-space-5); margin-bottom: var(--pc-space-8); }
 html[data-ui="v2"] .pc2-home__plan li { padding-block: var(--pc-space-2); }
 html[data-ui="v2"] .pc2-home__plan > a { margin-top: auto; }
@@ -4007,19 +4052,69 @@ html[data-ui="v2"] .pc2-home__plan--pro > a:hover { background: var(--pc-teal-20
 html[data-ui="v2"] .pc2-home__conditions,
 html[data-ui="v2"] .pc2-home__limits { margin-top: var(--pc-space-6); padding: var(--pc-space-8); background: var(--pc-bg-soft); border-radius: var(--pc-radius-md); }
 html[data-ui="v2"] .pc2-home__conditions > a { margin-top: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__final { text-align: center; padding-block: var(--pc-space-12); }
+html[data-ui="v2"] .pc2-home__final { text-align: center; padding-block: var(--pc-space-20); border-top: 1px solid var(--pc-border-hair); }
 html[data-ui="v2"] .pc2-home__final h2 { max-width: 24ch; margin: 0 auto var(--pc-space-8); }
 html[data-ui="v2"] .pc2-home :focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
 html[data-ui="v2"] .pc2-home__plan--pro :focus-visible,
 html[data-ui="v2"] .pc2-home__step[aria-pressed="true"]:focus-visible { outline-color: var(--pc-navy-900); box-shadow: 0 0 0 var(--pc-space-1) var(--pc-bg-card); }
 html[data-ui="v2"] .pc2-home__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html[data-ui="v2"] .pc2-home__hero-mark { display: block; width: calc(var(--pc-space-24) + var(--pc-space-4)); height: auto; margin: 0 auto var(--pc-space-8); }
+html[data-ui="v2"] .pc2-home__steps { position: relative; }
+html[data-ui="v2"] .pc2-home__step::before { content: ''; position: absolute; left: 0; right: 0; top: calc(var(--pc-space-5) + var(--pc-space-2)); height: 1px; background: var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-home__step:first-child::before { left: 50%; }
+html[data-ui="v2"] .pc2-home__step:last-child::before { right: 50%; }
+html[data-ui="v2"] .pc2-home__step-number { border: 1px solid var(--pc-border); transition: background var(--pc-dur) var(--pc-ease), color var(--pc-dur) var(--pc-ease); }
+html[data-ui="v2"] .pc2-home__profile-preview,
+html[data-ui="v2"] .pc2-home__mini-calendar { display: grid; gap: var(--pc-space-3); }
+html[data-ui="v2"] .pc2-home__profile-preview > span,
+html[data-ui="v2"] .pc2-home__mini-calendar > span { padding: var(--pc-space-3); border-radius: var(--pc-radius-sm); background: var(--pc-bg-soft); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__preview-action { display: block; padding: var(--pc-space-3); border-radius: var(--pc-radius-pill); background: var(--pc-navy-900); color: var(--pc-bg-card); font-size: var(--pc-fs-meta); text-align: center; }
+html[data-ui="v2"] .pc2-home__profile-preview .pc2-home__preview-action { background: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-home__request-preview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-2); padding: 0; margin-block: var(--pc-space-6); list-style: none; font-size: var(--pc-fs-meta); }
+html[data-ui="v2"] .pc2-home__request-preview li { border-top: var(--pc-space-1) solid var(--pc-border); padding-top: var(--pc-space-2); overflow-wrap: anywhere; }
+html[data-ui="v2"] .pc2-home__request-preview li:first-child { border-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-home__session-preview { display: grid; gap: var(--pc-space-3); padding: var(--pc-space-5); margin-block: var(--pc-space-5); border-radius: var(--pc-radius-md); background: var(--pc-navy-900); color: var(--pc-bg-card); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__work-preview { display: grid; gap: var(--pc-space-3); padding: 0; list-style: none; font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__work-preview li { display: flex; flex-wrap: wrap; gap: var(--pc-space-2); justify-content: space-between; padding-bottom: var(--pc-space-3); border-bottom: 1px solid var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-home__work-preview span { color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__peek { position: absolute; right: var(--pc-space-16); bottom: 100%; width: calc(var(--pc-space-16) * 2); height: var(--pc-space-16); overflow: hidden; pointer-events: none; }
+html[data-ui="v2"] .pc2-home__peek img { display: block; width: 100%; height: auto; }
+html[data-ui="v2"] .pc2-home__truth > div { border-top: 1px solid var(--pc-border-strong); }
+html[data-ui="v2"] .pc2-home__feature-copy { display: flex; flex-direction: column; justify-content: space-between; gap: var(--pc-space-6); min-width: 0; }
+html[data-ui="v2"] .pc2-home__feature h3 { margin: 0; }
+html[data-ui="v2"] .pc2-home__feature p { font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__feature--requests { background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__feature--requests h3,
+html[data-ui="v2"] .pc2-home__feature--requests .pc2-home__eyebrow { color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__feature--payments { background: var(--pc-peach-100); color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-home__feature--payments h3,
+html[data-ui="v2"] .pc2-home__feature--payments .pc2-home__eyebrow { color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-home__feature--sessions { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__feature--sessions h3,
+html[data-ui="v2"] .pc2-home__feature--sessions .pc2-home__eyebrow { color: inherit; }
+html[data-ui="v2"] .pc2-home__mini-profile,
+html[data-ui="v2"] .pc2-home__mini-calendar { flex: 0 0 45%; min-width: 0; font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-home__mini-profile { display: grid; gap: var(--pc-space-3); align-content: center; padding: var(--pc-space-4); background: var(--pc-bg-soft); border-radius: var(--pc-radius-md); }
+html[data-ui="v2"] .pc2-home__mini-profile svg { width: var(--pc-space-10); height: var(--pc-space-10); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__mini-calendar { align-content: center; }
+html[data-ui="v2"] .pc2-home__mini-calendar > span { background: var(--pc-navy-800); }
+html[data-ui="v2"] .pc2-home__blog-formats { display: grid; gap: var(--pc-space-3); padding: 0; margin: 0; list-style: none; }
+html[data-ui="v2"] .pc2-home__blog-formats li { padding: var(--pc-space-5) var(--pc-space-6); }
+html[data-ui="v2"] .pc2-home__blog-formats span { font-size: var(--pc-fs-meta); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__blog-formats h3 { font-size: var(--pc-fs-lead); margin-block: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-home__blog-formats p { font-size: var(--pc-fs-small); margin-bottom: 0; }
+html[data-ui="v2"] .pc2-home__client > img { width: calc(var(--pc-space-12) + var(--pc-space-2)); height: auto; flex-shrink: 0; }
+html[data-ui="v2"] .pc2-home__client > div { flex-basis: 50%; }
+html[data-ui="v2"] .pc2-home__client h2 { font-size: var(--pc-fs-h2); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__client p { font-size: var(--pc-fs-ui); }
+html[data-ui="v2"] .pc2-home__pricing-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--pc-space-8); margin-bottom: var(--pc-space-8); }
 @media (max-width: 900px) {
-  html[data-ui="v2"] .pc2-home__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html[data-ui="v2"] .pc2-home__journey-copy,
-  html[data-ui="v2"] .pc2-home__illustration { padding: var(--pc-space-6); }
-  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html[data-ui="v2"] .pc2-home__blog { padding: var(--pc-space-8); gap: var(--pc-space-6); }
-  html[data-ui="v2"] .pc2-home__client { flex-direction: column; align-items: flex-start; }
+  html[data-ui="v2"] .pc2-home__mini-profile,
+  html[data-ui="v2"] .pc2-home__mini-calendar { flex-basis: 45%; }
+  html[data-ui="v2"] .pc2-home__journey-panel { padding: var(--pc-space-6); gap: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: dense; }
+  html[data-ui="v2"] .pc2-home__blog { gap: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-home__client { gap: var(--pc-space-5); }
 }
 @media (max-width: 600px) {
   html[data-ui="v2"] .pc2-home__hero { padding-top: var(--pc-space-12); }
@@ -4030,15 +4125,26 @@ html[data-ui="v2"] .pc2-home__sr-only { position: absolute; width: 1px; height: 
   html[data-ui="v2"] .pc2-home__bento,
   html[data-ui="v2"] .pc2-home__blog,
   html[data-ui="v2"] .pc2-home__plans { grid-template-columns: 1fr; }
-  html[data-ui="v2"] .pc2-home__feature:first-child { grid-column: auto; }
+  html[data-ui="v2"] .pc2-home__feature--profile,
+  html[data-ui="v2"] .pc2-home__feature--sessions { grid-column: auto; }
   html[data-ui="v2"] .pc2-home__truth,
   html[data-ui="v2"] .pc2-home__feature,
-  html[data-ui="v2"] .pc2-home__blog,
   html[data-ui="v2"] .pc2-home__client,
   html[data-ui="v2"] .pc2-home__plan,
   html[data-ui="v2"] .pc2-home__conditions,
   html[data-ui="v2"] .pc2-home__limits { padding: var(--pc-space-6); }
   html[data-ui="v2"] .pc2-home__preview { padding: var(--pc-space-5); }
+}
+@media (max-width: 600px) {
+  html[data-ui="v2"] .pc2-home__hero-mark { width: calc(var(--pc-space-20) + var(--pc-space-2)); }
+  html[data-ui="v2"] .pc2-home__step { font-size: var(--pc-fs-meta); padding-inline: 0; }
+  html[data-ui="v2"] .pc2-home__feature { min-height: 0; }
+  html[data-ui="v2"] .pc2-home__feature--profile,
+  html[data-ui="v2"] .pc2-home__feature--sessions { flex-direction: column; }
+  html[data-ui="v2"] .pc2-home__client > div { flex-basis: calc(100% - var(--pc-space-20)); }
+  html[data-ui="v2"] .pc2-home__client > a { width: 100%; }
+  html[data-ui="v2"] .pc2-home__pricing-header { flex-direction: column; align-items: flex-start; }
+  html[data-ui="v2"] .pc2-home__cycles { align-self: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-ui="v2"] .pc2-home *,
