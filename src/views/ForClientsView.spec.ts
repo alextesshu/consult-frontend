@@ -27,7 +27,8 @@ describe('For Clients v5 landing', () => {
     expect(screen.getByRole('heading', { name: 'Від запиту до першої зустрічі' })).toBeVisible()
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
     expect(document.querySelector('header, footer')).toBeNull()
-    expect(document.querySelector('img, time')).toBeNull()
+    expect(document.querySelector('time')).toBeNull()
+    expect(document.querySelector('.pc2-for-clients__listen img')?.getAttribute('src')).toContain('proconsult-fennec-symbol-blue.svg')
     expect(screen.getByText('Ілюстрація інтерфейсу · не результати пошуку')).toBeVisible()
     expect(screen.getByText('Імена, описи й теми — умовні приклади з макета, а не реальні профілі. Доступність не перевіряється.')).toBeVisible()
     expect(screen.getAllByRole('article')).toHaveLength(3)
@@ -52,7 +53,7 @@ describe('For Clients v5 landing', () => {
     await fireEvent.update(screen.getByRole('searchbox'), value)
     await fireEvent.submit(screen.getByRole('search'))
     await waitFor(() => expect(router.currentRoute.value.path).toBe('/specialists'))
-    expect(router.currentRoute.value.query).toEqual({ ui: 'v2', ...(value.trim() ? { q: value.normalize('NFKC').trim() } : {}) })
+    expect(router.currentRoute.value.query).toEqual({ ui: 'v2', ...(value.trim() ? { q: value.normalize('NFKC').trim() } : { q: 'Тривога ввечері, важко заснути', request_group: 'emotional_state' }) })
   })
 
   it.each(['ab', 'x'.repeat(241)])('rejects invalid search length without navigation', async (value) => {
@@ -66,18 +67,20 @@ describe('For Clients v5 landing', () => {
 
   it('uses existing request_group filters rather than invented topic/nearest-slot parameters', async () => {
     const router = await mountPage()
-    await fireEvent.click(screen.getByRole('link', { name: 'Вигорання' }))
-    await waitFor(() => expect(router.currentRoute.value.query).toEqual({ request_group: 'work_career_burnout', ui: 'v2' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Вигорання' }))
+    expect(router.currentRoute.value.path).toBe('/for-clients')
+    await fireEvent.submit(screen.getByRole('search'))
+    await waitFor(() => expect(router.currentRoute.value.query).toEqual({ q: 'Вигорання, нічого не хочеться після роботи', request_group: 'work_career_burnout', ui: 'v2' }))
   })
 
-  it('highlights an exact matching typed chip without live matching or changing navigation semantics', async () => {
+  it('manual demo selection preserves real user input and submits only that input', async () => {
     const router = await mountPage()
-    await fireEvent.update(screen.getByRole('searchbox'), '  Тривога  ')
-    expect(screen.getByRole('link', { name: 'Тривога' })).toHaveClass('is-active')
-    expect(router.currentRoute.value.path).toBe('/for-clients')
-    expect(screen.getAllByRole('article')).toHaveLength(3)
-    await fireEvent.update(screen.getByRole('searchbox'), 'інше')
-    expect(screen.getByRole('link', { name: 'Тривога' })).not.toHaveClass('is-active')
+    await fireEvent.update(screen.getByRole('searchbox'), 'мій запит')
+    await fireEvent.click(screen.getByRole('button', { name: 'Втрата' }))
+    expect(screen.getByRole('searchbox')).toHaveValue('мій запит')
+    expect(screen.getByRole('button', { name: 'Втрата' })).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.submit(screen.getByRole('search'))
+    await waitFor(() => expect(router.currentRoute.value.query).toEqual({ q: 'мій запит', ui: 'v2' }))
   })
 
   it('makes client signup optional and keeps working discovery/support destinations', async () => {
@@ -92,7 +95,8 @@ describe('For Clients v5 landing', () => {
     const first = screen.getByRole('button', { name: 'Скільки коштує консультація?' })
     const second = screen.getByRole('button', { name: 'Чи потрібно реєструватися?' })
     expect(first).toHaveAttribute('aria-expanded', 'true')
-    expect(document.getElementById(second.getAttribute('aria-controls')!)).not.toBeVisible()
+    expect(document.getElementById(second.getAttribute('aria-controls')!)).toHaveAttribute('aria-hidden', 'true')
+    expect(document.getElementById(second.getAttribute('aria-controls')!)).toHaveAttribute('inert')
     await fireEvent.click(second)
     expect(first).toHaveAttribute('aria-expanded', 'false')
     expect(second).toHaveAttribute('aria-expanded', 'true')

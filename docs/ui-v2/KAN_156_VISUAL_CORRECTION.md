@@ -1,5 +1,6 @@
 # KAN-156 — visual fidelity correction for Draft PR #62
 
+> Current motion acceptance supersedes static-only demo/reveal/FAQ decisions below. See [full Claude motion implementation and coverage matrix](KAN_156_MOTION.md). Earlier captures/results remain historical evidence.
 ## Source and cause
 
 Reviewed starting HEAD: `2f89a96c5b1cd520dda903d8525231407391c79d`; dev baseline unchanged at `d47bae52562f13a80cb5118bd68823b3bf1a5abf`. Existing branch/worktree and Draft #62 are retained.

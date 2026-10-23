@@ -1,0 +1,1204 @@
+[
+  {
+    "kind": "claude",
+    "width": 375,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "count": 10,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.181597",
+            "transform": "matrix(1, 0, 0, 1, 0, 7.40702)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.494044",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5865)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.494044",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5865)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.494044",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5865)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [],
+    "errors": [],
+    "fixtures": "Original prototype with source timing/handlers; isolated CDN runtime, only brand dependency load order repaired and instance exposed for observation"
+  },
+  {
+    "kind": "claude",
+    "width": 768,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "count": 10,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.261399",
+            "transform": "matrix(1, 0, 0, 1, 0, 6.09875)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.494186",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5853)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.494186",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5853)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.494186",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5853)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [],
+    "errors": [],
+    "fixtures": "Original prototype with source timing/handlers; isolated CDN runtime, only brand dependency load order repaired and instance exposed for observation"
+  },
+  {
+    "kind": "claude",
+    "width": 1280,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "count": 10,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.181828",
+            "transform": "matrix(1, 0, 0, 1, 0, 7.40268)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.361777",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.6306)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.361777",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.6306)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.361777",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.6306)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [],
+    "errors": [],
+    "fixtures": "Original prototype with source timing/handlers; isolated CDN runtime, only brand dependency load order repaired and instance exposed for observation"
+  },
+  {
+    "kind": "claude",
+    "width": 1440,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "count": 10,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.11286",
+            "transform": "matrix(1, 0, 0, 1, 0, 8.91234)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "count": 30,
+        "auto": true,
+        "cards": [
+          {
+            "opacity": "0.494004",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5869)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.494004",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5869)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.494004",
+            "transform": "matrix(1, 0, 0, 1, 0, 10.5869)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [
+      {
+        "phase": "show",
+        "index": 1,
+        "count": 42,
+        "auto": true
+      },
+      {
+        "phase": "show",
+        "index": 2,
+        "count": 27,
+        "auto": true
+      },
+      {
+        "phase": "show",
+        "index": 3,
+        "count": 31,
+        "auto": true
+      },
+      {
+        "phase": "show",
+        "index": 4,
+        "count": 34,
+        "auto": true
+      }
+    ],
+    "errors": [],
+    "fixtures": "Original prototype with source timing/handlers; isolated CDN runtime, only brand dependency load order repaired and instance exposed for observation"
+  },
+  {
+    "kind": "vue",
+    "width": 768,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "typed": "Тривога ",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.181403",
+            "transform": "matrix(1, 0, 0, 1, 0, 7.41069)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.424074",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.162)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.424074",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.162)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.424074",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.162)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [],
+    "errors": [],
+    "fixtures": "API HTTP 401"
+  },
+  {
+    "kind": "vue",
+    "width": 1280,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "typed": "Тривога ",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.261524",
+            "transform": "matrix(1, 0, 0, 1, 0, 6.09696)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.424066",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.1621)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.424066",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.1621)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.424066",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.1621)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [],
+    "errors": [],
+    "fixtures": "API HTTP 401"
+  },
+  {
+    "kind": "vue",
+    "width": 375,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "typed": "Тривога ",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.181665",
+            "transform": "matrix(1, 0, 0, 1, 0, 7.40575)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.306913",
+            "transform": "matrix(1, 0, 0, 1, 0, 12.0149)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.306913",
+            "transform": "matrix(1, 0, 0, 1, 0, 12.0149)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.306913",
+            "transform": "matrix(1, 0, 0, 1, 0, 12.0149)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [],
+    "errors": [],
+    "fixtures": "API HTTP 401"
+  },
+  {
+    "kind": "vue",
+    "width": 1440,
+    "frames": [
+      {
+        "name": "typing",
+        "phase": "type",
+        "index": 0,
+        "typed": "Тривога ",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "listening",
+        "phase": "listen",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.261374",
+            "transform": "matrix(1, 0, 0, 1, 0, 6.09911)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "0",
+            "transform": "matrix(1, 0, 0, 1, 0, 14)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hold",
+        "phase": "show",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.12s, 0.12s, 0s"
+          },
+          {
+            "opacity": "1",
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0.24s, 0.24s, 0s"
+          }
+        ]
+      },
+      {
+        "name": "hide",
+        "phase": "hide",
+        "index": 0,
+        "typed": "Тривога ввечері, важко заснути",
+        "input": "",
+        "cards": [
+          {
+            "opacity": "0.424185",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.1612)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.424185",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.1612)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          },
+          {
+            "opacity": "0.424185",
+            "transform": "matrix(1, 0, 0, 1, 0, 11.1612)",
+            "duration": "0.45s, 0.55s, 0.2s",
+            "delay": "0s, 0s, 0s"
+          }
+        ]
+      }
+    ],
+    "cycle": [
+      {
+        "phase": "show",
+        "index": 1,
+        "typed": "Вигорання, нічого не хочеться після роботи",
+        "input": ""
+      },
+      {
+        "phase": "show",
+        "index": 2,
+        "typed": "Постійні сварки з партнером",
+        "input": ""
+      },
+      {
+        "phase": "show",
+        "index": 3,
+        "typed": "Постійно порівнюю себе з іншими",
+        "input": ""
+      },
+      {
+        "phase": "show",
+        "index": 4,
+        "typed": "Як пережити втрату близької людини",
+        "input": ""
+      }
+    ],
+    "errors": [],
+    "fixtures": "API HTTP 401"
+  }
+]

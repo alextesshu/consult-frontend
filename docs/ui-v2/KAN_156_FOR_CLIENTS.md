@@ -1,5 +1,6 @@
 # KAN-156 — For Clients landing
 
+> Current motion acceptance supersedes static-only demo/reveal/FAQ decisions below. See [full Claude motion implementation and coverage matrix](KAN_156_MOTION.md). Earlier captures/results remain historical evidence.
 ## Provenance and boundaries
 
 - Base: `d47bae52562f13a80cb5118bd68823b3bf1a5abf` (merged #60/#61).

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isUiV2()" class="pc2-for-clients">
+  <div v-if="isUiV2()" ref="motionRoot" class="pc2-for-clients" :class="{ 'is-reduced': motion.reduced, 'is-paused': motion.paused }" :data-demo-phase="motion.phase" :data-demo-index="motion.index">
     <section class="pc2-for-clients__hero" aria-labelledby="clients-title">
       <div class="pc2-for-clients__intro">
         <p class="pc2-for-clients__eyebrow">Психологи, психотерапевти, консультанти</p>
@@ -8,35 +8,42 @@
         <form role="search" aria-label="Пошук спеціаліста" @submit.prevent="search">
           <label class="pc2-for-clients__sr" for="client-search">Що вас турбує?</label>
           <div class="pc2-for-clients__search">
-            <input id="client-search" v-model="query" type="search" name="q" placeholder="Тривога ввечері, важко заснути" :aria-invalid="Boolean(queryError)" :aria-describedby="queryError ? 'client-search-error' : 'client-search-hint'" />
+            <div class="pc2-for-clients__input-wrap">
+              <input id="client-search" v-model="query" type="search" name="q" :aria-invalid="Boolean(queryError)" :aria-describedby="queryError ? 'client-search-error' : 'client-search-hint'" @focus="motion.focus" @blur="motion.blur" @input="motion.focus" />
+              <span v-if="!query && !motion.focused" class="pc2-for-clients__typed" aria-hidden="true">{{ motion.typed }}<span v-if="motion.phase === 'type' && !motion.reduced" class="pc2-for-clients__caret"></span></span>
+            </div>
             <button type="submit" class="pc2-btn pc2-btn--primary">Знайти</button>
           </div>
           <p v-if="queryError" id="client-search-error" class="pc2-error" role="alert">{{ queryError }}</p>
-          <p v-else id="client-search-hint" class="pc2-for-clients__sr">Пошук за словами або категорією запиту.</p>
+          <p v-else id="client-search-hint" class="pc2-for-clients__sr">Введіть свій запит або оберіть приклад. Кнопка «Знайти» з порожнім полем шукає поточний приклад.</p>
         </form>
         <nav class="pc2-chips" aria-label="Теми запитів">
-          <RouterLink v-for="topic in topics" :key="topic.code" class="pc2-chip" :class="{ 'is-active': query.trim().toLocaleLowerCase('uk') === topic.label.toLocaleLowerCase('uk') }" :to="{ path: '/specialists', query: { request_group: topic.code, ui: 'v2' } }">{{ topic.label }}</RouterLink>
+          <button v-for="(topic, index) in topics" :key="topic.code" type="button" class="pc2-chip" :aria-pressed="motion.index === index" @click="motion.pick(index)">{{ topic.label }}</button>
         </nav>
         <RouterLink class="pc2-for-clients__all" to="/specialists?ui=v2">Переглянути всіх спеціалістів →</RouterLink>
       </div>
       <aside class="pc2-for-clients__preview" aria-labelledby="profile-example-title" aria-describedby="profile-example-note">
         <p id="profile-example-title" class="pc2-for-clients__eyebrow">Ілюстрація інтерфейсу · не результати пошуку</p>
         <p id="profile-example-note" class="pc2-for-clients__hint">Імена, описи й теми — умовні приклади з макета, а не реальні профілі. Доступність не перевіряється.</p>
-        <article v-for="card in specialistExamples" :key="card.name" class="pc2-card pc2-for-clients__profile-card">
-          <span class="pc2-for-clients__avatar" aria-hidden="true">{{ card.initials }}</span>
+        <div class="pc2-for-clients__status" aria-hidden="true">
+          <span class="pc2-for-clients__listen" :style="{ opacity: motion.phase === 'type' || motion.phase === 'listen' ? 1 : 0.35 }"><span class="pc2-for-clients__ring"></span><span class="pc2-for-clients__ring"></span><img :src="fennecSymbol" alt="" /></span>
+          <span>{{ motion.phase === 'show' ? 'Демо: 3 картки за темою' : motion.phase === 'listen' ? 'Демо: пошук за темою…' : 'Приклад запиту' }}</span>
+        </div>
+        <article v-for="(card, index) in motion.demo.cards" :key="index" class="pc2-card pc2-for-clients__profile-card" :class="{ 'is-shown': motion.phase === 'show' }" :aria-hidden="motion.phase !== 'show'" :style="{ '--demo-delay': motion.phase === 'show' ? `${index * 0.12}s` : '0s' }">
+          <span class="pc2-for-clients__avatar" :data-tint="(index + motion.index) % 4" aria-hidden="true">{{ card.initials }}</span>
           <div class="pc2-for-clients__profile-info">
             <div class="pc2-for-clients__profile-heading"><h2>{{ card.name }}</h2><span>{{ card.role }}</span></div>
-            <div class="pc2-for-clients__badges"><span v-for="topic in card.topics" :key="topic" :class="{ 'is-match': topic === 'тривога' }">{{ topic }}</span></div>
+            <div class="pc2-for-clients__badges"><span v-for="topic in card.topics" :key="topic" :class="{ 'is-match': topic === motion.demo.topic.toLocaleLowerCase('uk') }">{{ topic }}</span></div>
           </div>
           <div class="pc2-for-clients__availability"><span>Час зустрічі</span><strong>Узгоджується</strong><span>Формат · приклад</span></div>
         </article>
       </aside>
     </section>
 
-    <section class="pc2-for-clients__journey" aria-labelledby="clients-journey-title">
+    <section ref="stepsRoot" class="pc2-for-clients__journey" :data-seen="motion.stepsSeen" aria-labelledby="clients-journey-title">
       <h2 id="clients-journey-title">Від запиту до першої зустрічі</h2>
       <ol class="pc2-for-clients__steps">
-        <li v-for="(step, index) in steps" :key="step.title"><span class="pc2-for-clients__number" aria-hidden="true">0{{ index + 1 }}</span><h3>{{ step.title }}</h3><p>{{ step.text }}</p></li>
+        <li v-for="(step, index) in steps" :key="step.title" :style="{ '--reveal-delay': `${0.1 + index * 0.12}s` }"><span class="pc2-for-clients__number" aria-hidden="true">0{{ index + 1 }}</span><h3>{{ step.title }}</h3><p>{{ step.text }}</p></li>
       </ol>
     </section>
 
@@ -44,52 +51,50 @@
       <div><h2 id="clients-faq-title">Часті питання</h2><p>Не знайшли відповіді? <RouterLink to="/support-and-data-requests">Перегляньте способи звернення до підтримки.</RouterLink></p></div>
       <div>
         <div v-for="(item, index) in faq" :key="item.question" class="pc2-for-clients__faq-item">
-          <h3><button :id="`clients-faq-${index}`" type="button" :aria-expanded="openFaq === index" :aria-controls="`clients-answer-${index}`" @click="openFaq = openFaq === index ? -1 : index"><span>{{ item.question }}</span><span class="pc2-for-clients__plus" aria-hidden="true">{{ openFaq === index ? '−' : '+' }}</span></button></h3>
-          <div :id="`clients-answer-${index}`" :hidden="openFaq !== index" role="region" :aria-labelledby="`clients-faq-${index}`"><p>{{ item.answer }}</p></div>
+          <h3><button :id="`clients-faq-${index}`" type="button" :aria-expanded="openFaq === index" :aria-controls="`clients-answer-${index}`" @click="openFaq = openFaq === index ? -1 : index"><span>{{ item.question }}</span><span class="pc2-for-clients__plus" aria-hidden="true">+</span></button></h3>
+          <div :id="`clients-answer-${index}`" class="pc2-for-clients__answer" :class="{ 'is-open': openFaq === index }" :aria-hidden="openFaq !== index" :inert="openFaq !== index" role="region" :aria-labelledby="`clients-faq-${index}`"><div><p>{{ item.answer }}</p></div></div>
         </div>
         <p class="pc2-for-clients__crisis">Pro Consult — не служба екстреної допомоги. Якщо вам зараз загрожує небезпека, зверніться до місцевих екстрених служб. Не очікуйте відповіді спеціаліста чи підтримки на цьому сайті в екстреній ситуації.</p>
       </div>
     </section>
 
-    <section class="pc2-for-clients__cabinet" aria-labelledby="clients-cabinet-title">
+    <section ref="cabinetRoot" class="pc2-for-clients__cabinet" :data-seen="motion.cabinetSeen" aria-labelledby="clients-cabinet-title">
       <div class="pc2-for-clients__cabinet-top">
         <div><h2 id="clients-cabinet-title">Кабінет клієнта — безкоштовно</h2><p>Не обов’язково, але зручно, коли робота вже триває.</p></div>
         <div><RouterLink class="pc2-btn pc2-btn--primary" to="/signup-client?ui=v2">Створити кабінет клієнта</RouterLink><p class="pc2-for-clients__cabinet-hint">Або скористайтеся запрошенням від спеціаліста</p></div>
       </div>
       <dl class="pc2-for-clients__perks">
-        <div><dt>Сесії</dt><dd>Інформація про ваші зустрічі</dd></div>
-        <div><dt>Зв’язок</dt><dd>Робота зі своїм спеціалістом в одному просторі</dd></div>
-        <div><dt>Матеріали</dt><dd>Матеріали, які спеціаліст опублікував для вас</dd></div>
+        <div style="--reveal-delay: .3s"><dt>Сесії</dt><dd>Інформація про ваші зустрічі</dd></div>
+        <div style="--reveal-delay: .42s"><dt>Зв’язок</dt><dd>Робота зі своїм спеціалістом в одному просторі</dd></div>
+        <div style="--reveal-delay: .54s"><dt>Матеріали</dt><dd>Матеріали, які спеціаліст опублікував для вас</dd></div>
       </dl>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { isUiV2 } from '../lib/uiVersion'
 import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
+import { useForClientsMotion } from '../composables/useForClientsMotion'
+import { forClientsDemos } from '../lib/forClientsDemos'
+import fennecSymbol from '../assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 
 const router = useRouter()
 const route = useRoute()
 const query = ref('')
 const queryError = ref('')
 const openFaq = ref(0)
+const motionRoot = ref<HTMLElement | null>(null)
+const stepsRoot = ref<HTMLElement | null>(null)
+const cabinetRoot = ref<HTMLElement | null>(null)
+const motion = reactive(useForClientsMotion({
+  active: () => isUiV2() && route.path === '/for-clients',
+  root: motionRoot, steps: stepsRoot, cabinet: cabinetRoot,
+}))
 // These are existing discovery request_group codes, not inferred topics.
-const topics = [
-  { label: 'Тривога', code: 'emotional_state' },
-  { label: 'Вигорання', code: 'work_career_burnout' },
-  { label: 'Стосунки', code: 'relationships_family' },
-  { label: 'Самооцінка', code: 'self_esteem_change' },
-  { label: 'Втрата', code: 'loss_life_changes' },
-]
-// Exact first example set from the approved snapshot, explicitly non-live.
-const specialistExamples = [
-  { name: 'Марія Коваль', initials: 'МК', role: 'Психологиня · КПТ', topics: ['тривога', 'сон'] },
-  { name: 'Андрій Лисенко', initials: 'АЛ', role: 'Психотерапевт · гештальт', topics: ['тривога', 'панічні атаки'] },
-  { name: 'Олена Гнатюк', initials: 'ОГ', role: 'Консультантка · EMDR', topics: ['тривога', 'травма'] },
-]
+const topics = forClientsDemos.map((demo) => ({ label: demo.topic, code: demo.requestGroup }))
 const steps = [
   { title: 'Опишіть запит', text: 'Своїми словами або оберіть категорію. Не потрібно знати назви методів чи діагнозів.' },
   { title: 'Порівняйте спеціалістів', text: 'Прочитайте про підхід, освіту, формат і вартість на публічних сторінках.' },
@@ -115,7 +120,9 @@ async function search() {
     return
   }
   queryError.value = ''
-  await router.push({ path: '/specialists', query: { ...(normalized ? { q: normalized } : {}), ui: 'v2' } })
+  // Only this explicit submission may hand the demo to real search; input stays untouched.
+  const searchQuery = normalized ? { q: normalized } : { q: motion.demo.query, request_group: motion.demo.requestGroup }
+  await router.push({ path: '/specialists', query: { ...searchQuery, ui: 'v2' } })
 }
 
 watch(() => [isUiV2(), route.fullPath], () => {
@@ -140,6 +147,7 @@ onBeforeUnmount(resetPublicPageMetadata)
 
 <style scoped>
 html[data-ui="v2"] .pc2-for-clients { max-width: var(--pc-container); margin: 0 auto; padding: clamp(20px, 3vw, 32px) var(--pc-gutter) 0; color: var(--pc-text-main); font-family: var(--pc-font); }
+html[data-ui="v2"] .pc2-for-clients { --pc-demo-motion-accent: #2f8c86; }
 html[data-ui="v2"] .pc2-for-clients h1 { margin: 0; font-size: clamp(38px, 5vw, 64px); line-height: 1.02; letter-spacing: -0.045em; }
 html[data-ui="v2"] .pc2-for-clients h2 { margin: 0; font-size: var(--pc-fs-h1); }
 html[data-ui="v2"] .pc2-for-clients p { margin: 0; }
@@ -159,8 +167,9 @@ html[data-ui="v2"] .pc2-for-clients__all { align-self: flex-start; color: var(--
 html[data-ui="v2"] .pc2-for-clients__preview { display: flex; flex-direction: column; gap: var(--pc-space-3); min-width: 0; }
 html[data-ui="v2"] .pc2-for-clients__profile-card { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: var(--pc-space-3) 14px; padding: var(--pc-space-4) 18px; border: 0; border-radius: 20px; box-shadow: var(--pc-shadow-sm); line-height: 1.25; }
 html[data-ui="v2"] .pc2-for-clients__avatar { display: grid; place-items: center; width: 52px; height: 52px; border-radius: var(--pc-radius-md); background: var(--pc-teal-200); color: var(--pc-teal-ink); font-weight: var(--pc-fw-strong); }
-html[data-ui="v2"] .pc2-for-clients__profile-card:nth-of-type(2) .pc2-for-clients__avatar { background: var(--pc-peach-200); color: var(--pc-peach-ink); }
-html[data-ui="v2"] .pc2-for-clients__profile-card:nth-of-type(3) .pc2-for-clients__avatar { background: var(--pc-info-soft); color: var(--pc-info); }
+html[data-ui="v2"] .pc2-for-clients__avatar[data-tint="1"] { background: var(--pc-peach-200); color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-for-clients__avatar[data-tint="2"] { background: var(--pc-info-soft); color: var(--pc-info); }
+html[data-ui="v2"] .pc2-for-clients__avatar[data-tint="3"] { background: var(--pc-bg-sunk); color: var(--pc-text-body); }
 html[data-ui="v2"] .pc2-for-clients__profile-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 html[data-ui="v2"] .pc2-for-clients__profile-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--pc-space-1) 10px; }
 html[data-ui="v2"] .pc2-for-clients__profile-heading h2 { font-size: var(--pc-fs-body); }
@@ -171,6 +180,39 @@ html[data-ui="v2"] .pc2-for-clients__badges .is-match { background: var(--pc-tea
 html[data-ui="v2"] .pc2-for-clients__availability { display: flex; flex-direction: column; align-items: flex-end; gap: var(--pc-space-1); text-align: right; }
 html[data-ui="v2"] .pc2-for-clients__availability span { font-size: var(--pc-fs-micro); color: var(--pc-text-muted); }
 html[data-ui="v2"] .pc2-for-clients__availability strong { font-size: var(--pc-fs-ui); font-weight: var(--pc-fw-medium); white-space: nowrap; }
+html[data-ui="v2"] .pc2-for-clients__input-wrap { position: relative; flex: 1; min-width: 0; }
+html[data-ui="v2"] .pc2-for-clients__search { border-color: var(--pc-teal-200); transition: border-color .3s; }
+html[data-ui="v2"] .pc2-for-clients[data-demo-phase="type"] .pc2-for-clients__search { border-color: var(--pc-teal-500); }
+html[data-ui="v2"] .pc2-for-clients__search:focus-within { border-color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-for-clients__typed { position: absolute; inset: 50% 0 auto; transform: translateY(-50%); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; color: var(--pc-text-body); font-size: var(--pc-fs-body); }
+html[data-ui="v2"] .pc2-for-clients__caret { display: inline-block; flex-shrink: 0; width: 2px; height: 1.1em; margin-left: 2px; vertical-align: -0.15em; background: var(--pc-demo-motion-accent); animation: pc2ForClientsCaret 1s steps(1) infinite; }
+html[data-ui="v2"] .pc2-for-clients__status { display: flex; align-items: center; gap: var(--pc-space-3); min-height: var(--pc-space-10); color: var(--pc-teal-ink); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-for-clients__listen { position: relative; width: 32px; height: 32px; flex-shrink: 0; transition: opacity .3s; }
+html[data-ui="v2"] .pc2-for-clients__listen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; animation: pc2ForClientsBreath 3.2s ease-in-out infinite; }
+html[data-ui="v2"] .pc2-for-clients__ring { position: absolute; inset: 0; border: 1.5px solid var(--pc-demo-motion-accent); border-radius: 50%; mask: conic-gradient(black 0 156deg, transparent 156deg 198deg, black 198deg); animation: pc2ForClientsRing 1.8s cubic-bezier(.2,.6,.3,1) infinite; }
+html[data-ui="v2"] .pc2-for-clients__ring:nth-child(2) { animation-delay: .9s; }
+html[data-ui="v2"] .pc2-for-clients__profile-card { opacity: 0; transform: translateY(14px); transition: opacity .45s ease var(--demo-delay), transform .55s cubic-bezier(.2,.8,.2,1) var(--demo-delay), box-shadow .2s; }
+html[data-ui="v2"] .pc2-for-clients__profile-card.is-shown { opacity: 1; transform: translateY(0); }
+html[data-ui="v2"] .pc2-for-clients__profile-card { box-shadow: 0 8px 24px color-mix(in srgb, var(--pc-text-main) 6%, transparent); }
+html[data-ui="v2"] .pc2-for-clients__profile-card:hover { box-shadow: 0 12px 32px color-mix(in srgb, var(--pc-text-main) 12%, transparent); }
+html[data-ui="v2"] .pc2-for-clients .pc2-chip { transition: background .25s, color .25s, border-color .25s; }
+html[data-ui="v2"] .pc2-for-clients__journey li { opacity: 0; transform: translateY(14px); transition: opacity .6s ease var(--reveal-delay), transform .7s cubic-bezier(.2,.8,.2,1) var(--reveal-delay); }
+html[data-ui="v2"] .pc2-for-clients__journey[data-seen="true"] li { opacity: 1; transform: translateY(0); }
+html[data-ui="v2"] .pc2-for-clients__cabinet .pc2-for-clients__perks > div { opacity: 0; transform: translateY(14px); transition: opacity .5s ease var(--reveal-delay), transform .6s cubic-bezier(.2,.8,.2,1) var(--reveal-delay); }
+html[data-ui="v2"] .pc2-for-clients__cabinet[data-seen="true"] .pc2-for-clients__perks > div { opacity: 1; transform: translateY(0); }
+html[data-ui="v2"] .pc2-for-clients__answer { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), visibility 0s .35s; }
+html[data-ui="v2"] .pc2-for-clients__answer.is-open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+html[data-ui="v2"] .pc2-for-clients__answer > div { min-height: 0; overflow: hidden; }
+html[data-ui="v2"] .pc2-for-clients__plus { transition: transform .3s cubic-bezier(.2,.8,.2,1), background .2s; }
+html[data-ui="v2"] .pc2-for-clients__faq-item button[aria-expanded="true"] .pc2-for-clients__plus { transform: rotate(45deg); }
+html[data-ui="v2"] .pc2-for-clients.is-paused * { animation-play-state: paused !important; }
+html[data-ui="v2"] .pc2-for-clients.is-reduced *, html[data-ui="v2"] .pc2-for-clients.is-reduced *::before, html[data-ui="v2"] .pc2-for-clients.is-reduced *::after { animation: none !important; transition: none !important; }
+@keyframes pc2ForClientsCaret { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes pc2ForClientsRing { 0% { transform: scale(1.04); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes pc2ForClientsBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-for-clients *, html[data-ui="v2"] .pc2-for-clients *::before, html[data-ui="v2"] .pc2-for-clients *::after { animation: none !important; transition: none !important; }
+}
 html[data-ui="v2"] .pc2-for-clients__journey { padding-block: var(--pc-section-y) var(--pc-space-16); }
 html[data-ui="v2"] .pc2-for-clients__steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-4); list-style: none; padding: 0; margin: var(--pc-space-8) 0 0; }
 html[data-ui="v2"] .pc2-for-clients__steps li { border-top: 1px solid var(--pc-border-strong); padding-top: var(--pc-space-5); }
