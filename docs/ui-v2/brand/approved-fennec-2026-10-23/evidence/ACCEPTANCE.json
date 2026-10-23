@@ -286,5 +286,12 @@
     "desktop_asset_height_px": 40,
     "mobile_asset_height_px": 32,
     "source_of_truth": "User-approved horizontal header correction"
+  },
+  "header_spacing_correction": {
+    "evidence": "header-spacing/ACCEPTANCE.json",
+    "supersedes": "Previous 40px desktop header lockup and 24px desktop audience gap",
+    "header_logo_height_px": 32,
+    "desktop_logo_to_audience_box_gap_px": 80,
+    "footer_and_v1_pixel_identical": true
   }
 }

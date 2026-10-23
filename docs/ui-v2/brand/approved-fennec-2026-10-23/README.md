@@ -21,12 +21,28 @@ The original stacked footer and blue-symbol assets are unchanged. A separate `sr
 
 - App.vue uses the existing reactive UI flag. V1 and authenticated markup/controls retain their legacy branches. No routes/API/stores/permission/registration/Home/Profile/Discovery/Dashboard logic changes.
 - Header remains 76px, cream/hairline/Onest, audience navigation and current routes. Primary CTA uses Claude's outlined idle state and navy hover/active; current CTA wording/destination is preserved.
-- The initial implementation used the full stacked PDF at 56px in the header. The user requested a horizontal correction: unchanged symbol on the left and original outlined wordmark on the right, independently uniformly scaled/positioned. Header asset is 40px on desktop and 32px on phones; painted wordmark height is 20px/16px. No tiny wordmark remains under the header symbol. Footer retains the original 80px stacked lockup and exact blue decorative symbol without recoloring/retracing.
+- The initial implementation used the full stacked PDF at 56px in the header. The user requested a horizontal correction: unchanged symbol on the left and original outlined wordmark on the right, independently uniformly scaled/positioned. Header asset now renders at 32px on desktop and phones; painted wordmark height is approximately 16px. Desktop audience tabs start 80px after the logo box, following the approved reference spacing. No tiny wordmark remains under the header symbol. Footer retains the original 80px stacked lockup and exact blue decorative symbol without recoloring/retracing.
 - At 1100px and below, a semantic disclosure navigation preserves all working public links. Native button, aria-controls/expanded, Enter/Space/Tab/Shift+Tab, Escape focus return, outside click and route/version-change closure. Existing authenticated mobile menu remains unchanged.
 - Compact v2 footer follows the Claude cream/hairline/brand/legal-link arrangement. Extra existing product/registration links, disclaimer and privacy-preference action remain available rather than disappearing. Specialist-owned public pages retain compact legal-only content and promotion restrictions.
 - `/for-clients` is deferred to KAN-156: keep working `/#client-entry-title`. Prototype global Blog footer link has no generic current destination; no fabricated route is added. Do not apply future Public Profile/editor/support changes. KAN-160 stays HOLD; pending #54–#57/#59 and backend #63 are untouched. Backend #63's existing CI billing limitation is not resolved by this task.
 
-## Header logo correction — current acceptance
+## Header spacing correction — current acceptance
+
+The user requested the compact logo and larger separation shown in the supplied header example. Desktop lockup height changes from 40px to 32px, preserving the unchanged SVG geometry. Logo-to-audience-box gap changes from 24px to 80px (existing 24px flex gap plus 56px audience margin). The existing action-group spacing, 76px header, mobile menu/CTA, routes and footer remain unchanged. This is an explicit screenshot-reference spacing approval; source geometry and wordmark are not redesigned.
+
+- Chromium fixture acceptance: 375×677, 768×900, 1280×900, 1440×900 PASS. Header 76px, logo 32px, desktop gap exactly 80px, no overflow. Menu/keyboard focus, CTA, refresh/history retained. Boundary widths 1100/1101/1120 and wide 1920px also pass.
+- Focused App/CSS tests **91/91 PASS**; build PASS; typecheck has the exact **9 baseline errors, 0 new**; git diff --check PASS.
+- Full-page v1 and isolated v2 footer screenshots are pixel-identical before/after on all four widths. App.vue and all SVG assets remain byte-identical to the pre-spacing commit.
+- [Current acceptance evidence](evidence/header-spacing/ACCEPTANCE.json).
+
+| Width | Before spacing correction | After |
+| --- | --- | --- |
+| 375 | [Before](evidence/header-spacing/before-375.png) | [After](evidence/header-spacing/after-375.png) |
+| 768 | [Before](evidence/header-spacing/before-768.png) | [After](evidence/header-spacing/after-768.png) |
+| 1280 | [Before](evidence/header-spacing/before-1280.png) | [After](evidence/header-spacing/after-1280.png) |
+| 1440 | [Before](evidence/header-spacing/before-1440.png) | [After](evidence/header-spacing/after-1440.png) |
+
+## Horizontal header correction — historical acceptance before spacing update
 
 The user-approved horizontal header composition supersedes the initial stacked-header decision. It uses original blue symbol paths and the primary PDF's exact Montserrat glyph outlines/positions. Nested outer viewports provide uniform scale/translation; no component path, stroke, color or negative space is redrawn. The stacked footer SVG remains byte-identical.
 

@@ -27,7 +27,9 @@
     "wordmark_source": "consult-logotype_1_2026-10-23-0115.pdf",
     "method": "User-approved horizontal header correction: copy symbol paths and original wordmark glyphs unchanged into independently uniformly scaled viewports; symbol left, wordmark right; stacked footer asset unchanged",
     "viewBox": "0 0 196.9116914199159 40",
-    "wordmark_painted_height_at_desktop_px": 20,
-    "wordmark_painted_height_at_mobile_px": 16
+    "wordmark_painted_height_at_desktop_px": 16,
+    "wordmark_painted_height_at_mobile_px": 16,
+    "rendered_header_height_px": 32,
+    "desktop_audience_gap_px": 80
   }
 }

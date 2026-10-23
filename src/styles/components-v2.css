@@ -220,7 +220,7 @@ html[data-ui="v2"] .pc2-input:focus-visible {
 /* KAN-158 public brand override: approved fennec and outlined Montserrat retain their geometry.
    Header composition is horizontal; the original stacked footer stays intact. Never affects v1/auth chrome. */
 html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup {
-  display: block; height: var(--pc-header-logo-h);
+  display: block; height: var(--pc-space-8);
   width: auto; max-width: none; flex-shrink: 0;
 }
 html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-header__cta {
@@ -327,4 +327,12 @@ html[data-ui="v2"] .pc2-footer button {
 @media (max-width: 640px) {
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup { height: var(--pc-space-8); }
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__actions .pc2-header__login { display: none; }
+}
+
+/* Approved desktop reference: compact brand, breathing room before audience tabs.
+   Keep the existing action-group spacing and narrow-screen disclosure unchanged. */
+@media (min-width: 1101px) {
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience {
+    margin-left: calc(var(--pc-space-20) - var(--pc-space-6));
+  }
 }

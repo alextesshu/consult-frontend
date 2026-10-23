@@ -100,6 +100,24 @@ describe('UI v2 CSS contract', () => {
     expect(header.querySelector('text')).toBeNull()
   })
 
+  it('keeps the approved compact logo and desktop audience separation without changing mobile actions', () => {
+    const selector = `${gate} .pc2-header.topbar--guest .pc2-brand-lockup`
+    const rootRule = components.nodes.find((node) => node.type === 'rule' && node.selector === selector) as Rule
+    expect(rootRule.nodes.some((node) => node.type === 'decl' && node.prop === 'height' && node.value === 'var(--pc-space-8)')).toBe(true)
+    expect(vars['--pc-space-8']).toBe('32px')
+    let desktopMargin = ''
+    components.walkAtRules('media', (media) => {
+      if (media.params === '(min-width: 1101px)') media.walkRules((rule) => {
+        if (rule.selector === `${gate} .pc2-header.topbar--guest .pc2-header__audience`) {
+          rule.walkDecls('margin-left', (decl) => { desktopMargin = decl.value })
+        }
+      })
+    })
+    expect(desktopMargin).toBe('calc(var(--pc-space-20) - var(--pc-space-6))')
+    expect(vars['--pc-space-20']).toBe('80px')
+    expect(vars['--pc-space-6']).toBe('24px')
+  })
+
   it('gates every selector branch, including nested media queries, away from v1', () => {
     let count = 0
     for (const root of [tokens, components]) {
