@@ -9,11 +9,15 @@
 - Independent feature branch `feat/kan-156-for-clients`. Existing #54–#57/#59 and backend #63 heads/states preserved; KAN-160 stays HOLD. No backend, registration, HomeView, discovery implementation, global tokens, brand asset, authentication or permission change.
 - The release-debt register has no open STAGED_READY/DEFERRED records. This task does not establish staging or production acceptance.
 
+## Current visual correction
+
+The initial explanatory-card substitution was not approved and is superseded by the [visual-fidelity correction](KAN_156_VISUAL_CORRECTION.md). Current screenshots and validation are linked there; initial captures below remain historical evidence.
+
 ## Implementation
 
 Dedicated public `/for-clients` route, neutral public surface, shared approved fennec header/footer. V2 header desktop/mobile audience links reach this page; selected state follows the route. On this page only, the guest header CTA reaches client signup and the desktop specialist-pricing action is omitted. Existing public shell breakpoints/brand geometry and all authenticated/minimal-shell conditions are retained.
 
-The page uses the mint split hero, search field/topic chips, three stacked information cards, three-step request journey, six-question inline FAQ, emergency disclaimer and navy optional-client-cabinet banner. It reuses established `.pc2-*` classes and tokens. Page selectors, including media branches, are gated by `html[data-ui="v2"]` and page class. Native buttons expose expanded/controls state; closed answers use `hidden`. No prototype JavaScript, timed demo, hidden reveal observer or new dependency is shipped.
+The page uses the mint split hero, search field/topic chips, three static specialist-preview cards, three-step request journey, six-question inline FAQ, emergency disclaimer and navy optional-client-cabinet banner. It reuses established `.pc2-*` classes and tokens. Page selectors, including media branches, are gated by `html[data-ui="v2"]` and page class. Native buttons expose expanded/controls state; closed answers use `hidden`. No prototype JavaScript, timed demo, hidden reveal observer or new dependency is shipped.
 
 Without an effective v2 selection, `/for-clients` redirects with replace to the existing `/#client-entry-title`, retaining query parameters. Default remains v1. Explicit `?ui=v1` overrides persisted v2. Existing query/storage/environment precedence is unchanged. Switching away from v2 hides this page and restores the existing entry. Existing aliases and discovery routes remain intact.
 
@@ -21,7 +25,7 @@ Without an effective v2 selection, `/for-clients` redirects with replace to the 
 
 | Reference | Implemented boundary / reason |
 | --- | --- |
-| Fake specialist names, qualifications, photos and dated nearest slots | Three non-interactive explanatory cards with an explicit example label; no identities, schedules, results count or apparent live matching. Real-profile fetching remains a separate scope. |
+| Fake specialist names, qualifications, photos and dated nearest slots | Three non-interactive specialist-preview cards retain the first example set from Claude with explicit illustration/non-live disclosure. Names/descriptions are prototype examples, not real profiles; initials replace the photo, and time uses neutral placeholders. Real-profile fetching remains separate. |
 | Animated typing/listening/results simulation | Static labelled search; no false indication of semantic matching or live backend activity. Content is visible immediately and reduced motion needs no timer override. |
 | `/find?q=...&topic=...` | Existing `/specialists?q=...`; NFKC/trim and existing 3–240 character validation. Empty submit opens the catalogue. Chips link to the verified existing request_group codes (emotional_state, work_career_burnout, relationships_family, self_esteem_change, loss_life_changes), labelled as categories rather than inferred semantics. No new endpoint, debounce or search behavior. |
 | Universal guest contact, instant/nearest-time implications | Guest request availability is conditional on the specialist's public flow; requests require review and time agreement, not automatic session confirmation. No registration required to browse or use supported guest entry. |
@@ -30,7 +34,7 @@ Without an effective v2 selection, `/for-clients` redirects with replace to the 
 | Prototype crisis numbers/hours | Neutral local-emergency-service guidance and explicit warning not to wait for this site. Official number/scope/hours verification is an unresolved content gate; no unverified numbers published. |
 | Fixed reminder cadence / specialist notes | Cabinet benefits use actual session information, specialist contact and explicitly published materials; no private-note sharing or new notification guarantee. |
 | Payment claims | Consultation terms are set by the specialist; platform subscription is separate. No automatic processing/refund guarantee. |
-| Source 32/28px radii, peach CTA, low-contrast tints and custom breakpoints | Existing approved radius tokens, navy-only action policy, teal/peach ink, visible 2px focus (white on navy) and merged shared shell retained per canonical design-system/brand safeguards. |
+| Page-specific reference geometry, peach CTA, low-contrast tints and shared-shell breakpoints | The correction restores exact source hero/card/search radii and headline typography locally; shared tokens stay unchanged. Navy-only action policy, readable tint ink, 2px focus and the approved shared header/footer remain. See the current correction report for explicit residual differences. |
 
 Metadata uses the existing public metadata helper: canonical `/for-clients` excludes query data; source title is retained and description omits unsupported nearest-slot claims. Leaving the page resets metadata using the existing lifecycle pattern.
 
@@ -68,7 +72,7 @@ Headless local Playwright/Chromium, loopback candidate `http://127.0.0.1:5296`, 
 - All five topic chips reach the existing filter codes; explicit v1 overrides stored v2, acquisition query survives fallback, persisted v2 works without a query, and a throwing localStorage property getter does not block mount or SPA navigation. Computed mint text, crisis text, primary button and cabinet text all exceed 4.5:1; [supplementary evidence](evidence/kan-156/supplementary-results.json).
 - [Machine-readable viewport evidence](evidence/kan-156/browser-results.json), [v1 parity hashes](evidence/kan-156/v1-parity.json). Full-page v1 baseline/candidate captures are byte- and pixel-identical at all four primary widths after reveal/transition settling; full local images retained under the task's temporary parity directory.
 
-Screenshots: [desktop 1440](evidence/kan-156/for-clients-v2-1440.png), [desktop 1280](evidence/kan-156/for-clients-v2-1280.png), [tablet 768](evidence/kan-156/for-clients-v2-768.png), [mobile 375](evidence/kan-156/for-clients-v2-375.png), [font fallback](evidence/kan-156/font-fallback-375.png).
+Historical initial screenshots (superseded by correction): [desktop 1440](evidence/kan-156/for-clients-v2-1440.png), [desktop 1280](evidence/kan-156/for-clients-v2-1280.png), [tablet 768](evidence/kan-156/for-clients-v2-768.png), [mobile 375](evidence/kan-156/for-clients-v2-375.png), [font fallback](evidence/kan-156/font-fallback-375.png).
 
 ## Remaining gates
 

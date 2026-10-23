@@ -362,6 +362,7 @@ describe('App shell', () => {
     expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('aria-current', 'false')
     await router.push('/for-clients')
+    expect(document.querySelector('main')).toHaveClass('main--for-clients-v2')
     expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
     expect(document.querySelector('a.nav__guest-cta')).toHaveAttribute('href', '/signup-client?ui=v2')
     expect(document.querySelector('.nav__guest-cta-full')).toHaveTextContent('Створити кабінет')
@@ -370,6 +371,7 @@ describe('App shell', () => {
     expect(within(mobile).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
     applyUiVersion('v1')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeNull())
+    expect(document.querySelector('main')).not.toHaveClass('main--for-clients-v2')
     expect(screen.queryByRole('navigation', { name: 'Для кого Pro Consult' })).not.toBeInTheDocument()
   })
 

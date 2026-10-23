@@ -21,14 +21,21 @@ async function mountPage(path = '/for-clients?ui=v2') {
 describe('For Clients v5 landing', () => {
   beforeEach(() => applyUiVersion('v2'))
 
-  it('uses a single semantic page without duplicating the shared shell or fabricated profiles', async () => {
+  it('uses a single semantic page with clearly labelled static specialist illustrations', async () => {
     await mountPage()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     expect(screen.getByRole('heading', { name: 'Від запиту до першої зустрічі' })).toBeVisible()
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
     expect(document.querySelector('header, footer')).toBeNull()
     expect(document.querySelector('img, time')).toBeNull()
-    expect(screen.getByText('Приклад інформації для вибору, а не результати пошуку.')).toBeVisible()
+    expect(screen.getByText('Ілюстрація інтерфейсу · не результати пошуку')).toBeVisible()
+    expect(screen.getByText('Імена, описи й теми — умовні приклади з макета, а не реальні профілі. Доступність не перевіряється.')).toBeVisible()
+    expect(screen.getAllByRole('article')).toHaveLength(3)
+    for (const name of ['Марія Коваль', 'Андрій Лисенко', 'Олена Гнатюк']) expect(screen.getByRole('heading', { name })).toBeVisible()
+    expect(document.querySelectorAll('.pc2-for-clients__avatar')).toHaveLength(3)
+    expect(document.querySelectorAll('.pc2-for-clients__badges span')).toHaveLength(6)
+    expect(screen.getAllByText('Узгоджується')).toHaveLength(3)
+    expect(document.querySelector('.pc2-for-clients__preview a, .pc2-for-clients__preview button')).toBeNull()
   })
 
   it('publishes canonical metadata without search or acquisition parameters and resets on leave', async () => {
@@ -61,6 +68,16 @@ describe('For Clients v5 landing', () => {
     const router = await mountPage()
     await fireEvent.click(screen.getByRole('link', { name: 'Вигорання' }))
     await waitFor(() => expect(router.currentRoute.value.query).toEqual({ request_group: 'work_career_burnout', ui: 'v2' }))
+  })
+
+  it('highlights an exact matching typed chip without live matching or changing navigation semantics', async () => {
+    const router = await mountPage()
+    await fireEvent.update(screen.getByRole('searchbox'), '  Тривога  ')
+    expect(screen.getByRole('link', { name: 'Тривога' })).toHaveClass('is-active')
+    expect(router.currentRoute.value.path).toBe('/for-clients')
+    expect(screen.getAllByRole('article')).toHaveLength(3)
+    await fireEvent.update(screen.getByRole('searchbox'), 'інше')
+    expect(screen.getByRole('link', { name: 'Тривога' })).not.toHaveClass('is-active')
   })
 
   it('makes client signup optional and keeps working discovery/support destinations', async () => {

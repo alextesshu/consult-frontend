@@ -330,6 +330,7 @@
           'main--home': isHome,
           'main--public-profile': isPublicProfilePage,
           'main--tour': isTour,
+          'main--for-clients-v2': isUiV2() && route.name === 'for-clients',
           'main--authenticated': isAuthenticatedLayout,
           'main--specialist-shell': showSpecialistCabinetShell,
         },
@@ -2253,6 +2254,13 @@ watch(isChatCapable, (value) => {
 
 .main--authenticated {
   width: min(1480px, 100%);
+}
+
+html[data-ui="v2"] .main--for-clients-v2 {
+  width: min(var(--pc-container), calc(100% + var(--shell-inline-pad) * 2));
+  max-width: none;
+  margin: 0;
+  justify-self: center;
 }
 
 .main--specialist-shell {

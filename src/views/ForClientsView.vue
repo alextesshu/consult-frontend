@@ -4,28 +4,32 @@
       <div class="pc2-for-clients__intro">
         <p class="pc2-for-clients__eyebrow">Психологи, психотерапевти, консультанти</p>
         <h1 id="clients-title">Знайдіть спеціаліста, який вас почує</h1>
-        <p class="pc2-for-clients__lead">Оберіть тему або опишіть свій запит для пошуку. Порівняйте підходи спеціалістів і зверніться через їхні публічні сторінки — без обов’язкової реєстрації.</p>
+        <p class="pc2-for-clients__lead">Опишіть свій запит, порівняйте підходи та умови консультацій. Зверніться через публічну сторінку спеціаліста — без обов’язкової реєстрації.</p>
         <form role="search" aria-label="Пошук спеціаліста" @submit.prevent="search">
-          <label class="pc2-for-clients__label" for="client-search">Що вас турбує?</label>
+          <label class="pc2-for-clients__sr" for="client-search">Що вас турбує?</label>
           <div class="pc2-for-clients__search">
-            <input id="client-search" v-model="query" type="search" name="q" placeholder="Наприклад, тривога" :aria-invalid="Boolean(queryError)" :aria-describedby="queryError ? 'client-search-error' : 'client-search-hint'" />
+            <input id="client-search" v-model="query" type="search" name="q" placeholder="Тривога ввечері, важко заснути" :aria-invalid="Boolean(queryError)" :aria-describedby="queryError ? 'client-search-error' : 'client-search-hint'" />
             <button type="submit" class="pc2-btn pc2-btn--primary">Знайти</button>
           </div>
           <p v-if="queryError" id="client-search-error" class="pc2-error" role="alert">{{ queryError }}</p>
-          <p v-else id="client-search-hint" class="pc2-for-clients__hint">Пошук за словами або категорією запиту.</p>
+          <p v-else id="client-search-hint" class="pc2-for-clients__sr">Пошук за словами або категорією запиту.</p>
         </form>
         <nav class="pc2-chips" aria-label="Теми запитів">
-          <RouterLink v-for="topic in topics" :key="topic.code" class="pc2-chip" :to="{ path: '/specialists', query: { request_group: topic.code, ui: 'v2' } }">{{ topic.label }}</RouterLink>
+          <RouterLink v-for="topic in topics" :key="topic.code" class="pc2-chip" :class="{ 'is-active': query.trim().toLocaleLowerCase('uk') === topic.label.toLocaleLowerCase('uk') }" :to="{ path: '/specialists', query: { request_group: topic.code, ui: 'v2' } }">{{ topic.label }}</RouterLink>
         </nav>
         <RouterLink class="pc2-for-clients__all" to="/specialists?ui=v2">Переглянути всіх спеціалістів →</RouterLink>
       </div>
-      <aside class="pc2-for-clients__preview" aria-labelledby="profile-example-title">
-        <p id="profile-example-title" class="pc2-for-clients__eyebrow">На сторінці спеціаліста</p>
-        <p class="pc2-for-clients__hint">Приклад інформації для вибору, а не результати пошуку.</p>
-        <div v-for="(card, index) in profileDetails" :key="card.title" class="pc2-card pc2-for-clients__profile-card">
-          <span class="pc2-for-clients__well" aria-hidden="true">0{{ index + 1 }}</span>
-          <div><h2>{{ card.title }}</h2><p>{{ card.text }}</p></div>
-        </div>
+      <aside class="pc2-for-clients__preview" aria-labelledby="profile-example-title" aria-describedby="profile-example-note">
+        <p id="profile-example-title" class="pc2-for-clients__eyebrow">Ілюстрація інтерфейсу · не результати пошуку</p>
+        <p id="profile-example-note" class="pc2-for-clients__hint">Імена, описи й теми — умовні приклади з макета, а не реальні профілі. Доступність не перевіряється.</p>
+        <article v-for="card in specialistExamples" :key="card.name" class="pc2-card pc2-for-clients__profile-card">
+          <span class="pc2-for-clients__avatar" aria-hidden="true">{{ card.initials }}</span>
+          <div class="pc2-for-clients__profile-info">
+            <div class="pc2-for-clients__profile-heading"><h2>{{ card.name }}</h2><span>{{ card.role }}</span></div>
+            <div class="pc2-for-clients__badges"><span v-for="topic in card.topics" :key="topic" :class="{ 'is-match': topic === 'тривога' }">{{ topic }}</span></div>
+          </div>
+          <div class="pc2-for-clients__availability"><span>Час зустрічі</span><strong>Узгоджується</strong><span>Формат · приклад</span></div>
+        </article>
       </aside>
     </section>
 
@@ -80,10 +84,11 @@ const topics = [
   { label: 'Самооцінка', code: 'self_esteem_change' },
   { label: 'Втрата', code: 'loss_life_changes' },
 ]
-const profileDetails = [
-  { title: 'Теми роботи', text: 'З якими запитами працює спеціаліст.' },
-  { title: 'Підхід і досвід', text: 'Опис роботи й освіта, зазначені спеціалістом.' },
-  { title: 'Формат і вартість', text: 'Умови консультацій на публічній сторінці.' },
+// Exact first example set from the approved snapshot, explicitly non-live.
+const specialistExamples = [
+  { name: 'Марія Коваль', initials: 'МК', role: 'Психологиня · КПТ', topics: ['тривога', 'сон'] },
+  { name: 'Андрій Лисенко', initials: 'АЛ', role: 'Психотерапевт · гештальт', topics: ['тривога', 'панічні атаки'] },
+  { name: 'Олена Гнатюк', initials: 'ОГ', role: 'Консультантка · EMDR', topics: ['тривога', 'травма'] },
 ]
 const steps = [
   { title: 'Опишіть запит', text: 'Своїми словами або оберіть категорію. Не потрібно знати назви методів чи діагнозів.' },
@@ -134,27 +139,38 @@ onBeforeUnmount(resetPublicPageMetadata)
 </script>
 
 <style scoped>
-html[data-ui="v2"] .pc2-for-clients { max-width: var(--pc-container); margin: 0 auto; padding: var(--pc-space-8) var(--pc-gutter) 0; color: var(--pc-text-main); font-family: var(--pc-font); }
-html[data-ui="v2"] .pc2-for-clients h1 { margin: 0; font-size: var(--pc-fs-display); line-height: var(--pc-lh-tight); letter-spacing: var(--pc-ls-display); }
+html[data-ui="v2"] .pc2-for-clients { max-width: var(--pc-container); margin: 0 auto; padding: clamp(20px, 3vw, 32px) var(--pc-gutter) 0; color: var(--pc-text-main); font-family: var(--pc-font); }
+html[data-ui="v2"] .pc2-for-clients h1 { margin: 0; font-size: clamp(38px, 5vw, 64px); line-height: 1.02; letter-spacing: -0.045em; }
 html[data-ui="v2"] .pc2-for-clients h2 { margin: 0; font-size: var(--pc-fs-h1); }
 html[data-ui="v2"] .pc2-for-clients p { margin: 0; }
-html[data-ui="v2"] .pc2-for-clients__hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--pc-space-10); padding: clamp(28px, 4vw, 64px); border-radius: var(--pc-radius-lg); background: var(--pc-teal-100); }
-html[data-ui="v2"] .pc2-for-clients__intro { display: flex; flex-direction: column; gap: var(--pc-space-5); min-width: 0; }
+html[data-ui="v2"] .pc2-for-clients__hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); align-items: center; gap: clamp(28px, 4vw, 56px); padding: clamp(28px, 5vw, 64px); border-radius: 32px; background: var(--pc-teal-100); }
+html[data-ui="v2"] .pc2-for-clients__intro { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 html[data-ui="v2"] .pc2-for-clients__eyebrow { color: var(--pc-teal-ink); font-size: var(--pc-fs-small); }
 html[data-ui="v2"] .pc2-for-clients__lead { color: var(--pc-teal-ink); font-size: var(--pc-fs-lead); line-height: var(--pc-lh-body); }
-html[data-ui="v2"] .pc2-for-clients__label { display: block; margin-bottom: var(--pc-space-2); color: var(--pc-teal-ink); font-size: var(--pc-fs-small); }
-html[data-ui="v2"] .pc2-for-clients__search { display: flex; align-items: center; gap: var(--pc-space-2); min-height: var(--pc-control-h-lg); padding: var(--pc-space-2); border: 1px solid var(--pc-teal-500); border-radius: var(--pc-radius-md); background: var(--pc-bg-card); box-shadow: var(--pc-shadow-sm); }
+html[data-ui="v2"] .pc2-for-clients__sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+html[data-ui="v2"] .pc2-for-clients__search { display: flex; align-items: center; gap: var(--pc-space-3); min-height: calc(var(--pc-control-h) + var(--pc-space-3)); padding: 0 var(--pc-space-2) 0 var(--pc-space-5); border: 1.5px solid var(--pc-teal-500); border-radius: 18px; background: var(--pc-bg-card); box-shadow: var(--pc-shadow-sm); }
 html[data-ui="v2"] .pc2-for-clients__search:focus-within { border-color: var(--pc-navy-900); }
-html[data-ui="v2"] .pc2-for-clients__search input { min-width: 0; width: 100%; padding: var(--pc-space-2); border: 0; border-radius: var(--pc-radius-xs); background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; font-size: var(--pc-fs-body); }
-html[data-ui="v2"] .pc2-for-clients__search input::placeholder { color: var(--pc-text-muted); }
-html[data-ui="v2"] .pc2-for-clients__search .pc2-btn { padding-inline: var(--pc-space-4); border-radius: var(--pc-radius-sm); }
+html[data-ui="v2"] .pc2-for-clients__search input { min-width: 0; width: 100%; padding: var(--pc-space-2) 0; border: 0; border-radius: var(--pc-radius-xs); background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; font-size: var(--pc-fs-body); }
+html[data-ui="v2"] .pc2-for-clients__search input::placeholder { color: var(--pc-text-body); opacity: 1; }
+html[data-ui="v2"] .pc2-for-clients__search .pc2-btn { min-height: var(--pc-header-row-h); padding-inline: 18px; border-radius: 14px; }
+html[data-ui="v2"] .pc2-for-clients .pc2-chip { padding: var(--pc-space-2) 14px; font-size: var(--pc-fs-small); }
 html[data-ui="v2"] .pc2-for-clients .pc2-for-clients__hint { margin-top: var(--pc-space-2); color: var(--pc-teal-ink); font-size: var(--pc-fs-meta); }
 html[data-ui="v2"] .pc2-for-clients__all { align-self: flex-start; color: var(--pc-navy-900); font-size: var(--pc-fs-small); text-decoration: underline; text-underline-offset: var(--pc-space-1); }
 html[data-ui="v2"] .pc2-for-clients__preview { display: flex; flex-direction: column; gap: var(--pc-space-3); min-width: 0; }
-html[data-ui="v2"] .pc2-for-clients__profile-card { display: flex; align-items: center; gap: var(--pc-space-4); padding: var(--pc-space-5); box-shadow: var(--pc-shadow-sm); }
-html[data-ui="v2"] .pc2-for-clients__profile-card h2 { font-size: var(--pc-fs-body); margin-bottom: var(--pc-space-1); }
-html[data-ui="v2"] .pc2-for-clients__profile-card p { font-size: var(--pc-fs-small); color: var(--pc-text-body); }
-html[data-ui="v2"] .pc2-for-clients__well { display: grid; place-items: center; width: var(--pc-space-12); height: var(--pc-space-12); flex-shrink: 0; border-radius: var(--pc-radius-sm); background: var(--pc-teal-200); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-for-clients__profile-card { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: var(--pc-space-3) 14px; padding: var(--pc-space-4) 18px; border: 0; border-radius: 20px; box-shadow: var(--pc-shadow-sm); line-height: 1.25; }
+html[data-ui="v2"] .pc2-for-clients__avatar { display: grid; place-items: center; width: 52px; height: 52px; border-radius: var(--pc-radius-md); background: var(--pc-teal-200); color: var(--pc-teal-ink); font-weight: var(--pc-fw-strong); }
+html[data-ui="v2"] .pc2-for-clients__profile-card:nth-of-type(2) .pc2-for-clients__avatar { background: var(--pc-peach-200); color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-for-clients__profile-card:nth-of-type(3) .pc2-for-clients__avatar { background: var(--pc-info-soft); color: var(--pc-info); }
+html[data-ui="v2"] .pc2-for-clients__profile-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+html[data-ui="v2"] .pc2-for-clients__profile-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--pc-space-1) 10px; }
+html[data-ui="v2"] .pc2-for-clients__profile-heading h2 { font-size: var(--pc-fs-body); }
+html[data-ui="v2"] .pc2-for-clients__profile-heading > span { font-size: var(--pc-fs-meta); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-for-clients__badges { display: flex; flex-wrap: wrap; gap: 6px; }
+html[data-ui="v2"] .pc2-for-clients__badges span { padding: var(--pc-space-1) 10px; border-radius: var(--pc-radius-pill); background: var(--pc-bg-soft); color: var(--pc-text-body); font-size: var(--pc-fs-micro); }
+html[data-ui="v2"] .pc2-for-clients__badges .is-match { background: var(--pc-teal-200); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-for-clients__availability { display: flex; flex-direction: column; align-items: flex-end; gap: var(--pc-space-1); text-align: right; }
+html[data-ui="v2"] .pc2-for-clients__availability span { font-size: var(--pc-fs-micro); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-for-clients__availability strong { font-size: var(--pc-fs-ui); font-weight: var(--pc-fw-medium); white-space: nowrap; }
 html[data-ui="v2"] .pc2-for-clients__journey { padding-block: var(--pc-section-y) var(--pc-space-16); }
 html[data-ui="v2"] .pc2-for-clients__steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-4); list-style: none; padding: 0; margin: var(--pc-space-8) 0 0; }
 html[data-ui="v2"] .pc2-for-clients__steps li { border-top: 1px solid var(--pc-border-strong); padding-top: var(--pc-space-5); }
@@ -183,14 +199,13 @@ html[data-ui="v2"] .pc2-for-clients__perks { display: grid; grid-template-column
 html[data-ui="v2"] .pc2-for-clients__perks > div { padding: var(--pc-space-4); border: 1px solid var(--pc-bg-card); border-radius: var(--pc-radius-md); }
 html[data-ui="v2"] .pc2-for-clients__perks dt { font-size: var(--pc-fs-meta); margin-bottom: var(--pc-space-1); }
 html[data-ui="v2"] .pc2-for-clients__perks dd { margin: 0; font-size: var(--pc-fs-ui); }
-@media (max-width: 1000px) {
-  html[data-ui="v2"] .pc2-for-clients__hero { grid-template-columns: 1fr; }
-}
 @media (max-width: 767px) {
-  html[data-ui="v2"] .pc2-for-clients { padding-top: var(--pc-space-5); }
-  html[data-ui="v2"] .pc2-for-clients__hero { padding: var(--pc-space-6); gap: var(--pc-space-8); }
   html[data-ui="v2"] .pc2-for-clients__faq, html[data-ui="v2"] .pc2-for-clients__steps, html[data-ui="v2"] .pc2-for-clients__perks { grid-template-columns: 1fr; }
   html[data-ui="v2"] .pc2-for-clients__faq { gap: var(--pc-space-8); }
   html[data-ui="v2"] .pc2-for-clients__cabinet .pc2-btn { white-space: normal; text-align: center; line-height: var(--pc-lh-head); }
+}
+@media (max-width: 639px) {
+  html[data-ui="v2"] .pc2-for-clients__profile-card { grid-template-columns: 52px minmax(0, 1fr); }
+  html[data-ui="v2"] .pc2-for-clients__availability { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: var(--pc-space-1) var(--pc-space-2); text-align: left; }
 }
 </style>

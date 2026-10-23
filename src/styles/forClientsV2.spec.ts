@@ -22,6 +22,18 @@ describe('For Clients CSS isolation', () => {
   it('stacks content without fixed heights or overflow concealment', () => {
     expect(css).toContain('@media (max-width: 767px)')
     expect(css).toContain('grid-template-columns: 1fr')
-    expect(css).not.toMatch(/overflow:\s*hidden|(?<!-)height:\s*\d+px/)
+    postcss.parse(css).walkRules((rule) => {
+      if (!rule.selector.includes('__sr')) expect(rule.toString()).not.toMatch(/overflow:\s*hidden/)
+      if (rule.selector.includes('__hero') || rule.selector.includes('__profile-card')) {
+        expect(rule.nodes.some((node) => node.type === 'decl' && node.prop === 'height')).toBe(false)
+      }
+    })
+  })
+  it('retains the approved avatar/detail/availability card structure and mobile slot row', () => {
+    expect(css).toContain('grid-template-columns: 52px minmax(0, 1fr) auto')
+    expect(css).toContain('@media (max-width: 639px)')
+    expect(css).toContain('grid-column: 1 / -1')
+    expect(css).toContain('minmax(min(100%, 400px), 1fr)')
+    expect(css).toContain('var(--pc-header-row-h)')
   })
 })
