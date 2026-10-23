@@ -1,0 +1,23 @@
+{
+  "base": "d666a6cfec4417517ef4f472ea27300cdf81b033",
+  "checks": {
+    "src/views/PublicTherapistsView.vue": {
+      "legacyScopedCssIdentical": true,
+      "businessHandlersIdentical": true
+    },
+    "src/components/PublicSpecialistCard.vue": {
+      "legacyScopedCssIdentical": true
+    }
+  },
+  "unchangedFiles": [
+    "src/App.vue",
+    "src/styles/tokens-v2.css",
+    "src/styles/components-v2.css",
+    "src/router/index.ts",
+    "src/views/HomeView.vue",
+    "src/views/ForClientsView.vue",
+    "src/composables/useSpecialistDiscovery.ts",
+    "src/lib/api.ts",
+    "src/lib/specialistDiscoveryApi.ts"
+  ]
+}
