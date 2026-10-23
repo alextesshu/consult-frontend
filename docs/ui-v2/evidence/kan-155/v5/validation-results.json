@@ -1,0 +1,58 @@
+{
+  "snapshot": "claude-design-2026-10-23-7570f1ad",
+  "archiveSha256": "7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf",
+  "integrationBase": "019501924cc3f17e23fdfb73450004be72fb7a28",
+  "integrationCommit": "bcb6d71",
+  "focusedTests": {
+    "files": 10,
+    "passed": 251,
+    "failed": 0
+  },
+  "finalAffectedTests": {
+    "files": 3,
+    "passed": 43,
+    "failed": 0
+  },
+  "productionBuild": {
+    "exitCode": 0,
+    "warning": "Existing chunks larger than 500 kB advisory"
+  },
+  "typecheck": {
+    "exitCode": 2,
+    "baselineCount": 9,
+    "candidateCount": 9,
+    "newDiagnostics": 0,
+    "identicalDiagnostics": [
+      "src/lib/specialistDiscoveryApi.spec.ts(22,7): error TS2353: Object literal may only specify known properties, and 'page_size' does not exist in type 'RotatedPublicSpecialistDiscoveryParams'.",
+      "src/views/AdminWorkQueueView.spec.ts(823,13): error TS2561: Object literal may only specify known properties, but 'specialist_slug' does not exist in type 'AdminWorkQueueRelated'. Did you mean to write 'specialist_id'?",
+      "src/views/AdminWorkQueueView.vue(790,19): error TS18048: 'path' is possibly 'undefined'.",
+      "src/views/AdminWorkQueueView.vue(845,10): error TS2532: Object is possibly 'undefined'.",
+      "src/views/AdminWorkQueueView.vue(852,16): error TS2532: Object is possibly 'undefined'.",
+      "src/views/TherapistClientsView.spec.ts(1676,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.",
+      "src/views/TherapistClientsView.spec.ts(3909,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.",
+      "src/views/TherapistClientsView.vue(6789,27): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.",
+      "src/views/TherapistClientsView.vue(6789,33): error TS18048: 'month' is possibly 'undefined'."
+    ]
+  },
+  "browser": {
+    "widths": [
+      375,
+      768,
+      1280,
+      1440
+    ],
+    "fixtures": "HTTP 401 application API; synthetic visibilitychange, not OS throttling",
+    "motionResults": "motion-results.json",
+    "acceptanceResults": "acceptance-results.json",
+    "responsiveNavigation": "navigation-results.json"
+  },
+  "excluded": [
+    "UI v1 change",
+    "backend mutation",
+    "Ready transition",
+    "PR merge",
+    "deployment",
+    "Jira mutation",
+    "manual CI rerun"
+  ]
+}
