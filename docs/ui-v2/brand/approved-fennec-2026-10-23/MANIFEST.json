@@ -1,0 +1,23 @@
+{
+  "archive_sha256": "94045433c4069222a3f618293fbb94c030f8b324f1a360de3c654694c13141a2",
+  "converter": "PyMuPDF 2.0",
+  "conversion": "PyMuPDF get_svg_image(text_as_path=True); whitespace/unused Inkscape layer metadata cleanup only; no path rounding, retracing, recoloring or geometry edits",
+  "files": [
+    {
+      "source": "consult-logotype_1_2026-10-23-0115.pdf",
+      "source_sha256": "6b68e6b5c787e2d192046984298a7789c59efa9f66f3e6cf4768486598f5435c",
+      "asset": "src/assets/brand-v2/proconsult-fennec-lockup.svg",
+      "sha256": "3f382891bbfa68121f3bf5638e45b16b09ed7f52ea17e191ea2b29e0b5e40ea7"
+    },
+    {
+      "source": "consult-logo_2026-10-23-0115-blue.pdf",
+      "source_sha256": "cbeb61298a9e96b8b93a06a24c0b2ca08b317e2c646155c2dccd8cc6ea2dac69",
+      "asset": "src/assets/brand-v2/proconsult-fennec-symbol-blue.svg",
+      "sha256": "9d7569ffa06f53788bac6691c1418a48e044a0dc2250d3212fe764f5c1c486e9"
+    },
+    {
+      "source": "consult-logo_2026-10-23-0015.pdf",
+      "source_sha256": "0d36ff0e4aaaf75adf4d50e1ab1c9f939537466be697c2e2dc8257c271574f2c"
+    }
+  ]
+}

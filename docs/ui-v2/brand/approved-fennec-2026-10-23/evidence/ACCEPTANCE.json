@@ -1,0 +1,283 @@
+{
+  "snapshot_id": "claude-design-2026-10-23-7570f1ad",
+  "base_sha": "8754abc0bcb1519169625b39aea567f503206884",
+  "browser": [
+    {
+      "width": 375,
+      "height": 677,
+      "dimensions": {
+        "width": 375,
+        "scroll": 375,
+        "headerHeight": 76,
+        "logo": {
+          "x": 20,
+          "y": 9.5,
+          "width": 46.625,
+          "height": 56,
+          "top": 9.5,
+          "right": 66.625,
+          "bottom": 65.5,
+          "left": 20
+        },
+        "logoLoaded": true,
+        "headerBg": "rgb(251, 249, 245)",
+        "headerShadow": "none",
+        "footerBg": "rgb(251, 249, 245)",
+        "footerShadow": "none",
+        "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+      },
+      "menu": "PASS: Enter/Tab/focus/Escape return/link-close/history",
+      "footerTargets": [
+        "/",
+        "/faq",
+        "/privacy",
+        "/terms",
+        "/disclaimer",
+        "/support-and-data-requests",
+        "/#features",
+        "/specialists",
+        "/pricing",
+        "/login",
+        "/signup"
+      ],
+      "pageErrors": [],
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "dimensions": {
+        "width": 768,
+        "scroll": 768,
+        "headerHeight": 76,
+        "logo": {
+          "x": 30.71875,
+          "y": 9.5,
+          "width": 46.625,
+          "height": 56,
+          "top": 9.5,
+          "right": 77.34375,
+          "bottom": 65.5,
+          "left": 30.71875
+        },
+        "logoLoaded": true,
+        "headerBg": "rgb(251, 249, 245)",
+        "headerShadow": "none",
+        "footerBg": "rgb(251, 249, 245)",
+        "footerShadow": "none",
+        "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+      },
+      "menu": "PASS: Enter/Tab/focus/Escape return/link-close/history",
+      "footerTargets": [
+        "/",
+        "/faq",
+        "/privacy",
+        "/terms",
+        "/disclaimer",
+        "/support-and-data-requests",
+        "/#features",
+        "/specialists",
+        "/pricing",
+        "/login",
+        "/signup"
+      ],
+      "pageErrors": [],
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "dimensions": {
+        "width": 1280,
+        "scroll": 1280,
+        "headerHeight": 76,
+        "logo": {
+          "x": 68,
+          "y": 9.5,
+          "width": 46.625,
+          "height": 56,
+          "top": 9.5,
+          "right": 114.625,
+          "bottom": 65.5,
+          "left": 68
+        },
+        "logoLoaded": true,
+        "headerBg": "rgb(251, 249, 245)",
+        "headerShadow": "none",
+        "footerBg": "rgb(251, 249, 245)",
+        "footerShadow": "none",
+        "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+      },
+      "menu": "desktop-hidden",
+      "footerTargets": [
+        "/",
+        "/faq",
+        "/privacy",
+        "/terms",
+        "/disclaimer",
+        "/support-and-data-requests",
+        "/#features",
+        "/specialists",
+        "/pricing",
+        "/login",
+        "/signup"
+      ],
+      "pageErrors": [],
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "dimensions": {
+        "width": 1440,
+        "scroll": 1440,
+        "headerHeight": 76,
+        "logo": {
+          "x": 148,
+          "y": 9.5,
+          "width": 46.625,
+          "height": 56,
+          "top": 9.5,
+          "right": 194.625,
+          "bottom": 65.5,
+          "left": 148
+        },
+        "logoLoaded": true,
+        "headerBg": "rgb(251, 249, 245)",
+        "headerShadow": "none",
+        "footerBg": "rgb(251, 249, 245)",
+        "footerShadow": "none",
+        "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+      },
+      "menu": "desktop-hidden",
+      "footerTargets": [
+        "/",
+        "/faq",
+        "/privacy",
+        "/terms",
+        "/disclaimer",
+        "/support-and-data-requests",
+        "/#features",
+        "/specialists",
+        "/pricing",
+        "/login",
+        "/signup"
+      ],
+      "pageErrors": [],
+      "status": "PASS"
+    }
+  ],
+  "v1_pixel_parity": [
+    {
+      "width": 375,
+      "size": [
+        375,
+        8750
+      ],
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 768,
+      "size": [
+        768,
+        6137
+      ],
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1280,
+      "size": [
+        1280,
+        4561
+      ],
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1440,
+      "size": [
+        1440,
+        4513
+      ],
+      "pixel_identical": true,
+      "diff_bbox": null
+    }
+  ],
+  "vector_geometry": [
+    {
+      "asset": "src/assets/brand-v2/proconsult-fennec-lockup.svg",
+      "geometry_and_paint_attributes_identical": true
+    },
+    {
+      "asset": "src/assets/brand-v2/proconsult-fennec-symbol-blue.svg",
+      "geometry_and_paint_attributes_identical": true
+    }
+  ],
+  "vector_raster_parity": [
+    {
+      "asset": "proconsult-fennec-lockup.svg",
+      "size": [
+        950,
+        1141
+      ],
+      "pdf_svg_mean_absolute_error": 0.3475824530651783
+    },
+    {
+      "asset": "proconsult-fennec-symbol-blue.svg",
+      "size": [
+        950,
+        939
+      ],
+      "pdf_svg_mean_absolute_error": 0.17107299665564335
+    }
+  ],
+  "limitations": "API fixtures; no live authenticated backend or production acceptance",
+  "additional_browser": {
+    "status": "PASS",
+    "results": [
+      "fresh default v1",
+      "login link/SPA/Back/Forward v2 persistence",
+      "signup CTA existing destination",
+      "Space/Shift+Tab/Escape and reduced motion",
+      "existing privacy preferences action",
+      "specialist-owned shell promotion/compact footer (profile API unauthorized fixture)",
+      "minimal-shell absence of header/footer (invalid-token fixture)",
+      "authenticated fixture roles CLIENT retains legacy brand/controls/mobile menu",
+      "authenticated fixture roles SPECIALIST retains legacy brand/controls/mobile menu",
+      "authenticated fixture roles ADMIN retains legacy brand/controls/mobile menu",
+      "authenticated fixture roles CLIENT+SPECIALIST retains legacy brand/controls/mobile menu"
+    ],
+    "errors": [],
+    "limitations": "API fixtures only; no real authenticated backend acceptance"
+  },
+  "font_fallback": [
+    {
+      "width": 375,
+      "loaded": true,
+      "header": 76,
+      "scroll": 375,
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "loaded": true,
+      "header": 76,
+      "scroll": 1440,
+      "status": "PASS"
+    }
+  ],
+  "intermediate_widths": {
+    "widths": [
+      900,
+      901,
+      920,
+      960,
+      1024,
+      1100
+    ],
+    "header_height": 76,
+    "overflow": false
+  }
+}

@@ -216,3 +216,109 @@ html[data-ui="v2"] .pc2-input:focus-visible {
   outline: var(--pc-focus-width) solid var(--pc-navy-900);
   outline-offset: var(--pc-focus-offset);
 }
+
+/* KAN-158 public brand override: approved fennec lockup retains its original
+   stacked composition and outlined Montserrat. Never affects v1/auth chrome. */
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup {
+  display: block; height: calc(var(--pc-header-logo-h) + var(--pc-space-4));
+  width: auto; max-width: none; flex-shrink: 0;
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-header__cta {
+  background: var(--pc-bg-main); color: var(--pc-navy-900); border-color: var(--pc-navy-900);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-header__cta:hover,
+html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-header__cta:active {
+  background: var(--pc-navy-900); color: var(--pc-bg-card); border-color: var(--pc-navy-900);
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle,
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__mobile-nav { display: none; }
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle {
+  align-items: center; justify-content: center; padding: var(--pc-space-2);
+  min-width: var(--pc-header-row-h); min-height: var(--pc-header-row-h);
+  border: 1px solid var(--pc-border); border-radius: var(--pc-radius-sm);
+  background: var(--pc-bg-main); color: var(--pc-navy-900); cursor: pointer;
+}
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg { width: var(--pc-space-6); height: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle:hover { background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle:focus-visible {
+  outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset);
+}
+html[data-ui="v2"] .shell .footer.pc2-footer {
+  position: relative; isolation: isolate; overflow: hidden;
+  width: 100%; max-width: var(--pc-container); margin: 0 auto;
+  padding: var(--pc-space-8) var(--pc-gutter) var(--pc-space-16);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--pc-space-4) var(--pc-space-8);
+  border: 0; border-top: 1px solid var(--pc-border-hair); border-radius: 0;
+  background: var(--pc-bg-main); color: var(--pc-text-muted); box-shadow: none;
+  font: var(--pc-fw-regular) var(--pc-fs-small)/var(--pc-lh-body) var(--pc-font);
+}
+html[data-ui="v2"] .shell .footer.pc2-footer::before,
+html[data-ui="v2"] .shell .footer.pc2-footer::after { display: none; }
+html[data-ui="v2"] .pc2-footer .pc2-footer__brand {
+  position: relative; display: flex; align-items: center; gap: var(--pc-space-3);
+}
+html[data-ui="v2"] .pc2-footer .pc2-footer__brand img { display: block; height: var(--pc-space-20); width: auto; }
+html[data-ui="v2"] .pc2-footer .pc2-footer__watermark {
+  position: absolute; z-index: -1; pointer-events: none; width: 260px; height: auto;
+  right: calc(-1 * var(--pc-space-6)); bottom: -150px; opacity: .06;
+}
+html[data-ui="v2"] .pc2-footer .pc2-footer__links,
+html[data-ui="v2"] .pc2-footer .pc2-footer__secondary {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--pc-space-2) var(--pc-space-6); min-width: 0;
+}
+html[data-ui="v2"] .pc2-footer .pc2-footer__links { flex: 1 1 520px; justify-content: flex-end; }
+html[data-ui="v2"] .pc2-footer .pc2-footer__secondary { flex-basis: 100%; }
+html[data-ui="v2"] .pc2-footer .pc2-footer__bottom { flex-basis: 100%; position: relative; }
+html[data-ui="v2"] .pc2-footer a,
+html[data-ui="v2"] .pc2-footer button {
+  color: var(--pc-text-muted); background: transparent; border: 0;
+  font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
+html[data-ui="v2"] .pc2-footer .pc2-footer__links a,
+html[data-ui="v2"] .pc2-footer .pc2-footer__links button,
+html[data-ui="v2"] .pc2-footer .pc2-footer__secondary a {
+  min-height: var(--pc-header-row-h); padding: var(--pc-space-2) 0;
+  display: inline-flex; align-items: center; overflow-wrap: anywhere;
+}
+html[data-ui="v2"] .pc2-footer a:hover,
+html[data-ui="v2"] .pc2-footer button:hover { color: var(--pc-navy-900); text-decoration: underline; }
+html[data-ui="v2"] .pc2-footer a:focus-visible,
+html[data-ui="v2"] .pc2-footer button:focus-visible {
+  outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset);
+}
+html[data-ui="v2"] .footer .footer__logo.pc2-footer__compact-logo { height: var(--pc-space-16); width: auto; }
+@media (max-width: 1100px) {
+  html[data-ui="v2"] .shell--public-header-v2 { --pc-header-h: 76px; }
+  html[data-ui="v2"] .shell.shell--public-header-v2 .pc2-header.topbar--guest .topbar__inner {
+    flex-wrap: wrap; gap: var(--pc-space-2) var(--pc-space-3); padding-block: 0;
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience { order: 0; flex-basis: auto; }
+}
+@media (max-width: 900px) {
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience,
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__actions .nav__guest-catalog,
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__actions .nav__desktop-only { display: none; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle { display: inline-flex; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__mobile-nav {
+    display: flex; flex-basis: 100%; flex-direction: column; gap: var(--pc-space-1);
+    padding-block: var(--pc-space-3); border-top: 1px solid var(--pc-border-hair);
+    max-height: 70vh; overflow-y: auto;
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__mobile-nav a {
+    display: flex; align-items: center; min-height: var(--pc-header-row-h);
+    padding: var(--pc-space-2) var(--pc-space-3); border-radius: var(--pc-radius-xs);
+    color: var(--pc-text-main); font-size: var(--pc-fs-small);
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__mobile-nav a:hover { background: var(--pc-bg-soft); }
+  html[data-ui="v2"] .pc2-footer .pc2-footer__links { justify-content: flex-start; }
+}
+/* Focus rings must appear immediately rather than inherit legacy transition: all. */
+html[data-ui="v2"] .pc2-header.topbar--guest a,
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle,
+html[data-ui="v2"] .pc2-footer a,
+html[data-ui="v2"] .pc2-footer button {
+  transition-property: color, background-color, border-color;
+  transition-duration: var(--pc-dur-fast);
+}
