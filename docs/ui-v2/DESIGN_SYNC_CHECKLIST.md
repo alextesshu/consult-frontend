@@ -1,6 +1,6 @@
 # UI v2 — repeatable Design Sync checklist
 
-Current snapshot `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. [Entry point](START_HERE.md), [manifest](SNAPSHOT_MANIFEST_V3.json), [audit](DESIGN_SYNC_2026-10-23_V3.md).
+Current snapshot `claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. [Entry point](START_HERE.md), [manifest](SNAPSHOT_MANIFEST_V5.json), [audit](DESIGN_SYNC_2026-10-23_V5.md).
 
 1. Receive an explicitly supplied ZIP; record exact filename/path, SHA-256, import date and checksum-derived snapshot ID. It is a supplied snapshot, not live cloud state. Never substitute an old export when the requested archive is missing.
 2. Read AGENTS and current canonical safeguards; inspect clean index/worktrees, fetch latest origin/dev and isolate this task. Preserve local dev and unrelated PR branches.
@@ -13,6 +13,6 @@ Current snapshot `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3
 9. Reuse established capability audits; investigate only materially new behavior. Prototype controls, data, prices, time promises, legal/crisis copy, tokens and field names are not backend evidence. Keep private notes separate from published materials, confirmed-session rescheduling separate from automatic moves, payment status separate from confirmation.
 10. Publish an ordered roadmap of small independent READY candidates, carrying HOLD/backend/product gates. Never start a stage just because it was next previously. State the exact next eligible scope or report no eligible candidate.
 11. Validate source/archive/snapshot hashes, Markdown paths, HTML/assets/component references, readiness/status consistency, unchanged source chronology, exact changed-file inventory and ordinary `git diff --check`. Prove no src/public/runtime/config/backend changes and no historical deletions. Classify intentionally excluded prototype scripts and imported source-document path claims separately from broken canonical links.
-12. Perform only expressly authorized Git finalization. Preserve one focused commit/branch/Draft PR if requested; observe actual automatic CI. No manual dispatch/rerun, Ready, merge, default-v2 change or deployment follows from a sync.
+12. Perform only expressly authorized Git finalization. Preserve the explicitly authorized commit/branch/Draft PR scope, including follow-up commits when requested; observe actual automatic CI. No manual dispatch/rerun, Ready, merge, default-v2 change or deployment follows from a sync.
 
 Before every later implementation: cite this snapshot ID/full checksum, exact page/status, Git base, affected PRs, file scope and acceptance plan. Preserve v1 default and query/storage/env behavior, real tariffs/routes/auth/verification/permissions, keyboard/focus/reduced-motion and loading/empty/error states. Run focused tests/build/typecheck/browser checks appropriate to that authorized change; distinguish fixtures from real backend integration and report unexecuted cases.

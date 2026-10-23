@@ -1,5 +1,11 @@
 # PRO CONSULT — UI Migration Plan
 
+## Current supplied snapshot — v5 incremental overlay
+
+`claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. See [current entry point](ui-v2/START_HERE.md), [v5 audit](ui-v2/DESIGN_SYNC_2026-10-23_V5.md), [manifest](ui-v2/SNAPSHOT_MANIFEST_V5.json) and [matrix](ui-v2/IMPLEMENTATION_MATRIX_V5.md).
+
+This overlay supersedes older readiness/current-snapshot claims below; historical product rules and accepted runtime safeguards remain intact. Public Journal/FAQ now have READY Public-Content references; Tour remains its existing redirect. New Session-Pages/Service-Pages and Emails are READY references, not backend approval. Support Chat, Expanded Blog Editor and Public Profile follow-up are IN PROGRESS; current editor/profile references stay READY. Client Dashboard remains HOLD. No source Step 0, email implementation, support service or psychological-support routing is authorized here. Preserve v1, product sections 1–4, all runtime files, open PR branches and historical snapshots.
+
 ## 1. Purpose
 
 This document defines the safe visual migration plan for the PRO CONSULT frontend.

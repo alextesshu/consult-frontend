@@ -1,10 +1,10 @@
-# UI v2 — repository integration overlay (Claude v3)
+# UI v2 — repository integration overlay (Claude v5)
 
-Current snapshot: `claude-design-2026-10-23-e43f5f80`; SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`.
-Read [START_HERE](START_HERE.md), [original CHANGELOG](CHANGELOG.md), [matrix](IMPLEMENTATION_MATRIX_V3.md), [v3 audit](DESIGN_SYNC_2026-10-23_V3.md), [exact source TZ](snapshots/2026-10-23-e43f5f80/handoff/TZ_CODEX.md) and [implementation routing](MIGRATION_PLAN_V2.md).
+Current snapshot: `claude-design-2026-10-23-7570f1ad`; SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`.
+Read [START_HERE](START_HERE.md), [original CHANGELOG](CHANGELOG.md), [matrix](IMPLEMENTATION_MATRIX_V5.md), [v5 audit](DESIGN_SYNC_2026-10-23_V5.md), [exact source TZ](snapshots/2026-10-23-7570f1ad/handoff/TZ_CODEX.md) and [implementation routing](MIGRATION_PLAN_V2.md).
 
 - Actual product/security/privacy/backend contracts and implemented runtime safeguards take precedence. Source design priority is source tokens > source TZ > HTML, not permission to overwrite hardened runtime.
-- Check exact readiness. Public Journal/standalone FAQ/Tour are DESIGN IN PROGRESS, even though related author-blog/For Clients FAQ states are READY. Client dashboard remains HOLD despite READY.
+- Check exact readiness. Public Journal/FAQ are READY in Public-Content; Tour is an existing redirect. Support Chat, Expanded Blog Editor and Public Profile follow-up are IN PROGRESS; current 8.6 editor and 2.1 profile remain READY. Client dashboard remains HOLD despite READY.
 - Preserve v1 default, query → storage → env → v1, independent storage failures, successful-navigation reactive synchronization and all auth/verification/permission boundaries. Do not repeat Stage 0 or delete snapshots.
 - Preserve #54–#57/#59 and backend #63. Home HTML is unchanged; #59 owns the pending refresh. Source replacement instructions never authorize runtime edits, PR state changes or deployment.
 - Signup field is `password_confirm`; reset still requires `new_password_confirm`. #63 adds only the reviewed registration contract; it does not supply magic login or other v3 APIs.
@@ -13,6 +13,8 @@ Read [START_HERE](START_HERE.md), [original CHANGELOG](CHANGELOG.md), [matrix](I
 - For Clients retains its own canonical stage 4.12 even where source groups it under Brand §4.11. `/for-clients` and `/find` are not present routes yet. Preserve working navigation until specifically authorized.
 
 The complete source specification follows for screen detail. Its install/confirmation/deploy wording is subordinate to the explicit task and this overlay. Unresolved source discrepancies are recorded in the audit, not silently corrected.
+
+- V5 adds Stage 10 public/session/service references and Stage 11 backend email references. No runtime/email/routing changes are authorized by this document. Preserve real token expiry, prices, idempotency, suppression and privacy; source demo claims are not contracts. support@proconsult.space is approved copy only; mailbox/DNS/monitoring are unverified.
 
 ---
 
@@ -337,3 +339,31 @@ Hero найближчої сесії (`.pc2-card--lg`, 24px), матеріали
 - **Пропозиція часу** (`PublicGuestBookingTimeProposalView.vue`): `proposal.message` — цитата-плашка; `options` згруповані за днем, вибір чипом (radio), **підтвердження окремою кнопкою** «Підтвердити: чт, 18:00» (зараз — один клік «Обрати цей час»; змінюємо, щоб уникнути випадкового вибору). Під варіантами — тривалість, формат, `timezone`, `expires_at`. Успіх (`confirmedSession`): «Час підтверджено» + зелений квиток + посилання на зустріч (Відкрити / Скопіювати) або адреса. Стани `accepted/expired/cancelled/closed/invalid` → `expired` з текстами з поточного `stateTitle/stateText`. Рядок «Ми надіслали деталі на пошту» — лише якщо бекенд шле лист.
 - **Запрошення до групи** (`GroupInviteJoinView.vue`, `/invite/:token`): назва події як H1, квиток, заповненість і приватність (`participant_list_visibility`, `is_recorded`), плашка згоди (текст «ви стаєте активним клієнтом» — зберегти зміст, формулювання з макета), «Прийняти запрошення» + «Ви увійшли як …». Успіх → «Ви в групі», «Відкрити подію» (`/client/group-events/:id`), «До кабінету». Коди `EVENT_CANCELLED/COMPLETED/NOT_READY/NOT_AVAILABLE` → стан `expired` з відповідним H1.
   ⚠ Зараз гість без входу одразу редіректиться на /login і не бачить подію. Макет (`signedIn=false`) показує подію і «Увійти й прийняти / Створити акаунт» з `redirect` назад. Потрібен публічний `GET /group-invites/:token/` (назва, дата, режим, місця, приватність, спеціаліст). До того — лишити редірект.
+
+## Публічний контент — макет `Public-Content.dc.html` (проп `screen`)
+- **Блог спеціаліста** (`PublicJournalView.vue`, `/s/:slug/journal`): шапка автора (фото/ініціали, імʼя, «Профіль», «Записатися»); добірки — картки-плитки (назва, опис, кількість); фільтр за категоріями — чипи; закріплений допис (`is_featured`) — велика картка з `cover_image_url` (без обкладинки — тон #EEF8F7); решта — список рядків «дата · заголовок · превʼю · N хв · тема · у добірці». Порожня категорія — «У цій темі поки немає дописів · Показати всі».
+- **Допис** (`PublicJournalPostView.vue`): колонка 720px, тема-тег, дата, час читання, H1, лід, обкладинка, плашка добірки «допис N з M» з прогрес-рисками, тіло (H2 26px, blockquote з рискою #8FCBC8, списки), «Попередній / Наступний» у добірці, картка автора з «Записатися на сесію». Превʼю з кабінету (`cabinet-journal-preview`) — той самий вигляд.
+- **Добірка** (`PublicJournalCollectionView.vue`): H1, опис, «N дописів · M хв», нумерований список карток, «Почати з першого». **«min read» → «хв»**.
+- **FAQ** (`FaqView.vue`): ліва колонка (sticky ≥ 1024px) — H1, вкладки «Клієнтам / Спеціалістам», пошук, блок «Не знайшли відповідь?» (support@proconsult.space); праворуч акордеон (одне відкрите питання). Тексти — з макета (погоджено; для спеціалістів — поточні з уточненнями). Пошук — клієнтський, по питанню й відповіді.
+- **Тур** (`/tour`): окремої сторінки немає — лишається редірект на головну `#how-it-works`.
+
+## Сесії: деталі й запрошення — макет `Session-Pages.dc.html` (проп `screen`)
+- **Деталі сесії клієнта** (`ClientSessionDetailView.vue`): дві колонки (< 900px — одна). Hero за статусом (`status`: upcoming — темний; pending — жовтий; moving — блакитний; past/cancelled — пісочний) з плиткою дати, часом, форматом, плашкою-поясненням (`statusGuidance`), для онлайн — «Приєднатися» (`canJoinMeeting`) і «Скопіювати посилання». Дії — вкладки «Перенести» (вікна з `suggestions`/слотів чипами + коментар → запит) і «Скасувати» (умови — з бекенду; ⚠ «24 години» в макеті — приклад). Скасування — undo-тост. Recovery-сценарій (`isRecoverySession`) — у тій самій вкладці «Перенести». Права колонка — спеціаліст («Написати», «Профіль») і факти.
+- **Деталі гостьової сесії** (`ExternalSessionDetailView.vue`): тег «без реєстрації» (пунктир), імʼя/дата як H1; «Параметри» — перегляд ↔ інлайн-редагування; «Оплата» — статус + «Оплату отримано» / «Позначити неоплаченою» (undo); права колонка — темна картка «Посилання для клієнта» (скопіювати / відкликати / створити), «Запросити в кабінет» (= `ClientRecordAccountInvite`), «Скасувати сесію».
+- **Запрошення в кабінет** (`ClientRecordAccountInviteView.vue`): оболонка як у гостьових (Guest). Що буде в кабінеті (4 пункти), плашка приватності нотаток + «дійсне до», стани: увійшов клієнтом → «Підключити до мого кабінету»; не увійшов → «Створити кабінет / У мене вже є акаунт» (з redirect); увійшов спеціалістом → жовта плашка; успіх; прострочене. ⚠ Уточнити, чи переноситься історія гостьових сесій.
+
+## Службові сторінки — макет `Service-Pages.dc.html` (пропси `screen`, `doc`)
+- **Юридичні** (`TermsView`, `PrivacyView`, `DisclaimerView`, `FeedbackPolicyView`, `SupportAndDataRequestsView`) — один компонент-оболонка `LegalPage`: ліворуч (sticky ≥ 1000px) список документів + зміст «На цій сторінці» з H2 (клік — плавний скрол контейнера, активний пункт — риска #12345A); < 1000px — документи рядком, змісту немає. Колонка тексту 720px, 17px/1.75. Дата — з рядка «Останнє оновлення» (якщо немає — не показувати), «Роздрукувати» = `window.print()`. **Тексти не змінювати** (`mockups/legal-texts.json` — витяг для макета). На «Підтримці» — дві картки-контакти (обидві — support@proconsult.space).
+- **403** (`ForbiddenView.vue`): «Ця сторінка не для вашого акаунта» + поточний акаунт і роль + «До мого кабінету» / «Увійти іншим акаунтом». Текст пояснення — залежно від `query.reason`/потрібної ролі.
+- **404** — новий `NotFoundView.vue`. ⚠ Зараз `/:pathMatch(.*)*` редіректить на `/`; замінити на компонент 404 (зберегти редіректи для старих аліасів профілю).
+
+## Лендинг «Психологічна підтримка» (`PSYCHOLOGICAL_SUPPORT_LANDING`)
+Окремого макета немає: це `PublicTherapistsView` з `meta.discoveryLanding`. Верстка = `Find-Specialist.dc.html`; відмінності — H1/підзаголовок/SEO з `specialistDiscoveryLanding.ts` і попередньо обрані теми як активні чипи. Нічого іншого не міняти.
+
+## Листи — макет `Emails.dc.html` (проп `mail`) · **бекенд**
+Зараз усі листи — plain text (`send_mail_confirmed(subject, body, …)`, `OnboardingEmailMessage(subject, body, …)`). Потрібно:
+- Базовий шаблон `core/templates/email/base.html` (table-верстка, ширина 600px, inline-стилі, без зовнішніх шрифтів — `font-family: Onest, Arial, sans-serif`): лого (PNG за абсолютним URL) → H1 28px/500 → абзаци 16px/1.6 #3F4B5E → опційні блоки (квиток дати, список варіантів, цитата, таблиця «ключ — значення») → одна кнопка-пігулка #12345A → примітка 14px #8B95A7 → «Кнопка не працює? Скопіюйте посилання» → футер (чому отримали лист; support@proconsult.space; «Налаштувати сповіщення» — лише для невідключних не показувати).
+- `html_message` додати в `send_mail_confirmed` і `OnboardingEmailMessage` (поле `html: str | None`); plain text лишається як fallback **без змін змісту**.
+- Превʼю-текст (preheader) — прихований перший рядок.
+- Порядок: verify, reset, email-change (службові) → guest invite, time proposal, reminder, group invite → request (спеціалісту), Pro paid → onboarding. Теми листів у макеті — як у коді; тексти тіла — з макета, але юридично значущі фрази з поточних листів не викидати.
+- Тести: існуючі `assertIn(... body)` мають пройти; додати перевірку, що `html_message` містить посилання і не містить `{{`.
