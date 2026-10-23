@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicTherapistsView from './PublicTherapistsView.vue'
+import { applyUiVersion } from '../lib/uiVersion'
 import { productAnalytics } from '../lib/productAnalytics'
 
 const discoveryMocks = vi.hoisted(() => {
@@ -76,6 +77,7 @@ async function renderView(path = '/specialists') {
         meta: { discoveryLanding: 'psychological_support' },
       },
       { path: '/s/:slug', component: { template: '<div>Profile</div>' } },
+      { path: '/signup-client', component: { template: '<div>Client signup</div>' } },
       { path: '/', component: { template: '<div>Home</div>' } },
     ],
   })
@@ -86,6 +88,7 @@ async function renderView(path = '/specialists') {
 
 describe('PublicTherapistsView', () => {
   beforeEach(() => {
+    applyUiVersion('v1')
     discovery.mockReset()
     discovery.mockResolvedValue(response())
     discoveryMocks.rotatedDiscovery.mockClear()
@@ -93,6 +96,74 @@ describe('PublicTherapistsView', () => {
     discoveryError.mockReset()
     discoveryError.mockReturnValue(null)
     vi.mocked(productAnalytics.capture).mockReset()
+  })
+
+  it('keeps v1 markup unchanged by default and adds only opted-in discovery presentation', async () => {
+    const { container } = await renderView()
+    expect(await screen.findByRole('heading', { name: '1 спеціаліст' })).toBeInTheDocument()
+    const before = container.innerHTML
+    expect(container.querySelector('.pc2-discovery')).toBeNull()
+    expect(screen.queryByText('Кабінет клієнта — за бажанням')).not.toBeInTheDocument()
+    applyUiVersion('v2')
+    await waitFor(() => expect(container.querySelector('.pc2-discovery')).not.toBeNull())
+    expect(screen.getByText('Перше звернення — без реєстрації.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Створити кабінет' })).toHaveAttribute('href', '/signup-client')
+    expect(container.querySelectorAll('#discovery-query')).toHaveLength(1)
+    expect(container.querySelectorAll('.pc2-chips').length).toBeGreaterThan(1)
+    expect(container.querySelector('.pc2-card--interactive')).not.toBeNull()
+    expect(discovery).toHaveBeenCalledTimes(1)
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.innerHTML).toBe(before))
+  })
+
+  it('preserves draft, applied filters, validation and explicit-submit behavior across v2/v1', async () => {
+    applyUiVersion('v2')
+    const { router } = await renderView()
+    await screen.findByRole('heading', { name: '1 спеціаліст' })
+    const query = () => screen.getByLabelText('Опишіть запит своїми словами')
+    await fireEvent.update(query(), 'тр')
+    await fireEvent.submit(query().closest('form')!)
+    expect(await screen.findByRole('alert')).toHaveTextContent('щонайменше 3 символи')
+    expect(discovery).toHaveBeenCalledTimes(1)
+    applyUiVersion('v1')
+    await waitFor(() => expect(query()).toHaveValue('тр'))
+    expect(screen.getByText('Запит має містити щонайменше 3 символи.')).toBeInTheDocument()
+    applyUiVersion('v2')
+    await fireEvent.update(query(), 'тривога')
+    expect(discovery).toHaveBeenCalledTimes(1)
+    await fireEvent.submit(query().closest('form')!)
+    await waitFor(() => expect(discovery).toHaveBeenLastCalledWith({ q: 'тривога' }))
+    await fireEvent.click(screen.getByRole('radio', { name: 'Онлайн' }))
+    await waitFor(() => expect(discovery).toHaveBeenLastCalledWith({ q: 'тривога', format: 'online' }))
+    expect(router.currentRoute.value.query).toEqual({ q: 'тривога', format: 'online' })
+    expect(screen.queryByRole('navigation', { name: 'Сторінки каталогу' })).not.toBeInTheDocument()
+  })
+
+  it('retains URL pagination requests in v2 without introducing pagination controls', async () => {
+    applyUiVersion('v2')
+    discovery.mockResolvedValue(response({ page: 2, total: 51, total_pages: 2 }))
+    await renderView('/specialists?page=2')
+    expect(await screen.findByRole('heading', { name: '51 спеціаліст' })).toBeInTheDocument()
+    expect(discovery).toHaveBeenCalledWith({ page: 2 })
+    expect(screen.queryByRole('navigation', { name: 'Сторінки каталогу' })).not.toBeInTheDocument()
+  })
+
+  it('retains legacy lookup values and results when switching v2/v1 without duplicate fields', async () => {
+    applyUiVersion('v2')
+    legacy.mockResolvedValue({ results: [item], total: 1, page: 1, total_pages: 1 })
+    const { container } = await renderView()
+    await screen.findByRole('heading', { name: '1 спеціаліст' })
+    await fireEvent.click(screen.getByRole('button', { name: /Шукаєте конкретного спеціаліста/ }))
+    const input = () => screen.getByLabelText('Ім’я або посилання')
+    await fireEvent.update(input(), '/s/olena')
+    await fireEvent.submit(input().closest('form')!)
+    await waitFor(() => expect(legacy).toHaveBeenCalledWith({ name: 'olena', page_size: 5 }))
+    expect(container.querySelectorAll('#legacy-specialist-search')).toHaveLength(1)
+    await waitFor(() => expect(container.querySelector('.pc2-discovery__lookup .result-card')).not.toBeNull())
+    applyUiVersion('v1')
+    await waitFor(() => expect(input()).toHaveValue('olena'))
+    expect(container.querySelector('.discovery-controls .legacy-lookup .result-card')).not.toBeNull()
+    expect(legacy).toHaveBeenCalledTimes(1)
   })
 
   it('captures the discovery open and each non-empty route state without filter properties', async () => {
@@ -410,5 +481,54 @@ describe('PublicTherapistsView', () => {
     }))
     await renderView()
     expect((await screen.findByRole('link', { name: /Олена Коваль/ }))).toHaveAttribute('href', '/s/fallback-slug')
+  })
+})
+
+
+describe('Discovery v5 interactions', () => {
+  beforeEach(() => {
+    applyUiVersion('v2'); discovery.mockReset(); discovery.mockResolvedValue(response()); legacy.mockReset(); discoveryError.mockReset(); discoveryError.mockReturnValue(null)
+  })
+  it('keeps typing presentation separate from real submit and supports chip toggling without submitting draft text', async () => {
+    const { router } = await renderView()
+    await screen.findByRole('heading', { name: '1 спеціаліст' })
+    const input = screen.getByLabelText('Опишіть запит своїми словами')
+    await fireEvent.update(input, 'мій чернетковий запит')
+    await new Promise(resolve => setTimeout(resolve, 700))
+    expect(discovery).toHaveBeenCalledTimes(1)
+    expect(router.currentRoute.value.query.q).toBeUndefined()
+    const chip = screen.getByRole('button', { name: 'Емоційний стан' })
+    await fireEvent.click(chip)
+    await waitFor(() => expect(discovery).toHaveBeenLastCalledWith({ request_group: 'emotional_state' }))
+    expect(input).toHaveValue('мій чернетковий запит')
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.click(chip)
+    await waitFor(() => expect(discovery).toHaveBeenLastCalledWith({}))
+    expect(chip).toHaveAttribute('aria-pressed', 'false')
+  })
+  it('uses an accessible lookup accordion and preserves its real lookup/retry contract', async () => {
+    legacy.mockResolvedValue({ results: [], total: 0, page: 1, total_pages: 0 })
+    const { container } = await renderView()
+    const toggle = screen.getByRole('button', { name: /Шукаєте конкретного спеціаліста/ })
+    const panel = container.querySelector('#discovery-lookup-panel')!
+    expect(toggle).toHaveAttribute('aria-expanded', 'false'); expect(panel).toHaveAttribute('inert')
+    await fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true'); expect(panel).not.toHaveAttribute('inert')
+    const input = screen.getByLabelText('Ім’я або посилання')
+    await fireEvent.update(input, '/s/olena'); await fireEvent.submit(input.closest('form')!)
+    await waitFor(() => expect(legacy).toHaveBeenCalledWith({ name: 'olena', page_size: 5 }))
+    await fireEvent.click(toggle); expect(panel).toHaveAttribute('aria-hidden', 'true')
+  })
+  it('exposes genuine loading/error/empty states and does not keep stale result links actionable', async () => {
+    let complete!: (value: ReturnType<typeof response>) => void
+    discovery.mockImplementationOnce(() => new Promise(resolve => { complete = resolve }))
+    const { container } = await renderView()
+    expect(screen.getByRole('heading', { name: 'Завантажуємо спеціалістів…' })).toBeInTheDocument()
+    expect(container.querySelector('.pc2-discovery__results')).toHaveAttribute('aria-busy', 'true')
+    expect(container.querySelector('.pc2-discovery__list a')).toBeNull()
+    complete(response({ total: 0, total_pages: 0, groups: [] }))
+    expect(await screen.findByText('Каталог спеціалістів поки порожній')).toBeInTheDocument()
+    expect(container.querySelector('.pc2-discovery__results')).toHaveAttribute('aria-busy', 'false')
+    expect(container.querySelector('.pc2-discovery__listen')).toBeNull()
   })
 })

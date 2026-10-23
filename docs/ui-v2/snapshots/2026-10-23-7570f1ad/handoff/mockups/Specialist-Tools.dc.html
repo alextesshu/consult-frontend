@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input,textarea{font:inherit;color:inherit}input::placeholder,textarea::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="height:100vh;overflow:hidden;display:grid;grid-template-columns:{{ cols }};background:#FBF9F5">
+
+  <aside style="display:{{ sideDisp }};flex-direction:column;gap:20px;padding:20px 12px;border-right:1px solid #EDE7DE;min-height:0">
+    <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;align-self:flex-start;margin-left:6px">
+    <nav style="display:flex;flex-direction:column;gap:1px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="14">
+        <span onClick="{{ n.on }}" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:12px;font-size:14px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};transition:box-shadow .2s" style-hover="box-shadow:inset 0 0 0 1px #D4CCC2">{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></span>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:4px 8px">
+      <span style="width:32px;height:32px;border-radius:999px;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+      <div style="font-size:14px;line-height:1.3">Марія Коваль<div style="font-size:12px;color:#5A6578">Pro</div></div>
+    </div>
+  </aside>
+
+  <main style="overflow-y:auto;min-height:0;padding:{{ mainPad }};display:flex;flex-direction:column;gap:16px;opacity:{{ op }};transition:opacity .2s">
+    <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;align-self:flex-start;margin-left:-6px"></sc-if>
+
+    <sc-if value="{{ s.tasks }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+        <div><h1 style="font-weight:500;font-size:clamp(26px,2.8vw,34px);letter-spacing:-0.03em;line-height:1.1;margin:0 0 6px">Завдання</h1><span style="font-size:15px;color:#5A6578">Ваші робочі справи — не для клієнтів.</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;padding:6px 6px 6px 16px;border-radius:999px;background:#fff;border:1.5px solid #E6E0D8">
+        <input value="{{ newT }}" onChange="{{ onNewT }}" onKeyDown="{{ onNewKey }}" placeholder="Нове завдання — Enter, щоб додати" aria-label="Нове завдання" style="flex:1;min-width:0;height:40px;border:0;background:transparent;font-size:15px;outline:none">
+        <span onClick="{{ addT }}" style="padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;color:#fff;background:{{ addBg }};cursor:{{ addCur }};white-space:nowrap">Додати</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <sc-for list="{{ clientF }}" as="f" hint-placeholder-count="4"><span onClick="{{ f.on }}" style="display:flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }}"><span style="width:22px;height:22px;border-radius:50%;background:{{ f.tint }};color:#12345A;font-size:10px;font-weight:600;display:{{ f.iniD }};align-items:center;justify-content:center">{{ f.ini }}</span>{{ f.label }}</span></sc-for>
+        </div>
+        <div style="display:flex;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px"><sc-for list="{{ views }}" as="v" hint-placeholder-count="2"><span onClick="{{ v.on }}" style="padding:6px 12px;border-radius:999px;font-size:13px;cursor:pointer;background:{{ v.bg }};box-shadow:{{ v.sh }}">{{ v.label }}</span></sc-for></div>
+      </div>
+
+      <sc-if value="{{ showSug }}" hint-placeholder-val="{{ true }}">
+        <section style="display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:20px;background:#12345A;color:#fff">
+          <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+            <span style="font-size:13px;color:#C9D4E3">Після сесії з Оленою П. · сьогодні, 18:00</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sugs }}" as="g" hint-placeholder-count="3"><span onClick="{{ g.on }}" style="font-size:13px;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;background:{{ g.bg }};color:{{ g.fg }};transition:all .2s">{{ g.l }}</span></sc-for></div>
+          </div>
+          <div style="display:flex;gap:6px"><span onClick="{{ addAllSug }}" style="padding:9px 16px;border-radius:999px;font-size:14px;font-weight:500;background:#F7B77E;color:#12233A;cursor:pointer;white-space:nowrap">Додати всі</span><span onClick="{{ hideSug }}" style="padding:9px 14px;border-radius:999px;font-size:14px;color:#C9D4E3;cursor:pointer;white-space:nowrap" style-hover="background:rgba(255,255,255,.08)">Не зараз</span></div>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isTime }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:{{ timeCols }};gap:12px;align-items:start">
+          <sc-for list="{{ tcols }}" as="c" hint-placeholder-count="4">
+            <section onDragOver="{{ c.over }}" onDragLeave="{{ c.leave }}" onDrop="{{ c.drop }}" style="display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:20px;min-height:140px;background:{{ c.bg }};outline:2px dashed {{ c.ol }};outline-offset:-2px;transition:outline-color .15s">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;padding:2px 6px 4px"><span style="font-size:14px;font-weight:500">{{ c.label }}</span><span style="font-size:12px;color:#8B95A7">{{ c.sub }}</span></div>
+              <sc-if value="{{ c.empty }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:10px 6px;font-size:13px;color:#5A6578"><sc-if value="{{ c.calm }}" hint-placeholder-val="{{ false }}"><img src="public/brand/mark-mint.png" alt="" style="width:28px;height:28px"></sc-if>{{ c.emptyL }}</div></sc-if>
+              <sc-for list="{{ c.items }}" as="t" hint-placeholder-count="2">
+                <div style="max-height:{{ t.mh }}px;opacity:{{ t.op }};overflow:hidden;transition:max-height .35s ease .25s,opacity .25s ease">
+                  <article draggable="true" onDragStart="{{ t.dragStart }}" onDragEnd="{{ t.dragEnd }}" style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid {{ t.bd }};cursor:grab;opacity:{{ t.dop }}">
+                    <div style="display:flex;gap:10px;align-items:flex-start">
+                      <span onClick="{{ t.check }}" role="checkbox" aria-checked="{{ t.doneAria }}" style="width:20px;height:20px;margin-top:1px;border-radius:6px;flex-shrink:0;border:1.5px solid {{ t.cBd }};background:{{ t.cBg }};color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ t.cMark }}</span>
+                      <span style="font-size:15px;line-height:1.4;text-decoration:{{ t.td }};color:{{ t.fg }}">{{ t.title }}</span>
+                    </div>
+                    <sc-if value="{{ t.hasClient }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5A6578"><span style="width:20px;height:20px;border-radius:50%;background:{{ t.tint }};color:#12345A;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ t.ini }}</span>{{ t.ctx }}<sc-if value="{{ t.auto }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;padding:2px 7px;border-radius:999px;background:#EEF4FA;color:#2F6FA8">після сесії</span></sc-if></div></sc-if>
+                    <div style="display:flex;gap:2px;flex-wrap:wrap;margin:0 -6px -4px"><sc-for list="{{ t.moves }}" as="a" hint-placeholder-count="2"><span onClick="{{ a.on }}" style="font-size:12px;padding:5px 8px;border-radius:999px;color:#12345A;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">{{ a.l }}</span></sc-for></div>
+                  </article>
+                </div>
+              </sc-for>
+            </section>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="display:{{ statusDisp }};grid-template-columns:{{ boardCols }};gap:12px;align-items:start">
+        <sc-for list="{{ columns }}" as="c" hint-placeholder-count="3">
+          <section style="display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:20px;background:{{ c.bg }}">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 6px 4px"><span style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500"><span style="width:8px;height:8px;border-radius:50%;background:{{ c.dot }}"></span>{{ c.label }}</span><span style="font-size:13px;color:#8B95A7">{{ c.n }}</span></div>
+            <sc-if value="{{ c.empty }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#A0A8B6;padding:10px 6px">Порожньо</span></sc-if>
+            <sc-for list="{{ c.items }}" as="t" hint-placeholder-count="2">
+              <div style="max-height:{{ t.mh }}px;opacity:{{ t.op }};overflow:hidden;transition:max-height .35s ease .25s,opacity .25s ease">
+                <article style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #EDE7DE">
+                  <span style="font-size:15px;line-height:1.4;text-decoration:{{ t.td }};color:{{ t.fg }}">{{ t.title }}</span>
+                  <sc-if value="{{ t.hasNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;line-height:1.45;color:#8B95A7">{{ t.note }}</span></sc-if>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;margin:0 -6px -4px">
+                    <sc-for list="{{ t.acts }}" as="a" hint-placeholder-count="2"><span onClick="{{ a.on }}" style="font-size:13px;padding:6px 8px;border-radius:999px;color:#12345A;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">{{ a.l }}</span></sc-for>
+                  </div>
+                </article>
+              </div>
+            </sc-for>
+          </section>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.events }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+        <div><h1 style="font-weight:500;font-size:clamp(26px,2.8vw,34px);letter-spacing:-0.03em;line-height:1.1;margin:0 0 6px">Групові події</h1><span style="font-size:15px;color:#5A6578">Кола підтримки, інтервізії, трансляції.</span></div>
+        <span onClick="{{ evNew }}" style="padding:11px 18px;border-radius:999px;font-size:15px;font-weight:500;background:#12345A;color:#fff;cursor:pointer;white-space:nowrap" style-hover="background:#0E2D52">+ Нова подія</span>
+      </div>
+      <sc-if value="{{ evForm }}" hint-placeholder-val="{{ false }}">
+        <section style="background:#fff;border:1.5px solid #12345A;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+          <input value="{{ ef.title }}" onChange="{{ ef.onTitle }}" placeholder="Назва, напр. Коло підтримки: тривога" aria-label="Назва" style="height:50px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:17px;outline:none" style-focus="border-color:#12345A;background:#fff">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <div style="display:flex;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px"><sc-for list="{{ ef.modes }}" as="m" hint-placeholder-count="2"><span onClick="{{ m.on }}" style="padding:7px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ m.bg }};box-shadow:{{ m.sh }}">{{ m.l }}</span></sc-for></div>
+            <input type="date" value="{{ ef.date }}" onChange="{{ ef.onDate }}" aria-label="Дата" style="height:42px;padding:0 12px;border-radius:12px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:14px;outline:none">
+            <input type="time" value="{{ ef.from }}" onChange="{{ ef.onFrom }}" aria-label="Початок" style="height:42px;padding:0 10px;border-radius:12px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:14px;outline:none">–<input type="time" value="{{ ef.to }}" onChange="{{ ef.onTo }}" aria-label="Кінець" style="height:42px;padding:0 10px;border-radius:12px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:14px;outline:none">
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#5A6578">Місць<input value="{{ ef.cap }}" onChange="{{ ef.onCap }}" inputmode="numeric" style="width:64px;height:42px;padding:0 10px;border-radius:12px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:14px;outline:none;text-align:center"></label>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ ef.flags }}" as="f" hint-placeholder-count="2"><span onClick="{{ f.on }}" role="switch" aria-checked="{{ f.aria }}" style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};border:1px solid {{ f.bd }}"><span style="width:16px;height:16px;border-radius:5px;border:1.5px solid {{ f.boxBd }};background:{{ f.boxBg }};color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">{{ f.mark }}</span>{{ f.l }}</span></sc-for></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px"><span onClick="{{ evCancel }}" style="padding:10px 16px;border-radius:999px;font-size:14px;cursor:pointer" style-hover="background:#F1EBE2">Скасувати</span><span onClick="{{ evCreate }}" style="padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;color:#fff;background:{{ ef.okBg }};cursor:{{ ef.okCur }}">Створити й запросити</span></div>
+        </section>
+      </sc-if>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ events }}" as="e" hint-placeholder-count="3">
+          <article style="display:grid;grid-template-columns:{{ evCols }};gap:12px 20px;align-items:center;padding:16px 18px;border-radius:20px;background:#fff;border:1px solid #EDE7DE;opacity:{{ e.op }}">
+            <div style="display:flex;gap:14px;align-items:center;min-width:0">
+              <span style="width:52px;flex-shrink:0;text-align:center;padding:6px 0;border-radius:14px;background:{{ e.dBg }}"><span style="display:block;font-size:11px;color:#8B95A7">{{ e.mon }}</span><span style="display:block;font-size:20px;font-weight:500;line-height:1.1">{{ e.day }}</span></span>
+              <div style="min-width:0"><div style="font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ e.title }}</div><div style="font-size:13px;color:#8B95A7">{{ e.meta }}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:90px;height:6px;border-radius:999px;background:#F1EBE2;overflow:hidden"><span style="display:block;height:100%;width:{{ e.fill }};background:#8FCBC8;border-radius:999px"></span></span><span style="font-size:13px;color:#5A6578;white-space:nowrap">{{ e.seats }}</span></div>
+            <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
+              <span style="font-size:12px;padding:4px 10px;border-radius:999px;background:{{ e.stBg }};color:{{ e.stFg }};white-space:nowrap">{{ e.st }}</span>
+              <sc-if value="{{ e.active }}" hint-placeholder-val="{{ true }}"><span onClick="{{ e.copy }}" style="font-size:13px;padding:7px 12px;border-radius:999px;border:1px solid #E6E0D8;cursor:pointer;white-space:nowrap" style-hover="border-color:#12345A">{{ e.copyL }}</span></sc-if>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+      <span style="font-size:13px;color:#8B95A7">Учасники приєднуються за посиланням-запрошенням. Список учасників бачать інші, лише якщо ви це дозволили.</span>
+    </sc-if>
+
+    <sc-if value="{{ s.blog }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+        <div><h1 style="font-weight:500;font-size:clamp(26px,2.8vw,34px);letter-spacing:-0.03em;line-height:1.1;margin:0 0 6px">Власний блог</h1><span style="font-size:15px;color:#5A6578">Дописи на вашій сторінці й у журналі Pro Consult.</span></div>
+        <span onClick="{{ postNew }}" style="padding:11px 18px;border-radius:999px;font-size:15px;font-weight:500;background:#12345A;color:#fff;cursor:pointer;white-space:nowrap" style-hover="background:#0E2D52">+ Новий допис</span>
+      </div>
+      <div style="display:grid;grid-template-columns:{{ blogCols }};gap:16px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+          <sc-for list="{{ posts }}" as="p" hint-placeholder-count="3">
+            <div onClick="{{ p.on }}" style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:16px;cursor:pointer;background:{{ p.bg }};border:1px solid {{ p.bd }}" style-hover="box-shadow:inset 0 0 0 1px #D4CCC2">
+              <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:15px;font-weight:500;line-height:1.35">{{ p.title }}</span><span style="font-size:11px;padding:3px 8px;border-radius:999px;height:fit-content;white-space:nowrap;background:{{ p.stBg }};color:{{ p.stFg }}">{{ p.st }}</span></div>
+              <span style="font-size:12px;color:#8B95A7">{{ p.meta }}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top:12px;font-size:13px;color:#8B95A7;padding:0 4px">Добірки</div>
+          <sc-for list="{{ colls }}" as="c" hint-placeholder-count="2"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:14px;background:#F6F1EA;font-size:14px"><span>{{ c.t }} <span style="color:#8B95A7">· {{ c.n }}</span></span><span onClick="{{ c.toggle }}" style="font-size:12px;padding:3px 10px;border-radius:999px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }}">{{ c.l }}</span></div></sc-for>
+        </div>
+        <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;min-width:0">
+          <input value="{{ pe.title }}" onChange="{{ pe.onTitle }}" placeholder="Заголовок" aria-label="Заголовок" style="height:52px;padding:0 4px;border:0;border-bottom:1.5px solid #EDE7DE;background:transparent;font-size:24px;font-weight:500;letter-spacing:-0.02em;outline:none" style-focus="border-color:#12345A">
+          <textarea value="{{ pe.lead }}" onChange="{{ pe.onLead }}" rows="2" placeholder="2–3 речення для превʼю в журналі" aria-label="Превʼю" style="padding:10px 4px;border:0;background:transparent;font-size:16px;line-height:1.5;color:#5A6578;resize:none;outline:none"></textarea>
+          <textarea value="{{ pe.body }}" onChange="{{ pe.onBody }}" rows="10" placeholder="Основний текст. **жирний**, _курсив_, списки, посилання" aria-label="Текст" style="padding:14px 16px;border-radius:16px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:15px;line-height:1.6;resize:vertical;outline:none" style-focus="border-color:#12345A;background:#fff"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="font-size:13px;color:#8B95A7">{{ pe.words }} слів · ~{{ pe.mins }} хв читання · {{ pe.savedL }}</span>
+            <div style="display:flex;gap:8px"><span onClick="{{ pe.unpub }}" style="display:{{ pe.unpubD }};padding:10px 16px;border-radius:999px;font-size:14px;color:#5A6578;cursor:pointer" style-hover="background:#F1EBE2">Зняти з публікації</span><span onClick="{{ pe.pub }}" style="padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;color:#fff;background:{{ pe.pubBg }};cursor:{{ pe.pubCur }}">{{ pe.pubL }}</span></div>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.reviews }}" hint-placeholder-val="{{ false }}">
+      <div><h1 style="font-weight:500;font-size:clamp(26px,2.8vw,34px);letter-spacing:-0.03em;line-height:1.1;margin:0 0 6px">Відгуки</h1><span style="font-size:15px;line-height:1.5;color:#5A6578">Анонімні — лише текст, без імені. Ніде не публікуються.</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <sc-for list="{{ rFilters }}" as="f" hint-placeholder-count="4"><span onClick="{{ f.on }}" style="display:flex;gap:6px;align-items:center;padding:7px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }}">{{ f.label }}<span style="opacity:.75">{{ f.n }}</span></span></sc-for>
+      </div>
+      <sc-if value="{{ rEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:28px 24px;border-radius:20px;background:#F6F1EA;color:#5A6578;font-size:15px;display:flex;align-items:center;gap:16px"><img src="public/brand/mark-pale.png" alt="" style="width:40px;height:40px">Тут порожньо.</div></sc-if>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:760px">
+        <sc-for list="{{ reviews }}" as="r" hint-placeholder-count="3">
+          <div style="max-height:{{ r.mh }}px;opacity:{{ r.op }};overflow:hidden;transition:max-height .4s ease .3s,opacity .3s ease">
+            <article style="display:flex;flex-direction:column;gap:10px;padding:18px 20px;border-radius:20px;background:#fff;border:1px solid {{ r.bd }}">
+              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span style="font-size:13px;color:#8B95A7">{{ r.date }}</span><div style="display:flex;gap:6px"><sc-if value="{{ r.isNew }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:3px 9px;border-radius:999px;background:#FFE2C4">нове</span></sc-if><sc-if value="{{ r.ext }}" hint-placeholder-val="{{ false }}"><span title="Клієнт дозволив анонімно використати текст поза платформою" style="font-size:12px;padding:3px 9px;border-radius:999px;background:#EEF8F1;color:#2F7A55">можна поширити</span></sc-if></div></div>
+              <p style="font-size:16px;line-height:1.6;margin:0">{{ r.text }}</p>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;margin:0 -8px -4px">
+                <sc-for list="{{ r.acts }}" as="a" hint-placeholder-count="2"><span onClick="{{ a.on }}" style="font-size:13px;padding:7px 10px;border-radius:999px;color:{{ a.fg }};cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">{{ a.l }}</span></sc-for>
+              </div>
+            </article>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.analytics }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+        <div><h1 style="font-weight:500;font-size:clamp(26px,2.8vw,34px);letter-spacing:-0.03em;line-height:1.1;margin:0 0 6px">Аналітика</h1><span style="font-size:15px;color:#5A6578">{{ periodL }}</span></div>
+        <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px"><sc-for list="{{ periods }}" as="p" hint-placeholder-count="3"><span onClick="{{ p.on }}" style="padding:7px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ p.bg }};box-shadow:{{ p.sh }}">{{ p.label }}</span></sc-for></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <section style="display:flex;flex-direction:column;gap:4px;padding:18px 20px;border-radius:20px;background:{{ k.bg }};color:{{ k.fg }}">
+            <span style="font-size:13px;color:{{ k.sub }}">{{ k.l }}</span>
+            <span style="font-size:32px;font-weight:500;letter-spacing:-0.02em">{{ k.v }}</span>
+            <span style="font-size:13px;color:{{ k.sub }}">{{ k.d }}</span>
+          </section>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start">
+        <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+          <h2 style="font-weight:500;font-size:17px;margin:0">Сесії по днях</h2>
+          <div style="display:flex;align-items:flex-end;gap:{{ barGap }};height:140px;padding-top:8px">
+            <sc-for list="{{ bars }}" as="b" hint-placeholder-count="30"><span title="{{ b.t }}" style="flex:1;min-width:2px;height:{{ b.h }};border-radius:4px 4px 2px 2px;background:{{ b.c }};transition:height .4s ease"></span></sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#8B95A7"><span>{{ barFrom }}</span><span>{{ barTo }}</span></div>
+        </section>
+        <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+          <h2 style="font-weight:500;font-size:17px;margin:0">Коли записуються</h2>
+          <sc-for list="{{ wdays }}" as="w" hint-placeholder-count="7">
+            <div style="display:grid;grid-template-columns:28px minmax(0,1fr) 28px;gap:10px;align-items:center"><span style="font-size:13px;color:#5A6578">{{ w.l }}</span><span style="height:10px;border-radius:999px;background:#F1EBE2;overflow:hidden"><span style="display:block;height:100%;width:{{ w.w }};border-radius:999px;background:{{ w.c }};transition:width .4s ease"></span></span><span style="font-size:13px;text-align:right">{{ w.n }}</span></div>
+          </sc-for>
+          <span style="font-size:13px;color:#8B95A7;border-top:1px solid #F1EBE2;padding-top:10px">Найчастіше — 18:00–19:00 · онлайн {{ onlinePct }}</span>
+        </section>
+      </div>
+      <section style="background:#EEF4FA;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+        <h2 style="font-weight:500;font-size:17px;margin:0">Що можна покращити</h2>
+        <sc-for list="{{ tips }}" as="t" hint-placeholder-count="3">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="display:flex;flex-direction:column;gap:2px;max-width:560px"><span style="font-size:15px;font-weight:500">{{ t.t }}</span><span style="font-size:14px;line-height:1.5;color:#2F4A66">{{ t.d }}</span></div><a href="{{ t.href }}" style="font-size:14px;white-space:nowrap">{{ t.cta }} →</a></div>
+        </sc-for>
+      </section>
+    </sc-if>
+  </main>
+
+  <div style="position:fixed;left:{{ toastLeft }};bottom:24px;transform:translate(-50%,{{ toastY }});opacity:{{ toastOp }};pointer-events:{{ toastPe }};display:flex;align-items:center;gap:16px;padding:12px 14px 12px 20px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);transition:all .35s cubic-bezier(.2,.8,.2,1);z-index:60">{{ toastMsg }}<sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ true }}"><span onClick="{{ undo }}" style="padding:6px 12px;border-radius:999px;color:#F7B77E;cursor:pointer">Повернути</span></sc-if></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;taskView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;time&quot;,&quot;status&quot;],&quot;default&quot;:&quot;time&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;tasks&quot;,&quot;events&quot;,&quot;blog&quot;,&quot;reviews&quot;,&quot;analytics&quot;],&quot;default&quot;:&quot;tasks&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
+const NAV_S = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати', 'Групові події', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
+const HREF_S = { 'Кабінет': 'Cabinet-Dashboard.dc.html', 'Профіль': 'Profile-Edit.dc.html', 'Клієнти': 'Clients.dc.html', 'Сесії': 'Sessions.dc.html', 'Запити': 'Inquiries.dc.html', 'Чати': 'Chat.dc.html', 'Розклад': 'Schedule.dc.html', 'Тарифи і доступ': 'Billing.dc.html', 'Налаштування': 'Settings.dc.html' };
+const INNER = { 'Завдання': 'tasks', 'Відгуки': 'reviews', 'Аналітика': 'analytics', 'Групові події': 'events', 'Власний блог': 'blog' };
+const EV0 = [
+  { id: 'e1', title: 'Коло підтримки: тривога', mon: 'жов', day: 27, meta: 'вт 19:00–20:30 · зустріч · без запису', taken: 8, cap: 12, st: 'scheduled' },
+  { id: 'e2', title: 'Інтервізія КПТ-практиків', mon: 'лис', day: 4, meta: 'ср 12:00–13:30 · зустріч', taken: 5, cap: 8, st: 'scheduled' },
+  { id: 'e3', title: 'Сон без таблеток: ефір', mon: 'жов', day: 9, meta: 'чт 19:00 · трансляція · із записом', taken: 64, cap: 100, st: 'done' },
+];
+const P0 = [
+  { id: 'p1', title: 'Що робити, коли накриває тривога', lead: 'Три способи заземлитися за кілька хвилин.', body: 'Тривога — це реакція тіла на загрозу…', pub: true, date: '12 жовтня', reads: 214 },
+  { id: 'p2', title: 'Як підготуватися до першої сесії', lead: '', body: '', pub: false, date: '20 жовтня', reads: 0 },
+];
+const CL = { op: ['Олена П.', 'ОП', '#FFE2C4', 'до сесії чт 18:00'], is: ['Ірина С.', 'ІС', '#EEF4FA', 'до сесії сб 11:00'], ak: ['Андрій К.', 'АК', '#DDF1EF', 'до сесії пт 10:00'], it: ['Ігор Т.', 'ІТ', '#F1EBE2', 'ознайомча пн 26'] };
+const T0 = [
+  { id: 't1', title: 'Підготувати вправу для Ірини С.', note: 'Схема-карта на тиждень', st: 'todo', due: 'next', cl: 'is' },
+  { id: 't2', title: 'Оновити «Про мене» на сторінці', note: '', st: 'todo', due: 'later', cl: null },
+  { id: 't3', title: 'Супервізія — випадок А. К.', note: 'Четвер, 12:00', st: 'progress', due: 'next', cl: 'ak' },
+  { id: 't4', title: 'Надіслати реквізити Ігорю Т.', note: '', st: 'done', due: 'done', cl: 'it' },
+  { id: 't5', title: 'Переглянути щоденник Андрія перед сесією', note: '', st: 'todo', due: 'today', cl: 'ak' },
+  { id: 't6', title: 'Підтвердити перенос Андрія на 11:00', note: '', st: 'todo', due: 'today', cl: 'ak' },
+];
+const SUG = [['Надіслати Олені вправу «Щоденник думок»'], ['Записати нотатку до сесії'], ['Нагадати про оплату 1 400 грн']];
+const RV0 = [
+  { id: 'r1', date: '21 жовтня', text: 'Після кількох сесій я вперше за довгий час почала спати по-людськи. Дякую за терпіння і за те, що не поспішали.', st: 'new', ext: true },
+  { id: 'r2', date: '3 жовтня', text: 'Подобається, що є конкретні вправи між сесіями. Іноді хотілося б трохи більше часу на розмову наприкінці.', st: 'new', ext: false },
+  { id: 'r3', date: '18 вересня', text: 'Спокійно, без осуду. Рекомендую.', st: 'seen', ext: true },
+  { id: 'r4', date: '2 вересня', text: 'Купуйте курс за посиланням…', st: 'spam', ext: false },
+];
+const PER = { '7d': [7, 'Останні 7 днів · 17–23 жовтня'], '30d': [30, 'Останні 30 днів · 24 вересня – 23 жовтня'], '90d': [90, 'Останні 90 днів · 26 липня – 23 жовтня'] };
+class Component extends DCLogic {
+  state = { evs: EV0, evOpen: false, ef: { title: '', mode: 'meeting', date: '2026-11-10', from: '19:00', to: '20:30', cap: '12', names: false, rec: false }, copied: null, posts: P0, sel: 'p1', pDirty: false, colls: [['Тривога й сон', 3, true], ['Для батьків', 1, false]], scr: null, fade: false, tasks: T0, newT: '', tv: null, cf: null, drag: null, over: null, sugAdded: {}, sugHidden: false, rv: RV0, rf: 'new', per: '30d', leaving: {}, toast: false, toastMsg: '', snap: null, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() { this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize); }
+  componentDidUpdate(p) { p = p || {}; if (p.screen !== this.props.screen) this.setState({ scr: null }); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearTimeout(this.tt); }
+  toast(m, snap) { clearTimeout(this.tt); this.setState({ toast: true, toastMsg: m, snap }); this.tt = setTimeout(() => this.setState({ toast: false, snap: null }), 5000); }
+  leave(id, apply, msg) { const prev = { tasks: this.state.tasks, rv: this.state.rv }; this.setState(s => ({ leaving: { ...s.leaving, [id]: true } })); setTimeout(() => { apply(); this.setState(s => ({ leaving: { ...s.leaving, [id]: false } })); }, 550); this.toast(msg, prev); }
+  evBlog(S, nar) {
+    const F = S.ef, okEv = F.title.trim() && F.date, setF = p => this.setState(s => ({ ef: { ...s.ef, ...p } }));
+    const MON = ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'];
+    const P = S.posts.find(p => p.id === S.sel) || S.posts[0];
+    const setP = p => this.setState(s => ({ posts: s.posts.map(x => x.id === P.id ? { ...x, ...p } : x), pDirty: true }));
+    const words = P ? (P.body.trim() ? P.body.trim().split(/\s+/).length : 0) : 0;
+    const canPub = P && P.title.trim() && P.body.trim();
+    return {
+      evNew: () => this.setState({ evOpen: true }), evForm: S.evOpen, evCancel: () => this.setState({ evOpen: false }), evCols: nar ? 'minmax(0,1fr)' : 'minmax(0,1fr) auto auto',
+      ef: { ...F, onTitle: e => setF({ title: e.target.value }), onDate: e => setF({ date: e.target.value }), onFrom: e => setF({ from: e.target.value }), onTo: e => setF({ to: e.target.value }), onCap: e => setF({ cap: e.target.value.replace(/\D/g, '') }),
+        modes: [['meeting', 'Зустріч'], ['broadcast', 'Трансляція']].map(([k, l]) => ({ l, bg: F.mode === k ? '#fff' : 'transparent', sh: F.mode === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => setF({ mode: k }) })),
+        flags: [['names', 'Учасники бачать імена одне одного'], ['rec', 'Вести запис']].map(([k, l]) => { const on = F[k]; return { l, aria: on ? 'true' : 'false', mark: on ? '✓' : '', bg: on ? '#EEF4FA' : '#fff', bd: on ? '#12345A' : '#E6E0D8', boxBg: on ? '#12345A' : '#fff', boxBd: on ? '#12345A' : '#C9C1B6', on: () => setF({ [k]: !on }) }; }),
+        okBg: okEv ? '#12345A' : '#B7C0CC', okCur: okEv ? 'pointer' : 'default' },
+      evCreate: () => { if (!okEv) return; const d = new Date(F.date + 'T12:00'); const ev = { id: 'e' + Date.now(), title: F.title.trim(), mon: MON[d.getMonth()], day: d.getDate(), meta: `${F.from}–${F.to} · ${F.mode === 'meeting' ? 'зустріч' : 'трансляція'}${F.rec ? ' · із записом' : ''}`, taken: 0, cap: +F.cap || 10, st: 'scheduled' }; this.setState({ evs: [ev, ...S.evs], evOpen: false, ef: { ...F, title: '' }, copied: ev.id }); this.toast('Подію створено · посилання скопійовано', null); },
+      events: S.evs.map(e => { const done = e.st === 'done'; return { ...e, day: String(e.day), op: done ? 0.7 : 1, dBg: done ? '#F1EBE2' : '#EEF4FA', seats: `${e.taken} з ${e.cap}`, fill: `${Math.min(100, e.taken / e.cap * 100)}%`, st: done ? 'Завершено' : 'Заплановано', stBg: done ? '#F1EBE2' : '#EEF8F1', stFg: done ? '#5A6578' : '#2F7A55', active: !done, copyL: S.copied === e.id ? '✓ Скопійовано' : 'Посилання-запрошення', copy: () => this.setState({ copied: e.id }) }; }),
+      blogCols: nar ? 'minmax(0,1fr)' : 'minmax(220px,300px) minmax(0,1fr)',
+      postNew: () => { const id = 'p' + Date.now(); this.setState({ posts: [{ id, title: '', lead: '', body: '', pub: false, date: '23 жовтня', reads: 0 }, ...S.posts], sel: id }); },
+      posts: S.posts.map(p => ({ title: p.title || 'Без назви', meta: p.pub ? `${p.date} · ${p.reads} переглядів` : `Змінено ${p.date}`, st: p.pub ? 'Опубліковано' : 'Чернетка', stBg: p.pub ? '#EEF8F1' : '#F1EBE2', stFg: p.pub ? '#2F7A55' : '#5A6578', bg: p.id === P.id ? '#fff' : 'transparent', bd: p.id === P.id ? '#E6E0D8' : 'transparent', on: () => this.setState({ sel: p.id }) })),
+      colls: S.colls.map(([t, n, pub], i) => ({ t, n: String(n), l: pub ? 'Публічно' : 'Приховано', bg: pub ? '#EEF8F1' : '#fff', fg: pub ? '#2F7A55' : '#8B95A7', toggle: () => this.setState({ colls: S.colls.map((c, j) => j === i ? [c[0], c[1], !c[2]] : c) }) })),
+      pe: P ? { title: P.title, lead: P.lead, body: P.body, onTitle: e => setP({ title: e.target.value }), onLead: e => setP({ lead: e.target.value }), onBody: e => setP({ body: e.target.value }),
+        words: String(words), mins: String(Math.max(1, Math.round(words / 180))), savedL: S.pDirty ? 'чернетку збережено' : 'без змін',
+        pubL: P.pub ? 'Оновити' : 'Опублікувати', pubBg: canPub ? '#12345A' : '#B7C0CC', pubCur: canPub ? 'pointer' : 'default', unpubD: P.pub ? 'flex' : 'none',
+        pub: () => { if (!canPub) return; setP({ pub: true }); this.setState({ pDirty: false }); this.toast(P.pub ? 'Допис оновлено' : 'Опубліковано на вашій сторінці', null); },
+        unpub: () => { const prev = { posts: S.posts }; setP({ pub: false }); this.toast('Знято з публікації', prev); } } : {},
+    };
+  }
+  renderVals() {
+    const S = this.state, nar = S.w < 768;
+    const scr = S.scr || this.props.screen || 'tasks';
+    const go = k => { if (k === scr) return; this.setState({ fade: true }); setTimeout(() => this.setState({ scr: k, fade: false }), 160); };
+    const moveT = (t, st, msg) => this.leave(t.id, () => this.setState(s => ({ tasks: s.tasks.map(x => x.id === t.id ? { ...x, st } : x) })), msg);
+    const COLS = [['todo', 'Заплановано', '#F7B77E', '#F6F1EA'], ['progress', 'У роботі', '#12345A', '#EEF4FA'], ['done', 'Завершено', '#8FCBC8', '#EEF8F1']];
+    const ACTS = { todo: [['Взяти в роботу', 'progress'], ['Готово', 'done']], progress: [['Готово', 'done'], ['Відкласти', 'todo']], done: [['Повернути', 'progress']] };
+    const okNew = S.newT.trim().length > 0;
+    const addT = () => { if (!okNew) return; this.setState({ tasks: [{ id: 't' + Date.now(), title: S.newT.trim(), note: '', st: 'todo', due: 'today', cl: S.cf }, ...S.tasks], newT: '' }); };
+    const tv = S.tv || this.props.taskView || 'time';
+    const DUE = [['today', 'Сьогодні', 'пт, 23 жовтня', '#FFF8F0'], ['next', 'До наступних сесій', 'цей тиждень', '#EEF4FA'], ['later', 'Колись', 'без терміну', '#F6F1EA'], ['done', 'Готово', '', '#EEF8F1']];
+    const setDue = (t, due) => this.setState(s => ({ tasks: s.tasks.map(x => x.id === t.id ? { ...x, due, st: due === 'done' ? 'done' : (x.st === 'done' ? 'todo' : x.st) } : x) }));
+    const vis = S.tasks.filter(t => !S.cf || t.cl === S.cf);
+    const sugLeft = SUG.filter(([l]) => !S.sugAdded[l]);
+    const addSug = l => this.setState(s => ({ sugAdded: { ...s.sugAdded, [l]: true }, tasks: [{ id: 's' + Date.now() + l.length, title: l, note: '', st: 'todo', due: 'today', cl: 'op', auto: true }, ...s.tasks] }));
+    const RF = [['new', 'Нові'], ['seen', 'Переглянуті'], ['spam', 'Спам і приховані'], ['all', 'Усі']];
+    const rl = S.rv.filter(r => S.rf === 'all' || r.st === S.rf || S.leaving[r.id]);
+    const setR = (r, st, msg) => this.leave(r.id, () => this.setState(s => ({ rv: s.rv.map(x => x.id === r.id ? { ...x, st } : x) })), msg);
+    const [days, periodL] = PER[S.per];
+    const seed = i => (Math.sin(i * 12.9898 + days) * 43758.5453) % 1;
+    const vals = Array.from({ length: days }, (_, i) => { const d = (i + 4) % 7; return d >= 5 ? (Math.abs(seed(i)) < 0.3 ? 1 : 0) : 1 + Math.floor(Math.abs(seed(i)) * 4); });
+    const mx = Math.max(...vals, 1), total = vals.reduce((a, b) => a + b, 0);
+    const WDN = [9, 7, 8, 11, 6, 2, 0].map(n => Math.round(n * days / 30));
+    const wmx = Math.max(...WDN, 1);
+    return {
+      cols: nar ? 'minmax(0,1fr)' : '220px minmax(0,1fr)', sideDisp: nar ? 'none' : 'flex', narrow: nar, mainPad: nar ? '20px 16px 96px' : '24px clamp(20px,3vw,32px) 96px', op: S.fade ? 0 : 1,
+      s: { tasks: scr === 'tasks', reviews: scr === 'reviews', analytics: scr === 'analytics', events: scr === 'events', blog: scr === 'blog' },
+      ...this.evBlog(S, nar),
+      nav: NAV_S.map(label => { const on = INNER[label] === scr; return { label, bg: on ? '#12345A' : 'transparent', fg: on ? '#fff' : '#3F4B5E', badge: label === 'Запити' ? '2' : label === 'Чати' ? '1' : label === 'Відгуки' ? String(S.rv.filter(r => r.st === 'new').length || '') : '', on: () => INNER[label] ? go(INNER[label]) : (HREF_S[label] && (window.location.href = HREF_S[label])) }; }),
+      newT: S.newT, onNewT: e => this.setState({ newT: e.target.value }), onNewKey: e => { if (e.key === 'Enter') { e.preventDefault(); addT(); } }, addT, addBg: okNew ? '#12345A' : '#B7C0CC', addCur: okNew ? 'pointer' : 'default',
+      isTime: tv === 'time', statusDisp: tv === 'status' ? 'grid' : 'none', timeCols: nar ? 'minmax(0,1fr)' : S.w < 1200 ? 'repeat(2,minmax(0,1fr))' : 'repeat(4,minmax(0,1fr))',
+      views: [['time', 'За часом'], ['status', 'За статусом']].map(([k, label]) => ({ label, bg: tv === k ? '#fff' : 'transparent', sh: tv === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => this.setState({ tv: k }) })),
+      clientF: [{ k: null, label: 'Усі', ini: '', tint: 'transparent' }, ...Object.keys(CL).filter(k => S.tasks.some(t => t.cl === k)).map(k => ({ k, label: CL[k][0], ini: CL[k][1], tint: CL[k][2] }))].map(f => { const on = S.cf === f.k; return { ...f, iniD: f.k ? 'flex' : 'none', bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#12233A', bd: on ? '#12345A' : '#E6E0D8', on: () => this.setState({ cf: f.k }) }; }),
+      showSug: !S.sugHidden && sugLeft.length > 0 && (!S.cf || S.cf === 'op'),
+      sugs: SUG.map(([l]) => { const added = !!S.sugAdded[l]; return { l: (added ? '✓ ' : '+ ') + l, bg: added ? 'rgba(143,203,200,.25)' : 'rgba(255,255,255,.1)', fg: added ? '#BFE3E0' : '#fff', on: () => !added && addSug(l) }; }),
+      addAllSug: () => sugLeft.forEach(([l], i) => setTimeout(() => addSug(l), i * 120)), hideSug: () => this.setState({ sugHidden: true }),
+      tcols: DUE.map(([k, label, sub, bg]) => { const items = vis.filter(t => (t.due || 'later') === k);
+        return { label, sub: k === 'done' ? String(items.length) : sub, bg, empty: items.length === 0, calm: k === 'today', emptyL: k === 'today' ? 'На сьогодні все' : 'Перетягніть сюди', ol: S.over === k && S.drag ? '#12345A' : 'transparent',
+          over: e => { e.preventDefault(); if (S.over !== k) this.setState({ over: k }); }, leave: () => S.over === k && this.setState({ over: null }),
+          drop: e => { e.preventDefault(); const t = S.tasks.find(x => x.id === S.drag); this.setState({ drag: null, over: null }); if (t && t.due !== k) { const prev = { tasks: S.tasks }; setDue(t, k); this.toast(`→ ${label}`, prev); } },
+          items: items.map(t => { const c = t.cl && CL[t.cl], done = k === 'done';
+            return { title: t.title, hasClient: !!c, ini: c ? c[1] : '', tint: c ? c[2] : '', ctx: c ? `${c[0]} · ${c[3]}` : '', auto: !!t.auto, td: done ? 'line-through' : 'none', fg: done ? '#8B95A7' : '#12233A', bd: k === 'today' && !done ? '#F7D3AE' : '#EDE7DE',
+              mh: S.leaving[t.id] ? 0 : 220, op: S.leaving[t.id] ? 0 : 1, dop: S.drag === t.id ? 0.4 : 1, doneAria: done ? 'true' : 'false', cBd: done ? '#8FCBC8' : '#C9C1B6', cBg: done ? '#8FCBC8' : '#fff', cMark: done ? '✓' : '',
+              check: () => { const prev = { tasks: S.tasks }; this.leave(t.id, () => setDue(t, done ? 'today' : 'done'), done ? 'Повернуто на сьогодні' : 'Готово'); },
+              dragStart: e => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', t.id); this.setState({ drag: t.id }); }, dragEnd: () => this.setState({ drag: null, over: null }),
+              moves: DUE.filter(d => d[0] !== k && d[0] !== 'done').slice(0, 2).map(([dk, dl]) => ({ l: '→ ' + dl, on: () => { const prev = { tasks: S.tasks }; this.leave(t.id, () => setDue(t, dk), `→ ${dl}`); } })) }; }) }; }),
+      boardCols: nar ? 'minmax(0,1fr)' : 'repeat(3,minmax(0,1fr))',
+      columns: COLS.map(([k, label, dot, bg]) => { const items = vis.filter(t => t.st === k); return { label, dot, bg, n: String(items.length), empty: items.length === 0,
+        items: items.map(t => ({ title: t.title, note: t.note, hasNote: !!t.note, td: k === 'done' ? 'line-through' : 'none', fg: k === 'done' ? '#8B95A7' : '#12233A', mh: S.leaving[t.id] ? 0 : 200, op: S.leaving[t.id] ? 0 : 1,
+          acts: [...ACTS[k].map(([l, st]) => ({ l, on: () => moveT(t, st, `«${t.title.slice(0, 24)}…» → ${COLS.find(c => c[0] === st)[1].toLowerCase()}`) })), ...(k === 'done' ? [{ l: 'Видалити', on: () => this.leave(t.id, () => this.setState(s => ({ tasks: s.tasks.filter(x => x.id !== t.id) })), 'Завдання видалено') }] : [])] })) }; }),
+      rFilters: RF.map(([k, label]) => { const on = S.rf === k; return { label, n: String(k === 'all' ? S.rv.length : S.rv.filter(r => r.st === k).length), bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#12233A', bd: on ? '#12345A' : '#E6E0D8', on: () => this.setState({ rf: k }) }; }),
+      rEmpty: rl.length === 0,
+      reviews: rl.map(r => ({ date: r.date, text: r.text, ext: r.ext && r.st !== 'spam', isNew: r.st === 'new', bd: r.st === 'new' ? '#F7D3AE' : '#EDE7DE', mh: S.leaving[r.id] ? 0 : 400, op: S.leaving[r.id] ? 0 : 1,
+        acts: (r.st === 'new' ? [['Переглянуто', 'seen', '#12345A'], ['Це спам', 'spam', '#B83232']] : r.st === 'seen' ? [['Повернути в нові', 'new', '#12345A'], ['Це спам', 'spam', '#B83232']] : [['Не спам', 'new', '#12345A']]).map(([l, st, fg]) => ({ l, fg, on: () => setR(r, st, st === 'spam' ? 'Відгук приховано' : st === 'seen' ? 'Позначено переглянутим' : 'Повернуто в нові') })) })),
+      periods: Object.keys(PER).map(k => ({ label: k.replace('d', ' днів'), bg: S.per === k ? '#fff' : 'transparent', sh: S.per === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => this.setState({ per: k }) })), periodL,
+      kpis: [
+        { l: 'Сесій', v: String(total), d: 'завершено й заплановано', bg: '#12345A', fg: '#fff', sub: '#C9D4E3' },
+        { l: 'Підтверджено', v: '92%', d: 'з усіх запитів', bg: '#fff', fg: '#12233A', sub: '#8B95A7' },
+        { l: 'Скасовано', v: '6%', d: '4 з них — менш ніж за 24 год', bg: '#fff', fg: '#12233A', sub: '#8B95A7' },
+        { l: 'Нових клієнтів', v: String(Math.max(1, Math.round(days / 10))), d: 'з запитів зі сторінки', bg: '#fff', fg: '#12233A', sub: '#8B95A7' },
+      ],
+      barGap: days > 30 ? '1px' : '3px',
+      bars: vals.map((v, i) => ({ h: `${Math.max(4, v / mx * 100)}%`, c: v ? '#8FCBC8' : '#EDE7DE', t: `${v} сес.` })), barFrom: periodL.split('·')[1].split('–')[0].trim(), barTo: '23 жовтня',
+      wdays: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((l, i) => ({ l, n: String(WDN[i]), w: `${WDN[i] / wmx * 100}%`, c: WDN[i] === wmx ? '#12345A' : '#8FCBC8' })), onlinePct: '88%',
+      tips: [
+        { t: 'Четвер заповнений, субота — порожня', d: 'Клієнти найчастіше обирають четвер ввечері. Додайте вікна в цей день наступного тижня.', cta: 'До розкладу', href: 'Schedule.dc.html' },
+        { t: 'Скасування в останній момент', d: '4 скасування за добу до сесії. Вкажіть правило скасування в «Умовах перед записом».', cta: 'До профілю', href: 'Profile-Edit.dc.html' },
+      ],
+      toastMsg: S.toastMsg, toastUndo: !!S.snap, toastOp: S.toast ? 1 : 0, toastY: S.toast ? '0px' : '24px', toastPe: S.toast ? 'auto' : 'none', toastLeft: nar ? '50%' : 'calc(50% + 110px)',
+      undo: () => { clearTimeout(this.tt); this.setState({ ...(S.snap || {}), toast: false, snap: null }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

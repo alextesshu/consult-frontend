@@ -1,0 +1,433 @@
+{
+  "previous_snapshot_id": "claude-design-2026-10-23-7570f1ad",
+  "snapshot_id": "claude-design-2026-10-23-4ff7cedd",
+  "counts": {
+    "added": 8,
+    "modified": 25,
+    "unchanged": 37,
+    "deleted": 0,
+    "renamed": 0
+  },
+  "files": [
+    {
+      "path": "handoff/BACKEND_DECISIONS.md",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "867b780446ec5369e6d71ba53ed3e546b9a01a3ea1580e657a612665cad81cf6"
+    },
+    {
+      "path": "handoff/CHANGELOG.md",
+      "status": "MODIFIED",
+      "old_sha256": "2c9be63a0e36fb6f55f2d624425fc94cbfdf960cdd35e49e2339c6f8e18638cb",
+      "new_sha256": "4048c216097e16c2382440d82e91c538a578ef04fa4d27c171e534aeb8916c63"
+    },
+    {
+      "path": "handoff/CODEX_TASKS.md",
+      "status": "UNCHANGED",
+      "old_sha256": "9ca6d0e4e4d5cf5ea8428f1f53f72a7805bb7c631c5ef1262c2dad54e9907af1",
+      "new_sha256": "9ca6d0e4e4d5cf5ea8428f1f53f72a7805bb7c631c5ef1262c2dad54e9907af1"
+    },
+    {
+      "path": "handoff/MIGRATION_PLAN_V2.md",
+      "status": "MODIFIED",
+      "old_sha256": "a46422c45d0b0a6154f600c5420f1fd56c4c1ac50692bbb816271c2dc123ec1e",
+      "new_sha256": "2b8fa156fd5f9f4485a20462017804f4b0a327832d1eb026da73b0eec7d6b8ea"
+    },
+    {
+      "path": "handoff/README.md",
+      "status": "MODIFIED",
+      "old_sha256": "1d087af6e90c4fadf994ea99fdc226a553c1a3779e5030ec49d71091857dce8e",
+      "new_sha256": "ecf4e2ad62287bf5706cb8b939243304498edc4cceb17bd220c7b920a7b5fe70"
+    },
+    {
+      "path": "handoff/START_HERE.md",
+      "status": "MODIFIED",
+      "old_sha256": "a402bba751dc7ed505c09ed5a15a3a4fbb94b86ef200be902d3a63734dba0c56",
+      "new_sha256": "1bf2359eba0a599b133e5975f12776f554ce2913b699ae5567da5627137b559d"
+    },
+    {
+      "path": "handoff/TZ_CODEX.md",
+      "status": "MODIFIED",
+      "old_sha256": "b45864c52e58fc3bb03f1c2df9256a2d93dd2cf57bf7ae776f596b4552c55845",
+      "new_sha256": "d032b854eaa5c4979ec2710bfd40a618991f4f223b162b31ae6d88312bc510f9"
+    },
+    {
+      "path": "handoff/frontend/PATCHES.md",
+      "status": "UNCHANGED",
+      "old_sha256": "164c73d10e8362c7d00b414dd0d9cbe75c6d9a8961be2c9d8c30ceb3076b4ef0",
+      "new_sha256": "164c73d10e8362c7d00b414dd0d9cbe75c6d9a8961be2c9d8c30ceb3076b4ef0"
+    },
+    {
+      "path": "handoff/frontend/docs/DESIGN_SYSTEM.md",
+      "status": "UNCHANGED",
+      "old_sha256": "2ce193ba62d4beb58cf791ce4d9ed376deb61ccc549c5e360ede261d8f952293",
+      "new_sha256": "2ce193ba62d4beb58cf791ce4d9ed376deb61ccc549c5e360ede261d8f952293"
+    },
+    {
+      "path": "handoff/frontend/src/lib/uiVersion.ts",
+      "status": "UNCHANGED",
+      "old_sha256": "5d293bfa722250071fd431f4b34eeefd869f72129680fbd4641914380adcc385",
+      "new_sha256": "5d293bfa722250071fd431f4b34eeefd869f72129680fbd4641914380adcc385"
+    },
+    {
+      "path": "handoff/frontend/src/styles/components-v2.css",
+      "status": "UNCHANGED",
+      "old_sha256": "564c13491ae720933aeca75c68eb6ec67ca2218c8a831600f05cde77ee104504",
+      "new_sha256": "564c13491ae720933aeca75c68eb6ec67ca2218c8a831600f05cde77ee104504"
+    },
+    {
+      "path": "handoff/frontend/src/styles/tokens-v2.css",
+      "status": "UNCHANGED",
+      "old_sha256": "f7a89121a7d6d6283ea76964d24695745f4ee9fd254c4b6cc169b856d6948a2d",
+      "new_sha256": "f7a89121a7d6d6283ea76964d24695745f4ee9fd254c4b6cc169b856d6948a2d"
+    },
+    {
+      "path": "handoff/mockups/Admin.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "b6efedea6d323ad7a7bbb80d7ceb519f48bcd4bef44f7e55c3efd332c72121b3",
+      "new_sha256": "1c3ce0abfc87ef90dd61e4406094975f700b335ca2676eed5648ed75c1519928"
+    },
+    {
+      "path": "handoff/mockups/Auth.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "211659b8857d9f0661844e17636df0b9c9bcf19b4da7930730059caf187fff33",
+      "new_sha256": "41815e590aeb5fa25cea91592781501982530f38eee19a35ebc51edc8614c0ff"
+    },
+    {
+      "path": "handoff/mockups/Billing.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "214879352f6d612e2d6977cc02fcb7fb1f9c43b7f1dda2c695a8cad9bac82236",
+      "new_sha256": "214879352f6d612e2d6977cc02fcb7fb1f9c43b7f1dda2c695a8cad9bac82236"
+    },
+    {
+      "path": "handoff/mockups/Brand.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "122026852b919305240476dbcc7acc98c78e269d8870ba6bf961ccee8338bc60",
+      "new_sha256": "122026852b919305240476dbcc7acc98c78e269d8870ba6bf961ccee8338bc60"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Dashboard.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "0fad8763e9f115a1b6f8ea0675bb453e3dd1d91783a263c5132d200b52e60cd2",
+      "new_sha256": "dad2d57ef3d0c6f4757ae0c6e35f1bbb3995df72f18e66ebde0b03495918f867"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Drawer.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "b3f6ed859e4143cb740f61826a80215e83d82213191127aed6d4299c5f75c317",
+      "new_sha256": "a6d99f05e950d52f03d21eb4d5b7b906a66ebc7889b501884458cc6ab7597d65"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Mobile-2.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "a9e6a64ee2390bded0f8ec10fbca3086a989b651353ca2da43bbc09c74606721"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Mobile.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "bb1b0ce0c3ac73ade8d8d32818d2517989a4ac36d47eba9803dbfdc897b4d47d",
+      "new_sha256": "110627c31492dd4620afd8426fc9b6ec0823b9265d57a845ee6e2dac03c3a2e2"
+    },
+    {
+      "path": "handoff/mockups/Chat.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "fbe84ec388e5d603b52881e2a0ff42447cf759c3c058fefcee10e4b93c8c33c3",
+      "new_sha256": "d442d9373748e6ab47acc2fba2f3d9e46c34258872a0cfc7e27719a3740725cd"
+    },
+    {
+      "path": "handoff/mockups/Client-Cabinet.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "7c09ecacd6825e31912af95f2e3570abd9b7a82b39873a4e2d7c164c6dd316bb",
+      "new_sha256": "7c09ecacd6825e31912af95f2e3570abd9b7a82b39873a4e2d7c164c6dd316bb"
+    },
+    {
+      "path": "handoff/mockups/Client-Mobile.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "f8c98dfd5ef110d0b5f84708412d6d678eec12b0a37cf2818cba3cb3c3922afc"
+    },
+    {
+      "path": "handoff/mockups/Client-Pages.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "af0ce8962187cb5624a83f5b9f162f69f9c786590f3a9de49a7ea4e8cc50f4f9",
+      "new_sha256": "17839ac279bc13de3a76c9669417817fafa0a43f49716575b4f01cc3dcf20d04"
+    },
+    {
+      "path": "handoff/mockups/Client-Signup.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "ae95ec034cff3db6e4df581290115e31b91575d7abc38bda848fd57786d324f2",
+      "new_sha256": "ae95ec034cff3db6e4df581290115e31b91575d7abc38bda848fd57786d324f2"
+    },
+    {
+      "path": "handoff/mockups/Clients.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "c4393ecda9748dd4e3f6718cb006c7ec2c924c58edaf8239e79350902027a7cf",
+      "new_sha256": "f0b4bd87fbf68ef5dbb011931f97189d5db7e5635531275c742a20315d43bbb9"
+    },
+    {
+      "path": "handoff/mockups/Emails.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "0f4f0df5b07087d3ca4f7ef178b0691a5f01c11f05ecc2cb77047a575c879844",
+      "new_sha256": "15f17c56a15db81d13c88f31fa70ebd5032ba25b6351288517e4f54ee80f2292"
+    },
+    {
+      "path": "handoff/mockups/Find-Specialist.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "98204a1bf4581ba4e7574cadc136c919d161d8263b653c2dc59987a65c515a71",
+      "new_sha256": "98204a1bf4581ba4e7574cadc136c919d161d8263b653c2dc59987a65c515a71"
+    },
+    {
+      "path": "handoff/mockups/For-Clients.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "6ea8d32bf4a8795076f4c040b6b18d4c976aedadf3dc99a96a3433de62990139",
+      "new_sha256": "6ea8d32bf4a8795076f4c040b6b18d4c976aedadf3dc99a96a3433de62990139"
+    },
+    {
+      "path": "handoff/mockups/Guest.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "75472ec9ba6970f6d706d2cc72703412236881a155a712c625da9fb258f8d4ce",
+      "new_sha256": "4ecf8fd03218e7e4d9498435afd6a766eedb6c459c3420d62a3714f63325c9be"
+    },
+    {
+      "path": "handoff/mockups/Handoff-Spec.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "cd442b6976575d7bb585160f875aacc7b34e480eaa9b71026f4ddda8ded78040",
+      "new_sha256": "d5e9e5f914da25f4684f76ad21e26be940c68a7713248a6c9f06923023e3d887"
+    },
+    {
+      "path": "handoff/mockups/Home.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "00822e105a758dd69d39b5755ba30e2de7aa27d1d78a6a759187ed3e1d425c22",
+      "new_sha256": "00822e105a758dd69d39b5755ba30e2de7aa27d1d78a6a759187ed3e1d425c22"
+    },
+    {
+      "path": "handoff/mockups/Inquiries.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "a67c05338c668373fdc67b38ee583dec159b67ca5a68308ae16226ea8abbb941",
+      "new_sha256": "41af6b79e225d97810ff122b62a00aa2a8ac584cf9ff6b569668ad14e65d22d5"
+    },
+    {
+      "path": "handoff/mockups/Notifications.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "3743b56075e53fa68d140bfdec30f31937176233aa3353ae5db69106b2860f05"
+    },
+    {
+      "path": "handoff/mockups/Onboarding.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "5a84a28efdf896634b4b5dd2123320b14d074c963274e9c254e969575b75660f"
+    },
+    {
+      "path": "handoff/mockups/Profile-Edit.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "c8438dbc4a0a20b58989ca8bfc7e8dffbe1fdbb551e98e18ef8072426b41677f",
+      "new_sha256": "1096b8dd1695cd96bea6cd2c3eaa5da43faf38ca8e97f5c7a2da61ae07f100e2"
+    },
+    {
+      "path": "handoff/mockups/Public-Content.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "ef55a6583268c791ac7d1bf75d21ab85540df0f9663ea1d831dc78de4ad6a1c4",
+      "new_sha256": "0b32afa8edb9127bd961eb70ef55bc13df8a265863b3873de2842010402997f7"
+    },
+    {
+      "path": "handoff/mockups/Public-Mobile.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "d7a0effe8d7d556e982cb2286a2e441ddb56676cc39e088f23be28f6d70563ef"
+    },
+    {
+      "path": "handoff/mockups/Schedule.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "e8afb7c57d4649454aafcf657a19477e510bf22cd89682e79762f8ab94e523b7",
+      "new_sha256": "78fe5d9ac937d4b58a01886d1c5c5a6bbdc759fd3cb841cdefc9792be145891c"
+    },
+    {
+      "path": "handoff/mockups/Service-Pages.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "da26477dfedef3cf979f9e10d17f56216604410581cd423cadf048dd9e84139c",
+      "new_sha256": "da26477dfedef3cf979f9e10d17f56216604410581cd423cadf048dd9e84139c"
+    },
+    {
+      "path": "handoff/mockups/Session-Pages.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "35bb8913d567df22ec025f7c54a265b466fb8678a6032c414c1a388bbc06a4e7",
+      "new_sha256": "3c262148ea94d1c763a2434257953c34dd89e47f448005be2a30a2b553de5117"
+    },
+    {
+      "path": "handoff/mockups/Sessions.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "31fba7e2e14ee13298a7411c9d582ff32fc641092a57154175c28f77b37bf351",
+      "new_sha256": "46a71b01a97d705c744eb0980c20c8a6310263d255cd909e87453fec3e629a55"
+    },
+    {
+      "path": "handoff/mockups/Settings.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "02b372be3f6f8608f52d286240ba9832a9a1e58210453f44e47dd6b49d4e7875",
+      "new_sha256": "03a78ede8dc0933b2757d318bdd873fbedf383c5c347f2f027a8b6351b519b1e"
+    },
+    {
+      "path": "handoff/mockups/Share-Card.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "b08c8800d61910e33b745c9e7409ddc26ba77dd47e4cf0d9e2278d86830952af"
+    },
+    {
+      "path": "handoff/mockups/Signup.dc.html",
+      "status": "UNCHANGED",
+      "old_sha256": "0dc0f80b4294246742d5e99d04f32e48b298862afabf4ec6b7d2650182abb884",
+      "new_sha256": "0dc0f80b4294246742d5e99d04f32e48b298862afabf4ec6b7d2650182abb884"
+    },
+    {
+      "path": "handoff/mockups/Specialist-Profile-Mobile.dc.html",
+      "status": "ADDED",
+      "old_sha256": null,
+      "new_sha256": "812eb3beb9e5c14e89adbc2036cad04eab1c445cc1273919cc54a52c0b9d8d8d"
+    },
+    {
+      "path": "handoff/mockups/Specialist-Profile.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "dc1ead6fe3ea57d9b27600df01483c4fe85bd5fc0d9a2e54091bf40b98f3f50e",
+      "new_sha256": "15dc40cd00a8f0d4cb7abab8070228aadce9e6fd1d6dc5c8283912e654da7ebe"
+    },
+    {
+      "path": "handoff/mockups/Specialist-Tools.dc.html",
+      "status": "MODIFIED",
+      "old_sha256": "663b94a3edf1fd5709ccd996211a72e35c5b8816b961a77466c87e2f9c58e69b",
+      "new_sha256": "d12804e9153686fc5e537f51922380f112dcddbb603a94d868ac0b887df88165"
+    },
+    {
+      "path": "handoff/mockups/assets/maria-koval.webp",
+      "status": "UNCHANGED",
+      "old_sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605",
+      "new_sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605"
+    },
+    {
+      "path": "handoff/mockups/brand-listen.js",
+      "status": "UNCHANGED",
+      "old_sha256": "bdf72b9bc3446a173f28f5e1945c81bda6f12dac8dbc33db54c3a3cb644fd017",
+      "new_sha256": "bdf72b9bc3446a173f28f5e1945c81bda6f12dac8dbc33db54c3a3cb644fd017"
+    },
+    {
+      "path": "handoff/mockups/legal-texts.json",
+      "status": "UNCHANGED",
+      "old_sha256": "43e004f643df28a3ca2d81641c6b88476e262eaa3b55350fa8c6b9f80e0bd879",
+      "new_sha256": "43e004f643df28a3ca2d81641c6b88476e262eaa3b55350fa8c6b9f80e0bd879"
+    },
+    {
+      "path": "handoff/mockups/public/brand/apple-touch-icon.png",
+      "status": "UNCHANGED",
+      "old_sha256": "42c8513e7ae75a8b309503c405e512a7f46c3a8def1ede4e702af2fc0fb1ed92",
+      "new_sha256": "42c8513e7ae75a8b309503c405e512a7f46c3a8def1ede4e702af2fc0fb1ed92"
+    },
+    {
+      "path": "handoff/mockups/public/brand/favicon-192.png",
+      "status": "UNCHANGED",
+      "old_sha256": "fa91068d85b12b9bfabf67634eb1ca30bc5506d4e87b2740e2fac438030bcf0d",
+      "new_sha256": "fa91068d85b12b9bfabf67634eb1ca30bc5506d4e87b2740e2fac438030bcf0d"
+    },
+    {
+      "path": "handoff/mockups/public/brand/favicon-32.png",
+      "status": "UNCHANGED",
+      "old_sha256": "0af0ebc5efbb921405d2e0505a1098dd0bec50ddbf5d910655c5b98fecaff495",
+      "new_sha256": "0af0ebc5efbb921405d2e0505a1098dd0bec50ddbf5d910655c5b98fecaff495"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-band.png",
+      "status": "UNCHANGED",
+      "old_sha256": "19f1ca55e2838701a7d88ba72d7ad92e55adf69de6052f4d15d6d410e2a81ac4",
+      "new_sha256": "19f1ca55e2838701a7d88ba72d7ad92e55adf69de6052f4d15d6d410e2a81ac4"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-deep.png",
+      "status": "UNCHANGED",
+      "old_sha256": "105a23c5b8029bb0e1356a4b48bc747aa2f6948ffda3f32ac496371e8e410476",
+      "new_sha256": "105a23c5b8029bb0e1356a4b48bc747aa2f6948ffda3f32ac496371e8e410476"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-mask.png",
+      "status": "UNCHANGED",
+      "old_sha256": "e9b469dfccf750eb32cdc975d930a3331d54d05788be420b4061f5e7d911bba8",
+      "new_sha256": "e9b469dfccf750eb32cdc975d930a3331d54d05788be420b4061f5e7d911bba8"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-mint.png",
+      "status": "UNCHANGED",
+      "old_sha256": "3955a02083318054564c1537df2ea5d87cf32270ea409bfecf88e9f4028d5587",
+      "new_sha256": "3955a02083318054564c1537df2ea5d87cf32270ea409bfecf88e9f4028d5587"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-navy.png",
+      "status": "UNCHANGED",
+      "old_sha256": "474646f6d9ea9fd10afbd1e9347d2005ed3721d349c00911c58acf592a7b08d9",
+      "new_sha256": "474646f6d9ea9fd10afbd1e9347d2005ed3721d349c00911c58acf592a7b08d9"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-pale.png",
+      "status": "UNCHANGED",
+      "old_sha256": "f753d19d614c0942b6e7225c74da57babdecdb5780659cbfedf586097ee639e8",
+      "new_sha256": "f753d19d614c0942b6e7225c74da57babdecdb5780659cbfedf586097ee639e8"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-sand.png",
+      "status": "UNCHANGED",
+      "old_sha256": "dfceb2a88c25f82694f2e3321c2d2cfd55f17ee1a86762d2c50b584740a9aeb3",
+      "new_sha256": "dfceb2a88c25f82694f2e3321c2d2cfd55f17ee1a86762d2c50b584740a9aeb3"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-white.png",
+      "status": "UNCHANGED",
+      "old_sha256": "e18f4c97c8384a9617141a99350c85dd0129d155db38b99a5fbc4b1fbe12ca80",
+      "new_sha256": "e18f4c97c8384a9617141a99350c85dd0129d155db38b99a5fbc4b1fbe12ca80"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-logo-dark.png",
+      "status": "UNCHANGED",
+      "old_sha256": "fa406630c9ec734240d0bf16b2827b6fb5d7759a6b4429db053f2bd343caa5e0",
+      "new_sha256": "fa406630c9ec734240d0bf16b2827b6fb5d7759a6b4429db053f2bd343caa5e0"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-logo-light.png",
+      "status": "UNCHANGED",
+      "old_sha256": "85b9acfda817fa05d3f766d4bf41f3baadb9b18242b33c06b302a4f53bf8fa8c",
+      "new_sha256": "85b9acfda817fa05d3f766d4bf41f3baadb9b18242b33c06b302a4f53bf8fa8c"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-mark-light.png",
+      "status": "UNCHANGED",
+      "old_sha256": "56e2de484c4c50aa4159f7f54e8552dc226d377b7cb06d50dc1c66003c6a7b73",
+      "new_sha256": "56e2de484c4c50aa4159f7f54e8552dc226d377b7cb06d50dc1c66003c6a7b73"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-mark.png",
+      "status": "UNCHANGED",
+      "old_sha256": "99c47107e98597b4909159f26ba74f2b1dc25db7c22804d56e3ef764481c0739",
+      "new_sha256": "99c47107e98597b4909159f26ba74f2b1dc25db7c22804d56e3ef764481c0739"
+    },
+    {
+      "path": "handoff/mockups/public/brand/wordmark-caps-ink.png",
+      "status": "UNCHANGED",
+      "old_sha256": "15aa3d5fd8de0b0a2ea8227ef1c71b04fbf4e5a2e5e4e13e08e506ccb19b0f09",
+      "new_sha256": "15aa3d5fd8de0b0a2ea8227ef1c71b04fbf4e5a2e5e4e13e08e506ccb19b0f09"
+    },
+    {
+      "path": "handoff/mockups/public/brand/wordmark-caps-mask.png",
+      "status": "UNCHANGED",
+      "old_sha256": "2bc23140f0b236b239bc1339ab0324bb415e2eaa9bdbd2cbff25d940fe6293c1",
+      "new_sha256": "2bc23140f0b236b239bc1339ab0324bb415e2eaa9bdbd2cbff25d940fe6293c1"
+    },
+    {
+      "path": "handoff/mockups/public/brand/wordmark-mask.png",
+      "status": "UNCHANGED",
+      "old_sha256": "0ae86cc9511d42354221884acf79172d5fa100a5f0f07f2630e45e742c42b88a",
+      "new_sha256": "0ae86cc9511d42354221884acf79172d5fa100a5f0f07f2630e45e742c42b88a"
+    },
+    {
+      "path": "handoff/mockups/support.js",
+      "status": "UNCHANGED",
+      "old_sha256": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe",
+      "new_sha256": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe"
+    }
+  ]
+}

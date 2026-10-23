@@ -1,10 +1,40 @@
+## Current design source override - KAN-154 (2026-10-24)
+
+Current reference is `claude-design-2026-10-23-4ff7cedd`, archive v6.6 with contents through v6.7; SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`. See [entry point](ui-v2/START_HERE.md), [audit](ui-v2/DESIGN_SYNC_2026-10-24_V66_V67.md), [matrix](ui-v2/IMPLEMENTATION_MATRIX_V66_V67.md). This supersedes older current-snapshot/readiness/next-task prose below, which remains historical. All 36 references READY; former support/blog/profile future deltas now READY but contract-gated. Home/For Clients/Discovery desktop references unchanged and integrated. KAN-160 HOLD and v1 default remain. The approved fennec override below remains authoritative. No product rules, typography/tokens, runtime files or prior snapshots are replaced.
+
+---
+
 # PRO CONSULT — Design System & Visual Migration Guide
+
+## Approved UI v2 brand override — KAN-158 (2026-10-23)
+
+The user-approved minimalist fennec in `logo.rar` supersedes older Claude artwork for the public UI v2 header/footer. Preserve the original PDF symbol/glyph geometry, negative space and supplied colors; use the user-approved horizontal header composition and retain the original stacked footer lockup. The Montserrat wordmark remains outlined; UI typography/layout/navigation still follow Claude v5. See [source PDFs, hashes, conversion and acceptance](ui-v2/brand/approved-fennec-2026-10-23/README.md). Keep separately named v2 assets; preserve existing v1 logos, global icons/favicons and all runtime/product safeguards. This override does not authorize replacing brand artwork inside other pages or source snapshots.
+
+## Current supplied snapshot — v5 incremental overlay
+
+`claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. See [current entry point](ui-v2/START_HERE.md), [v5 audit](ui-v2/DESIGN_SYNC_2026-10-23_V5.md), [manifest](ui-v2/SNAPSHOT_MANIFEST_V5.json) and [matrix](ui-v2/IMPLEMENTATION_MATRIX_V5.md).
+
+This overlay supersedes older readiness/current-snapshot claims below; historical product rules and accepted runtime safeguards remain intact. Public Journal/FAQ now have READY Public-Content references; Tour remains its existing redirect. New Session-Pages/Service-Pages and Emails are READY references, not backend approval. Support Chat, Expanded Blog Editor and Public Profile follow-up are IN PROGRESS; current editor/profile references stay READY. Client Dashboard remains HOLD. No source Step 0, email implementation, support service or psychological-support routing is authorized here. Preserve v1, product sections 1–4, all runtime files, open PR branches and historical snapshots.
 
 > **UI v2 Stage 0B - opt-in infrastructure (2026-10-21).** Default remains v1.
 > Sections 5-12 and 15 describe opt-in v2 and explicitly preserved v1 rules.
 > Sections 1-4 and all other product/safety policies are unchanged. Stage 0B is locally implemented, awaiting acceptance; page redesign and rollout
 > require separate approval; see [UI v2 handoff](ui-v2/README.md) and
 > [Master TZ](ui-v2/PROCONSULT_UI_V2_CODEX_MASTER_TZ.md).
+
+## Claude snapshot integration — 2026-10-23
+
+Historical v1 UX/UI reference is `claude-design-2026-10-23-265f221a`, SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. See [sync audit](ui-v2/DESIGN_SYNC_2026-10-23.md), [exact supplied design-system document](ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/docs/DESIGN_SYSTEM.md) and [future-task checklist](ui-v2/DESIGN_SYNC_CHECKLIST.md).
+
+Comparison finds the existing core palette/Onest/radius/button/card scales retained. Source §5/§10 soft-text usage conflicts with the repository's existing accessibility findings; muted-text/focus rules below remain implementation safeguards, not a redesigned source mockup. Source §8 overgeneralizes v1 shape history; §12 omits the repository's legacy/signup contract gate. Preserve these documented corrections, all v1 rule blocks and product §§1–4. No design file or runtime color is silently corrected in this sync.
+
+New cabinet/session/client/admin components, responsive patterns and fennec brand are described in the supplied source TZ/CSS and active reference pages. They are reference intent, not classes/assets already activated in production. Current runtime tokens/components and logos are unchanged; no prototype dependency is introduced. New behavior must pass the audit contract gates. Further Client Dashboard work is HOLD until updated UX and backend dependencies are approved/verified.
+
+## Current supplied snapshot — v3
+
+Current reference: `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. See [entry point](ui-v2/START_HERE.md), [v3 audit](ui-v2/DESIGN_SYNC_2026-10-23_V3.md) and [source design system](ui-v2/snapshots/2026-10-23-e43f5f80/handoff/frontend/docs/DESIGN_SYSTEM.md). The source design system, tokens, components and feature-flag source are byte-identical to the preceding export. Existing v1 blocks, product sections 1–4 and runtime contrast/storage/isolation corrections remain intact. Earlier snapshot integration notes above are historical.
+
+DESIGN READY is a screen-reference status; it is not backend approval. Public Journal, standalone FAQ and Tour remain IN PROGRESS. Do not replace runtime files, logos or historical docs from source Step 0. New auth, diary, undo, timed-task, legal and crisis claims require separate contract review.
 
 ## 1. Purpose
 

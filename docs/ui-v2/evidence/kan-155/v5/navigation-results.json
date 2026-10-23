@@ -1,0 +1,18 @@
+[
+  {
+    "width": 375,
+    "responsiveNavigation": "PASS"
+  },
+  {
+    "width": 768,
+    "responsiveNavigation": "PASS"
+  },
+  {
+    "width": 1280,
+    "responsiveNavigation": "PASS"
+  },
+  {
+    "width": 1440,
+    "responsiveNavigation": "PASS"
+  }
+]
