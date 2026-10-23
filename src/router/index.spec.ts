@@ -15,6 +15,16 @@ vi.mock('../lib/api', async () => {
 
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 
+describe('For Clients public entry', () => {
+  it('resolves a dedicated neutral public route without authentication or permission changes', () => {
+    const route = router.resolve('/for-clients?ui=v2')
+    expect(route.name).toBe('for-clients')
+    expect(route.meta.publicSurface).toBe('neutral')
+    expect(route.meta.requiresAuth).toBeUndefined()
+    expect(route.meta.requiresRole).toBeUndefined()
+  })
+})
+
 describe('profile focus cleanup scrolling', () => {
   const scroll = (to: string, from: string, savedPosition: { left: number; top: number } | null = null) =>
     router.options.scrollBehavior!(

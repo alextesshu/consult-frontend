@@ -27,7 +27,7 @@
           <RouterLink to="/" class="pc2-header__link" active-class="" exact-active-class=""
             :class="{ 'is-active': isHome && !isClientEntry }"
             :aria-current="isHome && !isClientEntry ? 'location' : 'false'">Для спеціалістів</RouterLink>
-          <RouterLink to="/#client-entry-title" class="pc2-header__link" active-class="" exact-active-class=""
+          <RouterLink to="/for-clients" class="pc2-header__link" active-class="" exact-active-class=""
             :class="{ 'is-active': isClientEntry }"
             :aria-current="isClientEntry ? 'location' : 'false'">Для клієнтів</RouterLink>
         </nav>
@@ -65,11 +65,11 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface && !isClientLandingV2" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" :class="{ 'pc2-header__link pc2-header__login': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary pc2-header__cta': usePublicHeaderV2 }" to="/signup">
-          <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
-          <span class="nav__guest-cta-short">Спробувати</span>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary pc2-header__cta': usePublicHeaderV2 }" :to="isClientLandingV2 ? '/signup-client?ui=v2' : '/signup'">
+          <span class="nav__guest-cta-full">{{ isClientLandingV2 ? 'Створити кабінет' : 'Спробувати безкоштовно' }}</span>
+          <span class="nav__guest-cta-short">{{ isClientLandingV2 ? 'Кабінет клієнта' : 'Спробувати' }}</span>
         </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
@@ -314,7 +314,7 @@
         >
           <template v-if="!isSpecialistOwnedSurface">
             <RouterLink to="/" @click="showPublicMenu = false">Для спеціалістів</RouterLink>
-            <RouterLink to="/#client-entry-title" @click="showPublicMenu = false">Для клієнтів</RouterLink>
+            <RouterLink to="/for-clients" :aria-current="isClientEntry ? 'page' : undefined" @click="showPublicMenu = false">Для клієнтів</RouterLink>
             <RouterLink to="/specialists" @click="showPublicMenu = false">Знайти спеціаліста</RouterLink>
             <RouterLink to="/pricing" @click="showPublicMenu = false">Тарифи</RouterLink>
           </template>
@@ -330,6 +330,7 @@
           'main--home': isHome,
           'main--public-profile': isPublicProfilePage,
           'main--tour': isTour,
+          'main--for-clients-v2': isUiV2() && route.name === 'for-clients',
           'main--authenticated': isAuthenticatedLayout,
           'main--specialist-shell': showSpecialistCabinetShell,
         },
@@ -624,7 +625,8 @@ const showPublicMenu = ref(false)
 const publicMenuButtonRef = ref<HTMLButtonElement | null>(null)
 const publicMenuPanelRef = ref<HTMLElement | null>(null)
 watch(() => [route.fullPath, usePublicHeaderV2.value], () => { showPublicMenu.value = false })
-const isClientEntry = computed(() => isHome.value && route.hash === '#client-entry-title')
+const isClientEntry = computed(() => route.name === 'for-clients' || (isHome.value && route.hash === '#client-entry-title'))
+const isClientLandingV2 = computed(() => usePublicHeaderV2.value && route.name === 'for-clients')
 const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
@@ -2252,6 +2254,13 @@ watch(isChatCapable, (value) => {
 
 .main--authenticated {
   width: min(1480px, 100%);
+}
+
+html[data-ui="v2"] .main--for-clients-v2 {
+  width: min(var(--pc-container), calc(100% + var(--shell-inline-pad) * 2));
+  max-width: none;
+  margin: 0;
+  justify-self: center;
 }
 
 .main--specialist-shell {

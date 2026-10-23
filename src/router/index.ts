@@ -17,6 +17,7 @@ import SpecialistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import AvailabilityRulesView from '../views/AvailabilityRulesView.vue'
 import HomeView from '../views/HomeView.vue'
+import ForClientsView from '../views/ForClientsView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
 import SpecialistSessionsView from '../views/TherapistSessionsView.vue'
 import SpecialistSessionDetailView from '../views/TherapistSessionDetailView.vue'
@@ -69,6 +70,7 @@ import {
 
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { publicSurface: 'neutral' } },
+  { path: '/for-clients', name: 'for-clients', component: ForClientsView, meta: { publicSurface: 'neutral' } },
   { path: '/tour', name: 'tour', redirect: { path: '/', hash: '#how-it-works' } },
   {
     path: '/public',
