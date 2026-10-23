@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="max-width:1280px;margin:0 auto;padding:0 48px">
+  <header style="display:flex;align-items:center;gap:32px;height:80px;border-bottom:1px solid #EDE7DE">
+    <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:40px;width:auto;display:block;flex-shrink:0;margin-left:-8px">
+    <nav style="display:flex;gap:4px;font-size:14px;white-space:nowrap">
+      <span style="padding:8px 12px;border-bottom:2px solid #12345A;color:#12233A;font-weight:500">Для спеціалістів</span>
+      <span style="padding:8px 12px;color:#8B95A7;cursor:pointer" style-hover="color:#12233A">Для клієнтів</span>
+    </nav>
+    <div style="flex:1"></div>
+    <span style="font-size:14px;color:#657287;white-space:nowrap">Увійти</span>
+    <span style="padding:10px 16px;border-radius:999px;white-space:nowrap;flex-shrink:0;border:1px solid #12345A;color:#12345A;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#12345A;color:#fff">Спробувати 30 днів</span>
+  </header>
+
+  <section style="text-align:center;padding:96px 0 56px;max-width:900px;margin:0 auto">
+    <p style="font-size:14px;letter-spacing:.04em;color:#2F8C86;margin:0 0 24px">Для психологів, терапевтів і консультантів</p>
+    <h1 style="font-weight:500;font-size:76px;line-height:1.02;letter-spacing:-0.045em;margin:0 0 28px;text-wrap:balance">Менше адміністрування.<br>Більше уваги до клієнта.</h1>
+    <p style="font-size:19px;line-height:1.6;color:#5A6578;margin:0 auto 40px;max-width:620px;text-wrap:pretty">Публічна сторінка, запити, сесії й нотатки — один зрозумілий шлях від першого листа до регулярної роботи.</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <span style="padding:16px 28px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;cursor:pointer" style-hover="background:#0E2D52">Створити свій простір</span>
+      <span style="padding:16px 24px;border-radius:999px;background:#fff;border:1px solid #E6E0D8;font-size:16px;cursor:pointer" style-hover="border-color:#12345A">Подивитись приклад сторінки</span>
+    </div>
+  </section>
+
+  <section style="padding:24px 0 120px">
+    <div style="position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-bottom:32px">
+      <div style="position:absolute;left:12.5%;right:12.5%;top:19px;height:2px;background:#EDE7DE"></div>
+      <div style="position:absolute;left:12.5%;top:19px;height:2px;width:{{ trackW }};background:#12345A;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+      <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="4">
+        <div onClick="{{ n.onClick }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer">
+          <span style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:{{ n.dotBg }};color:{{ n.dotFg }};border:2px solid {{ n.dotBorder }};transform:scale({{ n.scale }});transition:all .5s ease">{{ n.n }}</span>
+          <span style="font-size:16px;font-weight:500;color:{{ n.labelColor }};transition:color .5s">{{ n.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:48px;align-items:center;background:#fff;border:1px solid #EDE7DE;border-radius:28px;padding:48px;min-height:340px">
+      <div>
+        <p style="font-size:13px;color:#8B95A7;margin:0 0 12px">Крок {{ cur.n }} з 4</p>
+        <h2 style="font-weight:500;font-size:36px;letter-spacing:-0.03em;line-height:1.1;margin:0 0 16px">{{ cur.title }}</h2>
+        <p style="font-size:17px;line-height:1.6;color:#5A6578;margin:0">{{ cur.copy }}</p>
+      </div>
+      <div style="position:relative;height:240px;border-radius:20px;background:#F6F1EA;overflow:hidden">
+        <sc-for list="{{ panels }}" as="p" hint-placeholder-count="4">
+          <div style="position:absolute;inset:24px;display:flex;flex-direction:column;gap:10px;opacity:{{ p.op }};transform:translateY({{ p.y }});transition:all .6s ease">
+            <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="3">
+              <div style="background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 24px rgba(18,35,58,.06)">
+                <span style="font-size:15px">{{ r.a }}</span>
+                <span style="font-size:12px;padding:4px 10px;border-radius:999px;background:{{ r.bg }};color:#12233A">{{ r.b }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;gap:32px;justify-content:center;margin-top:48px;font-size:15px;color:#5A6578">
+      <span>0% комісії — клієнт платить напряму вам</span>
+      <span style="color:#D4CCC2">·</span>
+      <span>Без рейтингів і платного просування</span>
+      <span style="color:#D4CCC2">·</span>
+      <span>Запит без реєстрації клієнта</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { i: 0, paused: false };
+  componentDidMount() { this.t = setInterval(() => { if (!this.state.paused) this.setState(s => ({ i: (s.i + 1) % 4 })); }, 3200); }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const { i } = this.state;
+    const D = [
+      { label: 'Сторінка', title: 'Покажіть, хто ви', copy: 'Підхід, теми, формат, вартість. Одна сторінка, якою зручно ділитися у своїх каналах.',
+        rows: [['Когнітивно-поведінкова терапія', 'Підхід', '#DDF1EF'], ['Онлайн · 50 хв', 'Формат', '#EEF4FA'], ['1 400 грн', 'Вартість', '#FFF1E3']] },
+      { label: 'Запит', title: 'Клієнт звертається напряму', copy: 'Без обов’язкової реєстрації. Запит — не автоматичний запис: рішення завжди за вами.',
+        rows: [['Олена · тривожність', 'Новий', '#FFE2C4'], ['Андрій · стосунки', 'Новий', '#FFE2C4'], ['Ірина · вигорання', 'Переглянуто', '#EEF4FA']] },
+      { label: 'Сесія', title: 'Час — в одному календарі', copy: 'Запропонуйте вільне вікно, надішліть посилання, отримайте підтвердження.',
+        rows: [['Пн 10:00 · Ірина', 'Підтверджено', '#EEF8F1'], ['Ср 18:00 · Олена', 'Очікує відповідь', '#FFF5DF'], ['Чт 12:00 · вільне вікно', 'Відкрито', '#F6F1EA']] },
+      { label: 'Робота', title: 'Контекст кожного клієнта', copy: 'Приватні нотатки, матеріали й історія сесій — поруч, коли вони потрібні.',
+        rows: [['Нотатка після сесії 6', 'Приватно', '#EEF4FA'], ['Вправа «Щоденник думок»', 'Опубліковано', '#DDF1EF'], ['Оплата за жовтень', 'Отримано', '#EEF8F1']] },
+    ];
+    return {
+      trackW: (i / 3 * 75) + '%',
+      nodes: D.map((d, k) => ({
+        n: k + 1, label: d.label, onClick: () => this.setState({ i: k, paused: true }),
+        dotBg: k <= i ? '#12345A' : '#FBF9F5', dotFg: k <= i ? '#fff' : '#8B95A7',
+        dotBorder: k <= i ? '#12345A' : '#E6E0D8', scale: k === i ? 1.12 : 1,
+        labelColor: k === i ? '#12233A' : '#8B95A7',
+      })),
+      cur: { n: i + 1, title: D[i].title, copy: D[i].copy },
+      panels: D.map((d, k) => ({ op: k === i ? 1 : 0, y: k === i ? '0px' : (k < i ? '-12px' : '12px'),
+        rows: d.rows.map(([a, b, bg]) => ({ a, b, bg })) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

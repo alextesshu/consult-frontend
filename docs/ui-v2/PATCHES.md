@@ -1,3 +1,5 @@
+> V3 sync: source PATCHES/CSS/TypeScript are unchanged and remain reference-only in [the frozen snapshot](snapshots/2026-10-23-e43f5f80/handoff/frontend/PATCHES.md). Do not reapply Stage 0. [START_HERE](START_HERE.md) and [v3 audit](DESIGN_SYNC_2026-10-23_V3.md) govern current readiness; the implemented hardening below remains valid.
+
 # UI v2 Stage 0B - implemented local infrastructure
 
 Status: locally implemented, awaiting acceptance. Default remains v1.

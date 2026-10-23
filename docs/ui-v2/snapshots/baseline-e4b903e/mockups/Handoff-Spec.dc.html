@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:48px clamp(20px,4vw,48px) 96px;display:flex;flex-direction:column;gap:72px">
+
+  <header style="display:flex;flex-direction:column;gap:16px;max-width:760px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:36px;width:auto;display:block">
+      <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">UI v2 · Специфікація для розробника</span>
+    </div>
+    <h1 style="margin:0;font-size:clamp(32px,3.4vw,42px);line-height:1.18;font-weight:500;letter-spacing:-.02em">Токени й компоненти</h1>
+    <p style="margin:0;font-size:17px;line-height:1.6;color:#3F4B5E;text-wrap:pretty">Усе на цій сторінці є в <span style="font-family:ui-monospace,monospace;font-size:14px">handoff/frontend/src/styles/</span>. Щоб увімкнути, додайте <span style="font-family:ui-monospace,monospace;font-size:14px">?ui=v2</span>. Сторінки, які ще не перенесено, автоматично підхоплять нові змінні.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+      <span style="padding:6px 12px;border-radius:999px;background:#EEF8F7;color:#1F5E5A;font-size:13px;font-weight:500">Onest</span>
+      <span style="padding:6px 12px;border-radius:999px;background:#EEF8F7;color:#1F5E5A;font-size:13px;font-weight:500">Пароль один раз + «Показати»</span>
+      <span style="padding:6px 12px;border-radius:999px;background:#EEF8F7;color:#1F5E5A;font-size:13px;font-weight:500">Картки 16px</span>
+      <span style="padding:6px 12px;border-radius:999px;background:#FFF1E3;color:#8A4B16;font-size:13px;font-weight:500">За прапорцем data-ui="v2"</span>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Колір</h2>
+    <sc-for list="{{ colorGroups }}" as="g" hint-placeholder-count="4">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">{{ g.name }}</span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+          <sc-for list="{{ g.items }}" as="c" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="height:72px;background:{{ c.hex }};border-bottom:1px solid #EDE7DE"></div>
+              <div style="padding:12px 14px;display:flex;flex-direction:column;gap:2px">
+                <span style="font-size:14px;font-weight:500">{{ c.label }}</span>
+                <span style="font-family:ui-monospace,monospace;font-size:12px;color:#657287">{{ c.token }}</span>
+                <span style="font-family:ui-monospace,monospace;font-size:12px;color:#8B95A7">{{ c.hex }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Типографіка · Onest</h2>
+    <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;display:flex;flex-direction:column">
+      <sc-for list="{{ typeScale }}" as="t" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:24px;align-items:baseline;padding:18px 24px;border-top:{{ t.bt }}">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-family:ui-monospace,monospace;font-size:12px;color:#12345A">{{ t.token }}</span>
+            <span style="font-size:12px;color:#8B95A7">{{ t.spec }}</span>
+          </div>
+          <span style="font-size:{{ t.size }};font-weight:{{ t.fw }};line-height:{{ t.lh }};letter-spacing:{{ t.ls }};text-transform:{{ t.tt }};min-width:0;overflow-wrap:anywhere">{{ t.sample }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#657287">Заголовки мають вагу 500, ніколи 700. Вага 600 — тільки для чисел. Основний текст — 400 (у v1 було 200).</p>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:24px">
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Заокруглення</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px">
+        <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="height:88px;background:#fff;border:1.5px solid #12345A;border-radius:{{ r.v }}"></div>
+            <span style="font-size:14px;font-weight:500">{{ r.v }}</span>
+            <span style="font-size:12px;color:#657287;line-height:1.4">{{ r.use }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Тіні</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:16px;padding:8px 8px 24px">
+        <sc-for list="{{ shadows }}" as="s" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="height:88px;background:#fff;border:1px solid #EDE7DE;border-radius:16px;box-shadow:{{ s.v }}"></div>
+            <span style="font-family:ui-monospace,monospace;font-size:12px;color:#12345A">{{ s.token }}</span>
+            <span style="font-size:12px;color:#657287;line-height:1.4">{{ s.use }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:0;font-size:14px;color:#657287">Звичайна картка — без тіні, тільки тонка рамка #EDE7DE.</p>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Кнопки</h2>
+    <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;background:#12345A;color:#fff;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:#0E2D52" style-active="background:#183E68">Створити сторінку</span>
+        <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid #12345A;color:#12345A;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s" style-hover="background:#12345A;color:#fff">Подивитися приклад</span>
+        <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;color:#657287;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s" style-hover="background:#F6F1EA;color:#12233A">Назад</span>
+        <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid rgba(184,50,50,.4);color:#B83232;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:#FDE8E8">Скасувати сесію</span>
+        <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;background:#12345A;color:#fff;font-size:15px;font-weight:500;opacity:.45">Вимкнена</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <span style="display:inline-flex;align-items:center;min-height:56px;padding:0 28px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500">--lg · 56px</span>
+        <span style="display:inline-flex;align-items:center;min-height:36px;padding:0 16px;border-radius:999px;border:1px solid #12345A;color:#12345A;font-size:14px;font-weight:500">--sm · 36px</span>
+        <span style="display:inline-flex;align-items:center;min-height:36px;padding:0 16px;border-radius:12px;border:1px solid #12345A;color:#12345A;font-size:14px;font-weight:500">--square · 12px</span>
+        <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid #12345A;color:#12345A;font-size:15px;font-weight:500;outline:2px solid #12345A;outline-offset:2px">:focus-visible</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;font-size:13px;color:#657287;line-height:1.5">
+        <span><span style="color:#12233A;font-weight:500">Primary</span> — одна на екран. Hover #0E2D52, pressed #183E68.</span>
+        <span><span style="color:#12233A;font-weight:500">Secondary</span> — обведення 1px, на hover заливається.</span>
+        <span><span style="color:#12233A;font-weight:500">Ghost</span> — для третьорядних дій: «Назад», «Скасувати».</span>
+        <span><span style="color:#12233A;font-weight:500">Danger</span> — завжди з підтвердженням.</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:24px">
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Поля</h2>
+      <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px">
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:14px;font-weight:500">Email</span>
+          <input type="email" placeholder="name@example.com" style="height:54px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:16px Onest,system-ui,sans-serif;color:#12233A;outline:none;transition:border-color .15s,box-shadow .15s" style-hover="border-color:#D4CCC2" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:14px;font-weight:500">Пароль</span>
+          <div style="position:relative">
+            <input type="{{ pwType }}" value="{{ pw }}" onChange="{{ onPw }}" placeholder="Щонайменше 8 символів" style="width:100%;height:54px;padding:0 96px 0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:16px Onest,system-ui,sans-serif;color:#12233A;outline:none;transition:border-color .15s,box-shadow .15s" style-hover="border-color:#D4CCC2" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+            <span onClick="{{ togglePw }}" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);height:36px;display:flex;align-items:center;padding:0 12px;border-radius:8px;font-size:13px;font-weight:500;color:#657287;cursor:pointer;transition:all .15s" style-hover="background:#F6F1EA;color:#12233A">{{ pwLabel }}</span>
+          </div>
+          <span style="font-size:13px;color:#657287">Пароль вводиться один раз — поля «повторити пароль» немає.</span>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:14px;font-weight:500">Ім'я</span>
+          <input value="М" style="height:54px;padding:0 16px;border-radius:12px;border:1.5px solid #B83232;background:#fff;font:16px Onest,system-ui,sans-serif;color:#12233A;outline:none">
+          <span style="font-size:13px;color:#B83232">Вкажіть ім'я повністю</span>
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Вибір і статуси</h2>
+      <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">Чипи · .pc2-chip</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+              <span onClick="{{ c.pick }}" style="padding:10px 16px;border-radius:999px;border:1.5px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font-size:14px;font-weight:500;cursor:pointer;transition:all .2s">{{ c.label }}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">Сегменти · .pc2-seg</span>
+          <div style="display:inline-flex;align-self:flex-start;gap:4px;padding:4px;border-radius:999px;background:#F6F1EA">
+            <sc-for list="{{ segs }}" as="s" hint-placeholder-count="3">
+              <span onClick="{{ s.pick }}" style="padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ s.bg }};color:{{ s.fg }};box-shadow:{{ s.sh }};transition:all .2s">{{ s.label }}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">Теги · .pc2-tag (8px)</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ tags }}" as="t" hint-placeholder-count="6">
+              <span style="padding:5px 10px;border-radius:8px;background:{{ t.bg }};color:{{ t.fg }};font-size:13px;font-weight:500">{{ t.label }}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">Кроки · .pc2-steps</span>
+          <div style="display:flex;gap:6px">
+            <span style="flex:1;height:4px;border-radius:999px;background:#12345A"></span>
+            <span style="flex:1;height:4px;border-radius:999px;background:#12345A"></span>
+            <span style="flex:1;height:4px;border-radius:999px;background:#F1EBE2"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Картки</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;align-items:start">
+      <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">.pc2-card</span>
+        <span style="font-size:20px;font-weight:500;line-height:1.3">Базова · 16px</span>
+        <span style="font-size:14px;color:#657287;line-height:1.5">Біла, з тонкою рамкою, без тіні, відступ 24px.</span>
+      </div>
+      <div style="background:#F6F1EA;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">--soft</span>
+        <span style="font-size:20px;font-weight:500;line-height:1.3">Вбудований блок</span>
+        <span style="font-size:14px;color:#657287;line-height:1.5">Фон #F6F1EA без рамки. Для підказок і груп у формах.</span>
+      </div>
+      <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color .2s,box-shadow .2s" style-hover="border-color:#D4CCC2;box-shadow:0 4px 12px rgba(18,35,58,.08)">
+        <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">--interactive</span>
+        <span style="font-size:20px;font-weight:500;line-height:1.3">Наведіть курсор</span>
+        <span style="font-size:14px;color:#657287;line-height:1.5">Картка спеціаліста в пошуку, матеріали в кабінеті.</span>
+      </div>
+      <div style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:32px;display:flex;flex-direction:column;gap:8px;box-shadow:0 16px 40px rgba(18,35,58,.08)">
+        <span style="font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8B95A7">--lg --raised</span>
+        <span style="font-size:20px;font-weight:500;line-height:1.3">Великий блок · 24px</span>
+        <span style="font-size:14px;color:#657287;line-height:1.5">Hero кабінету, діалоги, нижній лист на мобільному.</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:16px;max-width:760px">
+    <h2 style="margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:500;letter-spacing:-.02em">Рух</h2>
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#3F4B5E">Тривалість 150, 200 або 400 мс, крива cubic-bezier(.4,0,.2,1). Анімуються лише прозорість, колір, рамка, невеликий зсув (до 8px) і висота рядків grid. Без пружинок і паралаксу. При <span style="font-family:ui-monospace,monospace;font-size:14px">prefers-reduced-motion</span> анімація вимикається.</p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { showPw: false, pw: 'consult2026', chip: 1, seg: 0 };
+  renderVals() {
+    const s = this.state;
+    const sw = (label, token, hex) => ({ label, token, hex });
+    const colorGroups = [
+      { name: 'Бренд і фон', items: [sw('Primary', '--pc-navy-900', '#12345A'), sw('Hover', '--pc-navy-950', '#0E2D52'), sw('Pressed', '--pc-navy-800', '#183E68'), sw('Сторінка', '--pc-bg-main', '#FBF9F5'), sw('Картка', '--pc-bg-card', '#FFFFFF'), sw('Soft', '--pc-bg-soft', '#F6F1EA'), sw('Sunk', '--pc-bg-sunk', '#F1EBE2')] },
+      { name: 'Текст і лінії', items: [sw('Основний', '--pc-text-main', '#12233A'), sw('Абзац', '--pc-text-body', '#3F4B5E'), sw('Другорядний', '--pc-text-muted', '#657287'), sw('Мета', '--pc-text-soft', '#8B95A7'), sw('Hairline', '--pc-border-hair', '#EDE7DE'), sw('Рамка поля', '--pc-border', '#E6E0D8'), sw('Рамка hover', '--pc-border-strong', '#D4CCC2')] },
+      { name: 'Акценти (тільки підкладки)', items: [sw('М\u2019ятний', '--pc-teal-500', '#8FCBC8'), sw('М\u2019ятний tint', '--pc-teal-100', '#EEF8F7'), sw('Текст на м\u2019ятному', '--pc-teal-ink', '#1F5E5A'), sw('Персиковий', '--pc-peach-500', '#F7B77E'), sw('Персиковий tint', '--pc-peach-100', '#FFF1E3'), sw('Текст на персиковому', '--pc-peach-ink', '#8A4B16')] },
+      { name: 'Статуси', items: [sw('Успіх', '--pc-success', '#2F7A55'), sw('Очікування', '--pc-warning', '#B5651F'), sw('Помилка', '--pc-danger', '#B83232'), sw('Інфо', '--pc-info', '#2F6FA8')] }
+    ];
+    const ty = (token, spec, size, fw, lh, ls, sample, tt) => ({ token, spec, size, fw, lh, ls, sample, tt: tt || 'none' });
+    const typeScale = [
+      ty('--pc-fs-display', 'clamp 40–60 · 500 · 1.08', 'clamp(40px,5vw,60px)', 500, 1.08, '-.03em', 'Ваша практика в одному місці'),
+      ty('--pc-fs-h1', 'clamp 32–42 · 500 · 1.18', 'clamp(32px,3.4vw,42px)', 500, 1.18, '-.02em', 'Знайдіть свого спеціаліста'),
+      ty('--pc-fs-h2', 'clamp 26–32 · 500', 'clamp(26px,2.6vw,32px)', 500, 1.18, '-.02em', 'Найближча сесія'),
+      ty('--pc-fs-h3', '20 · 500 · 1.3', '20px', 500, 1.3, '0', 'Ознайомча сесія · 30 хв'),
+      ty('--pc-fs-lead', 'clamp 17–19 · 400 · 1.6', 'clamp(17px,1.6vw,19px)', 400, 1.6, '0', 'Запит, сесія й матеріали — без комісій з консультацій.'),
+      ty('--pc-fs-body', '16 · 400 · 1.6', '16px', 400, 1.6, '0', 'Спеціаліст отримає ваш запит і запропонує час.'),
+      ty('--pc-fs-ui', '15 · 500 · кнопки', '15px', 500, 1.4, '0', 'Надіслати запит'),
+      ty('--pc-fs-small', '14 · 400/500', '14px', 400, 1.5, '0', 'Онлайн · українська, англійська'),
+      ty('--pc-fs-meta', '13 · 400', '13px', 400, 1.45, '0', 'Оновлено 2 дні тому'),
+      ty('--pc-fs-micro', '12 · 500 · uppercase', '12px', 500, 1.3, '.08em', 'Кікер розділу', 'uppercase')
+    ].map((t, i) => ({ ...t, bt: i ? '1px solid #EDE7DE' : '0' }));
+    const radii = [
+      { v: '8px', use: 'Теги, бейджі, мініатюри' },
+      { v: '12px', use: 'Поля, квадратні кнопки, меню' },
+      { v: '16px', use: 'Картки, панелі, панель запиту' },
+      { v: '24px', use: 'Hero, діалоги, нижній лист' },
+      { v: '999px', use: 'CTA, чипи, сегменти' }
+    ];
+    const shadows = [
+      { token: '--pc-shadow-sm', v: '0 4px 12px rgba(18,35,58,.08)', use: 'Hover картки, активний сегмент' },
+      { token: '--pc-shadow-md', v: '0 16px 40px rgba(18,35,58,.08)', use: 'Панель запиту, піднята картка' },
+      { token: '--pc-shadow-lg', v: '0 24px 60px rgba(18,35,58,.10)', use: 'Діалоги, нижній лист' }
+    ];
+    const chips = ['Психолог', 'Психотерапевт', 'Коуч', 'Інше'].map((label, i) => {
+      const on = s.chip === i;
+      return { label, bd: on ? '#12345A' : '#E6E0D8', bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#3F4B5E', pick: () => this.setState({ chip: i }) };
+    });
+    const segs = ['Майбутні', 'Минулі', 'Матеріали'].map((label, i) => {
+      const on = s.seg === i;
+      return { label, bg: on ? '#fff' : 'transparent', fg: on ? '#12233A' : '#657287', sh: on ? '0 4px 12px rgba(18,35,58,.08)' : 'none', pick: () => this.setState({ seg: i }) };
+    });
+    const tags = [
+      { label: 'Онлайн', bg: '#EEF8F7', fg: '#1F5E5A' },
+      { label: 'Нове', bg: '#FFF1E3', fg: '#8A4B16' },
+      { label: '50 хв', bg: '#F6F1EA', fg: '#3F4B5E' },
+      { label: 'Оплачено', bg: '#EEF8F1', fg: '#2F7A55' },
+      { label: 'Потребує рішення', bg: '#FFF1E3', fg: '#B5651F' },
+      { label: 'Не оплачено', bg: '#FDE8E8', fg: '#B83232' },
+      { label: 'Заплановано', bg: '#EEF4FA', fg: '#2F6FA8' }
+    ];
+    return {
+      colorGroups, typeScale, radii, shadows, chips, segs, tags,
+      pw: s.pw, pwType: s.showPw ? 'text' : 'password', pwLabel: s.showPw ? 'Сховати' : 'Показати',
+      onPw: e => this.setState({ pw: e.target.value }),
+      togglePw: () => this.setState({ showPw: !s.showPw })
+    };
+  }
+}
+</script>
+</body>
+</html>

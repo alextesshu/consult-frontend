@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<script src="./brand-listen.js"></script>
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:0 clamp(18px,4vw,48px);min-height:100vh;display:flex;flex-direction:column">
+  <header style="position:sticky;top:0;z-index:10;background:#FBF9F5;display:flex;align-items:center;gap:16px;height:68px;border-bottom:1px solid #EDE7DE">
+    <a href="For-Clients.dc.html" style="display:block;flex-shrink:0"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;display:block;margin-left:-6px"></a>
+    <div style="flex:1"></div>
+    <a href="Auth.dc.html" style="font-size:14px;color:#12345A;font-weight:500;white-space:nowrap">Увійти</a>
+  </header>
+
+  <sc-if value="{{ s.legal }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:{{ cols }};gap:clamp(24px,4vw,64px);padding:clamp(24px,4vw,48px) 0 40px;align-items:start;flex:1">
+      <aside style="display:flex;flex-direction:column;gap:20px;position:{{ asidePos }};top:92px;min-width:0">
+        <nav style="display:flex;flex-direction:{{ docDir }};gap:2px;overflow-x:auto" aria-label="Документи">
+          <sc-for list="{{ docs }}" as="d" hint-placeholder-count="5">
+            <span onClick="{{ d.on }}" style="padding:9px 12px;border-radius:12px;font-size:14px;cursor:pointer;white-space:nowrap;background:{{ d.bg }};color:{{ d.fg }};font-weight:{{ d.fw }}" style-hover="background:#F1EBE2">{{ d.l }}</span>
+          </sc-for>
+        </nav>
+        <sc-if value="{{ showToc }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:2px;padding-top:16px;border-top:1px solid #EDE7DE">
+            <span style="font-size:12px;color:#8B95A7;padding:0 12px 6px">На цій сторінці</span>
+            <sc-for list="{{ toc }}" as="t" hint-placeholder-count="8"><span onClick="{{ t.on }}" style="padding:5px 12px;font-size:13px;line-height:1.4;cursor:pointer;color:{{ t.fg }};border-left:2px solid {{ t.bd }}">{{ t.l }}</span></sc-for>
+          </div>
+        </sc-if>
+      </aside>
+
+      <article style="max-width:720px;min-width:0;display:flex;flex-direction:column;gap:18px">
+        <div style="font-size:14px;color:#8B95A7">{{ doc.kicker }}</div>
+        <h1 style="font-weight:500;font-size:clamp(32px,4.4vw,48px);letter-spacing:-0.04em;line-height:1.06;margin:-8px 0 0;text-wrap:balance">{{ doc.title }}</h1>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:#5A6578"><sc-if value="{{ doc.hasDate }}" hint-placeholder-val="{{ true }}"><span>Редакція від {{ doc.date }}</span></sc-if><span onClick="{{ printDoc }}" style="color:#12345A;cursor:pointer">Роздрукувати</span></div>
+        <sc-if value="{{ doc.isSupport }}" hint-placeholder-val="{{ false }}">
+          <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px">
+            <div style="padding:18px 20px;border-radius:20px;background:#EEF8F7;display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:500">Питання по сервісу</span><span style="font-size:14px;color:#3D5A58;line-height:1.5">Вхід, сесії, оплата Pro, помилки.</span><a href="#" style="font-size:14px;font-weight:500;margin-top:4px">support@proconsult.space</a></div>
+            <div style="padding:18px 20px;border-radius:20px;background:#F6F1EA;display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:500">Запит щодо даних</span><span style="font-size:14px;color:#5A6578;line-height:1.5">Копія, виправлення або видалення ваших даних.</span><a href="#" style="font-size:14px;font-weight:500;margin-top:4px">support@proconsult.space</a></div>
+          </section>
+        </sc-if>
+        <div style="font-size:17px;line-height:1.75;display:flex;flex-direction:column;gap:14px;text-wrap:pretty">
+          <sc-for list="{{ intro }}" as="p" hint-placeholder-count="1"><p style="margin:0;color:#3F4B5E">{{ p }}</p></sc-for>
+          <sc-for list="{{ sections }}" as="x" hint-placeholder-count="4">
+            <h2 id="{{ x.id }}" style="font-weight:500;font-size:24px;letter-spacing:-0.02em;line-height:1.25;margin:18px 0 0;scroll-margin-top:92px">{{ x.h }}</h2>
+            <sc-for list="{{ x.b }}" as="p" hint-placeholder-count="1"><p style="margin:0;color:#3F4B5E;padding-left:{{ p.pad }}">{{ p.t }}</p></sc-for>
+          </sc-for>
+        </div>
+
+      </article>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ s.err }}" hint-placeholder-val="{{ false }}">
+    <main style="flex:1;display:grid;grid-template-columns:{{ errCols }};gap:clamp(24px,5vw,80px);align-items:center;padding:clamp(32px,8vh,96px) 0">
+      <div style="display:flex;flex-direction:column;gap:18px;max-width:520px">
+        <span style="font-size:14px;color:#8B95A7;letter-spacing:.04em">{{ e.code }}</span>
+        <h1 style="font-weight:500;font-size:clamp(34px,5vw,56px);letter-spacing:-0.045em;line-height:1.04;margin:0;text-wrap:balance">{{ e.title }}</h1>
+        <p style="font-size:18px;line-height:1.6;color:#5A6578;margin:0;text-wrap:pretty">{{ e.sub }}</p>
+        <sc-if value="{{ e.hasAcct }}" hint-placeholder-val="{{ false }}"><div style="padding:12px 14px;border-radius:14px;background:#F6F1EA;font-size:14px;color:#5A6578">Ви увійшли як <span style="color:#12233A">iryna.m@gmail.com</span> · клієнт</div></sc-if>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <a href="{{ e.p1h }}" style="padding:13px 22px;border-radius:999px;font-size:15px;font-weight:500;background:#12345A;color:#fff;white-space:nowrap" style-hover="background:#0E2D52;color:#fff">{{ e.p1 }}</a>
+          <a href="{{ e.p2h }}" style="padding:13px 20px;border-radius:999px;font-size:15px;border:1px solid #E6E0D8;color:#12233A;white-space:nowrap" style-hover="border-color:#12345A">{{ e.p2 }}</a>
+        </div>
+      </div>
+      <sc-if value="{{ errArt }}" hint-placeholder-val="{{ true }}"><div style="display:flex;justify-content:center;opacity:.9"><x-import component-from-global-scope="PCListen" size="{{ 200 }}" color="#0F2D52" hint-size="200px,200px"></x-import></div></sc-if>
+    </main>
+  </sc-if>
+
+  <footer style="border-top:1px solid #EDE7DE;padding:24px 0 32px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:#8B95A7">
+    <span>© 2026 Pro Consult</span>
+    <span style="display:flex;gap:16px;flex-wrap:wrap"><a href="Public-Content.dc.html" style="color:#5A6578">Часті питання</a><span onClick="{{ toTerms }}" style="color:#5A6578;cursor:pointer">Умови</span><span onClick="{{ toPrivacy }}" style="color:#5A6578;cursor:pointer">Конфіденційність</span><span onClick="{{ toSupport }}" style="color:#5A6578;cursor:pointer">Підтримка</span></span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;legal&quot;,&quot;403&quot;,&quot;404&quot;],&quot;default&quot;:&quot;legal&quot;,&quot;tsType&quot;:&quot;'legal'|'403'|'404'&quot;},&quot;doc&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;terms&quot;,&quot;privacy&quot;,&quot;disclaimer&quot;,&quot;feedback&quot;,&quot;support&quot;],&quot;default&quot;:&quot;terms&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const DOCS = {
+  terms: ['Умови використання', 'Документ', '1 жовтня 2026', ['1. Загальні положення', '2. Терміни', '3. Прийняття умов', '4. Реєстрація та акаунт', '5. Ролі користувачів', '6. Профіль спеціаліста і контент', '7. Запити, погодження часу і сесії', '8. Платні функції та підписка', '9. Дозволене і заборонене використання', '10. Блокування і припинення доступу', '11. Інтелектуальна власність', '12. Обмеження відповідальності', '13. Зміни сервісу і умов', '14. Контакти та звернення']],
+  privacy: ['Політика конфіденційності', 'Документ', '1 жовтня 2026', ['1. Хто обробляє дані', '2. Які дані ми збираємо', '3. Навіщо', '4. Хто ще їх бачить', '5. Скільки зберігаємо', '6. Ваші права', '7. Контакти']],
+  disclaimer: ['Застереження', 'Документ', '1 жовтня 2026', ['1. Pro Consult — не медичний сервіс', '2. Відповідальність спеціаліста', '3. Екстрені ситуації']],
+  feedback: ['Політика відгуків', 'Документ', '1 жовтня 2026', ['1. Хто може залишити відгук', '2. Що ми публікуємо', '3. Модерація', '4. Оскарження']],
+  support: ['Підтримка й запити щодо даних', 'Довідка', '1 жовтня 2026', ['1. Звичайні питання підтримки', '2. Запити щодо даних', '3. Чи є Pro Consult медичною системою?', '4. Що додати в лист', '5. Як підтримка працює з даними', '6. Після видалення акаунта', '7. Відповідь на звернення', '8. Контакт']],
+};
+const LBL = { terms: 'Умови використання', privacy: 'Конфіденційність', disclaimer: 'Застереження', feedback: 'Політика відгуків', support: 'Підтримка й дані' };
+const P = 'Ці умови регулюють користування сервісом Pro Consult. Користуючись сервісом, ви погоджуєтесь з ними. Якщо щось незрозуміло — напишіть нам, перш ніж продовжувати.';
+
+class Component extends DCLogic {
+  state = { scr: null, doc: null, act: 0, w: 1280, L: null };
+  componentDidMount() { fetch('legal-texts.json').then(r => r.json()).then(L => this.setState({ L })).catch(() => {}); this.rs = () => this.setState({ w: window.innerWidth }); this.rs(); window.addEventListener('resize', this.rs); }
+  componentWillUnmount() { window.removeEventListener('resize', this.rs); }
+  componentDidUpdate(pp) { if (pp.screen !== this.props.screen || pp.doc !== this.props.doc) this.setState({ scr: null, doc: null, act: 0 }); }
+  renderVals() {
+    const S = this.state, Pr = this.props, scr = S.scr ?? Pr.screen ?? 'legal', dk = S.doc ?? Pr.doc ?? 'terms', wide = S.w >= 1000;
+    const D = DOCS[dk], LX = S.L && S.L[dk];
+    const dLine = LX ? LX.intro.find(t => /^Останнє оновлення/i.test(t)) : null;
+    const docDate = dLine ? dLine.replace(/^Останнє оновлення:?\s*/i, '') : '';
+    const secs = LX ? LX.secs : D[3].map(h => ({ h, b: [] }));
+    const toDoc = k => () => { this.setState({ scr: 'legal', doc: k, act: 0 }); window.scrollTo(0, 0); };
+    const E = scr === '403'
+      ? { code: 'Помилка 403', title: 'Ця сторінка не для вашого акаунта', sub: 'Вона доступна лише спеціалістам. Якщо ви спеціаліст — вийдіть і увійдіть зі своєю робочою поштою.', p1: 'До мого кабінету', p1h: 'Client-Cabinet.dc.html', p2: 'Увійти іншим акаунтом', p2h: 'Auth.dc.html', hasAcct: true }
+      : { code: 'Помилка 404', title: 'Такої сторінки немає', sub: 'Можливо, посилання застаріло або в ньому помилка. Профіль спеціаліста міг змінити адресу.', p1: 'Знайти спеціаліста', p1h: 'Find-Specialist.dc.html', p2: 'На головну', p2h: 'For-Clients.dc.html', hasAcct: false };
+    return {
+      s: { legal: scr === 'legal', err: scr !== 'legal' },
+      cols: wide ? '260px minmax(0,1fr)' : 'minmax(0,1fr)', asidePos: wide ? 'sticky' : 'static', docDir: wide ? 'column' : 'row', showToc: wide,
+      docs: Object.keys(LBL).map(k => { const on = k === dk; return { l: LBL[k], bg: on ? '#F1EBE2' : 'transparent', fg: on ? '#12233A' : '#5A6578', fw: on ? '500' : '400', on: toDoc(k) }; }),
+      toc: secs.map((x, i) => ({ l: x.h, fg: i === S.act ? '#12233A' : '#8B95A7', bd: i === S.act ? '#12345A' : '#EDE7DE', on: () => { this.setState({ act: i }); const el = document.getElementById('sec-' + i); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 92, behavior: 'smooth' }); } })),
+      doc: { title: (LX && LX.title) || D[0], kicker: D[1], date: docDate, hasDate: !!docDate, isSupport: dk === 'support' },
+      intro: LX ? LX.intro.filter(t => t !== dLine) : [], sections: secs.map((x, i) => ({ id: 'sec-' + i, h: x.h, b: x.b.map(t => ({ t, pad: t.startsWith('•') ? '8px' : '0' })) })),
+      printDoc: () => window.print(),
+      e: E, errCols: S.w >= 900 ? 'minmax(0,1.2fr) minmax(0,1fr)' : 'minmax(0,1fr)', errArt: S.w >= 900,
+      toTerms: toDoc('terms'), toPrivacy: toDoc('privacy'), toSupport: toDoc('support'),
+    };
+  }
+}
+</script>
+</body>
+</html>

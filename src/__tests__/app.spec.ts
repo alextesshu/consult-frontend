@@ -108,6 +108,7 @@ async function renderWithProviders(options?: {
 }) {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' }, meta: { publicSurface: 'neutral' } },
+    { path: '/for-clients', name: 'for-clients', component: { template: '<div>For Clients</div>' }, meta: { publicSurface: 'neutral' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
@@ -294,16 +295,65 @@ describe('App shell', () => {
     const header = document.querySelector('header.pc2-header') as HTMLElement
     const audience = within(header).getByRole('navigation', { name: 'Для кого Pro Consult' })
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('href', '/')
-    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/#client-entry-title')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/for-clients')
     expect(within(header).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
     expect(within(header).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(header).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
     expect(within(header).getByRole('link', { name: /Спробувати безкоштовно/ })).toHaveClass('pc2-btn', 'pc2-btn--primary')
-    expect(header.querySelector('.pc2-header__logo')).toHaveAttribute('src', '/brand/proconsult-logo-dark.png')
+    expect(header.querySelector('.pc2-header__logo')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
     expect(within(header).queryByRole('button', { name: 'Меню' })).not.toBeInTheDocument()
   })
 
-  it('reactively switches header versions and tracks the actual client-entry hash', async () => {
+  it('uses the approved v2 lockup in public chrome and retains legal/privacy destinations', async () => {
+    applyUiVersion('v2')
+    await renderWithProviders()
+    const footer = document.querySelector('footer.pc2-footer') as HTMLElement
+    expect(footer).toBeInTheDocument()
+    expect(within(footer).getByRole('img', { name: 'Pro Consult' }).getAttribute('src')).toContain('proconsult-fennec-lockup.svg')
+    for (const href of ['/terms', '/privacy', '/disclaimer', '/support-and-data-requests', '/faq', '/pricing', '/signup', '/login']) {
+      expect(footer.querySelector(`a[href="${href}"]`)).toBeInTheDocument()
+    }
+    expect(document.querySelector('a[href="/for-clients"]')).toBeInTheDocument()
+    expect(document.querySelector('header img[src="/brand/proconsult-logo-dark.png"]')).toBeNull()
+    await fireEvent.click(within(footer).getByRole('button', { name: 'Налаштування конфіденційності' }))
+    expect(screen.getByRole('heading', { name: 'Файли cookie та аналітика' })).toBeInTheDocument()
+    applyUiVersion('v1')
+    await waitFor(() => expect(document.querySelector('footer.pc2-footer')).toBeNull())
+    expect(document.querySelector('header .brand__logo--full')).toHaveAttribute('src', '/brand/proconsult-logo-dark.png')
+    expect(document.querySelector('footer .footer__logo--light')).toHaveAttribute('src', '/brand/proconsult-logo-light.png')
+  })
+
+  it('provides public navigation disclosure with Escape focus return and closes after navigation', async () => {
+    applyUiVersion('v2')
+    const { router } = await renderWithProviders()
+    const button = screen.getByRole('button', { name: 'Меню сайту' })
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    const nav = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+    const pricing = within(nav).getByRole('link', { name: 'Тарифи' })
+    pricing.focus()
+    await fireEvent.keyDown(pricing, { key: 'Escape' })
+    expect(button).toHaveFocus()
+    expect(screen.queryByRole('navigation', { name: 'Мобільна навігація сайту' })).toBeNull()
+    await fireEvent.click(button)
+    await fireEvent.click(within(screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })).getByRole('link', { name: 'Тарифи' }))
+    await waitFor(() => expect(router.currentRoute.value.path).toBe('/pricing'))
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    await fireEvent.click(document.body)
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    await router.push('/?ui=v2#client-entry-title')
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    applyUiVersion('v1')
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Меню сайту' })).toBeNull())
+    applyUiVersion('v2')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Меню сайту' })).toHaveAttribute('aria-expanded', 'false'))
+  })
+
+  it('reactively switches header versions and tracks the client landing and legacy hash', async () => {
     const { router } = await renderWithProviders()
     applyUiVersion('v2')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeInTheDocument())
@@ -311,8 +361,17 @@ describe('App shell', () => {
     await router.push('/#client-entry-title')
     expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('aria-current', 'false')
+    await router.push('/for-clients')
+    expect(document.querySelector('main')).toHaveClass('main--for-clients-v2')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
+    expect(document.querySelector('a.nav__guest-cta')).toHaveAttribute('href', '/signup-client?ui=v2')
+    expect(document.querySelector('.nav__guest-cta-full')).toHaveTextContent('Створити кабінет')
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+    const mobile = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+    expect(within(mobile).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
     applyUiVersion('v1')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeNull())
+    expect(document.querySelector('main')).not.toHaveClass('main--for-clients-v2')
     expect(screen.queryByRole('navigation', { name: 'Для кого Pro Consult' })).not.toBeInTheDocument()
   })
 
@@ -322,6 +381,8 @@ describe('App shell', () => {
       await renderWithProviders({ roles })
       const header = document.querySelector('header.topbar') as HTMLElement
       expect(header).not.toHaveClass('pc2-header')
+      expect(header.querySelector('.pc2-brand-lockup')).toBeNull()
+      expect(document.querySelector('footer.pc2-footer')).toBeNull()
       expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
       await fireEvent.click(within(header).getByRole('button', { name: 'Меню' }))
       expect(header.querySelector('.mobile-menu')).toBeInTheDocument()
