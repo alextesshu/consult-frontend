@@ -217,10 +217,10 @@ html[data-ui="v2"] .pc2-input:focus-visible {
   outline-offset: var(--pc-focus-offset);
 }
 
-/* KAN-158 public brand override: approved fennec lockup retains its original
-   stacked composition and outlined Montserrat. Never affects v1/auth chrome. */
+/* KAN-158 public brand override: approved fennec and outlined Montserrat retain their geometry.
+   Header composition is horizontal; the original stacked footer stays intact. Never affects v1/auth chrome. */
 html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup {
-  display: block; height: calc(var(--pc-header-logo-h) + var(--pc-space-4));
+  display: block; height: var(--pc-header-logo-h);
   width: auto; max-width: none; flex-shrink: 0;
 }
 html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-header__cta {
@@ -296,7 +296,7 @@ html[data-ui="v2"] .footer .footer__logo.pc2-footer__compact-logo { height: var(
   }
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience { order: 0; flex-basis: auto; }
 }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__audience,
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__actions .nav__guest-catalog,
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__actions .nav__desktop-only { display: none; }
@@ -321,4 +321,10 @@ html[data-ui="v2"] .pc2-footer a,
 html[data-ui="v2"] .pc2-footer button {
   transition-property: color, background-color, border-color;
   transition-duration: var(--pc-dur-fast);
+}
+
+/* Preserve readable outlined type and room for the existing CTA/menu on phones. */
+@media (max-width: 640px) {
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup { height: var(--pc-space-8); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__actions .pc2-header__login { display: none; }
 }

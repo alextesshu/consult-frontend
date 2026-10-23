@@ -19,5 +19,15 @@
       "source": "consult-logo_2026-10-23-0015.pdf",
       "source_sha256": "0d36ff0e4aaaf75adf4d50e1ab1c9f939537466be697c2e2dc8257c271574f2c"
     }
-  ]
+  ],
+  "header_composition": {
+    "asset": "src/assets/brand-v2/proconsult-fennec-header.svg",
+    "sha256": "80119c9f863272710d300a0ecd15c548b7013d4ef013a659d5f57fb6df671031",
+    "symbol_source": "consult-logo_2026-10-23-0115-blue.pdf",
+    "wordmark_source": "consult-logotype_1_2026-10-23-0115.pdf",
+    "method": "User-approved horizontal header correction: copy symbol paths and original wordmark glyphs unchanged into independently uniformly scaled viewports; symbol left, wordmark right; stacked footer asset unchanged",
+    "viewBox": "0 0 196.9116914199159 40",
+    "wordmark_painted_height_at_desktop_px": 20,
+    "wordmark_painted_height_at_mobile_px": 16
+  }
 }

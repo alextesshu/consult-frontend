@@ -52,13 +52,13 @@ describe('UI v2 CSS contract', () => {
     }
   })
 
-  it('isolates public footer resets, accessible links and the approved stacked lockup', () => {
+  it('isolates public footer resets, accessible links and the separate header/footer lockups', () => {
     const footer = declarations(`${gate} .shell .footer.pc2-footer`)
     expect(footer.background).toBe('var(--pc-bg-main)')
     expect(footer['box-shadow']).toBe('none')
     expect(footer['border-top']).toContain('var(--pc-border-hair)')
     expect(contrast(vars['--pc-text-muted']!, vars['--pc-bg-main']!)).toBeGreaterThanOrEqual(4.5)
-    expect(declarations(`${gate} .pc2-header.topbar--guest .pc2-brand-lockup`).height).toBe('calc(var(--pc-header-logo-h) + var(--pc-space-4))')
+    expect(declarations(`${gate} .pc2-header.topbar--guest .pc2-brand-lockup`).height).toBe('var(--pc-space-8)')
     const selector = `${gate} .pc2-header.topbar--guest .nav a.pc2-header__cta`
     for (const state of ['', ':hover', ':active']) {
       const style = { ...declarations(selector), ...declarations(`${selector}${state}`) }
@@ -79,6 +79,25 @@ describe('UI v2 CSS contract', () => {
       expect(svg).toContain('<path')
       expect(svg).toContain('#0e2d52')
     }
+  })
+
+  it('composes a horizontal header from unchanged approved symbol paths and glyphs', () => {
+    const parse = (name: string) => new DOMParser().parseFromString(read(`src/assets/brand-v2/${name}.svg`), 'image/svg+xml')
+    const header = parse('proconsult-fennec-header')
+    const footer = parse('proconsult-fennec-lockup')
+    const symbol = parse('proconsult-fennec-symbol-blue')
+    expect(header.querySelector('parsererror')).toBeNull()
+    const parts = header.querySelectorAll('svg[data-brand-part]')
+    expect(parts).toHaveLength(2)
+    expect(parts[0]!.getAttribute('x')).toBe('0')
+    expect(parts[1]!.getAttribute('x')).toBe('52')
+    expect(parts[1]!.getAttribute('y')).toBe('10')
+    const attributes = (selector: string, root: ParentNode) => Array.from(root.querySelectorAll(selector), (node) =>
+      Object.fromEntries(Array.from(node.attributes, (attr) => [attr.name, attr.value])))
+    expect(attributes('path', parts[0]!)).toEqual(attributes('path', symbol))
+    expect(attributes('use', parts[1]!)).toEqual(attributes('use', footer))
+    expect(attributes('defs path', header)).toEqual(attributes('defs path', footer))
+    expect(header.querySelector('text')).toBeNull()
   })
 
   it('gates every selector branch, including nested media queries, away from v1', () => {

@@ -2,7 +2,7 @@
 
 ## Approved UI v2 brand override — KAN-158 (2026-10-23)
 
-The user-approved minimalist fennec in `logo.rar` supersedes older Claude artwork for the public UI v2 header/footer. Preserve the exact primary PDF lockup, outlined Montserrat wordmark, symbol geometry/negative space and supplied colors; UI typography/layout/navigation still follow Claude v5. See [source PDFs, hashes, conversion and acceptance](ui-v2/brand/approved-fennec-2026-10-23/README.md). Keep separately named v2 assets; preserve existing v1 logos, global icons/favicons and all runtime/product safeguards. This override does not authorize replacing brand artwork inside other pages or source snapshots.
+The user-approved minimalist fennec in `logo.rar` supersedes older Claude artwork for the public UI v2 header/footer. Preserve the original PDF symbol/glyph geometry, negative space and supplied colors; use the user-approved horizontal header composition and retain the original stacked footer lockup. The Montserrat wordmark remains outlined; UI typography/layout/navigation still follow Claude v5. See [source PDFs, hashes, conversion and acceptance](ui-v2/brand/approved-fennec-2026-10-23/README.md). Keep separately named v2 assets; preserve existing v1 logos, global icons/favicons and all runtime/product safeguards. This override does not authorize replacing brand artwork inside other pages or source snapshots.
 
 ## Current supplied snapshot — v5 incremental overlay
 

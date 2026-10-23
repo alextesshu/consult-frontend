@@ -279,5 +279,12 @@
     ],
     "header_height": 76,
     "overflow": false
+  },
+  "header_correction": {
+    "evidence": "header-correction/ACCEPTANCE.json",
+    "supersedes": "Initial 56px stacked header dimensions only; footer and v1 remain unchanged",
+    "desktop_asset_height_px": 40,
+    "mobile_asset_height_px": 32,
+    "source_of_truth": "User-approved horizontal header correction"
   }
 }

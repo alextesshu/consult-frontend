@@ -14,7 +14,7 @@
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
-          <img v-if="usePublicHeaderV2" class="pc2-brand-lockup pc2-header__logo" :src="fennecLockup" alt="Pro Consult" />
+          <img v-if="usePublicHeaderV2" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
           <span v-else class="brand__logo-frame">
             <img class="brand__logo brand__logo--full" :class="{ 'pc2-header__logo': usePublicHeaderV2 }" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
@@ -66,7 +66,7 @@
           Публічний профіль
         </RouterLink>
         <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
-        <RouterLink v-if="!isAuthenticated" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
+        <RouterLink v-if="!isAuthenticated" :class="{ 'pc2-header__link pc2-header__login': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary pc2-header__cta': usePublicHeaderV2 }" to="/signup">
           <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
           <span class="nav__guest-cta-short">Спробувати</span>
@@ -588,6 +588,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import { isUiV2 } from './lib/uiVersion'
 import fennecLockup from './assets/brand-v2/proconsult-fennec-lockup.svg'
+import fennecHeader from './assets/brand-v2/proconsult-fennec-header.svg'
 import fennecSymbol from './assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'

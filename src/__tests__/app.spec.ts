@@ -299,7 +299,7 @@ describe('App shell', () => {
     expect(within(header).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(header).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
     expect(within(header).getByRole('link', { name: /Спробувати безкоштовно/ })).toHaveClass('pc2-btn', 'pc2-btn--primary')
-    expect(header.querySelector('.pc2-header__logo')?.getAttribute('src')).toContain('proconsult-fennec-lockup.svg')
+    expect(header.querySelector('.pc2-header__logo')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
     expect(within(header).queryByRole('button', { name: 'Меню' })).not.toBeInTheDocument()
   })
 
