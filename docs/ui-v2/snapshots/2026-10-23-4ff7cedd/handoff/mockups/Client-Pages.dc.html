@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input,textarea{font:inherit;color:inherit}input::placeholder,textarea::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="min-height:100vh;display:grid;grid-template-columns:{{ cols }}">
+
+  <aside style="position:sticky;top:0;align-self:start;height:100vh;display:{{ sideDisp }};flex-direction:column;gap:28px;padding:24px 16px;border-right:1px solid #EDE7DE;background:#FBF9F5">
+    <a href="Client-Cabinet.dc.html" style="align-self:flex-start;display:block"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:36px;width:auto;display:block;margin-left:-4px"></a>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <span onClick="{{ n.on }}" style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;font-size:15px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }};transition:all .2s" style-hover="background:#F1EBE2">
+          {{ n.label }}
+          <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if>
+        </span>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">
+      <a href="Find-Specialist.dc.html" style="padding:12px 14px;border-radius:12px;border:1px solid #E6E0D8;font-size:14px;text-align:center;color:#12233A" style-hover="border-color:#12345A;color:#12233A">Знайти спеціаліста</a>
+      <div style="display:flex;align-items:center;gap:10px;padding:4px">
+        <span style="width:32px;height:32px;border-radius:50%;background:#DDF1EF;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">О</span>
+        <div style="font-size:14px;line-height:1.3">Олена<div style="font-size:12px;color:#8B95A7">Кабінет клієнта</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main style="padding:{{ mainPad }};max-width:1120px;width:100%;opacity:{{ op }};transform:translateY({{ ty }});transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1)">
+    <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 20px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;display:block;margin-left:-6px"><span style="width:36px;height:36px;border-radius:50%;background:#DDF1EF;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">О</span></div></sc-if>
+
+    <sc-if value="{{ s.materials }}" hint-placeholder-val="{{ true }}">
+      <h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0 0 8px">Матеріали</h1>
+      <p style="font-size:15px;line-height:1.55;color:#5A6578;margin:0 0 24px;max-width:560px">Вправи, рекомендації й посилання, які спеціаліст відкрив для вас. Згруповані за сесіями.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
+        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+          <span onClick="{{ f.on }}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;white-space:nowrap;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }};transition:all .2s">{{ f.label }}<span style="font-size:12px;opacity:.7">{{ f.n }}</span></span>
+        </sc-for>
+      </div>
+      <sc-if value="{{ matEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:36px 24px;border-radius:20px;background:#F6F1EA;color:#5A6578;font-size:15px;display:flex;align-items:center;gap:16px"><img src="public/brand/mark-pale.png" alt="" style="width:40px;height:40px">Цього типу матеріалів поки немає.</div>
+      </sc-if>
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+          <section style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px"><h2 style="font-weight:500;font-size:17px;letter-spacing:-0.01em;margin:0">{{ g.title }}</h2><span style="font-size:13px;color:#8B95A7">{{ g.sub }}</span></div>
+            <sc-for list="{{ g.items }}" as="m" hint-placeholder-count="2">
+              <div onClick="{{ m.on }}" style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px;border-radius:16px;background:#fff;border:1px solid {{ m.bd }};cursor:pointer;transition:transform .25s,border-color .25s" style-hover="transform:translateX(4px);border-color:#D4CCC2">
+                <span style="width:44px;height:44px;border-radius:12px;background:{{ m.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;color:#12233A">{{ m.kindShort }}</span>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.t }}</div>
+                  <div style="font-size:13px;color:#8B95A7">{{ m.kind }} · {{ m.meta }}</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <sc-if value="{{ m.isNew }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#FFE2C4">нове</span></sc-if>
+                  <span style="color:#8B95A7">→</span>
+                </div>
+              </div>
+            </sc-for>
+          </section>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.event }}" hint-placeholder-val="{{ false }}">
+      <a href="Client-Cabinet.dc.html" style="display:inline-flex;font-size:14px;margin-bottom:16px">← Головна</a>
+      <section style="border-radius:28px;background:{{ ev.bg }};color:{{ ev.fg }};padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end;margin-bottom:16px;transition:background .5s">
+        <div style="display:flex;flex-direction:column;gap:8px;max-width:560px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:{{ ev.sub }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ ev.dot }};opacity:{{ ev.dotOp }};transition:opacity .8s ease"></span>{{ ev.kicker }}</div>
+          <h1 style="font-weight:500;font-size:clamp(28px,3vw,36px);letter-spacing:-0.03em;line-height:1.1;margin:0;text-decoration:{{ ev.td }}">Коло підтримки: тривога</h1>
+          <div style="font-size:clamp(18px,2vw,22px);font-weight:500;letter-spacing:-0.01em">{{ ev.when }}</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:{{ ev.sub }}"><span style="width:28px;height:28px;border-radius:9px;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span><span>Веде Марія Коваль · {{ ev.mode }}</span></div>
+        </div>
+        <sc-if value="{{ ev.active }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <span style="padding:13px 22px;border-radius:999px;font-size:15px;font-weight:500;white-space:nowrap;background:{{ ev.joinBg }};color:{{ ev.joinFg }};cursor:{{ ev.joinCur }};transition:all .3s">Приєднатися</span>
+              <sc-if value="{{ ev.notLive }}" hint-placeholder-val="{{ true }}"><span onClick="{{ addCal }}" style="padding:13px 20px;border-radius:999px;font-size:15px;white-space:nowrap;border:1px solid rgba(255,255,255,.3);cursor:pointer" style-hover="background:rgba(255,255,255,.08)">{{ calL }}</span></sc-if>
+            </div>
+            <span style="font-size:13px;color:{{ ev.sub }}">{{ ev.hint }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ev.ended }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:320px">
+            <span style="font-size:15px;line-height:1.5;color:#5A6578">{{ ev.endNote }}</span>
+            <span style="align-self:flex-start;padding:12px 20px;border-radius:999px;border:1px solid #D4CCC2;font-size:15px;cursor:pointer;white-space:nowrap;background:#fff">Написати Марії</span>
+          </div>
+        </sc-if>
+      </section>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px">
+        <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:16px">
+          <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Як усе пройде</h2>
+          <sc-for list="{{ evFacts }}" as="f" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline">
+              <span style="font-size:13px;color:#8B95A7">{{ f.k }}</span>
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:{{ f.c }}">{{ f.v }}</span><span style="font-size:13px;line-height:1.45;color:#8B95A7">{{ f.d }}</span></div>
+            </div>
+          </sc-for>
+        </section>
+        <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Учасники</h2><span style="font-size:13px;color:#8B95A7">8 із 12 місць</span></div>
+          <sc-if value="{{ evShowNames }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ evPeople }}" as="p" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #F1EBE2">
+                  <span style="width:32px;height:32px;border-radius:50%;background:{{ p.tint }};color:#12345A;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ p.ini }}</span>
+                  <span style="flex:1;font-size:15px">{{ p.n }}</span>
+                  <span style="font-size:13px;color:#8B95A7">{{ p.r }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <span style="font-size:13px;color:#8B95A7">Інші учасники бачать ваше ім’я так само, як ви — їхні.</span>
+          </sc-if>
+          <sc-if value="{{ evHidden }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px;border-radius:16px;background:#F6F1EA;display:flex;gap:14px;align-items:center"><img src="public/brand/mark-pale.png" alt="" style="width:40px;height:40px"><span style="font-size:14px;line-height:1.5;color:#5A6578">Ведуча приховала список. Ваше ім’я інші учасники теж не бачать.</span></div>
+          </sc-if>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.diary }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin:0 0 8px"><h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0">Мій щоденник</h1><span style="font-size:13px;color:#B5651F">бачите лише ви</span></div>
+      <p style="font-size:15px;line-height:1.55;color:#5A6578;margin:0 0 24px;max-width:560px">Для себе. Окремі записи можна відкрити спеціалісту перед сесією — решта лишається тільки вашою.</p>
+      <div style="display:grid;grid-template-columns:{{ dCols }};gap:16px;align-items:start">
+        <div style="min-width:0;display:flex;flex-direction:column;gap:16px">
+          <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:15px;font-weight:500">Як ви зараз?</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ cMoods }}" as="md" hint-placeholder-count="5">
+                <span onClick="{{ md.on }}" style="display:flex;align-items:center;gap:8px;font-size:14px;padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;background:{{ md.bg }};color:{{ md.fg }};border:1px solid {{ md.bd }};transition:all .2s"><span style="width:10px;height:10px;border-radius:50%;background:{{ md.dot }}"></span>{{ md.label }}</span>
+              </sc-for>
+            </div>
+            <textarea value="{{ dText }}" onChange="{{ onDText }}" rows="3" placeholder="Що сталося, що подумали, що відчули в тілі" style="padding:12px 14px;border-radius:14px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:15px;line-height:1.5;resize:vertical;outline:none" style-focus="border-color:#12345A;background:#fff"></textarea>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+              <span style="font-size:13px;color:#8B95A7;margin-right:4px">Теги</span>
+              <sc-for list="{{ cTags }}" as="t" hint-placeholder-count="5">
+                <span onClick="{{ t.on }}" style="font-size:13px;padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;background:{{ t.bg }};color:{{ t.fg }};border:1px solid {{ t.bd }};transition:all .2s">#{{ t.label }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding-top:4px">
+              <div onClick="{{ toggleDShare }}" role="checkbox" aria-checked="{{ dShareAria }}" style="display:flex;gap:10px;align-items:center;cursor:pointer;min-height:32px">
+                <span style="width:22px;height:22px;border-radius:7px;flex-shrink:0;border:1.5px solid {{ dShBd }};background:{{ dShBg }};color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s">{{ dShMark }}</span>
+                <span style="font-size:14px">Підготувати до сесії <span style="color:#8B95A7">29 жовтня</span></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="font-size:13px;color:#2F7A55;opacity:{{ dSavedOp }};transition:opacity .4s">Збережено</span>
+                <span onClick="{{ addEntry }}" style="padding:11px 20px;border-radius:999px;font-size:14px;font-weight:500;color:#fff;background:{{ dAddBg }};cursor:{{ dAddCur }};transition:background .3s">Зберегти запис</span>
+              </div>
+            </div>
+          </section>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <input value="{{ dQ }}" onChange="{{ onDQ }}" placeholder="Пошук у записах" aria-label="Пошук у записах" style="height:46px;padding:0 16px;border-radius:999px;border:1.5px solid #E6E0D8;background:#fff;font-size:15px;outline:none" style-focus="border-color:#12345A">
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ fMoods }}" as="f" hint-placeholder-count="6">
+                <span onClick="{{ f.on }}" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }};transition:all .2s"><span style="width:8px;height:8px;border-radius:50%;background:{{ f.dot }};display:{{ f.dotD }}"></span>{{ f.label }}</span>
+              </sc-for>
+              <span style="width:1px;background:#E6E0D8;margin:4px 4px"></span>
+              <sc-for list="{{ fTags }}" as="f" hint-placeholder-count="5">
+                <span onClick="{{ f.on }}" style="padding:7px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }};transition:all .2s">#{{ f.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ dEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:32px 24px;border-radius:20px;background:#F6F1EA;color:#5A6578;font-size:15px;display:flex;align-items:center;gap:16px"><img src="public/brand/mark-pale.png" alt="" style="width:40px;height:40px">Таких записів немає. <span onClick="{{ resetDF }}" style="color:#12345A;cursor:pointer">Скинути фільтри</span></div>
+          </sc-if>
+          <sc-for list="{{ dGroups }}" as="g" hint-placeholder-count="3">
+            <section style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:13px;color:#8B95A7;padding:0 4px">{{ g.day }}</div>
+              <sc-for list="{{ g.items }}" as="e" hint-placeholder-count="1">
+                <article style="background:#fff;border:1px solid {{ e.bd }};border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;transition:border-color .3s">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#8B95A7">{{ e.time }}</span><span style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:999px;background:{{ e.mBg }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ e.mDot }}"></span>{{ e.mood }}</span></div>
+                    <sc-if value="{{ e.shared }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#EEF4FA;color:#2F6FA8">Відкрито Марії</span></sc-if>
+                  </div>
+                  <p style="font-size:15px;line-height:1.55;margin:0">{{ e.text }}</p>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                    <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ e.tagList }}" as="t" hint-placeholder-count="1"><span style="font-size:12px;color:#5A6578">#{{ t.t }}</span></sc-for></div>
+                    <span onClick="{{ e.toggle }}" style="font-size:13px;padding:6px 10px;margin:-6px -10px;border-radius:999px;color:#12345A;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">{{ e.toggleL }}</span>
+                  </div>
+                </article>
+              </sc-for>
+            </section>
+          </sc-for>
+        </div>
+
+        <div style="min-width:0;display:flex;flex-direction:column;gap:16px;position:{{ dSidePos }};top:24px">
+          <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <span style="font-size:15px;font-weight:500">Настрій</span>
+              <div style="display:flex;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px">
+                <sc-for list="{{ calTabs }}" as="t" hint-placeholder-count="2"><span onClick="{{ t.on }}" style="padding:5px 12px;border-radius:999px;font-size:13px;cursor:pointer;background:{{ t.bg }};box-shadow:{{ t.sh }};transition:all .25s">{{ t.label }}</span></sc-for>
+              </div>
+            </div>
+            <span style="font-size:13px;color:#8B95A7">{{ calTitle }}</span>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:{{ calGap }}">
+              <sc-for list="{{ wdays }}" as="d" hint-placeholder-count="7"><span style="font-size:11px;color:#8B95A7;text-align:center">{{ d.l }}</span></sc-for>
+              <sc-for list="{{ cal }}" as="c" hint-placeholder-count="31">
+                <span title="{{ c.title }}" style="aspect-ratio:1;border-radius:{{ c.r }};background:{{ c.bg }};border:1px solid {{ c.bd }};display:flex;align-items:center;justify-content:center;font-size:{{ c.fs }};color:{{ c.fg }};opacity:{{ c.op }}">{{ c.n }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px 12px">
+              <sc-for list="{{ legend }}" as="l" hint-placeholder-count="5"><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5A6578"><span style="width:10px;height:10px;border-radius:3px;background:{{ l.c }}"></span>{{ l.t }}</span></sc-for>
+            </div>
+          </section>
+          <section style="border-radius:24px;background:#EEF4FA;padding:20px 22px;display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:500">До сесії 29 жовтня</span>
+            <span style="font-size:14px;line-height:1.5;color:#2F4A66">{{ shareSummary }}</span>
+            <span style="font-size:13px;line-height:1.5;color:#5A6F86">Марія бачить лише записи з цією позначкою — і тільки поки ви її не знімете.</span>
+          </section>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.specialists }}" hint-placeholder-val="{{ false }}">
+      <h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0 0 24px">Мої спеціалісти</h1>
+      <section style="border-radius:28px;background:#fff;border:1px solid #EDE7DE;padding:clamp(20px,3vw,28px);display:flex;flex-wrap:wrap;gap:20px 28px;align-items:center;margin-bottom:16px">
+        <span style="width:96px;height:96px;border-radius:24px;flex-shrink:0;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+        <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <span style="align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;background:#EEF8F1;color:#2F7A55">Активна співпраця</span>
+          <span style="font-size:24px;font-weight:500;letter-spacing:-0.02em">Марія Коваль</span>
+          <span style="font-size:14px;color:#5A6578">Психологиня, КПТ · з 6 жовтня · 6 сесій</span>
+          <span style="font-size:14px;color:#12233A">Наступна: четвер, 29 жовтня · 18:00</span>
+          <a href="Client-Cabinet.dc.html#sessions" style="font-size:14px;align-self:flex-start">Усі сесії з Марією →</a>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="padding:12px 20px;border-radius:999px;background:#12345A;color:#fff;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap" style-hover="background:#0E2D52">Написати</span>
+          <span style="padding:12px 18px;border-radius:999px;border:1px solid #D4CCC2;font-size:15px;cursor:pointer;white-space:nowrap" style-hover="border-color:#12345A">Обрати час</span>
+          <span onClick="{{ toFeedbackM }}" style="padding:12px 14px;border-radius:999px;font-size:15px;color:#12345A;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">Залишити відгук</span>
+        </div>
+      </section>
+      <div style="font-size:13px;color:#8B95A7;margin:24px 4px 8px">Раніше</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+        <div style="display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;padding:16px;border-radius:16px;background:#fff;border:1px solid #EDE7DE">
+          <span style="width:48px;height:48px;border-radius:14px;background:#DDF1EF;color:#1F5E5A;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">АЛ</span>
+          <div style="flex:1 1 200px;min-width:0"><div style="font-size:16px;font-weight:500">Андрій Лисенко</div><div style="font-size:13px;color:#8B95A7">Ознайомча сесія · березень 2026</div></div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap"><span onClick="{{ toFeedbackA }}" style="padding:10px 14px;border-radius:999px;font-size:14px;color:#12345A;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">Залишити відгук</span><span style="padding:10px 14px;border-radius:999px;font-size:14px;color:#12345A;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">Сторінка →</span></div>
+        </div>
+      </div>
+      <div style="border-radius:24px;background:#F6F1EA;padding:22px 24px;display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;align-items:center">
+        <div><div style="font-size:17px;font-weight:500;margin-bottom:4px">Потрібен ще хтось?</div><div style="font-size:14px;color:#5A6578">Наприклад, для пари чи дитини. Поточна робота з Марією від цього не зміниться.</div></div>
+        <a href="Find-Specialist.dc.html" style="padding:12px 20px;border-radius:999px;background:#fff;font-size:15px;white-space:nowrap;color:#12233A" style-hover="box-shadow:0 4px 12px rgba(18,35,58,.08)">Знайти спеціаліста</a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ s.profile }}" hint-placeholder-val="{{ false }}">
+      <h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0 0 8px">Профіль</h1>
+      <p style="font-size:15px;line-height:1.55;color:#5A6578;margin:0 0 24px;max-width:560px">Ці дані бачать лише спеціалісти, з якими ви працюєте.</p>
+      <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:24px 32px;margin-bottom:16px">
+        <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+          <span style="width:96px;height:96px;border-radius:28px;background:#DDF1EF;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:500">О</span>
+          <span style="padding:10px 16px;border-radius:999px;border:1px solid #D4CCC2;font-size:14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#12345A">Додати фото</span>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px"><span style="font-size:13px;color:#8B95A7">Код клієнта</span><span onClick="{{ copyCode }}" style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:500;letter-spacing:.04em;cursor:pointer">PC-4821<span style="font-size:13px;font-weight:400;letter-spacing:0;color:#12345A">{{ copyL }}</span></span><span style="font-size:13px;line-height:1.45;color:#8B95A7;max-width:220px">Назвіть його спеціалісту, щоб підключитися до його простору.</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Ім’я
+            <input value="{{ name }}" onChange="{{ onName }}" style="height:50px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:16px;outline:none" style-focus="border-color:#12345A;background:#fff">
+          </label>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Email для входу
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-radius:14px;background:#F6F1EA;font-size:16px;color:#12233A">olena@example.com<a href="Auth.dc.html" style="font-size:14px;white-space:nowrap">Змінити</a></div>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287"><span>Контактний email <span style="color:#8B95A7">— якщо інший</span></span>
+            <input type="email" value="{{ cEmail }}" onChange="{{ onCEmail }}" placeholder="name@example.com" style="height:50px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:16px;outline:none" style-focus="border-color:#12345A;background:#fff">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Телефон
+            <input type="tel" value="{{ phone }}" onChange="{{ onPhone }}" placeholder="+380" style="height:50px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:16px;outline:none" style-focus="border-color:#12345A;background:#fff">
+          </label>
+          <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px">
+            <span style="font-size:13px;color:#2F7A55;opacity:{{ savedOp }};transition:opacity .4s">Збережено</span>
+            <span onClick="{{ saveProfile }}" style="padding:12px 22px;border-radius:999px;font-size:15px;font-weight:500;color:#fff;background:{{ saveBg }};cursor:{{ saveCur }};transition:background .3s">Зберегти</span>
+          </div>
+        </div>
+      </section>
+      <section style="border-radius:24px;border:1px solid #EDE7DE;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px">
+          <h2 style="font-weight:500;font-size:17px;letter-spacing:-0.01em;margin:0">Видалення акаунта</h2>
+          <sc-if value="{{ delPending }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:4px 10px;border-radius:999px;background:#FFF5DF;color:#8A5A12">Запит на розгляді · з 23 жовтня</span></sc-if>
+        </div>
+        <sc-if value="{{ delIdle }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size:14px;line-height:1.55;color:#5A6578;max-width:600px">Акаунт, щоденник і контакти буде видалено. Записи, які веде спеціаліст, лишаються в нього — так вимагає закон для професійної документації.</span>
+          <sc-if value="{{ hasBlocker }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;line-height:1.5;padding:12px 14px;border-radius:12px;background:#F6F1EA;color:#5A6578">Спершу завершіть або скасуйте сесію 29 жовтня з Марією Коваль.</span></sc-if>
+          <span onClick="{{ askDel }}" style="align-self:flex-start;padding:10px 16px;margin-left:-16px;border-radius:999px;font-size:14px;color:{{ delFg }};cursor:{{ delCur }}" style-hover="background:#FDE8E8">Видалити акаунт</span>
+        </sc-if>
+        <sc-if value="{{ delPending }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:14px;line-height:1.55;color:#5A6578;max-width:600px">Ми видалимо дані протягом 30 днів і напишемо на olena@example.com. До того можна передумати.</span>
+          <span onClick="{{ cancelDel }}" style="align-self:flex-start;padding:10px 16px;margin-left:-16px;border-radius:999px;font-size:14px;color:#12345A;cursor:pointer" style-hover="background:#F1EBE2">Скасувати видалення</span>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s.feedback }}" hint-placeholder-val="{{ false }}">
+      <span onClick="{{ toSpecialists }}" style="display:inline-flex;font-size:14px;color:#12345A;cursor:pointer;margin-bottom:16px">← Мої спеціалісти</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:24px 40px;align-items:start">
+        <sc-if value="{{ fbForm }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div>
+              <h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0 0 8px">Відгук для {{ fbWhoDat }}</h1>
+              <p style="font-size:15px;line-height:1.55;color:#5A6578;margin:0">Що допомагало, а що варто змінити. Ваше ім’я спеціаліст не побачить.</p>
+            </div>
+            <sc-if value="{{ fbLimit }}" hint-placeholder-val="{{ false }}"><div style="padding:14px 16px;border-radius:14px;background:#F6F1EA;font-size:14px;line-height:1.5;color:#5A6578">Ви вже залишили 3 відгуки для цього спеціаліста — це максимум. Дякуємо!</div></sc-if>
+            <textarea value="{{ fbText }}" onChange="{{ onFb }}" rows="7" disabled="{{ fbLimit }}" placeholder="Наприклад: після сесій стало легше помічати тривожні думки. Хотілося б більше практичних вправ." style="padding:14px 16px;border-radius:16px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;line-height:1.5;resize:vertical;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)"></textarea>
+            <div onClick="{{ toggleConsent }}" role="checkbox" aria-checked="{{ consentAria }}" style="display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+              <span style="width:22px;height:22px;border-radius:7px;flex-shrink:0;margin-top:1px;border:1.5px solid {{ cBd }};background:{{ cBg }};color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s">{{ cMark }}</span>
+              <span style="font-size:15px;line-height:1.5">Дозволяю використати текст анонімно поза платформою<span style="display:block;font-size:13px;color:#8B95A7">Наприклад, на сайті чи в соцмережах спеціаліста — без імені й контактів.</span></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="font-size:13px;color:#8B95A7">{{ fbCount }}</span>
+              <span onClick="{{ sendFb }}" style="padding:14px 24px;border-radius:999px;font-size:15px;font-weight:500;color:#fff;background:{{ fbBg }};cursor:{{ fbCur }};transition:background .3s">Надіслати відгук</span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ fbDone }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex"><x-import component-from-global-scope="PCListen" size="{{ 72 }}" color="#0F2D52" ring="#2F8C86" rings="{{ 2 }}" dur="{{ 2.2 }}" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
+            <div>
+              <h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0 0 8px">Дякуємо, відгук передано</h1>
+              <p style="font-size:15px;line-height:1.55;color:#5A6578;margin:0">{{ fbWhoN }} побачить лише текст. Якщо захочете подякувати публічно — поділіться сторінкою спеціаліста.</p>
+            </div>
+            <span onClick="{{ toSpecialists }}" style="align-self:flex-start;padding:13px 22px;border-radius:999px;background:#12345A;color:#fff;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:#0E2D52">До моїх спеціалістів</span>
+          </div>
+        </sc-if>
+        <div style="border-radius:24px;background:#EEF8F7;padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ fbFacts }}" as="f" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:500;color:#12233A">{{ f.t }}</span><span style="font-size:14px;line-height:1.5;color:#3D5A58">{{ f.d }}</span></div>
+          </sc-for>
+          <span style="font-size:14px;color:#1F5E5A;cursor:pointer">Політика відгуків →</span>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ panel }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closePanel }}" style="position:fixed;inset:0;background:rgba(18,35,58,.28);z-index:40"></div>
+    <aside role="dialog" aria-label="{{ pm.t }}" style="position:fixed;top:0;right:0;bottom:0;width:{{ panelW }};background:#FBF9F5;z-index:41;display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(18,35,58,.16)">
+      <div style="padding:20px 24px 16px;border-bottom:1px solid #EDE7DE;display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+          <span style="align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;background:{{ pm.tint }}">{{ pm.kind }}</span>
+          <span style="font-size:22px;font-weight:500;letter-spacing:-0.02em;line-height:1.25">{{ pm.t }}</span>
+          <span style="font-size:14px;color:#5A6578">Марія Коваль · {{ pm.date }}</span>
+        </div>
+        <span onClick="{{ closePanel }}" role="button" aria-label="Закрити" style="width:44px;height:44px;margin:-8px -10px 0 0;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#5A6578;cursor:pointer;flex-shrink:0" style-hover="background:#F1EBE2">✕</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+        <p style="font-size:16px;line-height:1.6;margin:0;white-space:pre-line">{{ pm.body }}</p>
+        <sc-if value="{{ pm.hasUrl }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;color:#8B95A7">Посилання</span>
+            <span style="font-size:15px;word-break:break-all">{{ pm.url }}</span>
+            <span style="font-size:13px;color:#8B95A7">Відкриється в новій вкладці. Перевірте адресу перед переходом.</span>
+            <span style="align-self:flex-start;margin-top:4px;padding:10px 18px;border-radius:999px;background:#12345A;color:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#0E2D52">Відкрити</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ pm.hasFiles }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;color:#8B95A7">Файли</span>
+            <sc-for list="{{ pm.files }}" as="f" hint-placeholder-count="1">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #EDE7DE">
+                <div style="min-width:0"><div style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.n }}</div><div style="font-size:13px;color:#8B95A7">{{ f.s }}</div></div>
+                <span onClick="{{ f.on }}" style="padding:9px 14px;border-radius:999px;border:1px solid #D4CCC2;font-size:14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#12345A">{{ f.l }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ pm.hasSession }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#12345A;cursor:pointer">Сесія {{ pm.date }} →</span></sc-if>
+      </div>
+    </aside>
+  </sc-if>
+
+  <sc-if value="{{ confirmDel }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeConfirm }}" style="position:fixed;inset:0;background:rgba(18,35,58,.28);z-index:50"></div>
+    <div role="dialog" aria-label="Видалити акаунт?" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(calc(100% - 32px),440px);z-index:51;background:#FBF9F5;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px rgba(18,35,58,.2)">
+      <span style="font-size:20px;font-weight:500;letter-spacing:-0.01em">Видалити акаунт?</span>
+      <span style="font-size:15px;line-height:1.55;color:#5A6578">Доступ до кабінету закриється одразу. Протягом 30 днів запит можна скасувати.</span>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span onClick="{{ closeConfirm }}" style="padding:12px 18px;border-radius:999px;font-size:15px;cursor:pointer" style-hover="background:#F1EBE2">Залишити</span>
+        <span onClick="{{ doDel }}" style="padding:12px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#B83232;color:#fff;cursor:pointer" style-hover="background:#9C2626">Видалити</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+    <nav style="position:fixed;left:0;right:0;bottom:0;z-index:30;height:72px;padding:6px 6px 14px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)">
+      <sc-for list="{{ tabbar }}" as="n" hint-placeholder-count="5">
+        <span onClick="{{ n.on }}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;cursor:pointer;color:{{ n.fg }};font-weight:{{ n.fw }}"><span style="width:22px;height:22px;border-radius:7px;border:1.8px solid {{ n.fg }};background:{{ n.ibg }}"></span>{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></span>
+      </sc-for>
+    </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;materials&quot;,&quot;diary&quot;,&quot;specialists&quot;,&quot;profile&quot;,&quot;feedback&quot;,&quot;event&quot;],&quot;default&quot;:&quot;materials&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;deleteBlocked&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;feedbackLimit&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;eventState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;scheduled&quot;,&quot;live&quot;,&quot;completed&quot;,&quot;cancelled&quot;],&quot;default&quot;:&quot;scheduled&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Групова подія&quot;},&quot;eventMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;meeting&quot;,&quot;broadcast&quot;],&quot;default&quot;:&quot;meeting&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Групова подія&quot;},&quot;eventRecorded&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Групова подія&quot;},&quot;eventHideNames&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Групова подія&quot;}}">
+const MAT = [
+  { k: 'm1', g: 's22', kind: 'Домашнє завдання', kindShort: 'PDF', f: 'hw', t: 'Вправа «Щоденник думок»', meta: '2–3 ситуації за тиждень', tint: '#FFE2C4', body: 'Коли помітите різку зміну настрою — запишіть ситуацію, автоматичну думку і що відчули в тілі.\n\nНе треба аналізувати — просто фіксуйте. Обговоримо на наступній сесії.', files: [['shchodennyk-dumok.pdf', '240 КБ']] },
+  { k: 'm2', g: 's22', kind: 'Вправа', kindShort: 'Аудіо', f: 'ex', t: 'Техніка дихання 4–7–8', meta: '3 хв', tint: '#DDF1EF', body: 'Вдих на 4, затримка на 7, видих на 8. Чотири цикли перед сном або коли накриває.', files: [['dyhannya-4-7-8.mp3', '3,1 МБ']] },
+  { k: 'm3', g: 's15', kind: 'Посилання', kindShort: 'URL', f: 'link', t: 'Що робити, коли накриває тривога', meta: 'стаття з блогу Марії', tint: '#EEF4FA', body: 'Коротка стаття про те, що відбувається з тілом під час тривоги, і три способи заземлитися.', url: 'https://proconsult.space/s/maria-koval/blog/tryvoga' },
+  { k: 'm4', g: 's15', kind: 'Рекомендація', kindShort: 'Текст', f: 'other', t: 'Режим сну на тиждень', meta: 'текст', tint: '#F1EBE2', body: 'Лягати й вставати в один час, навіть у вихідні. Екрани — за годину до сну геть. Записуйте, о котрій прокинулися.' },
+  { k: 'm5', g: 'gen', kind: 'Інструкція', kindShort: 'Текст', f: 'other', t: 'Як підключитися до сесії', meta: 'Google Meet', tint: '#F1EBE2', body: 'Посилання з’являється в кабінеті за 10 хвилин до початку. Камера — за бажанням, головне — тихе місце й навушники.' },
+];
+const GR = { s22: ['Після сесії 22 жовтня', 'чт, 18:00'], s15: ['Після сесії 15 жовтня', 'чт, 18:00'], gen: ['Загальне', 'для всіх сесій'] };
+const DATE = { s22: '22 жовтня', s15: '15 жовтня', gen: '6 жовтня' };
+const MOODS = { 'спокійно': ['#DDF1EF', '#5FB3AD'], 'піднесено': ['#EEF8F1', '#6DB38A'], 'по-різному': ['#F1EBE2', '#B8AC9C'], 'втомлено': ['#EEF4FA', '#7F9DBE'], 'тривожно': ['#FFE2C4', '#E39A55'] };
+const TAGS = ['сон', 'робота', 'стосунки', 'родина', 'тіло'];
+const ENT0 = [
+  { id: 'e1', d: 23, time: '08:40', mood: 'тривожно', text: 'Прокинулась о 5, думки про звіт. Подихала 4–7–8 — допомогло хвилин за десять.', tags: ['сон', 'робота'], shared: true },
+  { id: 'e2', d: 22, time: '21:15', mood: 'спокійно', text: 'Після сесії легше. Помітила, що «я все зіпсую» — це думка, а не факт.', tags: [], shared: false },
+  { id: 'e3', d: 20, time: '19:30', mood: 'втомлено', text: 'Довгий день, ні на що не лишилось сил. Посварилась з мамою по телефону.', tags: ['родина'], shared: true },
+  { id: 'e4', d: 18, time: '11:00', mood: 'піднесено', text: 'Гуляла в парку дві години, без телефону. Хочу так щонеділі.', tags: ['тіло'], shared: false },
+  { id: 'e5', d: 16, time: '23:10', mood: 'тривожно', text: 'Знову не можу заснути. Прокручую розмову з керівником.', tags: ['сон', 'робота'], shared: false },
+];
+const DAYMOOD = { 1: 'спокійно', 2: 'по-різному', 5: 'втомлено', 6: 'тривожно', 7: 'тривожно', 8: 'по-різному', 9: 'спокійно', 11: 'піднесено', 12: 'спокійно', 13: 'втомлено', 14: 'по-різному', 15: 'спокійно', 16: 'тривожно', 18: 'піднесено', 19: 'по-різному', 20: 'втомлено', 22: 'спокійно', 23: 'тривожно' };
+const WD = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+const dayLabel = d => d === 23 ? 'Сьогодні · п’ятниця, 23 жовтня' : d === 22 ? 'Учора · четвер, 22 жовтня' : `${['четвер', 'п’ятниця', 'субота', 'неділя', 'понеділок', 'вівторок', 'середа'][(d - 1) % 7]}, ${d} жовтня`;
+const SCR = ['materials', 'specialists', 'profile', 'feedback', 'diary'];
+class Component extends DCLogic {
+  state = { screen: null, filter: 'all', read: {}, panel: null, dl: {}, fade: false, name: 'Олена', cEmail: '', phone: '+380 67 214 55 09', dirty: false, saved: false, copied: false, del: false, confirm: false, fbWho: 'm', fbText: '', consent: false, fbSent: false, ents: ENT0, cMood: null, dText: '', cTags: {}, dShare: false, dSaved: false, dQ: '', fMood: null, fTag: null, calView: 'month', pulse: true, cal: false, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() { this.pi = setInterval(() => this.setState(s => ({ pulse: !s.pulse })), 900); this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize); this.onEsc = e => { if (e.key === 'Escape') this.setState({ panel: null, confirm: false }); }; window.addEventListener('keydown', this.onEsc); }
+  componentDidUpdate(p) { p = p || {}; if (p.screen !== this.props.screen) this.setState({ screen: null }); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onEsc); clearTimeout(this.t1); clearTimeout(this.t2); clearTimeout(this.t3); clearInterval(this.pi); }
+  go(screen, extra) { if (screen === this.cur) return; this.setState({ fade: true }); setTimeout(() => { this.setState({ screen, fade: false, panel: null, ...(extra || {}) }); window.scrollTo(0, 0); }, 180); }
+  diaryVals(S, nar) {
+    const q = S.dQ.trim().toLowerCase();
+    const list = S.ents.filter(e => (!S.fMood || e.mood === S.fMood) && (!S.fTag || e.tags.includes(S.fTag)) && (!q || e.text.toLowerCase().includes(q)));
+    const days = [...new Set(list.map(e => e.d))];
+    const canAdd = S.cMood || S.dText.trim();
+    const shared = S.ents.filter(e => e.shared).length;
+    const dm = { ...DAYMOOD }; S.ents.forEach(e => { dm[e.d] = dm[e.d] || e.mood; }); if (S.ents[0] && S.ents[0].d === 23) dm[23] = S.ents[0].mood;
+    const month = S.calView === 'month';
+    const cells = month ? [...Array(3).fill(null), ...Array.from({ length: 31 }, (_, i) => i + 1)] : [19, 20, 21, 22, 23, 24, 25];
+    const chip = (on, extra) => ({ bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#12233A', bd: on ? '#12345A' : '#E6E0D8', ...extra });
+    return {
+      dCols: nar ? 'minmax(0,1fr)' : 'minmax(0,1.65fr) minmax(260px,1fr)', dSidePos: nar ? 'static' : 'sticky',
+      cMoods: Object.keys(MOODS).map(label => { const on = S.cMood === label; return { label, dot: MOODS[label][1], bg: on ? MOODS[label][0] : '#fff', fg: '#12233A', bd: on ? MOODS[label][1] : '#E6E0D8', on: () => this.setState({ cMood: on ? null : label, dSaved: false }) }; }),
+      dText: S.dText, onDText: e => this.setState({ dText: e.target.value, dSaved: false }),
+      cTags: TAGS.map(label => { const on = !!S.cTags[label]; return { label, ...chip(on), bg: on ? '#F1EBE2' : '#fff', fg: '#12233A', bd: on ? '#C9C1B6' : '#E6E0D8', on: () => this.setState({ cTags: { ...S.cTags, [label]: !on } }) }; }),
+      dShareAria: S.dShare ? 'true' : 'false', toggleDShare: () => this.setState({ dShare: !S.dShare }), dShBg: S.dShare ? '#12345A' : '#fff', dShBd: S.dShare ? '#12345A' : '#C9C1B6', dShMark: S.dShare ? '✓' : '',
+      dAddBg: canAdd ? '#12345A' : '#B7C0CC', dAddCur: canAdd ? 'pointer' : 'default', dSavedOp: S.dSaved ? 1 : 0,
+      addEntry: () => { if (!canAdd) return; const n = new Date(); const e = { id: 'n' + Date.now(), d: 23, time: String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'), mood: S.cMood || 'по-різному', text: S.dText.trim() || '—', tags: TAGS.filter(t => S.cTags[t]), shared: S.dShare }; this.setState({ ents: [e, ...S.ents], cMood: null, dText: '', cTags: {}, dShare: false, dSaved: true }); clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ dSaved: false }), 2200); },
+      dQ: S.dQ, onDQ: e => this.setState({ dQ: e.target.value }),
+      fMoods: [{ label: 'Усі', k: null }, ...Object.keys(MOODS).map(k => ({ label: k, k }))].map(f => { const on = S.fMood === f.k && (f.k || !S.fMood); return { label: f.label, ...chip(on), dot: f.k ? MOODS[f.k][1] : 'transparent', dotD: f.k ? 'block' : 'none', on: () => this.setState({ fMood: f.k }) }; }),
+      fTags: TAGS.map(label => { const on = S.fTag === label; return { label, ...chip(on), on: () => this.setState({ fTag: on ? null : label }) }; }),
+      dEmpty: list.length === 0, resetDF: () => this.setState({ dQ: '', fMood: null, fTag: null }),
+      dGroups: days.map(d => ({ day: dayLabel(d), items: list.filter(e => e.d === d).map(e => ({ ...e, mBg: MOODS[e.mood][0], mDot: MOODS[e.mood][1], tagList: e.tags.map(t => ({ t })), bd: e.shared ? '#C9DAEC' : '#EDE7DE', toggleL: e.shared ? 'Прибрати із сесії' : 'Додати до сесії', toggle: () => this.setState(s2 => ({ ents: s2.ents.map(x => x.id === e.id ? { ...x, shared: !x.shared } : x) })) })) })),
+      calTabs: [['week', 'Тиждень'], ['month', 'Місяць']].map(([k, label]) => ({ label, bg: S.calView === k ? '#fff' : 'transparent', sh: S.calView === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => this.setState({ calView: k }) })),
+      calTitle: month ? 'Жовтень 2026' : '19–25 жовтня', calGap: month ? '4px' : '6px', wdays: WD.map(l => ({ l })),
+      cal: cells.map(n => { if (!n) return { n: '', bg: 'transparent', bd: 'transparent', op: 1, r: '8px', fs: '11px', fg: '#8B95A7', title: '' }; const m = dm[n], fut = n > 23; return { n: String(n), title: m ? n + ' жовтня · ' + m : '', bg: m ? `color-mix(in oklch, ${MOODS[m][1]} 42%, ${MOODS[m][0]})` : fut ? 'transparent' : '#FBF9F5', bd: n === 23 ? '#12345A' : m ? 'transparent' : '#EDE7DE', op: fut ? 0.45 : 1, r: month ? '8px' : '12px', fs: month ? '11px' : '14px', fg: m ? '#12233A' : '#A0A8B6' }; }),
+      legend: Object.keys(MOODS).map(t => ({ t, c: `color-mix(in oklch, ${MOODS[t][1]} 42%, ${MOODS[t][0]})` })),
+      shareSummary: shared ? `${shared} ${shared === 1 ? 'запис відкрито' : shared < 5 ? 'записи відкрито' : 'записів відкрито'} Марії. Решта лишається тільки вашою.` : 'Поки нічого не відкрито. Позначте записи, які хочете обговорити.',
+    };
+  }
+  eventVals(S) {
+    const st = this.props.eventState ?? 'scheduled', live = st === 'live', done = st === 'completed', canc = st === 'cancelled';
+    const bc = (this.props.eventMode ?? 'meeting') === 'broadcast', rec = this.props.eventRecorded ?? false;
+    return {
+      ev: { bg: live ? '#0E2D52' : done || canc ? '#F1EBE2' : '#12345A', fg: done || canc ? '#12233A' : '#fff', sub: done || canc ? '#5A6578' : '#C9D4E3',
+        dot: live ? '#F7B77E' : canc ? '#B83232' : done ? '#8B95A7' : '#8FCBC8', dotOp: live ? (S.pulse ? 1 : 0.25) : 1,
+        kicker: live ? 'Триває · почалася 4 хв тому' : done ? 'Завершено' : canc ? 'Скасовано ведучою' : 'Групова зустріч · через 4 дні',
+        when: live ? 'Сьогодні, 19:00–20:30' : 'Вівторок, 27 жовтня · 19:00–20:30', td: canc ? 'line-through' : 'none',
+        mode: bc ? 'трансляція' : 'зустріч онлайн', active: !done && !canc, ended: done || canc, notLive: !live,
+        joinBg: live ? '#F7B77E' : 'rgba(255,255,255,.14)', joinFg: live ? '#12233A' : '#A9B8CC', joinCur: live ? 'pointer' : 'default',
+        hint: live ? 'Можна зайти й після початку' : 'Кнопка стане активною за 10 хв до початку',
+        endNote: canc ? 'Марія скасувала зустріч. Якщо буде нова дата — вона з’явиться на головній.' : 'Дякуємо, що були. Матеріали після зустрічі, якщо будуть, з’являться в «Матеріалах».' },
+      calL: S.cal ? '✓ У календарі' : 'Додати в календар', addCal: () => this.setState({ cal: true }),
+      evFacts: [
+        { k: 'Формат', v: bc ? 'Трансляція' : 'Зустріч у колі', d: bc ? 'Вас не бачать і не чують. Питання — в чаті.' : 'Камера й мікрофон — за бажанням. Можна просто слухати.', c: '#12233A' },
+        { k: 'Запис', v: rec ? 'Ведеться' : 'Не ведеться', d: rec ? 'Ведуча записує зустріч. Вимкніть камеру, якщо не хочете потрапити в кадр.' : 'Сказане лишається в колі.', c: rec ? '#8A5A12' : '#12233A' },
+        { k: 'Тривалість', v: '1 год 30 хв', d: 'Перерва — посередині, 5 хв.', c: '#12233A' },
+        { k: 'Посилання', v: 'Google Meet', d: 'З’явиться тут за 10 хв до початку.', c: '#12233A' },
+      ],
+      evShowNames: !(this.props.eventHideNames ?? false), evHidden: this.props.eventHideNames ?? false,
+      evPeople: [['Марія Коваль', 'Ведуча', '#DDF1EF'], ['Олена (ви)', 'Учасниця', '#FFE2C4'], ['Ірина С.', 'Учасниця', '#EEF4FA'], ['Тарас Б.', 'Учасник', '#F1EBE2'], ['Наталія Г.', 'Учасниця', '#EEF8F1']].map(([n, r, tint]) => ({ n, r, tint, ini: n.replace(/\s*\(.*\)/, '').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase() })),
+    };
+  }
+  renderVals() {
+    const S = this.state, nar = S.w < 768;
+    const screen = S.screen || this.props.screen || 'materials'; this.cur = screen;
+    const N = [['Головна', null], ['Матеріали', 'materials'], ['Мої спеціалісти', 'specialists'], ['Мій щоденник', 'diary'], ['Повідомлення', null], ['Профіль', 'profile']];
+    const navOn = screen === 'feedback' ? 'specialists' : screen;
+    const unread = S.read.m1 ? 0 : 1;
+    const FL = [['all', 'Усі'], ['hw', 'Завдання'], ['ex', 'Вправи'], ['link', 'Посилання'], ['other', 'Інше']];
+    const items = MAT.filter(m => S.filter === 'all' || m.f === S.filter);
+    const P = S.panel ? MAT.find(m => m.k === S.panel) : null;
+    const blocker = this.props.deleteBlocked ?? false;
+    const fbLimit = this.props.feedbackLimit ?? false;
+    const who = S.fbWho === 'm' ? ['Марії Коваль', 'Марія'] : ['Андрія Лисенка', 'Андрій'];
+    const fbOk = S.fbText.trim().length >= 10 && !fbLimit;
+    return {
+      cols: nar ? 'minmax(0,1fr)' : '232px minmax(0,1fr)', wide: !nar, sideDisp: nar ? 'none' : 'flex', narrow: nar, mainPad: nar ? '20px 16px 104px' : '32px clamp(24px,4vw,56px) 72px', panelW: nar ? '100%' : 'min(100%,460px)',
+      op: S.fade ? 0 : 1, ty: S.fade ? '8px' : '0px',
+      s: { materials: screen === 'materials', specialists: screen === 'specialists', profile: screen === 'profile', feedback: screen === 'feedback', diary: screen === 'diary', event: screen === 'event' },
+      nav: N.map(([label, k]) => { const on = k && k === navOn; return { label, bg: on ? '#12345A' : 'transparent', fg: on ? '#fff' : '#3F4B5E', fw: on ? 500 : 400, badge: label === 'Матеріали' && unread ? '1' : label === 'Повідомлення' ? '1' : '', on: () => k ? this.go(k) : null }; }),
+      tabbar: [['Головна', null], ['Матеріали', 'materials', unread ? '1' : ''], ['Щоденник', 'diary'], ['Чат', null, '1'], ['Ще', 'profile']].map(([label, k, badge]) => { const on = k === navOn || (label === 'Ще' && (navOn === 'specialists' || navOn === 'profile')); return { label, badge: badge || '', fg: on ? '#12345A' : '#8B95A7', fw: on ? 500 : 400, ibg: on ? '#DDF1EF' : 'transparent', on: () => k && this.go(k) }; }),
+      filters: FL.map(([k, label]) => { const on = S.filter === k; return { label, n: String(k === 'all' ? MAT.length : MAT.filter(m => m.f === k).length), bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#12233A', bd: on ? '#12345A' : '#E6E0D8', on: () => this.setState({ filter: k }) }; }),
+      matEmpty: items.length === 0,
+      groups: Object.keys(GR).map(g => ({ title: GR[g][0], sub: GR[g][1], items: items.filter(m => m.g === g).map(m => ({ ...m, isNew: m.k === 'm1' && !S.read.m1, bd: m.k === 'm1' && !S.read.m1 ? '#F7D3AE' : '#EDE7DE', on: () => this.setState({ panel: m.k, read: { ...S.read, [m.k]: true } }) })) })).filter(g => g.items.length),
+      panel: !!P, closePanel: () => this.setState({ panel: null }),
+      pm: P ? { t: P.t, kind: P.kind, tint: P.tint, date: DATE[P.g], body: P.body, hasUrl: !!P.url, url: P.url || '', hasFiles: !!P.files, hasSession: P.g !== 'gen',
+        files: (P.files || []).map(([n, s]) => { const st = S.dl[n]; return { n, s, l: st === 1 ? 'Завантаження…' : st === 2 ? '✓ Завантажено' : 'Завантажити', on: () => { if (st) return; this.setState({ dl: { ...S.dl, [n]: 1 } }); setTimeout(() => this.setState(s2 => ({ dl: { ...s2.dl, [n]: 2 } })), 900); } }; }) } : { files: [] },
+      toFeedbackM: () => this.go('feedback', { fbWho: 'm', fbText: '', fbSent: false, consent: false }), toFeedbackA: () => this.go('feedback', { fbWho: 'a', fbText: '', fbSent: false, consent: false }), toSpecialists: () => this.go('specialists'),
+      name: S.name, cEmail: S.cEmail, phone: S.phone,
+      onName: e => this.setState({ name: e.target.value, dirty: true, saved: false }), onCEmail: e => this.setState({ cEmail: e.target.value, dirty: true, saved: false }), onPhone: e => this.setState({ phone: e.target.value, dirty: true, saved: false }),
+      saveBg: S.dirty ? '#12345A' : '#B7C0CC', saveCur: S.dirty ? 'pointer' : 'default', savedOp: S.saved ? 1 : 0,
+      saveProfile: () => { if (!S.dirty) return; this.setState({ dirty: false, saved: true }); clearTimeout(this.t1); this.t1 = setTimeout(() => this.setState({ saved: false }), 2200); },
+      copyL: S.copied ? '✓ Скопійовано' : 'Копіювати', copyCode: () => { this.setState({ copied: true }); clearTimeout(this.t2); this.t2 = setTimeout(() => this.setState({ copied: false }), 1800); },
+      delIdle: !S.del, delPending: S.del, hasBlocker: blocker, delFg: blocker ? '#C9A9A9' : '#B83232', delCur: blocker ? 'default' : 'pointer',
+      askDel: () => !blocker && this.setState({ confirm: true }), confirmDel: S.confirm, closeConfirm: () => this.setState({ confirm: false }), doDel: () => this.setState({ confirm: false, del: true }), cancelDel: () => this.setState({ del: false }),
+      fbForm: !S.fbSent, fbDone: S.fbSent, fbWhoDat: who[0], fbWhoN: who[1], fbLimit,
+      fbText: S.fbText, onFb: e => this.setState({ fbText: e.target.value }),
+      fbCount: fbLimit ? '' : S.fbText.trim().length < 10 ? 'Кілька речень достатньо' : `${S.fbText.trim().length} симв.`,
+      consentAria: S.consent ? 'true' : 'false', toggleConsent: () => !fbLimit && this.setState({ consent: !S.consent }), cBg: S.consent ? '#12345A' : '#fff', cBd: S.consent ? '#12345A' : '#C9C1B6', cMark: S.consent ? '✓' : '',
+      fbBg: fbOk ? '#12345A' : '#B7C0CC', fbCur: fbOk ? 'pointer' : 'default', sendFb: () => fbOk && this.setState({ fbSent: true }),
+      ...this.diaryVals(S, nar), ...this.eventVals(S),
+      fbFacts: [{ t: 'Анонімно', d: 'Спеціаліст бачить лише текст — без імені, фото й контактів.' }, { t: 'Не публікується', d: 'Ми не показуємо відгуки на сторінках і не складаємо рейтингів.' }, { t: 'Лише після співпраці', d: 'Відгук можна залишити тим, з ким ви працюєте або працювали.' }],
+    };
+  }
+}
+</script>
+</body>
+</html>

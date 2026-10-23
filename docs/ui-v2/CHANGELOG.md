@@ -1,3 +1,9 @@
+## Canonical reference pointer - 2026-10-24
+
+Current supplied archive is v6.6 with contents through v6.7. Read the [exact frozen changelog](snapshots/2026-10-23-4ff7cedd/handoff/CHANGELOG.md), [audit](DESIGN_SYNC_2026-10-24_V66_V67.md) and [current entry point](START_HERE.md). The v5 source body below is retained as history; its IN PROGRESS/current-task claims are superseded. No source chronology was rewritten.
+
+---
+
 # UI v2 — журнал змін пакета
 
 Codex: після кожного оновлення `docs/ui-v2/` прочитай нові записи зверху і звір із тим, що вже зроблено.
