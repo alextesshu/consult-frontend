@@ -1,5 +1,16 @@
 <template>
-  <RouterLink class="result-card" :class="{ 'pc2-specialist-card pc2-card pc2-card--interactive': uiV2 }" :to="profileRoute" :aria-label="profileLinkLabel">
+  <RouterLink v-if="uiV2" class="result-card pc2-specialist-card pc2-card pc2-card--interactive" :to="profileRoute" :aria-label="profileLinkLabel">
+    <div class="pc2-specialist-card__media"><img v-if="item.photo_url" :src="item.photo_url" :alt="publicName" class="pc2-specialist-card__photo"><span v-else class="pc2-specialist-card__photo pc2-specialist-card__initials" aria-hidden="true">{{ initials }}</span></div>
+    <div class="pc2-specialist-card__body">
+      <div class="pc2-specialist-card__identity"><h3>{{ publicName }}</h3><span v-if="priceText" class="pc2-specialist-card__price">{{ priceText }}</span></div>
+      <p v-if="primarySpecialization" class="pc2-specialist-card__role">{{ primarySpecialization }}</p>
+      <span v-if="item.match_kind === 'exact'" class="pc2-specialist-card__match">За вашим запитом</span>
+      <p v-if="item.public_profile_summary" class="pc2-specialist-card__summary">{{ item.public_profile_summary }}</p>
+      <div class="pc2-specialist-card__meta"><ul v-if="topics.length" aria-label="Основні теми"><li v-for="topic in topics" :key="topic">{{ topic }}</li></ul><span v-if="formatText || publicLocation" class="pc2-specialist-card__format">{{ formatText }}{{ publicLocation ? ` · ${publicLocation}` : '' }}</span></div>
+      <div class="pc2-specialist-card__entry"><span>Звернення</span><span>У профілі спеціаліста</span></div>
+    </div>
+  </RouterLink>
+  <RouterLink v-else class="result-card" :class="{ 'pc2-specialist-card pc2-card pc2-card--interactive': uiV2 }" :to="profileRoute" :aria-label="profileLinkLabel">
     <div class="result-card__media">
       <img v-if="item.photo_url" :src="item.photo_url" :alt="publicName" class="result-card__photo" />
       <div v-else class="result-card__photo result-card__photo--empty" aria-hidden="true">Фото</div>
@@ -50,11 +61,13 @@ const props = defineProps<{
     offers_offline?: boolean
     price?: string | number | null
     price_currency?: string | null
+    match_kind?: 'exact' | 'related' | 'fallback' | null
     photo_url?: string | null
   }
 }>()
 
 const publicName = computed(() => (props.item.public_display_name || props.item.display_name || '').trim())
+const initials = computed(() => publicName.value.split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join(''))
 const profileLinkLabel = computed(() => `Відкрити профіль ${publicName.value}`.trim())
 const specializations = computed(() => {
   if (Array.isArray(props.item.specializations)) return props.item.specializations.map((item) => item.trim()).filter(Boolean)
@@ -120,25 +133,30 @@ const profileRoute = computed(() => {
 </style>
 
 <style>
-html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: var(--pc-space-24) minmax(0, 1fr); gap: var(--pc-space-5); padding: var(--pc-space-6); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); background: var(--pc-bg-card); color: var(--pc-text-main); font-family: var(--pc-font); box-shadow: none; transition: border-color var(--pc-dur) var(--pc-ease), box-shadow var(--pc-dur) var(--pc-ease); }
-html[data-ui="v2"] .pc2-specialist-card:hover { border-color: var(--pc-border-strong); box-shadow: var(--pc-shadow-sm); transform: none; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-specialist-card { display: grid; grid-template-columns: 112px minmax(0,1fr); align-items: start; gap: 20px; padding: 20px; border-radius: 24px; border: 1px solid var(--pc-border-hair); background: var(--pc-bg-card); color: var(--pc-text-main); text-decoration: none; font-family: var(--pc-font); box-shadow: none; transition: box-shadow .3s ease, border-color .3s; }
+html[data-ui="v2"] .pc2-specialist-card:hover { box-shadow: 0 16px 40px rgb(18 35 58 / 8%); border-color: var(--pc-border-strong); color: var(--pc-text-main); transform: none; }
 html[data-ui="v2"] .pc2-specialist-card:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__photo { border-radius: var(--pc-radius-sm); background: var(--pc-bg-soft); color: var(--pc-text-muted); font-weight: var(--pc-fw-medium); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__body,
-html[data-ui="v2"] .pc2-specialist-card .result-card__identity { gap: var(--pc-space-2); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__identity { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; }
-html[data-ui="v2"] .pc2-specialist-card .result-card__name { grid-column: 1; grid-row: 1; font-size: var(--pc-fs-h3); font-weight: var(--pc-fw-medium); line-height: var(--pc-lh-head); color: var(--pc-text-main); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__headline { grid-column: 1 / -1; grid-row: 2; font-size: var(--pc-fs-small); color: var(--pc-text-muted); font-weight: var(--pc-fw-regular); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__price { grid-column: 2; grid-row: 1; font-size: var(--pc-fs-ui); font-weight: var(--pc-fw-strong); color: var(--pc-text-main); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__summary { font-size: var(--pc-fs-ui); line-height: var(--pc-lh-body); color: var(--pc-text-body); -webkit-line-clamp: 2; }
-html[data-ui="v2"] .pc2-specialist-card .result-card__topics { gap: var(--pc-space-2); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__topics li { padding: var(--pc-space-1) var(--pc-space-2); border-radius: var(--pc-radius-pill); background: var(--pc-teal-100); color: var(--pc-teal-ink); font-size: var(--pc-fs-meta); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__details { gap: var(--pc-space-2) var(--pc-space-4); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__detail { flex-wrap: wrap; font-size: var(--pc-fs-meta); color: var(--pc-text-muted); }
-html[data-ui="v2"] .pc2-specialist-card .result-card__detail dt { text-transform: none; font-size: inherit; font-weight: var(--pc-fw-medium); color: inherit; }
-@media (max-width: 480px) {
-  html[data-ui="v2"] .pc2-specialist-card .result-card__identity { grid-template-columns: minmax(0, 1fr); }
-  html[data-ui="v2"] .pc2-specialist-card .result-card__price { grid-column: 1; grid-row: 3; }
-  html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: var(--pc-space-16) minmax(0, 1fr); gap: var(--pc-space-3); padding: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-specialist-card__photo { width: 112px; height: 112px; border-radius: 18px; object-fit: cover; object-position: 50% 18%; background: var(--pc-bg-sunk); display: block; }
+html[data-ui="v2"] .pc2-specialist-card__initials { display: grid; place-items: center; color: var(--pc-navy-900); font-size: 30px; font-weight: 500; }
+html[data-ui="v2"] .pc2-specialist-card__body { display: flex; flex-direction: column; gap: 8px; min-width: 0; height: 100%; }
+html[data-ui="v2"] .pc2-specialist-card__identity { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+html[data-ui="v2"] .pc2-specialist-card__identity h3 { font-size: 20px; font-weight: 500; letter-spacing: -.02em; margin: 0; overflow-wrap: anywhere; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-specialist-card__price { font-size: 15px; white-space: nowrap; font-weight: 400; }
+html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__role { font-size: 14px; color: var(--pc-text-muted); margin: -4px 0 0; }
+html[data-ui="v2"] .pc2-specialist-card__match { align-self: flex-start; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__summary { font-size: 15px; line-height: 1.5; color: var(--pc-text-body); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html[data-ui="v2"] .pc2-specialist-card__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; padding-top: 4px; }
+html[data-ui="v2"] .pc2-specialist-card__meta ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+html[data-ui="v2"] .pc2-specialist-card__meta li { font-size: 12px; padding: 5px 10px; border-radius: 999px; background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-specialist-card__format { font-size: 13px; color: var(--pc-text-muted); margin-left: auto; }
+html[data-ui="v2"] .pc2-specialist-card__entry { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--pc-bg-sunk); font-size: 13px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-specialist-card__entry > span:last-child { font-size: 15px; font-weight: 500; color: var(--pc-text-main); }
+@media (max-width: 639px) {
+  html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: 72px minmax(0,1fr); gap: 14px; }
+  html[data-ui="v2"] .pc2-specialist-card__photo { width: 72px; height: 72px; }
+  html[data-ui="v2"] .pc2-specialist-card__identity { flex-wrap: wrap; gap: 4px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-specialist-card, html[data-ui="v2"] .pc2-specialist-card * { transition: none; }
 }
 </style>
