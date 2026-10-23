@@ -4161,7 +4161,8 @@ html[data-ui="v2"] .pc2-home__mini-calendar time { font-size: 12px; opacity: .8;
   html[data-ui="v2"] .pc2-home__avatar { width: 44px; height: 44px; }
   html[data-ui="v2"] .pc2-home__topics > span { font-size: 12px; padding: 5px 8px; }
   html[data-ui="v2"] .pc2-home__profile-footer { flex-wrap: wrap; }
-  html[data-ui="v2"] .pc2-home__work-preview li { flex-wrap: wrap; }
+  html[data-ui="v2"] .pc2-home__work-layer { padding: 0; }
+  html[data-ui="v2"] .pc2-home__work-preview li { flex-wrap: wrap; padding: 10px 12px; gap: 4px; font-size: 14px; }
 }
 html[data-ui="v2"] .pc2-home.is-reduced *, html[data-ui="v2"] .pc2-home.is-reduced *::before { animation: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {

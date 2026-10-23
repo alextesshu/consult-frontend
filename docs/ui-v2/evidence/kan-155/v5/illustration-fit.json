@@ -1,0 +1,214 @@
+[
+  {
+    "width": 375,
+    "step": 0,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-profile pc2-home__demo-card",
+        "height": 290.140625,
+        "clearance": 11.859375
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 375,
+    "step": 1,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 259.109375,
+        "clearance": 42.890625
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 375,
+    "step": 2,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 143.171875,
+        "clearance": 158.828125
+      },
+      {
+        "class": "pc2-home__session-preview",
+        "height": 128.375,
+        "clearance": 28
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 375,
+    "step": 3,
+    "bounds": [
+      {
+        "class": "pc2-home__work-layer",
+        "height": 218.75,
+        "clearance": 83.25
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 768,
+    "step": 0,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-profile pc2-home__demo-card",
+        "height": 230.59375,
+        "clearance": 71.40625
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 768,
+    "step": 1,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 227.8125,
+        "clearance": 74.1875
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 768,
+    "step": 2,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 158.375,
+        "clearance": 143.625
+      },
+      {
+        "class": "pc2-home__session-preview",
+        "height": 87.1875,
+        "clearance": 28
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 768,
+    "step": 3,
+    "bounds": [
+      {
+        "class": "pc2-home__work-layer",
+        "height": 216.359375,
+        "clearance": 85.640625
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1280,
+    "step": 0,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-profile pc2-home__demo-card",
+        "height": 230.59375,
+        "clearance": 71.40625
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1280,
+    "step": 1,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 251.0625,
+        "clearance": 50.9375
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1280,
+    "step": 2,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 158.375,
+        "clearance": 143.625
+      },
+      {
+        "class": "pc2-home__session-preview",
+        "height": 87.1875,
+        "clearance": 28
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1280,
+    "step": 3,
+    "bounds": [
+      {
+        "class": "pc2-home__work-layer",
+        "height": 216.359375,
+        "clearance": 85.640625
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1440,
+    "step": 0,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-profile pc2-home__demo-card",
+        "height": 230.59375,
+        "clearance": 71.40625
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1440,
+    "step": 1,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 251.0625,
+        "clearance": 50.9375
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1440,
+    "step": 2,
+    "bounds": [
+      {
+        "class": "pc2-home__demo-request pc2-home__demo-card",
+        "height": 158.375,
+        "clearance": 143.625
+      },
+      {
+        "class": "pc2-home__session-preview",
+        "height": 87.1875,
+        "clearance": 28
+      }
+    ],
+    "fit": true
+  },
+  {
+    "width": 1440,
+    "step": 3,
+    "bounds": [
+      {
+        "class": "pc2-home__work-layer",
+        "height": 216.359375,
+        "clearance": 85.640625
+      }
+    ],
+    "fit": true
+  }
+]

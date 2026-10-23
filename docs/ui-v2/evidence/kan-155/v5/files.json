@@ -1,6 +1,6 @@
 {
   "relativeTo": "repository root; task delta versus origin/dev",
-  "count": 141,
+  "count": 142,
   "files": [
     "docs/ui-v2/KAN-155_HOMEPAGE_REFRESH.md",
     "src/assets/home-v2/mark-band.png",
@@ -78,6 +78,7 @@
     "docs/ui-v2/evidence/kan-155/v5/claude-768-step3-transition.png",
     "docs/ui-v2/evidence/kan-155/v5/claude-768-step3.png",
     "docs/ui-v2/evidence/kan-155/v5/claude-768-value-reveal.png",
+    "docs/ui-v2/evidence/kan-155/v5/illustration-fit.json",
     "docs/ui-v2/evidence/kan-155/v5/motion-results.json",
     "docs/ui-v2/evidence/kan-155/v5/navigation-results.json",
     "docs/ui-v2/evidence/kan-155/v5/source-isolation.json",

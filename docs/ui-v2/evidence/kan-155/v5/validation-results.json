@@ -44,7 +44,9 @@
     "fixtures": "HTTP 401 application API; synthetic visibilitychange, not OS throttling",
     "motionResults": "motion-results.json",
     "acceptanceResults": "acceptance-results.json",
-    "responsiveNavigation": "navigation-results.json"
+    "responsiveNavigation": "navigation-results.json",
+    "illustrationFit": "illustration-fit.json",
+    "activeStateBoundsPassed": 16
   },
   "excluded": [
     "UI v1 change",

@@ -80,6 +80,8 @@ Every width has `{claude|vue}-{width}-step{0..3}{-transition}.png`, hero/band/va
 
 A later 375px parity capture briefly differed by 4,551 pixels. It was investigated: all 312 legacy element geometry/type/color metrics match and two further settled captures were taken after awaiting fonts again following scroll. Final parity is 0 changed pixels; [repeat metric evidence](evidence/kan-155/v5/v1-375-metrics.json) and both repeat screenshots are retained. No v1 source change was made.
 
+Final mobile-frame inspection found the last work row clipped at 375px. The mobile work layer now removes redundant inset padding and uses compact wrapped rows. [All 16 active-state bounds checks](evidence/kan-155/v5/illustration-fit.json) pass (four steps at four widths), also asserted during normal-motion capture; refreshed mobile step-3 evidence shows every row. The final CSS-only follow-up re-ran the 43 affected tests and production build successfully.
+
 Browser acceptance additionally executes mobile-menu Enter/Escape and shared header navigation at all four widths ([navigation evidence](evidence/kan-155/v5/navigation-results.json)), manual hold beyond one cycle, explicit resume, zero running animations/timers while hidden, Tab/Enter/Space with 2px visible focus, no reduced autoplay after 3.5s, live preference changes and navigation cleanup. Visibility is a **synthetic `document.hidden`/`visibilitychange` fixture**, not real OS throttling certification. Browser fixtures do not validate live backend workflows, authentication, session creation, payment/provider delivery or availability.
 
 ## Delivery boundary
