@@ -108,6 +108,7 @@ async function renderWithProviders(options?: {
 }) {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' }, meta: { publicSurface: 'neutral' } },
+    { path: '/for-clients', name: 'for-clients', component: { template: '<div>For Clients</div>' }, meta: { publicSurface: 'neutral' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
@@ -294,7 +295,7 @@ describe('App shell', () => {
     const header = document.querySelector('header.pc2-header') as HTMLElement
     const audience = within(header).getByRole('navigation', { name: 'Для кого Pro Consult' })
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('href', '/')
-    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/#client-entry-title')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/for-clients')
     expect(within(header).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
     expect(within(header).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(header).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
@@ -312,7 +313,7 @@ describe('App shell', () => {
     for (const href of ['/terms', '/privacy', '/disclaimer', '/support-and-data-requests', '/faq', '/pricing', '/signup', '/login']) {
       expect(footer.querySelector(`a[href="${href}"]`)).toBeInTheDocument()
     }
-    expect(document.querySelector('a[href="/for-clients"]')).toBeNull()
+    expect(document.querySelector('a[href="/for-clients"]')).toBeInTheDocument()
     expect(document.querySelector('header img[src="/brand/proconsult-logo-dark.png"]')).toBeNull()
     await fireEvent.click(within(footer).getByRole('button', { name: 'Налаштування конфіденційності' }))
     expect(screen.getByRole('heading', { name: 'Файли cookie та аналітика' })).toBeInTheDocument()
@@ -352,7 +353,7 @@ describe('App shell', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Меню сайту' })).toHaveAttribute('aria-expanded', 'false'))
   })
 
-  it('reactively switches header versions and tracks the actual client-entry hash', async () => {
+  it('reactively switches header versions and tracks the client landing and legacy hash', async () => {
     const { router } = await renderWithProviders()
     applyUiVersion('v2')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeInTheDocument())
@@ -360,6 +361,13 @@ describe('App shell', () => {
     await router.push('/#client-entry-title')
     expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('aria-current', 'false')
+    await router.push('/for-clients')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
+    expect(document.querySelector('a.nav__guest-cta')).toHaveAttribute('href', '/signup-client?ui=v2')
+    expect(document.querySelector('.nav__guest-cta-full')).toHaveTextContent('Створити кабінет')
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+    const mobile = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+    expect(within(mobile).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
     applyUiVersion('v1')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeNull())
     expect(screen.queryByRole('navigation', { name: 'Для кого Pro Consult' })).not.toBeInTheDocument()
