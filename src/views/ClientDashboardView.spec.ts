@@ -1,10 +1,12 @@
-import { render, screen, within } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, fetchClientSpecialists, fetchInquiryState, fetchInquiryThreads, type InquiryThread } from '../lib/api'
+import { apiGet, fetchClientMaterials, fetchClientSpecialists, fetchInquiryState, fetchInquiryThreads, type InquiryThread } from '../lib/api'
+import { applyUiVersion } from '../lib/uiVersion'
 import ClientDashboardView from './ClientDashboardView.vue'
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
+  fetchClientMaterials: vi.fn(),
   fetchClientSpecialists: vi.fn(),
   fetchInquiryState: vi.fn(),
   fetchInquiryThreads: vi.fn(),
@@ -64,6 +66,9 @@ function inquiry(overrides: Record<string, unknown> = {}): InquiryThread {
 
 describe('ClientDashboardView', () => {
   beforeEach(() => {
+    applyUiVersion('v1')
+    vi.mocked(fetchClientMaterials).mockReset()
+    vi.mocked(fetchClientMaterials).mockResolvedValue({ results: [], next_cursor: null })
     vi.useRealTimers()
     mockedApiGet.mockReset()
     mockedFetchClientSpecialists.mockReset()
@@ -72,6 +77,92 @@ describe('ClientDashboardView', () => {
     localStorage.clear()
     mockedFetchClientSpecialists.mockResolvedValue([])
     mockedFetchInquiryThreads.mockResolvedValue([])
+  })
+
+  it('keeps v1 markup, API calls and styles isolated and loads materials only after opting in', async () => {
+    mockDashboard({ upcoming: [session()] })
+    const { container } = renderView()
+    await screen.findByRole('heading', { name: 'Найближча сесія' })
+    const before = container.innerHTML
+    expect(fetchClientMaterials).not.toHaveBeenCalled()
+    expect(container.querySelector('.pc2-client-dashboard')).toBeNull()
+    applyUiVersion('v2')
+    await screen.findByText('Поки що матеріалів немає.')
+    expect(fetchClientMaterials).toHaveBeenCalledTimes(1)
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.innerHTML).toBe(before))
+    applyUiVersion('v2')
+    await screen.findByText('Поки що матеріалів немає.')
+    expect(fetchClientMaterials).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows only client-published previews, never private content or direct attachment URLs', async () => {
+    applyUiVersion('v2')
+    mockDashboard()
+    vi.mocked(fetchClientMaterials).mockResolvedValue({ results: [
+      { id: 1, title: 'Опублікована вправа', content_preview: 'Короткий опис', content: 'FULL CONTENT NOT IN PREVIEW', url: 'https://example.test/private-attachment', session_id: null, material_type: 'exercise', published_at: '2026-10-01T10:00:00Z', private_notes: 'SECRET PRIVATE NOTE' },
+      { id: 2, title: 'Без публікації', content_preview: 'HIDDEN PREVIEW', published_at: '' },
+    ] as any, next_cursor: null })
+    const { container } = renderView()
+    const link = await screen.findByRole('link', { name: 'Матеріали: Опублікована вправа' })
+    expect(link).toHaveAttribute('href', '/client/materials')
+    expect(link).toHaveClass('pc2-card--interactive')
+    expect(screen.getByText('Короткий опис')).toBeInTheDocument()
+    expect(container).not.toHaveTextContent('SECRET PRIVATE NOTE')
+    expect(container).not.toHaveTextContent('FULL CONTENT NOT IN PREVIEW')
+    expect(container).not.toHaveTextContent('HIDDEN PREVIEW')
+    expect(container.querySelector('a[href*="private-attachment"]')).toBeNull()
+    expect(mockedApiGet.mock.calls.every(([url]) => !/notes|workbook/.test(url))).toBe(true)
+    link.focus()
+    expect(link).toHaveFocus()
+  })
+
+  it.each(['paid', 'awaiting_confirmation', 'unpaid', null])('keeps confirmation independent from payment %s in the v2 hero', async (payment) => {
+    applyUiVersion('v2')
+    mockDashboard({ upcoming: [session({ status: 'SCHEDULED', payment_badge_state: payment })] })
+    const { container } = renderView()
+    const hero = container.querySelector('.client__hero') as HTMLElement
+    expect(await within(hero).findByText('Заплановано')).toHaveClass('pc2-tag--info')
+    expect(within(hero).queryByText('Підтверджено')).not.toBeInTheDocument()
+    if (payment === 'paid') expect(within(hero).getByText('Оплачено')).toHaveClass('pc2-tag--success')
+    if (payment === 'awaiting_confirmation') expect(within(hero).getByText('Очікує підтвердження оплати')).toHaveClass('pc2-tag--warning')
+    if (payment === 'unpaid') expect(within(hero).getByText('Не оплачено')).toHaveClass('pc2-tag--neutral')
+    if (payment === null) expect(hero.querySelectorAll('.pc2-tag')).toHaveLength(1)
+    expect(within(hero).queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+  })
+
+  it('handles materials loading, denied access and retry without exposing stale data', async () => {
+    applyUiVersion('v2')
+    mockDashboard()
+    let reject!: (reason: Error) => void
+    vi.mocked(fetchClientMaterials).mockReturnValueOnce(new Promise((_, fail) => { reject = fail }))
+    const { container } = renderView()
+    expect(container.querySelector('.pc2-client-dashboard__materials')).toHaveAttribute('aria-busy', 'true')
+    reject(new Error('403 restricted private payload'))
+    const error = await screen.findByRole('alert')
+    expect(error).toHaveTextContent('Не вдалося завантажити матеріали.')
+    expect(container).not.toHaveTextContent('restricted private payload')
+    await fireEvent.click(within(error).getByRole('button', { name: 'Спробувати ще раз' }))
+    expect(await screen.findByText('Поки що матеріалів немає.')).toBeInTheDocument()
+    expect(fetchClientMaterials).toHaveBeenCalledTimes(2)
+  })
+
+  it('presents v2 no-session, session loading and session error states without inventing a booking', async () => {
+    applyUiVersion('v2')
+    let resolveUpcoming!: (value: unknown[]) => void
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) return new Promise((resolve) => { resolveUpcoming = resolve })
+      return []
+    })
+    const { container, unmount } = renderView()
+    await waitFor(() => expect(container.querySelector('.client__hero')).toHaveAttribute('aria-busy', 'true'))
+    resolveUpcoming([])
+    expect(await screen.findByText('Наступної сесії поки не заплановано.')).toBeInTheDocument()
+    expect(container.querySelector('.client__hero a[href^="/client/sessions/"]')).toBeNull()
+    unmount()
+    mockedApiGet.mockRejectedValue(new Error('fixture failure'))
+    const failed = renderView()
+    expect(await within(failed.container.querySelector('.client__hero') as HTMLElement).findByRole('heading', { name: 'Не вдалося завантажити найближчу сесію' })).toBeInTheDocument()
   })
 
   it('keeps a live session as the hero over upcoming, inquiry, and relationship states', async () => {
