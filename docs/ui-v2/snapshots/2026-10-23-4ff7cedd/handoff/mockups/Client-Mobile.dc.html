@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<style>body{margin:0;background:#F1EBE2;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}</style>
+</helmet>
+<section style="padding:48px 56px 72px;display:flex;flex-direction:column;gap:36px">
+  <div style="max-width:640px;display:flex;flex-direction:column;gap:10px">
+    <span style="font-size:13px;color:#5A6578">UI v2 · кабінет клієнта, чат, гостьові · адаптив &lt; 768px</span>
+    <h1 style="margin:0;font-weight:500;font-size:40px;letter-spacing:-0.035em;line-height:1.05">Клієнт на мобільному</h1>
+    <p style="margin:0;font-size:16px;line-height:1.55;color:#3F4B5E;text-wrap:pretty">Клієнти частіше заходять з телефона — за посиланням з листа чи нагадування. Головне на екрані: найближча сесія і кнопка «Приєднатися». Нижнє меню: Головна · Матеріали · Щоденник · Чат · Ще.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px 32px;align-items:flex-start">
+
+    <div id="c1" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C1</span><span style="font-size:15px;font-weight:500">Головна</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:26px;width:auto"><span style="width:36px;height:36px;border-radius:50%;background:#FFE2C4;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">ОМ</span></div>
+        <div style="flex:1;overflow-y:auto;padding:4px 16px 96px;display:flex;flex-direction:column;gap:16px">
+          <span style="font-size:24px;font-weight:500;letter-spacing:-0.03em">Добрий вечір, Олено</span>
+          <section style="flex-shrink:0;border-radius:24px;background:#12345A;color:#fff;padding:20px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#C9D4E3"><span style="width:8px;height:8px;border-radius:50%;background:#8FCBC8"></span>Починається через 19 хв · онлайн</div>
+            <div style="display:flex;gap:12px;align-items:center"><span style="width:48px;height:48px;border-radius:14px;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%;flex-shrink:0"></span><div><div style="font-size:22px;font-weight:500;letter-spacing:-0.02em">Сьогодні, 19:00</div><div style="font-size:14px;color:#C9D4E3">Марія Коваль · 5-та сесія</div></div></div>
+            <span style="height:52px;border-radius:999px;background:#fff;color:#12345A;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Приєднатися</span>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#C9D4E3"><span>Перенести</span><span>Деталі →</span></div>
+          </section>
+          <section style="flex-shrink:0;padding:14px 16px;border-radius:18px;background:#fff;border:1px solid #EDE7DE;display:flex;gap:12px;align-items:center"><span style="width:40px;height:40px;border-radius:12px;background:#EEF8F7;flex-shrink:0"></span><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500">Вправа «Помічати думки»</div><div style="font-size:13px;color:#8B95A7">Від Марії · після сесії 16 жовт</div></div><span style="color:#8B95A7">›</span></section>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:18px;font-weight:500">Сесії</span><span style="font-size:13px;color:#12345A">Усі</span></div>
+          <sc-for list="{{ sess }}" as="s" hint-placeholder-count="3"><div style="flex-shrink:0;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:56px;padding:8px 14px;border-radius:14px;background:#fff;border:1px solid #EDE7DE"><div style="text-align:center"><div style="font-size:11px;color:#8B95A7">{{ s.w }}</div><div style="font-size:18px;font-weight:500">{{ s.d }}</div></div><div><div style="font-size:15px">{{ s.t }}</div><div style="font-size:12px;color:#8B95A7">{{ s.sub }}</div></div><span style="font-size:12px;padding:3px 9px;border-radius:999px;background:{{ s.bg }};color:{{ s.fg }};white-space:nowrap">{{ s.st }}</span></div></sc-for>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;padding:8px 8px 22px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)"><sc-for list="{{ tHome }}" as="t" hint-placeholder-count="5"><span style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:{{ t.fg }}"><span style="width:22px;height:22px;border-radius:7px;background:{{ t.ic }}"></span>{{ t.l }}<sc-if value="{{ t.b }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#F7B77E;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ t.b }}</span></sc-if></span></sc-for></div>
+      </div>
+    </div>
+
+    <div id="c2" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C2</span><span style="font-size:15px;font-weight:500">Деталі сесії</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:52px;flex-shrink:0;display:flex;align-items:center;gap:6px;padding:0 8px"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#12345A">‹</span><span style="font-size:16px;font-weight:500">Сесія</span></div>
+        <div style="flex:1;overflow-y:auto;padding:0 16px 120px;display:flex;flex-direction:column;gap:14px">
+          <section style="flex-shrink:0;border-radius:24px;background:#12345A;color:#fff;padding:20px;display:flex;flex-direction:column;gap:6px"><span style="align-self:flex-start;font-size:12px;padding:3px 9px;border-radius:999px;background:rgba(143,203,200,.25);color:#BFE3E0">Підтверджено</span><span style="font-size:26px;font-weight:500;letter-spacing:-0.03em;margin-top:6px">Пт, 23 жовтня · 19:00</span><span style="font-size:14px;color:#C9D4E3">50 хв · онлайн · Марія Коваль</span></section>
+          <div style="display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px"><sc-for list="{{ sTabs }}" as="t" hint-placeholder-count="4"><span style="flex-shrink:0;white-space:nowrap;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;font-size:14px;background:{{ t.bg }};color:{{ t.fg }};border:1px solid {{ t.bd }}">{{ t.l }}</span></sc-for></div>
+          <sc-for list="{{ sInfo }}" as="i" hint-placeholder-count="4"><div style="flex-shrink:0;display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #EDE7DE;font-size:15px"><span style="color:#8B95A7">{{ i.k }}</span><span style="text-align:right">{{ i.v }}</span></div></sc-for>
+          <div style="flex-shrink:0;padding:12px 14px;border-radius:14px;background:#F6F1EA;font-size:13px;line-height:1.5;color:#5A6578">Перенести чи скасувати без оплати — до 18:59 22 жовтня. Після — за умовами Марії.</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 16px 28px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:auto 1fr;gap:8px"><span style="height:52px;padding:0 18px;border-radius:999px;border:1px solid #E6E0D8;font-size:15px;display:flex;align-items:center">Перенести</span><span style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Приєднатися</span></div>
+      </div>
+    </div>
+
+    <div id="c3" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C3</span><span style="font-size:15px;font-weight:500">Матеріали</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="padding:4px 16px 10px;display:flex;flex-direction:column;gap:12px"><h2 style="margin:0;font-weight:500;font-size:26px;letter-spacing:-0.03em">Матеріали</h2>
+          <div style="display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px"><sc-for list="{{ mF }}" as="f" hint-placeholder-count="4"><span style="flex-shrink:0;white-space:nowrap;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }}">{{ f.l }}<span style="font-size:12px;opacity:.7">{{ f.n }}</span></span></sc-for></div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:0 16px 96px;display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ mats }}" as="g" hint-placeholder-count="2">
+            <div style="flex-shrink:0;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;color:#8B95A7">{{ g.h }}</span>
+              <sc-for list="{{ g.items }}" as="m" hint-placeholder-count="2"><div style="display:flex;gap:12px;align-items:center;min-height:60px;padding:10px 14px;border-radius:14px;background:#fff;border:1px solid #EDE7DE"><span style="width:40px;height:40px;flex-shrink:0;border-radius:12px;background:{{ m.tint }};font-size:11px;font-weight:600;color:#12345A;display:flex;align-items:center;justify-content:center">{{ m.k }}</span><div style="flex:1;min-width:0"><div style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.t }}</div><div style="font-size:12px;color:#8B95A7">{{ m.s }}</div></div><sc-if value="{{ m.isNew }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:#F7B77E"></span></sc-if></div></sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;padding:8px 8px 22px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)"><sc-for list="{{ tMat }}" as="t" hint-placeholder-count="5"><span style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:{{ t.fg }}"><span style="width:22px;height:22px;border-radius:7px;background:{{ t.ic }}"></span>{{ t.l }}</span></sc-for></div>
+      </div>
+    </div>
+
+    <div id="c4" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C4</span><span style="font-size:15px;font-weight:500">Щоденник — новий запис</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="padding:4px 16px 10px"><h2 style="margin:0;font-weight:500;font-size:26px;letter-spacing:-0.03em">Мій щоденник</h2></div>
+        <div style="flex:1;overflow-y:auto;padding:0 16px 96px;display:flex;flex-direction:column;gap:14px">
+          <section style="flex-shrink:0;padding:16px;border-radius:20px;background:#fff;border:1.5px solid #12345A;display:flex;flex-direction:column;gap:12px">
+            <span style="font-size:15px;font-weight:500">Як ви сьогодні?</span>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px"><sc-for list="{{ moods }}" as="m" hint-placeholder-count="5"><span style="height:56px;border-radius:14px;background:{{ m.bg }};border:1.5px solid {{ m.bd }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:#3F4B5E"><span style="width:18px;height:18px;border-radius:50%;background:{{ m.c }}"></span>{{ m.l }}</span></sc-for></div>
+            <div style="min-height:96px;padding:12px 14px;border-radius:14px;border:1px solid #E6E0D8;background:#FBF9F5;font-size:15px;line-height:1.5;color:#12233A">Зранку тривога була сильніша, але вийшла на прогулянку — після неї стало легше.</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ dTags }}" as="t" hint-placeholder-count="5"><span style="white-space:nowrap;height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;font-size:13px;background:{{ t.bg }};color:{{ t.fg }};border:1px solid {{ t.bd }}">{{ t.l }}</span></sc-for></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px"><span style="font-size:14px;line-height:1.4;color:#3F4B5E">Показати Марії<br><span style="font-size:12px;color:#8B95A7">Інакше запис бачите лише ви</span></span><span style="width:44px;height:26px;border-radius:999px;background:#D4CCC2;position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span></div>
+            <span style="height:48px;border-radius:999px;background:#12345A;color:#fff;font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center">Зберегти запис</span>
+          </section>
+          <span style="font-size:13px;color:#8B95A7">Цього тижня</span>
+          <sc-for list="{{ entries }}" as="e" hint-placeholder-count="2"><div style="flex-shrink:0;display:flex;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #EDE7DE"><span style="width:10px;height:10px;margin-top:5px;border-radius:50%;background:{{ e.c }};flex-shrink:0"></span><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;font-size:12px;color:#8B95A7"><span>{{ e.d }}</span><span>{{ e.vis }}</span></div><div style="font-size:14px;line-height:1.45;margin-top:2px">{{ e.t }}</div></div></div></sc-for>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;padding:8px 8px 22px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)"><sc-for list="{{ tDiary }}" as="t" hint-placeholder-count="5"><span style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:{{ t.fg }}"><span style="width:22px;height:22px;border-radius:7px;background:{{ t.ic }}"></span>{{ t.l }}</span></sc-for></div>
+      </div>
+    </div>
+
+    <div id="c5" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C5</span><span style="font-size:15px;font-weight:500">Чат — список</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="padding:4px 16px 10px;display:flex;flex-direction:column;gap:12px"><h2 style="margin:0;font-weight:500;font-size:26px;letter-spacing:-0.03em">Повідомлення</h2>
+          <div style="display:flex;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start"><span style="padding:7px 14px;border-radius:999px;background:#fff;font-size:13px;box-shadow:0 1px 2px rgba(18,35,58,.1)">Активні 3</span><span style="padding:7px 14px;font-size:13px">Архів 1</span></div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:0 8px 96px;display:flex;flex-direction:column">
+          <sc-for list="{{ chats }}" as="c" hint-placeholder-count="3"><div style="flex-shrink:0;display:flex;gap:12px;align-items:center;min-height:72px;padding:10px 8px;border-radius:16px;background:{{ c.bg }}"><span style="width:48px;height:48px;flex-shrink:0;border-radius:50%;background-color:{{ c.tint }};background-image:{{ c.img }};background-size:cover;background-position:50% 18%;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ c.ini }}</span><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:15px;font-weight:{{ c.fw }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</span><span style="font-size:12px;color:#8B95A7;white-space:nowrap">{{ c.t }}</span></div><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span style="font-size:14px;color:#5A6578;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.last }}</span><sc-if value="{{ c.n }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#12345A;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ c.n }}</span></sc-if></div></div></div></sc-for>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;padding:8px 8px 22px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)"><sc-for list="{{ tChat }}" as="t" hint-placeholder-count="5"><span style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:{{ t.fg }}"><span style="width:22px;height:22px;border-radius:7px;background:{{ t.ic }}"></span>{{ t.l }}<sc-if value="{{ t.b }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#F7B77E;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ t.b }}</span></sc-if></span></sc-for></div>
+      </div>
+    </div>
+
+    <div id="c6" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C6</span><span style="font-size:15px;font-weight:500">Чат — розмова</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:60px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid #EDE7DE"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#12345A">‹</span><span style="width:36px;height:36px;border-radius:50%;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500">Марія Коваль</div><div style="font-size:12px;color:#8B95A7">Сесія сьогодні о 19:00</div></div><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#5A6578">⋯</span></div>
+        <div style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+          <span style="align-self:center;font-size:12px;color:#8B95A7;padding:6px 0">Сьогодні</span>
+          <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="4"><div style="flex-shrink:0;align-self:{{ m.side }};max-width:80%;padding:10px 14px;border-radius:{{ m.r }};background:{{ m.bg }};color:{{ m.fg }};border:1px solid {{ m.bd }};font-size:15px;line-height:1.45">{{ m.t }}</div></sc-for>
+          <span style="align-self:flex-end;font-size:11px;color:#A0A8B6;padding:2px 4px">18:32 · прочитано</span>
+        </div>
+        <div style="padding:8px 16px 28px;border-top:1px solid #EDE7DE;background:#fff;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1;min-height:44px;padding:11px 14px;border-radius:22px;border:1px solid #E6E0D8;background:#FBF9F5;font-size:15px;color:#8B95A7">Повідомлення</div><span style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:#B7C0CC;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px">↑</span></div>
+          <span style="font-size:11px;line-height:1.4;color:#8B95A7;text-align:center">Чат — не для екстрених ситуацій. Потрібна допомога зараз — <b style="font-weight:500;color:#12233A">112</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="c7" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">C7</span><span style="font-size:15px;font-weight:500">Гостьова — запрошення на сесію</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:26px;width:auto"><span style="font-size:13px;color:#5A6578">Що таке Pro Consult?</span></div>
+        <div style="flex:1;overflow-y:auto;padding:8px 16px 130px;display:flex;flex-direction:column;gap:16px">
+          <div><div style="font-size:14px;color:#5A6578">Марія Коваль запрошує вас</div><h2 style="margin:6px 0 0;font-weight:500;font-size:28px;letter-spacing:-0.03em;line-height:1.1">Консультація, 50 хв</h2></div>
+          <section style="flex-shrink:0;border-radius:22px;background:#fff;border:1px solid #EDE7DE;overflow:hidden">
+            <div style="padding:16px 18px;display:flex;gap:14px;align-items:center;border-bottom:1px dashed #E6E0D8"><div style="width:56px;text-align:center;flex-shrink:0"><div style="font-size:12px;color:#8B95A7">ВТ</div><div style="font-size:28px;font-weight:500;line-height:1">27</div><div style="font-size:12px;color:#8B95A7">жовт</div></div><div><div style="font-size:20px;font-weight:500">14:00–14:50</div><div style="font-size:13px;color:#8B95A7">за київським часом</div></div></div>
+            <div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px;font-size:14px"><div style="display:flex;justify-content:space-between"><span style="color:#8B95A7">Формат</span><span>Онлайн · посилання прийде за 15 хв</span></div><div style="display:flex;justify-content:space-between"><span style="color:#8B95A7">Вартість</span><span>1 400 грн · напряму Марії</span></div></div>
+          </section>
+          <div style="flex-shrink:0;padding:12px 14px;border-radius:14px;background:#F6F1EA;font-size:13px;line-height:1.5;color:#5A6578">Реєстрація не потрібна. Посилання персональне — не пересилайте його.</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 16px 28px;background:#fff;border-top:1px solid #EDE7DE;display:flex;flex-direction:column;gap:8px"><span style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Підтвердити участь</span><span style="height:44px;font-size:15px;color:#12345A;display:flex;align-items:center;justify-content:center">Запропонувати інший час</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section style="max-width:900px;display:flex;flex-direction:column;gap:10px">
+    <h2 style="margin:0;font-weight:500;font-size:24px;letter-spacing:-0.02em">Правила</h2>
+    <sc-for list="{{ rules }}" as="r" hint-placeholder-count="7"><div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;padding:12px 16px;border-radius:14px;background:#fff;font-size:14px;line-height:1.55;color:#3F4B5E"><span style="font-weight:600;color:#2F8C86">{{ r.m }}</span><span>{{ r.t }}</span></div></sc-for>
+  </section>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const tab = act => ['Головна', 'Матеріали', 'Щоденник', 'Чат', 'Ще'].map(l => ({ l, fg: l === act ? '#12345A' : '#8B95A7', ic: l === act ? '#12345A' : '#E6E0D8', b: l === 'Чат' ? '1' : '' }));
+    const chip = (l, a) => ({ l, bg: a ? '#12345A' : '#fff', fg: a ? '#fff' : '#12233A', bd: a ? '#12345A' : '#E6E0D8' });
+    const B = (mine, t, first) => ({ t, side: mine ? 'flex-end' : 'flex-start', bg: mine ? '#12345A' : '#fff', fg: mine ? '#fff' : '#12233A', bd: mine ? '#12345A' : '#EDE7DE', r: mine ? '18px 18px 6px 18px' : '18px 18px 18px 6px' });
+    return {
+      tHome: tab('Головна'), tMat: tab('Матеріали'), tDiary: tab('Щоденник'), tChat: tab('Чат'),
+      sess: [['ПТ', '30', 'Марія Коваль · 19:00', 'наступна', 'Очікує', '#FFF4E5', '#8A5A14'], ['ПТ', '16', 'Марія Коваль · 19:00', '4-та сесія', 'Проведено', '#EEF8F1', '#2F7A55'], ['ПТ', '9', 'Марія Коваль · 19:00', '3-тя сесія', 'Проведено', '#EEF8F1', '#2F7A55']].map(([w, d, t, sub, st, bg, fg]) => ({ w, d, t, sub, st, bg, fg })),
+      sTabs: [chip('Деталі', true), chip('Матеріали'), chip('Оплата'), chip('Нотатка')],
+      sInfo: [['Посилання', 'з’явиться за 15 хв'], ['Вартість', '1 400 грн'], ['Оплата', 'Після сесії · реквізити'], ['Нагадування', 'за 1 год · email']].map(([k, v]) => ({ k, v })),
+      mF: [['Усі', 6, true], ['Вправи', 3], ['Статті', 2], ['Файли', 1]].map(([l, n, a]) => ({ ...chip(l, a), n: String(n) })),
+      mats: [{ h: 'Після сесії 16 жовтня', items: [['Помічати автоматичні думки', 'Вправа · 5 хв', 'ВП', '#EEF8F7', true], ['Щоденник тривоги', 'PDF · 2 стор.', 'PDF', '#EEF4FA', false]] }, { h: 'Загальне', items: [['Як зрозуміти, що терапія підходить', 'Стаття · 5 хв', 'СТ', '#F6F1EA', false], ['Дихання 4-7-8', 'Аудіо · 3 хв', 'АУ', '#FFE2C4', false]] }]
+        .map(g => ({ h: g.h, items: g.items.map(([t, s, k, tint, isNew]) => ({ t, s, k, tint, isNew })) })),
+      moods: [['Важко', '#C9C1B6'], ['Так собі', '#F7B77E'], ['Нормально', '#C9D4E3'], ['Добре', '#8FCBC8', true], ['Чудово', '#2F8C86']].map(([l, c, a]) => ({ l, c, bg: a ? '#EEF8F7' : '#FBF9F5', bd: a ? '#2F8C86' : 'transparent' })),
+      dTags: [chip('тривога', true), chip('сон'), chip('робота'), chip('стосунки'), chip('тіло', true)],
+      entries: [['Ср, 21 жовт', 'Лише я', 'Важкий день на роботі, але встигла зробити вправу.', '#F7B77E'], ['Пн, 19 жовт', 'Видно Марії', 'Спала краще — вперше за тиждень.', '#8FCBC8']].map(([d, vis, t, c]) => ({ d, vis, t, c })),
+      chats: [['Підтримка Pro Consult', '', '#EEF4FA', 'url(public/brand/mark-navy.png)', 'Пн', 'Дякуємо! Лист надіслали повторно.', 0, '#EEF4FA'], ['Марія Коваль', '', '#DDF1EF', 'url(assets/maria-koval.webp)', '18:32', 'До зустрічі о 19:00!', 1, '#fff'], ['Андрій Лисенко', 'АЛ', '#DDF1EF', 'none', '12 бер', 'Ви: Дякую за ознайомчу сесію', 0, 'transparent']]
+        .map(([name, ini, tint, img, t, last, n, bg]) => ({ name, ini, tint, img, t, last, n: n ? String(n) : '', fw: n ? 600 : 500, bg })),
+      msgs: [B(false, 'Добрий вечір, Олено! Нагадую: сьогодні о 19:00.'), B(false, 'Якщо зручно — заповніть щоденник перед сесією.'), B(true, 'Добре, дякую! Буду вчасно.'), B(true, 'Запис у щоденнику відкрила для вас.')],
+      rules: [
+        { m: 'Меню', t: 'Нижнє меню клієнта: Головна · Матеріали · Щоденник · Чат · Ще (Мої спеціалісти, Профіль, Підтримка й дані, Вийти). Бейдж «Чат» — непрочитані; тост — над меню.' },
+        { m: 'C1', t: 'Головна: hero найближчої сесії зверху; «Приєднатися» 52px активна за 15 хв (як на десктопі), до того — «Деталі». Новий матеріал — одна картка під hero. «Сесії» — 3 рядки + «Усі».' },
+        { m: 'C2', t: 'Деталі сесії: на весь екран, «‹»; hero за статусом; вкладки — стрічка; липкий футер з двома діями за статусом (Перенести + Приєднатися / Оплатити / Залишити відгук). Нижнє меню сховане.' },
+        { m: 'C3', t: 'Матеріали: фільтри стрічкою з лічильниками; групи за сесією; крапка — непереглянуте. Відкриття — на весь екран, файли — системний перегляд.' },
+        { m: 'C4', t: 'Щоденник: форма запису зверху (настрій 5 плиток ≥ 56px, текст, теги, перемикач «Показати <ім’я>» — за замовчуванням вимкнено), нижче — записи з позначкою видимості.' },
+        { m: 'C5–C6', t: 'Чат: список → розмова на весь екран; підтримка закріплена першою; поле внизу з авто-висотою, Enter — новий рядок (на мобільному надсилання лише кнопкою); попередження про екстрені ситуації — під полем, номери з конфігу.' },
+        { m: 'C7', t: 'Гостьові сторінки: мінімальна шапка, квиток сесії, головна дія в липкому футері, другорядна — текстовою кнопкою під нею. Та сама схема для «Пропозиції часу» та «Запрошення до групи».' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

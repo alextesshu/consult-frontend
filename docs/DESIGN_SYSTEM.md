@@ -1,3 +1,9 @@
+## Current design source override - KAN-154 (2026-10-24)
+
+Current reference is `claude-design-2026-10-23-4ff7cedd`, archive v6.6 with contents through v6.7; SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`. See [entry point](ui-v2/START_HERE.md), [audit](ui-v2/DESIGN_SYNC_2026-10-24_V66_V67.md), [matrix](ui-v2/IMPLEMENTATION_MATRIX_V66_V67.md). This supersedes older current-snapshot/readiness/next-task prose below, which remains historical. All 36 references READY; former support/blog/profile future deltas now READY but contract-gated. Home/For Clients/Discovery desktop references unchanged and integrated. KAN-160 HOLD and v1 default remain. The approved fennec override below remains authoritative. No product rules, typography/tokens, runtime files or prior snapshots are replaced.
+
+---
+
 # PRO CONSULT — Design System & Visual Migration Guide
 
 ## Approved UI v2 brand override — KAN-158 (2026-10-23)

@@ -1,3 +1,9 @@
+## Current specification pointer - 2026-10-24
+
+This retained source body is historical v5. Current exact specification is [v6.6/v6.7 TZ](snapshots/2026-10-23-4ff7cedd/handoff/TZ_CODEX.md). Use [entry point](START_HERE.md), [matrix](IMPLEMENTATION_MATRIX_V66_V67.md) and [gates](JIRA_ALIGNMENT_V66_V67.md); source instructions never authorize runtime or contract changes.
+
+---
+
 # UI v2 — repository integration overlay (Claude v5)
 
 Current snapshot: `claude-design-2026-10-23-7570f1ad`; SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`.

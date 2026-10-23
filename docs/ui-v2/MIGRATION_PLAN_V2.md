@@ -1,3 +1,9 @@
+## Current delivery plan override - KAN-154 (2026-10-24)
+
+The historical plan below is retained. Its next-candidate and IN PROGRESS claims are superseded by [current follow-up plan](FOLLOWUP_PLAN_V66_V67.md), [matrix](IMPLEMENTATION_MATRIX_V66_V67.md), [verified PR evidence](PR_EVIDENCE_V66_V67.json) and [gates](JIRA_ALIGNMENT_V66_V67.md). Exact current source plan: [v6.6/v6.7](snapshots/2026-10-23-4ff7cedd/handoff/MIGRATION_PLAN_V2.md). Home/For Clients/Discovery and branding already merged; do not repeat them. KAN-160 HOLD; no default-v2 rollout.
+
+---
+
 # UI v2 — integrated v5 implementation routing
 
 Current snapshot `claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. [Exact source plan](snapshots/2026-10-23-7570f1ad/handoff/MIGRATION_PLAN_V2.md), [readiness](DESIGN_READINESS_V5.json), [matrix](IMPLEMENTATION_MATRIX_V5.md), [audit](DESIGN_SYNC_2026-10-23_V5.md), [historical migration record](../UI_MIGRATION_PLAN.md).

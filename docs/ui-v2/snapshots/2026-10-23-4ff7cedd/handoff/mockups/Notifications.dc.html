@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<style>body{margin:0;background:#F1EBE2;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<section style="padding:48px 56px 72px;display:flex;flex-direction:column;gap:40px">
+  <div style="max-width:680px;display:flex;flex-direction:column;gap:10px">
+    <span style="font-size:13px;color:#5A6578">UI v2 · обидві ролі</span>
+    <h1 style="margin:0;font-weight:500;font-size:40px;letter-spacing:-0.035em;line-height:1.05">Сповіщення</h1>
+    <p style="margin:0;font-size:16px;line-height:1.55;color:#3F4B5E;text-wrap:pretty">Дзвіночок — лише події. Нові повідомлення в чатах і нові запити — бейджами біля «Чати» і «Запити» в меню, у дзвіночок не потрапляють. Прочитане — після кліку на подію або «Позначити все».</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px 32px;align-items:flex-start">
+
+    <div id="n1" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">N1</span><span style="font-size:15px;font-weight:500">Спеціаліст — дзвіночок відкрито</span></div>
+      <div style="width:900px;height:620px;border-radius:24px;background:#FBF9F5;border:1px solid #D4CCC2;overflow:hidden;display:grid;grid-template-columns:220px minmax(0,1fr);position:relative">
+        <aside style="border-right:1px solid #EDE7DE;padding:18px 10px;display:flex;flex-direction:column;gap:2px">
+          <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:28px;width:auto;align-self:flex-start;margin:0 0 16px 4px">
+          <sc-for list="{{ navS }}" as="n" hint-placeholder-count="8"><span style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:12px;font-size:14px;background:{{ n.bg }};color:{{ n.fg }}">{{ n.l }}<sc-if value="{{ n.b }}" hint-placeholder-val="{{ false }}"><span style="min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:{{ n.bb }};color:{{ n.bf }};font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.b }}</span></sc-if></span></sc-for>
+        </aside>
+        <div style="display:flex;flex-direction:column;min-width:0">
+          <div style="height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:0 20px;border-bottom:1px solid #EDE7DE">
+            <span onClick="{{ sp.toggle }}" role="button" aria-label="Сповіщення" aria-expanded="{{ sp.aria }}" style="position:relative;width:44px;height:44px;border-radius:50%;background:{{ sp.bellBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:#12345A">
+              <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path></svg>
+              <sc-if value="{{ sp.badge }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:4px;right:4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid #FBF9F5">{{ sp.badge }}</span></sc-if>
+            </span>
+            <span style="width:36px;height:36px;border-radius:50%;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+          </div>
+          <div style="padding:24px;display:flex;flex-direction:column;gap:12px;opacity:.5"><div style="height:150px;border-radius:24px;background:#DCE2EA"></div><div style="height:72px;border-radius:16px;background:#EDE7DE"></div><div style="height:72px;border-radius:16px;background:#EDE7DE"></div></div>
+        </div>
+        <sc-if value="{{ sp.open }}" hint-placeholder-val="{{ true }}">
+          <div role="dialog" aria-label="Сповіщення" style="position:absolute;top:60px;right:64px;width:400px;max-height:540px;background:#fff;border:1px solid #EDE7DE;border-radius:20px;box-shadow:0 24px 60px rgba(18,35,58,.16);display:flex;flex-direction:column;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 10px"><span style="font-size:17px;font-weight:500">Сповіщення</span><span onClick="{{ sp.readAll }}" style="font-size:13px;color:{{ sp.raFg }};cursor:pointer">Позначити все прочитаним</span></div>
+            <div style="flex:1;overflow-y:auto;padding:0 8px 8px">
+              <sc-for list="{{ sp.groups }}" as="g" hint-placeholder-count="2">
+                <div style="font-size:12px;color:#8B95A7;padding:10px 10px 4px">{{ g.h }}</div>
+                <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+                  <div onClick="{{ it.on }}" style="display:grid;grid-template-columns:36px minmax(0,1fr) 8px;gap:12px;align-items:start;padding:10px;border-radius:14px;cursor:pointer;background:{{ it.bg }};transition:background .25s" style-hover="background:#F6F1EA">
+                    <span style="width:36px;height:36px;border-radius:12px;background:{{ it.tint }};color:{{ it.ic }};font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ it.g }}</span>
+                    <div style="min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;line-height:1.4;font-weight:{{ it.fw }}">{{ it.t }}</span><span style="font-size:12px;color:#8B95A7">{{ it.when }}</span></div>
+                    <span style="width:8px;height:8px;margin-top:6px;border-radius:50%;background:#F7B77E;opacity:{{ it.dot }}"></span>
+                  </div>
+                </sc-for>
+              </sc-for>
+            </div>
+            <a href="#n3" style="padding:14px 18px;border-top:1px solid #F1EBE2;font-size:14px;text-align:center">Усі сповіщення →</a>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div id="n2" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">N2</span><span style="font-size:15px;font-weight:500">Клієнт — дзвіночок (мобільний)</span></div>
+      <div style="position:relative;width:375px;height:620px;border-radius:36px;border:1px solid #D4CCC2;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>18:41</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:56px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid #F1EBE2"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#12345A">‹</span><span style="flex:1;font-size:17px;font-weight:500">Сповіщення</span><span onClick="{{ cl.readAll }}" style="font-size:13px;color:{{ cl.raFg }};padding:0 8px;cursor:pointer">Прочитати все</span></div>
+        <div style="flex:1;overflow-y:auto;padding:0 8px 16px">
+          <sc-for list="{{ cl.groups }}" as="g" hint-placeholder-count="2">
+            <div style="font-size:12px;color:#8B95A7;padding:12px 10px 4px">{{ g.h }}</div>
+            <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+              <div onClick="{{ it.on }}" style="display:grid;grid-template-columns:36px minmax(0,1fr) 8px;gap:12px;align-items:start;min-height:60px;padding:10px;border-radius:14px;cursor:pointer;background:{{ it.bg }}">
+                <span style="width:36px;height:36px;border-radius:12px;background:{{ it.tint }};color:{{ it.ic }};font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ it.g }}</span>
+                <div style="min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;line-height:1.4;font-weight:{{ it.fw }}">{{ it.t }}</span><span style="font-size:12px;color:#8B95A7">{{ it.when }}</span></div>
+                <span style="width:8px;height:8px;margin-top:6px;border-radius:50%;background:#F7B77E;opacity:{{ it.dot }}"></span>
+              </div>
+            </sc-for>
+          </sc-for>
+        </div>
+      </div>
+      <span style="width:375px;font-size:13px;line-height:1.5;color:#5A6578">На мобільному дзвіночок — у шапці поруч з аватаром; відкривається на весь екран. На десктопі — та сама панель, що в N1.</span>
+    </div>
+
+    <div id="n3" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">N3</span><span style="font-size:15px;font-weight:500">«Усі сповіщення» — сторінка</span></div>
+      <div style="width:720px;border-radius:24px;background:#FBF9F5;border:1px solid #D4CCC2;padding:28px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><h2 style="margin:0;font-weight:500;font-size:30px;letter-spacing:-0.03em">Усі сповіщення</h2><span onClick="{{ sp.readAll }}" style="font-size:14px;color:{{ sp.raFg }};cursor:pointer">Позначити все прочитаним</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ pf }}" as="f" hint-placeholder-count="5"><span onClick="{{ f.on }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.bd }}">{{ f.l }}<span style="font-size:12px;opacity:.7">{{ f.n }}</span></span></sc-for></div>
+        <div style="background:#fff;border:1px solid #EDE7DE;border-radius:20px;padding:6px">
+          <sc-for list="{{ page }}" as="it" hint-placeholder-count="6">
+            <div onClick="{{ it.on }}" style="display:grid;grid-template-columns:36px minmax(0,1fr) auto 8px;gap:14px;align-items:center;padding:12px;border-radius:14px;cursor:pointer;background:{{ it.bg }}" style-hover="background:#F6F1EA">
+              <span style="width:36px;height:36px;border-radius:12px;background:{{ it.tint }};color:{{ it.ic }};font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ it.g }}</span>
+              <span style="font-size:15px;line-height:1.4;font-weight:{{ it.fw }}">{{ it.t }}</span>
+              <span style="font-size:13px;color:#8B95A7;white-space:nowrap">{{ it.when }}</span>
+              <span style="width:8px;height:8px;border-radius:50%;background:#F7B77E;opacity:{{ it.dot }}"></span>
+            </div>
+          </sc-for>
+        </div>
+        <span style="font-size:13px;color:#8B95A7">Зберігаються 90 днів. Нижче — «Показати раніші».</span>
+      </div>
+    </div>
+
+    <div id="n4" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">N4</span><span style="font-size:15px;font-weight:500">Налаштування → Сповіщення (спеціаліст)</span></div>
+      <div style="width:720px;border-radius:24px;background:#FBF9F5;border:1px solid #D4CCC2;padding:28px;display:flex;flex-direction:column;gap:16px">
+        <section style="padding:18px 20px;border-radius:20px;background:{{ tg.bg }};border:1px solid {{ tg.bd }};display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;gap:14px;align-items:center"><span style="width:44px;height:44px;border-radius:14px;background:#2A9FD8;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">TG</span><div><div style="font-size:16px;font-weight:500">{{ tg.h }}</div><div style="font-size:13px;line-height:1.45;color:#5A6578;max-width:420px">{{ tg.d }}</div></div></div>
+          <span onClick="{{ tg.on }}" style="padding:11px 18px;border-radius:999px;font-size:14px;font-weight:500;white-space:nowrap;cursor:pointer;background:{{ tg.btnBg }};color:{{ tg.btnFg }};border:1.5px solid #12345A">{{ tg.btn }}</span>
+        </section>
+        <section style="background:#fff;border:1px solid #EDE7DE;border-radius:20px;padding:18px 20px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 72px 72px 72px;gap:12px;padding-bottom:10px;font-size:12px;color:#8B95A7"><span>Подія</span><span style="text-align:center">У кабінеті</span><span style="text-align:center">Email</span><span style="text-align:center">Telegram</span></div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="7">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 72px 72px 72px;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #F1EBE2">
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px">{{ r.l }}</span><span style="font-size:12px;color:#8B95A7">{{ r.d }}</span></div>
+              <sc-for list="{{ r.sw }}" as="s" hint-placeholder-count="3"><span onClick="{{ s.on }}" role="switch" aria-checked="{{ s.aria }}" aria-label="{{ s.label }}" style="justify-self:center;width:40px;height:24px;border-radius:999px;padding:3px;background:{{ s.bg }};opacity:{{ s.op }};cursor:{{ s.cur }};transition:background .2s"><span style="display:block;width:18px;height:18px;border-radius:50%;background:#fff;transform:translateX({{ s.x }});transition:transform .2s"></span></span></sc-for>
+            </div>
+          </sc-for>
+          <span style="display:block;font-size:12px;line-height:1.5;color:#8B95A7;padding-top:12px;border-top:1px solid #F1EBE2">Telegram — лише для термінового: новий запит, зміни сесій, нагадування. Нові повідомлення в чатах — бейджем у меню й на email (раз на годину, якщо не прочитано).</span>
+        </section>
+      </div>
+    </div>
+
+    <div id="n5" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">N5</span><span style="font-size:15px;font-weight:500">Повідомлення бота (схема)</span></div>
+      <div style="border-radius:24px;background:#DCE6F2;padding:18px 14px;display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ bot }}" as="b" hint-placeholder-count="3">
+          <div style="max-width:300px;background:#fff;border-radius:18px 18px 18px 6px;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;font-weight:600;color:#2A73B8">Pro Consult</span>
+            <span style="font-size:14px;line-height:1.45;white-space:pre-line">{{ b.t }}</span>
+            <span style="align-self:stretch;text-align:center;padding:8px;border-radius:10px;background:#EEF4FA;color:#2A73B8;font-size:13px;font-weight:500">{{ b.btn }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <span style="font-size:13px;line-height:1.5;color:#5A6578">Без імен клієнтів і деталей запиту — лише ініціал і час. Подробиці — в кабінеті за кнопкою.</span>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SP0 = [
+  ['s1', 'today', 'С', '#EEF4FA', '#12345A', 'Олена М. підтвердила сесію пт, 30 жовт о 19:00', '12 хв тому', true, 'sess'],
+  ['s2', 'today', '₴', '#EEF8F1', '#2F7A55', 'Оплату за сесію 23 жовт позначено отриманою — 1 400 грн', '1 год тому', true, 'pay'],
+  ['s3', 'today', 'Щ', '#EEF8F7', '#1F5E5A', 'Ірина Б. відкрила вам запис у щоденнику', '3 год тому', false, 'diary'],
+  ['s4', 'earlier', '!', '#FFF4E5', '#8A5A14', 'Андрій С. переніс сесію на вт, 27 жовт о 16:30', 'вчора, 21:04', false, 'sess'],
+  ['s5', 'earlier', 'В', '#F6F1EA', '#5A6578', 'Новий відгук — переглянути й опублікувати', 'вчора, 14:10', false, 'rev'],
+  ['s6', 'earlier', '₴', '#FBECEC', '#B23B3B', 'Оплата за сесію 16 жовт прострочена — Роман І.', '21 жовт', false, 'pay'],
+  ['s7', 'earlier', 'T', '#FFF4E5', '#8A5A14', 'Пробний Pro закінчується через 4 дні', '20 жовт', false, 'plan'],
+];
+const CL0 = [
+  ['c1', 'today', 'С', '#EEF4FA', '#12345A', 'Марія Коваль підтвердила сесію сьогодні о 19:00', '2 год тому', true],
+  ['c2', 'today', 'М', '#EEF8F7', '#1F5E5A', 'Новий матеріал: «Помічати автоматичні думки»', '3 год тому', true],
+  ['c3', 'today', '₴', '#EEF8F1', '#2F7A55', 'Реквізити для оплати сесії 23 жовт', '3 год тому', false],
+  ['c4', 'earlier', '?', '#F6F1EA', '#5A6578', 'Марія відповіла на ваше питання до першої сесії', 'вчора', false],
+  ['c5', 'earlier', 'Г', '#EEF4FA', '#12345A', 'Запрошення: «Коло підтримки: тривога», вт 27 жовт', '20 жовт', false],
+];
+class Component extends DCLogic {
+  state = { sp: SP0, cl: CL0, open: true, pf: 'all', tg: false, sw: { req: [1, 1, 1], sess: [1, 1, 1], rem: [1, 1, 1], pay: [1, 1, 0], rev: [1, 1, 0], plan: [1, 1, 0], diary: [1, 0, 0] } };
+  renderVals() {
+    const S = this.state;
+    const view = (list, key) => {
+      const mk = r => ({ g: r[2], tint: r[3], ic: r[4], t: r[5], when: r[6], dot: r[7] ? 1 : 0, fw: r[7] ? 500 : 400, bg: r[7] ? '#FBF9F5' : 'transparent', on: () => this.setState({ [key]: S[key].map(x => x[0] === r[0] ? x.map((v, i) => i === 7 ? false : v) : x) }) });
+      const unread = list.filter(r => r[7]).length;
+      return { badge: unread ? String(unread) : '', raFg: unread ? '#12345A' : '#B7C0CC', readAll: () => this.setState({ [key]: S[key].map(x => x.map((v, i) => i === 7 ? false : v)) }),
+        groups: [['today', 'Сьогодні'], ['earlier', 'Раніше']].map(([k, h]) => ({ h, items: list.filter(r => r[1] === k).map(mk) })).filter(g => g.items.length), mk };
+    };
+    const sp = view(S.sp, 'sp'), cl = view(S.cl, 'cl');
+    const PF = [['all', 'Усі'], ['sess', 'Сесії'], ['pay', 'Оплати'], ['rev', 'Відгуки'], ['plan', 'Тариф'], ['diary', 'Щоденник']];
+    const ROWS = [['req', 'Новий запит', 'Бейдж «Запити» + email'], ['sess', 'Сесія підтверджена, перенесена, скасована', ''], ['rem', 'Нагадування про сесію', 'за 24 год і за 1 год'], ['pay', 'Оплата отримана або прострочена', ''], ['rev', 'Новий відгук', ''], ['plan', 'Тариф закінчується', 'за 7 і 1 день'], ['diary', 'Клієнт відкрив запис у щоденнику', '']];
+    const tgOk = k => ['req', 'sess', 'rem'].includes(k);
+    return {
+      navS: ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати'].map(l => ({ l, b: l === 'Запити' ? '2' : l === 'Чати' ? '3' : '', bb: l === 'Запити' ? '#F7B77E' : '#12345A', bf: l === 'Запити' ? '#12233A' : '#fff', bg: l === 'Кабінет' ? '#12345A' : 'transparent', fg: l === 'Кабінет' ? '#fff' : '#3F4B5E' })),
+      sp: { ...sp, open: S.open, aria: S.open ? 'true' : 'false', bellBg: S.open ? '#EEF4FA' : 'transparent', toggle: () => this.setState({ open: !S.open }) },
+      cl,
+      pf: PF.map(([k, l]) => { const n = k === 'all' ? S.sp.length : S.sp.filter(r => r[8] === k).length; const a = S.pf === k; return { l, n: String(n), bg: a ? '#12345A' : '#fff', fg: a ? '#fff' : '#12233A', bd: a ? '#12345A' : '#E6E0D8', on: () => this.setState({ pf: k }) }; }),
+      page: S.sp.filter(r => S.pf === 'all' || r[8] === S.pf).map(sp.mk),
+      tg: S.tg ? { h: 'Telegram підключено · @maria_koval', d: 'Термінові події приходитимуть від бота @ProConsultBot. Вимкнути можна тут або командою /stop.', btn: 'Відключити', btnBg: 'transparent', btnFg: '#12345A', bg: '#EEF8F1', bd: '#CDE8DA', on: () => this.setState({ tg: false }) }
+        : { h: 'Підключіть Telegram', d: 'Нові запити й зміни сесій — одразу в месенджер. Відкриємо бота, натисніть «Start» — і готово.', btn: 'Підключити', btnBg: '#12345A', btnFg: '#fff', bg: '#fff', bd: '#EDE7DE', on: () => this.setState({ tg: true }) },
+      rows: ROWS.map(([k, l, d]) => ({ l, d, sw: [0, 1, 2].map(i => { const avail = i < 2 || (tgOk(k) && S.tg); const on = !!S.sw[k][i] && avail; return { label: ['У кабінеті', 'Email', 'Telegram'][i], aria: on ? 'true' : 'false', bg: on ? '#12345A' : '#D4CCC2', x: on ? '16px' : '0px', op: i === 2 && !tgOk(k) ? 0 : avail ? 1 : 0.4, cur: avail ? 'pointer' : 'default', on: () => avail && this.setState({ sw: { ...S.sw, [k]: S.sw[k].map((v, j) => j === i ? (v ? 0 : 1) : v) } }) }; }) })),
+      bot: [{ t: 'Новий запит від О.\nКонсультація · пт, 30 жовт, 19:00', btn: 'Відкрити в кабінеті' }, { t: 'Сесію перенесено\nА. · вт, 27 жовт, 16:30 (було пн, 26 жовт, 10:00)', btn: 'Переглянути' }, { t: 'Через 1 годину — сесія\n19:00 · онлайн', btn: 'Приєднатися' }],
+    };
+  }
+}
+</script>
+</body>
+</html>

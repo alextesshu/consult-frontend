@@ -1,0 +1,492 @@
+{
+  "snapshot_id": "claude-design-2026-10-23-4ff7cedd",
+  "sha256": "4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347",
+  "base_sha": "e63b1ca1a941f56c6578c32a7b964a133404bbb6",
+  "observed_date": "2026-10-24",
+  "previous_matrix": "IMPLEMENTATION_MATRIX_V5.json",
+  "pages": [
+    {
+      "reference": "Admin.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "Admin views; proposed AdminSupportView",
+      "implementation": "Legacy admin exists; support new",
+      "classifications": [
+        "VISUAL UPDATE",
+        "MOTION UPDATE",
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Support queue, assignment, staff-only notes, response states and email duplication require backend.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Admin.dc.html"
+    },
+    {
+      "reference": "Auth.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "Login/ForgotPassword/ResetPassword/VerifyEmail/AccountEmailChangeConfirm",
+      "implementation": "Legacy auth flows",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "P5 mobile composition; magic login unsupported until approved, no session/password policy changes.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Auth.dc.html"
+    },
+    {
+      "reference": "Billing.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "BillingView",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "HTML unchanged; real Start/Pro limits/prices, grace/manual payment/entitlements authoritative.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Billing.dc.html"
+    },
+    {
+      "reference": "Brand.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-158",
+      "views": "App",
+      "implementation": "Merged #61; approved fennec override",
+      "classifications": [
+        "ALREADY IMPLEMENTED"
+      ],
+      "delta_and_next_action": "Source art unchanged. Preserve approved SVG geometry, horizontal header/stacked footer; no v1/favicon replacement.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Brand.dc.html"
+    },
+    {
+      "reference": "Cabinet-Dashboard.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "CabinetView",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "14-item NAV now includes Group events; map real dashboard/readiness DTOs.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Cabinet-Dashboard.dc.html"
+    },
+    {
+      "reference": "Cabinet-Drawer.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "Shared future cabinet drawer",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Keyboard/focus/Escape/dirty state and actual reversible mutations.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Cabinet-Drawer.dc.html"
+    },
+    {
+      "reference": "Cabinet-Mobile.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "App and cabinet layouts",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Existing mobile shell reference plus M9-M14 and C/P boards; preserve permission-aware routes.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Cabinet-Mobile.dc.html"
+    },
+    {
+      "reference": "Cabinet-Mobile-2.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "Inquiries; Slots; PracticeBoard; Analytics; TherapistProfile",
+      "implementation": "New M9-M14 board",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Full-screen inquiry thread, schedule sheet, grouped tasks, KPI 2x2, profile accordion/dirty footer. No synthetic swipe mutation.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Cabinet-Mobile-2.dc.html"
+    },
+    {
+      "reference": "Chat.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "ChatView",
+      "implementation": "Ordinary chat exists; support not established",
+      "classifications": [
+        "VISUAL UPDATE",
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Pinned support + topics/staff reply/email; preserve ordinary conversation permissions and privacy; no invented support service.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Chat.dc.html"
+    },
+    {
+      "reference": "Client-Cabinet.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-160",
+      "views": "ClientDashboardView",
+      "implementation": "Draft #57; HOLD",
+      "classifications": [
+        "DEFERRED"
+      ],
+      "delta_and_next_action": "Desktop unchanged; new mobile reference does not clear UX/backend/HOLD gates.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Client-Cabinet.dc.html"
+    },
+    {
+      "reference": "Client-Mobile.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-160 / KAN-161 / KAN-162",
+      "views": "Client views; ChatView; guest views",
+      "implementation": "New C1-C7 reference board",
+      "classifications": [
+        "DEFERRED",
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Client dashboard/diary remain HOLD; split ordinary chat and guest mobile scope by owner, server join/cancel/payment rules.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Client-Mobile.dc.html"
+    },
+    {
+      "reference": "Client-Pages.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-160",
+      "views": "ClientMaterials/ClientTherapists/ClientProfile/ClientFeedback/ClientGroupEvent",
+      "implementation": "Legacy flows; v2 scope HOLD",
+      "classifications": [
+        "DEFERRED",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Read markers, grouping, diary/privacy and deletion gates retained. Related-specialist API exists; no duplicate endpoint task.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Client-Pages.dc.html"
+    },
+    {
+      "reference": "Client-Signup.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-159",
+      "views": "ClientSignupView",
+      "implementation": "Merged #53; completion Draft #54",
+      "classifications": [
+        "ALREADY IMPLEMENTED",
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Desktop unchanged. P6 composition must map actual client steps; no forced new registration contract.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Client-Signup.dc.html"
+    },
+    {
+      "reference": "Clients.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "TherapistClients/ClientWorkbook",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Group events NAV/currency copy; specialist-only private notes and published materials remain separate.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Clients.dc.html"
+    },
+    {
+      "reference": "Emails.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161 / KAN-162 / contract owner",
+      "views": "Backend email templates/providers",
+      "implementation": "Existing send flows, not new HTML acceptance",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Separate backend delivery; retain verified v5 provider/TTL/pricing/idempotency/plaintext gates; no email sends.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Emails.dc.html"
+    },
+    {
+      "reference": "Find-Specialist.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-157",
+      "views": "PublicTherapistsView; PublicSpecialistCard",
+      "implementation": "Merged #56",
+      "classifications": [
+        "ALREADY IMPLEMENTED",
+        "VISUAL UPDATE",
+        "MOTION UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "P4 sticky search, bottom filter sheet/count, 64px cards vs runtime 72px. Price/date/language/nearest-slot/count mapping requires actual APIs.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Find-Specialist.dc.html"
+    },
+    {
+      "reference": "For-Clients.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-156",
+      "views": "ForClientsView",
+      "implementation": "Merged #62; desktop reference and motion accepted",
+      "classifications": [
+        "ALREADY IMPLEMENTED",
+        "VISUAL UPDATE"
+      ],
+      "delta_and_next_action": "P3 mobile field/CTA and topic strip follow-up; existing vertical steps already implemented; preserve q/request_group.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/For-Clients.dc.html"
+    },
+    {
+      "reference": "Guest.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "ExternalGuestSessionInvite/PublicGuestBookingTimeProposal/GroupInviteJoin",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Mobile C7 composition; retain actual token/expiry/roles and login redirect without approved public group DTO.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Guest.dc.html"
+    },
+    {
+      "reference": "Handoff-Spec.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-154",
+      "views": "Reference only",
+      "implementation": "Foundations merged #49/#50",
+      "classifications": [
+        "ALREADY IMPLEMENTED"
+      ],
+      "delta_and_next_action": "No repeated Stage 0; shared tokens/components/uiVersion source unchanged; preserve contrast/storage/route guards.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Handoff-Spec.dc.html"
+    },
+    {
+      "reference": "Home.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-155",
+      "views": "HomeView",
+      "implementation": "Merged #52/#59; desktop reference and motion accepted",
+      "classifications": [
+        "ALREADY IMPLEMENTED",
+        "VISUAL UPDATE",
+        "MOTION UPDATE"
+      ],
+      "delta_and_next_action": "Public-Mobile P1: mark 72px vs runtime 88px mobile; horizontal snap journey/dots, full-width actions; retain desktop motion.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Home.dc.html"
+    },
+    {
+      "reference": "Inquiries.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "SpecialistInquiriesView",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Domain example corrected; preserve existing thread eligibility/reason_code and reply contracts.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Inquiries.dc.html"
+    },
+    {
+      "reference": "Notifications.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161 / KAN-160",
+      "views": "App; useNotifications; NotificationSettingsView; proposed full list",
+      "implementation": "Feed/read/read-all exist; new composition not integrated",
+      "classifications": [
+        "ALREADY IMPLEMENTED",
+        "VISUAL UPDATE",
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Map real event types/settings; 90-day list and Telegram unresolved; diary/client expansions HOLD. N4 supersedes Settings notification layout.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Notifications.dc.html"
+    },
+    {
+      "reference": "Onboarding.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-159 / KAN-161",
+      "views": "specialistOnboarding; CabinetView; proposed wizard",
+      "implementation": "Readiness/state API exists; new wizard not implemented",
+      "classifications": [
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Save/resume/checklist persistence and manual publication; backend readiness authoritative, never demo percentages or auto search visibility.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Onboarding.dc.html"
+    },
+    {
+      "reference": "Profile-Edit.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161 / KAN-159",
+      "views": "TherapistProfileView",
+      "implementation": "Legacy editor",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "psychiatrist to psychoanalyst requires taxonomy/migration decision; preserve public contact opt-ins and dirty/save semantics.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Profile-Edit.dc.html"
+    },
+    {
+      "reference": "Public-Content.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-162",
+      "views": "PublicJournal*; FaqView",
+      "implementation": "Existing public flows; new v2 composition not integrated",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Request-first CTA copy; preserve real content/visibility/SEO and privacy/crisis copy gates.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Public-Content.dc.html"
+    },
+    {
+      "reference": "Public-Mobile.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-155 / KAN-156 / KAN-157 / KAN-158 / KAN-159 / KAN-161",
+      "views": "App; public page views",
+      "implementation": "New P1-P6 board; separate follow-ups",
+      "classifications": [
+        "VISUAL UPDATE",
+        "MOTION UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "60px header/30px logo, full-screen audience menu, mobile Home/For Clients/search/auth/signup. Preserve actual routes/filters/steps.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Public-Mobile.dc.html"
+    },
+    {
+      "reference": "Schedule.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "Slots/AvailabilityRules",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Undo label copy only; no simulated delayed deletion/undo.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Schedule.dc.html"
+    },
+    {
+      "reference": "Service-Pages.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-162",
+      "views": "Legal views; Forbidden; proposed NotFound",
+      "implementation": "Existing legal/403; wildcard redirect remains",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "HTML unchanged; legal extract is not approval, 404 routing requires separate decision; retain /tour redirect.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Service-Pages.dc.html"
+    },
+    {
+      "reference": "Session-Pages.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-160 / KAN-161 / KAN-162",
+      "views": "ClientSessionDetail; ExternalSessionDetail; ClientRecordAccountInvite",
+      "implementation": "Existing flows; v2 composition not integrated",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE",
+        "DEFERRED"
+      ],
+      "delta_and_next_action": "Client scope HOLD; server cancel/join/payment/recovery/token rules. Do not adopt erroneous sample /s/guest route.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Session-Pages.dc.html"
+    },
+    {
+      "reference": "Sessions.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "TherapistSessions/ExternalSessions/SessionDetail",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Group events NAV/currency copy; embedded detail, statuses/pagination and real mutations.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Sessions.dc.html"
+    },
+    {
+      "reference": "Settings.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "SettingsHub/NotificationSettings",
+      "implementation": "Legacy flow; v2 composition not implemented",
+      "classifications": [
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Undo label; Notifications N4 supersedes notification layout. Do not infer all new preferences.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Settings.dc.html"
+    },
+    {
+      "reference": "Share-Card.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-158",
+      "views": "Server public metadata; frontend profile links",
+      "implementation": "New reference; not implementation",
+      "classifications": [
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Separate OG render/storage/invalidation and non-JS metadata decision; 1200x630 and 1080x1080.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Share-Card.dc.html"
+    },
+    {
+      "reference": "Signup.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-159",
+      "views": "SignupView",
+      "implementation": "Merged #53; completion Draft #54",
+      "classifications": [
+        "ALREADY IMPLEMENTED",
+        "VISUAL UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Desktop unchanged. P6 mobile progress/sticky footer; retain #54/#63 registration/verification and attribution contracts.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Signup.dc.html"
+    },
+    {
+      "reference": "Specialist-Profile.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-158",
+      "views": "PublicProfileView; public-profile/*",
+      "implementation": "Open Draft #55",
+      "classifications": [
+        "VISUAL UPDATE",
+        "MOTION UPDATE",
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Updated desktop profile, contacts, consent, inquiry/sharing/About/preview/hidden; reuse existing inquiry, preserve eligibility.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile.dc.html"
+    },
+    {
+      "reference": "Specialist-Profile-Mobile.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-158",
+      "views": "PublicProfileView",
+      "implementation": "New reference; coordinate with Draft #55",
+      "classifications": [
+        "VISUAL UPDATE",
+        "MOTION UPDATE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Below 860px: fixed bottom bar, 86% sheet, About/share; real offers/availability, safe-area, focus and scroll lock.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile-Mobile.dc.html"
+    },
+    {
+      "reference": "Specialist-Tools.dc.html",
+      "design_status": "DESIGN READY",
+      "jira": "KAN-161",
+      "views": "PracticeBoard; Reviews; Analytics; GroupEvents; AuthorJournal",
+      "implementation": "Legacy tools; new blog/analytics composition not integrated",
+      "classifications": [
+        "VISUAL UPDATE",
+        "MOTION UPDATE",
+        "NEW FEATURE",
+        "CONTRACT GATE"
+      ],
+      "delta_and_next_action": "Blog collections/featured/cover/slug DTOs exist; scheduling/SEO verify. Analytics compare supported aggregates; funnel/source gates. Timed task gates retained.",
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Tools.dc.html"
+    }
+  ]
+}
