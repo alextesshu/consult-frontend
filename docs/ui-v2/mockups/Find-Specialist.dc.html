@@ -10,19 +10,22 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
 <style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input{font:inherit;color:inherit}input::placeholder{color:#A0A8B6}</style>
 </helmet>
 <div style="max-width:1240px;margin:0 auto;padding:0 clamp(20px,4vw,48px)">
 
-  <header style="position:sticky;top:0;z-index:10;background:#FBF9F5;display:flex;align-items:center;gap:clamp(12px,3vw,32px);height:76px;border-bottom:1px solid #EDE7DE">
-    <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:40px;width:auto;display:block;flex-shrink:0;margin-left:-8px">
-    <nav style="display:flex;gap:4px;font-size:14px;white-space:nowrap">
-      <span style="padding:8px 12px;border-bottom:2px solid transparent;color:#8B95A7;cursor:pointer" style-hover="color:#12233A">Для спеціалістів</span>
-      <span style="padding:8px 12px;border-bottom:2px solid #12345A;font-weight:500">Для клієнтів</span>
+  <header style="position:sticky;top:0;z-index:10;background:#FBF9F5;display:flex;align-items:center;gap:clamp(8px,3vw,32px);height:{{ headH }};border-bottom:1px solid #EDE7DE">
+    <a href="For-Clients.dc.html" style="display:block;flex-shrink:0"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:{{ logoH }};width:auto;display:block;margin-left:-8px"></a>
+    <nav style="display:flex;gap:0;font-size:{{ navFs }};white-space:nowrap">
+      <a href="Home.dc.html" style="padding:8px 12px;border-bottom:2px solid transparent;color:#8B95A7" style-hover="color:#12233A">Для спеціалістів</a>
+      <a href="For-Clients.dc.html" style="padding:8px 12px;border-bottom:2px solid #12345A;font-weight:500;color:#12233A">Для клієнтів</a>
     </nav>
     <div style="flex:1"></div>
     <span style="font-size:14px;color:#657287;white-space:nowrap;cursor:pointer" style-hover="color:#12233A">Увійти</span>
-    <span style="padding:10px 16px;border-radius:999px;white-space:nowrap;flex-shrink:0;border:1px solid #12345A;color:#12345A;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s" style-hover="background:#12345A;color:#fff" onClick="{{ toSignup }}">Створити кабінет</span>
+    <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span style="padding:10px 16px;border-radius:999px;white-space:nowrap;flex-shrink:0;border:1px solid #12345A;color:#12345A;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s" style-hover="background:#12345A;color:#fff" onClick="{{ toSignup }}">Створити кабінет</span></sc-if>
   </header>
 
   <section style="padding:clamp(48px,7vw,80px) 0 32px;max-width:820px">
@@ -31,10 +34,10 @@
 
     <div style="position:relative;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 22px;border-radius:999px;background:#fff;border:1.5px solid {{ qBorder }};box-shadow:0 16px 40px rgba(18,35,58,.06);transition:border-color .25s">
       <div style="position:relative;flex:1;height:48px">
-        <input value="{{ q }}" onChange="{{ onQ }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" style="position:absolute;inset:0;width:100%;border:0;outline:none;background:transparent;font-size:18px">
-        <span style="position:absolute;left:0;top:50%;transform:translateY(calc(-50% + {{ phY }}));opacity:{{ phOp }};font-size:18px;color:#A0A8B6;pointer-events:none;white-space:nowrap;transition:opacity .4s ease,transform .4s ease">{{ placeholder }}</span>
+        <input value="{{ q }}" onChange="{{ onQ }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" onKeyDown="{{ onKey }}" aria-label="Опишіть свій запит" style="position:absolute;inset:0;width:100%;border:0;outline:none;background:transparent;font-size:18px">
+        <span style="position:absolute;left:0;top:50%;transform:translateY(calc(-50% + {{ phY }}));opacity:{{ phOp }};font-size:{{ inFs }};color:#A0A8B6;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;transition:opacity .4s ease,transform .4s ease">{{ placeholder }}</span>
       </div>
-      <span style="padding:14px 26px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;cursor:pointer;white-space:nowrap" style-hover="background:#0E2D52">Знайти</span>
+      <span onClick="{{ search }}" style="padding:14px {{ goPad }};border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;cursor:pointer;white-space:nowrap" style-hover="background:#0E2D52">Знайти</span>
     </div>
   </section>
 
@@ -58,20 +61,24 @@
 
   <section style="padding:32px 0 64px">
     <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:20px">
-      <h2 style="font-weight:500;font-size:24px;letter-spacing:-0.02em;margin:0">{{ countLabel }}</h2>
+      <div style="display:flex;align-items:center;gap:12px;min-height:40px">
+        <sc-if value="{{ listening }}" hint-placeholder-val="{{ false }}"><span style="display:flex">{{ listenEl }}</span></sc-if>
+        <h2 style="font-weight:500;font-size:24px;letter-spacing:-0.02em;margin:0">{{ countLabel }}</h2>
+      </div>
       <span style="font-size:14px;color:#8B95A7">Порядок результатів не є рейтингом</span>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:14px;opacity:{{ listOp }};transform:translateY({{ listY }});transition:opacity .3s ease,transform .3s ease">
       <sc-for list="{{ results }}" as="r" hint-placeholder-count="4">
-        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:20px;padding:20px;border-radius:24px;background:#fff;border:1px solid #EDE7DE;cursor:pointer;transition:transform .3s ease,box-shadow .3s ease,border-color .3s" style-hover="transform:translateY(-3px);box-shadow:0 16px 40px rgba(18,35,58,.08);border-color:#E0D8CC">
-          <span role="img" aria-label="{{ r.name }}" style="width:112px;height:112px;border-radius:18px;background-color:{{ r.tint }};background-image:{{ r.bgImg }};background-size:cover;background-position:50% 18%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:500;color:#12345A">{{ r.ini }}</span>
+        <a href="Specialist-Profile.dc.html" style="color:#12233A;display:grid;grid-template-columns:{{ cardCols }};gap:{{ cardGap }};padding:20px;border-radius:24px;background:#fff;border:1px solid #EDE7DE;opacity:{{ r.op }};transform:translateY({{ r.y }});transition:opacity .45s ease {{ r.delay }},transform .55s cubic-bezier(.2,.8,.2,1) {{ r.delay }},box-shadow .3s ease,border-color .3s" style-hover="box-shadow:0 16px 40px rgba(18,35,58,.08);border-color:#E0D8CC;color:#12233A">
+          <span role="img" aria-label="{{ r.name }}" style="width:{{ avS }};height:{{ avS }};border-radius:18px;background-color:{{ r.tint }};background-image:{{ r.bgImg }};background-size:cover;background-position:50% 18%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:500;color:#12345A">{{ r.ini }}</span>
           <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">
               <div style="font-size:20px;font-weight:500;letter-spacing:-0.02em">{{ r.name }}</div>
               <span style="font-size:15px;white-space:nowrap">{{ r.price }}</span>
             </div>
             <div style="font-size:14px;color:#657287;margin-top:-4px">{{ r.role }}</div>
+            <sc-if value="{{ r.hasMatch }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;background:#12345A;color:#fff">Працює з темою · {{ r.match }}</span></sc-if>
             <p style="font-size:15px;line-height:1.5;color:#3F4B5E;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.summary }}</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:auto;padding-top:4px">
               <sc-for list="{{ r.topics }}" as="t" hint-placeholder-count="2">
@@ -79,13 +86,15 @@
               </sc-for>
               <span style="font-size:13px;color:#8B95A7;margin-left:auto">{{ r.fmt }}</span>
             </div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding-top:10px;margin-top:4px;border-top:1px solid #F1EBE2;font-size:13px;color:#657287">Найближче вікно<span style="font-size:15px;font-weight:500;color:#12233A">{{ r.slot }}</span></div>
           </div>
-        </div>
+        </a>
       </sc-for>
     </div>
 
     <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
       <div style="padding:48px;border-radius:24px;border:1px dashed #D4CCC2;text-align:center">
+        <img src="public/brand/mark-pale.png" alt="" style="width:56px;height:auto;display:block;margin:0 auto 16px">
         <div style="font-size:20px;font-weight:500;margin-bottom:8px">За вашим запитом поки немає результатів</div>
         <p style="font-size:15px;color:#657287;margin:0 0 20px">Спробуйте іншу тему, опис або формат роботи.</p>
         <span onClick="{{ reset }}" style="display:inline-block;padding:12px 20px;border-radius:999px;border:1px solid #12345A;color:#12345A;font-size:15px;cursor:pointer">Скинути пошук</span>
@@ -133,60 +142,87 @@
     </div>
   </section>
 
-  <footer style="display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;padding:28px 0 40px;border-top:1px solid #EDE7DE;font-size:14px;color:#8B95A7">
-    <div style="display:flex;align-items:center;gap:12px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;display:block;margin-left:-6px"><span>© 2026</span></div>
+  <footer style="position:relative;overflow:hidden;display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;padding:28px 0 72px;border-top:1px solid #EDE7DE;font-size:14px;color:#8B95A7">
+    <img src="public/brand/mark-sand.png" alt="" aria-hidden="true" style="position:absolute;right:-24px;bottom:-150px;width:260px;height:auto;display:block;pointer-events:none">
+    <div style="position:relative;display:flex;align-items:center;gap:12px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;display:block;margin-left:-6px"><span>© 2026</span></div>
     <span style="max-width:520px">Інформацію в профілях надають спеціалісти. Pro Consult не формує рейтингів і не перевіряє кваліфікацію.</span>
   </footer>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
+const TOPIC_G = { 'Тривога': 'emotional_state', 'Вигорання': 'work_career_burnout', 'Стосунки': 'relationships_family', 'Самооцінка': 'self_esteem_change', 'Втрата': 'loss_life_changes' };
+const KW = [
+  ['emotional_state', ['тривог', 'засн', 'сон', 'паніч', 'страх', 'настр', 'сум', 'плач', 'розслаб', 'стрес']],
+  ['relationships_family', ['стосун', 'партнер', 'сварк', 'сім', 'батьк', 'мам', 'чолов', 'дружин', 'розлуч', 'самотн', 'діт']],
+  ['self_esteem_change', ['самооцін', 'порівн', 'впевнен', 'сором', 'меж', 'прийнят']],
+  ['work_career_burnout', ['вигоран', 'робот', 'кар', 'нічого не хочеться', 'втом', 'енерг', 'профес']],
+  ['loss_life_changes', ['втрат', 'горе', 'помер', 'переїзд', 'смерт', 'зміни']],
+  ['professional_development', ['супервіз', 'практик', 'навчан']],
+];
+const qGroups = q => { const t = q.toLowerCase(); return KW.filter(([, ws]) => ws.some(w => t.includes(w))).map(([g]) => g); };
 class Component extends DCLogic {
-  state = { q: '', group: null, fmt: 'all', ph: 0, phShow: true, focus: false, lookup: false, fade: false };
+  state = { q: '', group: null, fmt: 'all', ph: 0, phShow: true, focus: false, lookup: false, fade: false, phase: 'show', w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
   componentDidMount() {
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    try { const u = new URLSearchParams(window.location.search), q = u.get('q') || '', t = u.get('topic'); const g = TOPIC_G[t] || null; if (q || g) { this.setState({ q, group: g }); this.listen(); } } catch (e) {}
     this.t = setInterval(() => {
       if (this.state.focus || this.state.q) return;
       this.setState({ phShow: false });
       this.t2 = setTimeout(() => this.setState(s => ({ ph: (s.ph + 1) % 4, phShow: true })), 400);
     }, 3200);
   }
-  componentWillUnmount() { clearInterval(this.t); clearTimeout(this.t2); clearTimeout(this.t3); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearTimeout(this.t4); clearTimeout(this.t5); clearInterval(this.t); clearTimeout(this.t2); clearTimeout(this.t3); }
+  listen() {
+    const rm = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    clearTimeout(this.t4); if (rm) return this.setState({ phase: 'show' });
+    this.setState({ phase: 'listen' }); this.t4 = setTimeout(() => this.setState({ phase: 'show' }), 800);
+  }
   bump(patch) {
     this.setState({ ...patch, fade: true });
     clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ fade: false }), 160);
   }
   renderVals() {
-    const { q, group, fmt, ph, phShow, focus, lookup, fade } = this.state;
+    const { q, group, fmt, ph, phShow, focus, lookup, fade, phase, w } = this.state;
+    const nar = w < 640;
+    if (!this.listenNode && window.PCListen) this.listenNode = React.createElement(window.PCListen, { size: 32, color: '#0F2D52', ring: '#2F8C86', rings: 2, dur: 1.8 });
     const G = [['emotional_state', 'Емоційний стан'], ['relationships_family', 'Стосунки та сім’я'], ['self_esteem_change', 'Самооцінка та особисті зміни'], ['work_career_burnout', 'Робота, кар’єра та вигорання'], ['loss_life_changes', 'Втрата та життєві зміни'], ['professional_development', 'Професійний розвиток і навчання'], ['other_request', 'Інший запит']];
     const P = [
-      { name: 'Марія Коваль', role: 'Психологиня · КПТ', price: '1 400 грн', photo: 'assets/maria-koval.webp', fmt: ['online', 'offline'], loc: 'Київ', g: ['emotional_state', 'self_esteem_change', 'work_career_burnout', 'loss_life_changes'], topics: ['тривожність', 'вигорання'], summary: 'Допомагаю дорослим знизити тривогу, повернути відчуття опори й навчитися спокійніше проходити зміни.' },
-      { name: 'Андрій Лисенко', role: 'Психотерапевт · гештальт', price: '1 600 грн', fmt: ['online'], g: ['relationships_family', 'emotional_state'], topics: ['стосунки', 'кризи'], summary: 'Працюю з парами та дорослими, які проходять кризи у стосунках або відчувають самотність.', tint: '#DDF1EF' },
-      { name: 'Олена Гнатюк', role: 'Психологиня · схема-терапія', price: '1 200 грн', fmt: ['online', 'offline'], loc: 'Львів', g: ['self_esteem_change', 'relationships_family'], topics: ['самооцінка', 'межі'], summary: 'Допомагаю помітити повторювані сценарії та вибудувати здорові межі в стосунках і на роботі.', tint: '#FFE2C4' },
-      { name: 'Ірина Мельник', role: 'Кар’єрна коучка', price: '1 800 грн', fmt: ['online'], g: ['work_career_burnout', 'professional_development'], topics: ['зміна професії', 'цілі'], summary: 'Супроводжую в зміні професії, пошуку напряму та поверненні енергії після вигорання.', tint: '#EEF4FA' },
-      { name: 'Тарас Бондар', role: 'Психолог · ACT', price: '1 300 грн', fmt: ['online'], g: ['loss_life_changes', 'emotional_state'], topics: ['втрата', 'адаптація'], summary: 'Працюю з горем, переїздом і великими змінами. Спокійний темп, увага до тілесних реакцій.', tint: '#F1EBE2' },
-      { name: 'Наталія Савчук', role: 'Супервізорка · КПТ', price: '1 500 грн', fmt: ['online', 'offline'], loc: 'Київ', g: ['professional_development', 'other_request'], topics: ['супервізія', 'початок практики'], summary: 'Супервізія для психологів-початківців: кейси, етика, запуск власної практики.', tint: '#DDF1EF' },
+      { slot: 'Пт 23 · 15:00', name: 'Марія Коваль', role: 'Психологиня · КПТ', price: '1 400 грн', photo: 'assets/maria-koval.webp', fmt: ['online', 'offline'], loc: 'Київ', g: ['emotional_state', 'self_esteem_change', 'work_career_burnout', 'loss_life_changes'], topics: ['тривожність', 'вигорання'], summary: 'Допомагаю дорослим знизити тривогу, повернути відчуття опори й навчитися спокійніше проходити зміни.' },
+      { slot: 'Сб 24 · 11:00', name: 'Андрій Лисенко', role: 'Психотерапевт · гештальт', price: '1 600 грн', fmt: ['online'], g: ['relationships_family', 'emotional_state'], topics: ['стосунки', 'кризи'], summary: 'Працюю з парами та дорослими, які проходять кризи у стосунках або відчувають самотність.', tint: '#DDF1EF' },
+      { slot: 'Пн 26 · 18:00', name: 'Олена Гнатюк', role: 'Психологиня · схема-терапія', price: '1 200 грн', fmt: ['online', 'offline'], loc: 'Львів', g: ['self_esteem_change', 'relationships_family'], topics: ['самооцінка', 'межі'], summary: 'Допомагаю помітити повторювані сценарії та вибудувати здорові межі в стосунках і на роботі.', tint: '#FFE2C4' },
+      { slot: 'Вт 27 · 10:00', name: 'Ірина Мельник', role: 'Кар’єрна коучка', price: '1 800 грн', fmt: ['online'], g: ['work_career_burnout', 'professional_development'], topics: ['зміна професії', 'цілі'], summary: 'Супроводжую в зміні професії, пошуку напряму та поверненні енергії після вигорання.', tint: '#EEF4FA' },
+      { slot: 'Чт 22 · 19:00', name: 'Тарас Бондар', role: 'Психолог · ACT', price: '1 300 грн', fmt: ['online'], g: ['loss_life_changes', 'emotional_state'], topics: ['втрата', 'адаптація'], summary: 'Працюю з горем, переїздом і великими змінами. Спокійний темп, увага до тілесних реакцій.', tint: '#F1EBE2' },
+      { slot: 'Ср 28 · 12:00', name: 'Наталія Савчук', role: 'Супервізорка · КПТ', price: '1 500 грн', fmt: ['online', 'offline'], loc: 'Київ', g: ['professional_development', 'other_request'], topics: ['супервізія', 'початок практики'], summary: 'Супервізія для психологів-початківців: кейси, етика, запуск власної практики.', tint: '#DDF1EF' },
     ];
-    const ql = q.trim().toLowerCase();
+    const ql = q.trim().toLowerCase(), qg = qGroups(ql);
+    const textHit = p => { const hay = (p.summary + p.topics.join(' ') + p.role + p.name).toLowerCase(); return ql.split(/\s+/).filter(x => x.length > 3).some(x => hay.includes(x.slice(0, 5))); };
     const list = P.filter(p => (!group || p.g.includes(group)) && (fmt === 'all' || p.fmt.includes(fmt))
-      && (!ql || (p.summary + p.topics.join(' ') + p.role + p.name).toLowerCase().includes(ql.split(' ')[0].slice(0, 5))));
+      && (!ql || p.g.some(g => qg.includes(g)) || textHit(p)));
+    const GL = Object.fromEntries(G);
     const n = list.length, l2 = n % 100, l1 = n % 10;
     const word = l2 >= 11 && l2 <= 14 ? 'спеціалістів' : l1 === 1 ? 'спеціаліст' : l1 >= 2 && l1 <= 4 ? 'спеціалісти' : 'спеціалістів';
     const PH = ['Наприклад: не можу впоратися з тривогою', 'Наприклад: постійно сваримося з партнером', 'Наприклад: втратила сенс у роботі', 'Наприклад: важко після переїзду'];
     const fm = p => p.fmt.length === 2 ? `Онлайн · ${p.loc}` : p.fmt[0] === 'online' ? 'Онлайн' : p.loc;
     return {
-      q, onQ: e => this.bump({ q: e.target.value }),
+      wide: !nar, headH: nar ? '64px' : '76px', logoH: nar ? '32px' : '40px', navFs: nar ? '13px' : '14px', inFs: nar ? '16px' : '18px', goPad: nar ? '18px' : '26px',
+      cardCols: nar ? '72px minmax(0,1fr)' : '112px minmax(0,1fr)', cardGap: nar ? '14px' : '20px', avS: nar ? '72px' : '112px',
+      listening: phase === 'listen', listenEl: this.listenNode || null,
+      search: () => this.listen(), onKey: e => { if (e.key === 'Enter') this.listen(); },
+      q, onQ: e => { this.bump({ q: e.target.value }); clearTimeout(this.t5); this.t5 = setTimeout(() => this.listen(), 600); },
       onFocus: () => this.setState({ focus: true }), onBlur: () => this.setState({ focus: false }),
       qBorder: focus ? '#12345A' : '#EDE7DE',
       placeholder: PH[ph], phOp: q ? 0 : phShow ? 1 : 0, phY: phShow ? '0px' : '-8px',
-      groups: G.map(([code, label]) => ({ label, on: () => this.bump({ group: group === code ? null : code }),
+      groups: G.map(([code, label]) => ({ label, on: () => { this.bump({ group: group === code ? null : code }); this.listen(); },
         bd: group === code ? '#12345A' : '#EDE7DE', bg: group === code ? '#12345A' : '#fff', fg: group === code ? '#fff' : '#12233A' })),
       formats: [['all', 'Усі формати'], ['online', 'Онлайн'], ['offline', 'Офлайн']].map(([k, label]) => ({ label, on: () => this.bump({ fmt: k }),
         bg: fmt === k ? '#fff' : 'transparent', sh: fmt === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none' })),
       hasFilters: !!(group || q || fmt !== 'all'),
       reset: () => this.bump({ q: '', group: null, fmt: 'all' }),
-      countLabel: `${n} ${word}`,
+      countLabel: phase === 'listen' ? 'Шукаємо, хто працює з цим…' : ql ? `${n} ${word} за вашим запитом` : `${n} ${word}`,
       listOp: fade ? 0.35 : 1, listY: fade ? '6px' : '0px',
-      results: list.map(p => ({ ...p, bgImg: p.photo ? `url(${p.photo})` : 'none', ini: p.photo ? '' : p.name.split(' ').map(s => s[0]).join(''), tint: p.tint || '#F1EBE2', fmt: fm(p) })),
-      isEmpty: n === 0,
+      results: list.map((p, i) => { const mg = p.g.find(g => qg.includes(g)) || (group && p.g.includes(group) ? group : null); const show = phase === 'show'; return { ...p, hasMatch: !!(mg && (ql || group)), match: mg ? GL[mg] : '', op: show ? 1 : 0, y: show ? '0px' : '14px', delay: show ? Math.min(i, 5) * 0.08 + 's' : '0s', bgImg: p.photo ? `url(${p.photo})` : 'none', ini: p.photo ? '' : p.name.split(' ').map(s => s[0]).join(''), tint: p.tint || '#F1EBE2', fmt: fm(p) }; }),
+      isEmpty: n === 0 && phase === 'show',
       toSignup: () => { window.location.href = 'Client-Signup.dc.html'; },
       toggleLookup: () => this.setState({ lookup: !lookup }),
       lkRows: lookup ? '1fr' : '0fr', lkRot: lookup ? '45deg' : '0deg', lkBg: lookup ? '#12345A' : '#F6F1EA', lkFg: lookup ? '#fff' : '#657287',

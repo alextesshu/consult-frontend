@@ -10,6 +10,9 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
 <style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input,textarea{font:inherit;color:inherit}input::placeholder,textarea::placeholder{color:#A0A8B6}</style>
 </helmet>
 <div style="max-width:1240px;margin:0 auto;padding:0 clamp(20px,4vw,48px)">
@@ -17,8 +20,8 @@
   <header style="position:sticky;top:0;z-index:10;background:#FBF9F5;display:flex;align-items:center;gap:clamp(12px,3vw,32px);height:76px;border-bottom:1px solid #EDE7DE">
     <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:40px;width:auto;display:block;flex-shrink:0;margin-left:-8px">
     <nav style="display:flex;gap:4px;font-size:14px;white-space:nowrap">
-      <span style="padding:8px 12px;border-bottom:2px solid transparent;color:#8B95A7;cursor:pointer" style-hover="color:#12233A">Для спеціалістів</span>
-      <span style="padding:8px 12px;border-bottom:2px solid #12345A;font-weight:500">Для клієнтів</span>
+      <a href="Home.dc.html" style="padding:8px 12px;border-bottom:2px solid transparent;color:#8B95A7" style-hover="color:#12233A">Для спеціалістів</a>
+      <a href="For-Clients.dc.html" style="padding:8px 12px;border-bottom:2px solid #12345A;font-weight:500;color:#12233A">Для клієнтів</a>
     </nav>
     <div style="flex:1"></div>
     <span style="font-size:14px;color:#657287;white-space:nowrap;cursor:pointer" style-hover="color:#12233A">Знайти спеціаліста</span>
@@ -234,7 +237,7 @@
 
         <sc-if value="{{ isSent }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:16px;text-align:center;padding:16px 4px">
-            <span style="align-self:center;width:56px;height:56px;border-radius:50%;background:#EEF8F1;display:flex;align-items:center;justify-content:center;color:#2F7A55;font-size:24px">✓</span>
+            <div style="align-self:center;display:flex"><x-import component-from-global-scope="PCListen" size="72" color="#0F2D52" ring="#2F8C86" rings="2" dur="2.2" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
             <div style="font-size:22px;font-weight:500;letter-spacing:-0.02em">Запит надіслано</div>
             <p style="font-size:15px;line-height:1.6;color:#5A6578;margin:0">Марія розгляне його і відповість на вказаний контакт. Зазвичай — протягом доби.</p>
             <div style="padding:14px 16px;border-radius:16px;background:#F6F1EA;text-align:left">
@@ -252,8 +255,9 @@
     </aside>
   </div>
 
-  <footer style="display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;padding:28px 0 40px;border-top:1px solid #EDE7DE;font-size:14px;color:#8B95A7">
-    <div style="display:flex;align-items:center;gap:12px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;display:block;margin-left:-6px"><span>© 2026</span></div>
+  <footer style="position:relative;overflow:hidden;display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;padding:28px 0 72px;border-top:1px solid #EDE7DE;font-size:14px;color:#8B95A7">
+    <img src="public/brand/mark-sand.png" alt="" aria-hidden="true" style="position:absolute;right:-24px;bottom:-150px;width:260px;height:auto;display:block;pointer-events:none">
+    <div style="position:relative;display:flex;align-items:center;gap:12px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;display:block;margin-left:-6px"><span>© 2026</span></div>
     <span style="max-width:520px">Інформацію на сторінці надає спеціаліст. Pro Consult не перевіряє кваліфікацію і не бере комісію з консультацій.</span>
   </footer>
 </div>
