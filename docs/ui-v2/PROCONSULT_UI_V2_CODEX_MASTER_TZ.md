@@ -1,19 +1,26 @@
 # Pro Consult — UI v2: єдине майстер-ТЗ для Codex
 
+## Current supplied snapshot — v5 incremental overlay
+
+`claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. See [current entry point](START_HERE.md), [v5 audit](DESIGN_SYNC_2026-10-23_V5.md), [manifest](SNAPSHOT_MANIFEST_V5.json) and [matrix](IMPLEMENTATION_MATRIX_V5.md).
+
+This overlay supersedes older readiness/current-snapshot claims below; historical product rules and accepted runtime safeguards remain intact. Public Journal/FAQ now have READY Public-Content references; Tour remains its existing redirect. New Session-Pages/Service-Pages and Emails are READY references, not backend approval. Support Chat, Expanded Blog Editor and Public Profile follow-up are IN PROGRESS; current editor/profile references stay READY. Client Dashboard remains HOLD. No source Step 0, email implementation, support service or psychological-support routing is authorized here. Preserve v1, product sections 1–4, all runtime files, open PR branches and historical snapshots.
+
 **Версія:** 1.0 · **Дата:** 21.10.2026  
 **Проєкт:** Pro Consult · **Репозиторій:** frontend (`consult-frontend`; уточнити фактичний remote у read-only preflight)  
 **Технології (за вихідним ТЗ):** Vue 3, TypeScript, Vite, Pinia, Vitest  
 **Вихідні матеріали:** `TZ_CODEX.md` і `Модернізація дизайну сайту ProConsult.zip` (`handoff/`).  
 **Статус:** планування. **Жодне редагування, commit, push, PR, merge чи deployment не санкціоновані цим документом.**
 
-## Current design snapshot — 2026-10-23
+## Current supplied design snapshot — v3 (2026-10-23)
 
-The latest supplied UX/UI snapshot is `claude-design-2026-10-23-265f221a`, SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. It is not automatically synchronized with Claude.
-Read the [Design Sync audit / page matrix / contract gates](DESIGN_SYNC_2026-10-23.md), [manifest](SNAPSHOT_MANIFEST.json) and [mandatory future-task checklist](DESIGN_SYNC_CHECKLIST.md). The supplied ZIP defines visual intent; prototype controls/copy do not establish backend capability or authorize implementation.
+`claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. [Start here](START_HERE.md); read [original CHANGELOG](CHANGELOG.md), [v3 audit](DESIGN_SYNC_2026-10-23_V3.md), [manifest](SNAPSHOT_MANIFEST_V3.json), [implementation/Jira matrix](IMPLEMENTATION_MATRIX_V3.md), [integrated plan](MIGRATION_PLAN_V2.md) and [checklist](DESIGN_SYNC_CHECKLIST.md).
 
-Every future implementation and PR must identify this exact snapshot (or a separately imported newer one), Git base and unresolved contract gates. Preserve runtime hardening, product rules and v1. Source-only task prompts never authorize replacing runtime files or deploying.
+Only DESIGN READY screens are implementation candidates after contracts and authorization. Public Journal/list/post/collection, standalone FAQ and Tour are DESIGN IN PROGRESS; For Clients' embedded FAQ is READY. Client dashboard remains HOLD. #54–#57/#59 and backend #63 retain their states. #59 targets unchanged Home; do not duplicate it.
 
-**Further Stage 3.1 Client Dashboard implementation is HOLD** until its updated UX is approved and backend dependencies are verified. Draft #54–#57 and backend #63 retain their states. Earlier acceptance used the previous Git references, not this updated design.
+Source Step 0 and “replace docs/delete history” are not executable instructions. Preserve current foundations, runtime safeguards, product constraints and v1. Original source priority for visual values is tokens > TZ > HTML, subordinate to confirmed contracts/security/runtime architecture. Source Stage 5 rollout is distinct from new 5a/5b page IDs and never authorizes deployment.
+
+The historical stage descriptions below retain accepted invariants. The v3 screen map/plan supply newly covered Auth, Client-Pages, Chat, Inquiries, Schedule, Profile-Edit, Billing, Settings, Specialist-Tools and Guest states. No implementation begins in a sync.
 
 ## 0. Інструкція виконання (обов'язково)
 

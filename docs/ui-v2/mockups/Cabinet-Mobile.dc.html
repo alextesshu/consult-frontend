@@ -418,7 +418,7 @@ class Component extends DCLogic {
       ],
       tabbar0: bar(MAIN, 'Кабінет'), tabbar1: bar(MAIN, 'Сесії'), tabbar2: bar(MAIN, 'Клієнти'),
       adminbar: bar([['Спеціалісти'], ['Черга', '4'], ['Запити', '3'], ['Тарифи', '1']], 'Спеціалісти'),
-      more: [['Профіль'], ['Розклад'], ['Задачі'], ['Відгуки'], ['Чати', '1'], ['Власний блог'], ['Аналітика'], ['Тарифи і доступ'], ['Налаштування']].map(([label, badge]) => ({ label, badge: badge || '' })),
+      more: [['Профіль'], ['Розклад'], ['Завдання'], ['Відгуки'], ['Чати', '1'], ['Власний блог'], ['Аналітика'], ['Тарифи і доступ'], ['Налаштування']].map(([label, badge]) => ({ label, badge: badge || '' })),
       days: WD.map((wd, d) => { const on = d === S.day, has = SES.some(s => s[0] === d), wrap = SES.some(s => s[0] === d && (s[3] === 'wrap' || s[3] === 'scheduled'));
         return { wd, n: NUM[d], bg: on ? '#fff' : d === NOW ? 'rgba(255,255,255,.1)' : 'transparent', fg: on ? '#12233A' : '#fff', dot: !has ? 'transparent' : wrap ? '#F7B77E' : on ? '#12345A' : '#8FCBC8', on: () => this.setState({ day: d }) }; }),
       dayLabel: `${WDL[S.day]}, ${NUM[S.day]} жовтня${S.day === NOW ? ' · сьогодні' : ''}`,

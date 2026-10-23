@@ -152,7 +152,7 @@
 
 
   <div onClick="{{ closeDetail }}" style="position:absolute;inset:0;z-index:20;background:rgba(18,35,58,.18);opacity:{{ pBo }};pointer-events:{{ pPe }};transition:opacity .3s"></div>
-  <aside style="position:absolute;top:0;right:0;bottom:0;width:480px;max-width:100%;z-index:21;background:#FBF9F5;box-shadow:-24px 0 60px rgba(18,35,58,.16);display:flex;flex-direction:column;transform:translateX({{ pX }}px);transition:transform .4s cubic-bezier(.2,.8,.2,1)">
+  <aside role="dialog" aria-label="Деталі сесії" style="position:absolute;top:0;right:0;bottom:0;width:480px;max-width:100%;z-index:21;background:#FBF9F5;box-shadow:-24px 0 60px rgba(18,35,58,.16);display:flex;flex-direction:column;transform:translateX({{ pX }}px);transition:transform .4s cubic-bezier(.2,.8,.2,1)">
     <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
       <div style="padding:22px 26px 14px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #EDE7DE">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -161,7 +161,7 @@
             <sc-if value="{{ d.guest }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:2px 9px;border-radius:999px;border:1.5px dashed #8FCBC8;color:#1F5E5A">без реєстрації</span></sc-if>
             <span style="font-size:12px;color:#5A6578">{{ d.phase }}</span>
           </div>
-          <span onClick="{{ closeDetail }}" style="width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
+          <span onClick="{{ closeDetail }}" role="button" aria-label="Закрити" style="width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <span style="width:44px;height:44px;border-radius:999px;background:#DDF1EF;color:#1F5E5A;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ d.ini }}</span>
@@ -302,7 +302,7 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="">
-const NAV = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Задачі', 'Відгуки', 'Чати', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
+const NAV = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
 const WD = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
 const WDL = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П’ятниця', 'Субота', 'Неділя'];
 const DATES = { '-1': [12, 13, 14, 15, 16, 17, 18], '0': [19, 20, 21, 22, 23, 24, 25], '1': [26, 27, 28, 29, 30, 31, 1] };
@@ -362,10 +362,11 @@ class Component extends DCLogic {
   T = [];
   later(fn, ms) { const id = setTimeout(fn, ms); this.T.push(id); return id; }
   componentDidMount() {
+    this.onEsc = e => { if (e.key === 'Escape' && this.state.sel) this.close(); }; window.addEventListener('keydown', this.onEsc);
     this.iv = setInterval(() => this.setState(s => ({ pulse: !s.pulse })), 1000);
     this.later(() => { this.setState({ loading: false }); this.later(() => { this.setState({ revealed: true }); this.count(); }, 40); }, 700);
   }
-  componentWillUnmount() { clearInterval(this.iv); this.T.forEach(clearTimeout); cancelAnimationFrame(this.raf); clearTimeout(this.tt); this.endDrag(); }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onEsc); clearInterval(this.iv); this.T.forEach(clearTimeout); cancelAnimationFrame(this.raf); clearTimeout(this.tt); this.endDrag(); }
   count() { cancelAnimationFrame(this.raf); const t0 = performance.now(); const st = t => { const p = Math.min(1, (t - t0) / 800); this.setState({ p }); if (p < 1) this.raf = requestAnimationFrame(st); }; this.raf = requestAnimationFrame(st); }
   isPast(s) { return s.w < 0 || (s.w === 0 && (s.d < NOW_D || (s.d === NOW_D && toMin(s.t) + 50 <= NOW_M))); }
   kind(s) {

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input{font:inherit;color:inherit}input::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="min-height:100vh;display:grid;grid-template-columns:{{ cols }}">
+
+  <section style="display:flex;flex-direction:column;padding:{{ pad }}">
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:clamp(32px,7vh,80px)">
+      <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:{{ logoH }};width:auto;display:block;margin-left:-8px">
+      <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}"><span style="font-size:14px;color:#657287;white-space:nowrap">Немає акаунта? <span style="color:#12345A;font-weight:500;cursor:pointer">Створити</span></span></sc-if>
+      <sc-if value="{{ notLogin }}" hint-placeholder-val="{{ false }}"><span onClick="{{ toLogin }}" style="font-size:14px;color:#12345A;font-weight:500;cursor:pointer;white-space:nowrap">Увійти</span></sc-if>
+    </header>
+
+    <div style="width:100%;max-width:420px;margin:0 auto;flex:1;display:flex;flex-direction:column;gap:20px;opacity:{{ op }};transform:translateY({{ ty }});transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1)">
+
+      <sc-if value="{{ v.login }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start" role="tablist" aria-label="Роль">
+          <sc-for list="{{ roles }}" as="r" hint-placeholder-count="2">
+            <span onClick="{{ r.on }}" role="tab" aria-selected="{{ r.sel }}" style="padding:8px 16px;border-radius:999px;font-size:14px;cursor:pointer;white-space:nowrap;background:{{ r.bg }};color:{{ r.fg }};box-shadow:{{ r.sh }};transition:all .25s">{{ r.label }}</span>
+          </sc-for>
+        </div>
+        <div>
+          <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">З поверненням</h1>
+          <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">{{ loginSub }}</p>
+        </div>
+        <sc-if value="{{ invite }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;background:#EEF8F7">
+            <span style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+            <span style="font-size:14px;line-height:1.45;color:#1F5E5A">Увійдіть, щоб підключитися до простору Марії Коваль.</span>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;gap:24px;border-bottom:1px solid #EDE7DE" role="tablist" aria-label="Спосіб входу">
+          <sc-for list="{{ methods }}" as="m" hint-placeholder-count="2">
+            <span onClick="{{ m.on }}" role="tab" aria-selected="{{ m.sel }}" style="padding:0 0 12px;margin-bottom:-1px;font-size:15px;cursor:pointer;white-space:nowrap;color:{{ m.fg }};font-weight:{{ m.fw }};border-bottom:2px solid {{ m.bd }};transition:all .2s">{{ m.label }}</span>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ issueUnverified }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:16px;background:#FFF5DF">
+            <span style="font-size:15px;font-weight:500;color:#5E3E0C">Підтвердіть email, щоб увійти</span>
+            <span style="font-size:14px;line-height:1.5;color:#7A5418">Ми надіслали лист на {{ emailShown }}. Посилання діє 24 години.</span>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span onClick="{{ resend }}" style="font-size:14px;font-weight:500;color:{{ resendFg }};cursor:{{ resendCur }}">{{ resendL }}</span><span style="font-size:13px;color:#8A5A12">Немає листа — перевірте «Спам»</span></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ issueBlocked }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:16px;background:#FDE8E8">
+            <span style="font-size:15px;font-weight:500;color:#7A1F1F">Вхід тимчасово призупинено</span>
+            <span style="font-size:14px;line-height:1.5;color:#8C2B2B">Акаунт заблоковано адміністратором. Дані збережені — напишіть нам, і ми розберемося.</span>
+            <span style="font-size:14px;font-weight:500;color:#7A1F1F;cursor:pointer;align-self:flex-start">Написати в підтримку →</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPw }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Ел. пошта або логін
+              <input type="text" autocomplete="username" value="{{ email }}" onChange="{{ onEmail }}" placeholder="name@example.com" style="height:54px;padding:0 16px;border-radius:14px;border:1.5px solid {{ fieldBd }};background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">
+              <span style="display:flex;justify-content:space-between">Пароль<span onClick="{{ toForgot }}" style="color:#12345A;cursor:pointer">Забули пароль?</span></span>
+              <div style="position:relative">
+                <input type="{{ pwType }}" autocomplete="current-password" value="{{ pw }}" onChange="{{ onPw }}" placeholder="••••••••" style="width:100%;height:54px;padding:0 96px 0 16px;border-radius:14px;border:1.5px solid {{ fieldBd }};background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+                <span onClick="{{ togglePw }}" role="button" aria-label="{{ pwAria }}" style="position:absolute;right:8px;top:8px;height:38px;padding:0 12px;display:flex;align-items:center;border-radius:10px;font-size:13px;color:#12345A;cursor:pointer" style-hover="background:#F6F1EA">{{ pwToggle }}</span>
+              </div>
+            </label>
+            <sc-if value="{{ err }}" hint-placeholder-val="{{ false }}"><span role="alert" style="font-size:14px;line-height:1.45;color:#B83232">{{ err }}</span></sc-if>
+            <div onClick="{{ toggleRem }}" role="checkbox" aria-checked="{{ rem }}" style="display:flex;gap:10px;align-items:center;cursor:pointer;align-self:flex-start;min-height:32px">
+              <span style="width:22px;height:22px;border-radius:7px;flex-shrink:0;border:1.5px solid {{ remBd }};background:{{ remBg }};color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s">{{ remMark }}</span>
+              <span style="font-size:15px">Запам’ятати мене <span style="color:#8B95A7">на 30 днів</span></span>
+            </div>
+            <span onClick="{{ submit }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ okBg }};cursor:{{ okCur }};transition:background .3s">{{ submitL }}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLinkForm }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Ел. пошта
+              <input type="email" autocomplete="email" value="{{ email }}" onChange="{{ onEmail }}" placeholder="name@example.com" style="height:54px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+            </label>
+            <span style="font-size:14px;line-height:1.5;color:#657287">Надішлемо одноразове посилання — пароль не знадобиться. Діє 15 хвилин.</span>
+            <span onClick="{{ sendLink }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ emailOkBg }};cursor:{{ emailOkCur }};transition:background .3s">Надіслати посилання</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLinkSent }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:20px;background:#fff;border:1px solid #EDE7DE">
+            <span style="font-size:18px;font-weight:500;letter-spacing:-0.01em">Перевірте пошту</span>
+            <span style="font-size:15px;line-height:1.55;color:#5A6578">Посилання для входу надіслано на <span style="color:#12233A">{{ emailShown }}</span>. Відкрийте його на цьому пристрої.</span>
+            <div style="display:flex;gap:16px;flex-wrap:wrap"><span onClick="{{ resend }}" style="font-size:14px;font-weight:500;color:{{ resendFg }};cursor:{{ resendCur }}">{{ resendL }}</span><span onClick="{{ changeEmail }}" style="font-size:14px;color:#12345A;cursor:pointer">Інший email</span></div>
+          </div>
+        </sc-if>
+
+        <p style="font-size:13px;line-height:1.5;color:#8B95A7;margin:0">Продовжуючи, ви погоджуєтеся з <span style="color:#12345A;border-bottom:1px solid #D4CCC2">Умовами</span> та <span style="color:#12345A;border-bottom:1px solid #D4CCC2">Політикою конфіденційності</span>.</p>
+        <p style="font-size:14px;line-height:1.55;color:#657287;margin:0">{{ footQ }} <span style="color:#12345A;cursor:pointer;border-bottom:1px solid #D4CCC2">{{ footL }}</span></p>
+      </sc-if>
+
+      <sc-if value="{{ v.forgot }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Відновлення пароля</h1>
+          <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Вкажіть email акаунта — надішлемо посилання, щоб задати новий пароль.</p>
+        </div>
+        <sc-if value="{{ forgotForm }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Ел. пошта
+              <input type="email" autocomplete="email" value="{{ email }}" onChange="{{ onEmail }}" placeholder="name@example.com" style="height:54px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+            </label>
+            <span onClick="{{ sendReset }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ emailOkBg }};cursor:{{ emailOkCur }};transition:background .3s">Надіслати посилання</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ forgotSent }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:20px;background:#fff;border:1px solid #EDE7DE">
+            <span style="font-size:18px;font-weight:500;letter-spacing:-0.01em">Лист у дорозі</span>
+            <span style="font-size:15px;line-height:1.55;color:#5A6578">Якщо акаунт із адресою <span style="color:#12233A">{{ emailShown }}</span> існує, ми надіслали посилання. Воно діє 1 годину.</span>
+            <div style="display:flex;gap:16px;flex-wrap:wrap"><span onClick="{{ resend }}" style="font-size:14px;font-weight:500;color:{{ resendFg }};cursor:{{ resendCur }}">{{ resendL }}</span><span onClick="{{ toReset }}" style="font-size:14px;color:#8B95A7;cursor:pointer">Демо: відкрити посилання →</span></div>
+          </div>
+        </sc-if>
+        <span onClick="{{ toLogin }}" style="font-size:14px;color:#12345A;cursor:pointer;align-self:flex-start">← Повернутися до входу</span>
+      </sc-if>
+
+      <sc-if value="{{ v.reset }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ resetForm }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Новий пароль</h1>
+            <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Для {{ emailShown }}. Після збереження інші пристрої вийдуть з акаунта.</p>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Новий пароль
+            <div style="position:relative">
+              <input type="{{ pwType }}" autocomplete="new-password" value="{{ pw }}" onChange="{{ onPw }}" placeholder="Щонайменше 8 символів" style="width:100%;height:54px;padding:0 96px 0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+              <span onClick="{{ togglePw }}" role="button" aria-label="{{ pwAria }}" style="position:absolute;right:8px;top:8px;height:38px;padding:0 12px;display:flex;align-items:center;border-radius:10px;font-size:13px;color:#12345A;cursor:pointer" style-hover="background:#F6F1EA">{{ pwToggle }}</span>
+            </div>
+          </label>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="3"><span style="height:4px;border-radius:999px;background:{{ b.c }};transition:background .3s"></span></sc-for></div>
+            <span style="font-size:13px;color:{{ strFg }}">{{ strL }}</span>
+          </div>
+          <span onClick="{{ saveReset }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ pwOkBg }};cursor:{{ pwOkCur }};transition:background .3s">Зберегти пароль</span>
+        </sc-if>
+        <sc-if value="{{ resetDone }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex"><x-import component-from-global-scope="PCListen" size="{{ 72 }}" color="#0F2D52" ring="#2F8C86" rings="{{ 2 }}" dur="{{ 2.2 }}" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
+          <div>
+            <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Пароль змінено</h1>
+            <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Увійдіть з новим паролем. На інших пристроях сеанс завершено.</p>
+          </div>
+          <span onClick="{{ toLogin }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:#12345A;cursor:pointer" style-hover="background:#0E2D52">Увійти</span>
+        </sc-if>
+        <sc-if value="{{ resetBad }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Посилання вже не діє</h1>
+            <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Воно прострочене або вже використане. Запросіть нове — це займе хвилину.</p>
+          </div>
+          <span onClick="{{ toForgot }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:#12345A;cursor:pointer" style-hover="background:#0E2D52">Запросити нове посилання</span>
+          <span onClick="{{ toLogin }}" style="font-size:14px;color:#12345A;cursor:pointer;align-self:flex-start">← Повернутися до входу</span>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ v.confirm }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex"><x-import component-from-global-scope="PCListen" size="{{ 72 }}" color="#0F2D52" ring="{{ cf.ring }}" rings="{{ 2 }}" dur="{{ 2.2 }}" once="{{ cf.once }}" breath="{{ cf.breath }}" hint-size="72px,72px"></x-import></div>
+        <div>
+          <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">{{ cf.title }}</h1>
+          <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">{{ cf.body }}</p>
+        </div>
+        <sc-if value="{{ cf.hasCta }}" hint-placeholder-val="{{ false }}">
+          <span onClick="{{ cf.on }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:#12345A;cursor:pointer" style-hover="background:#0E2D52">{{ cf.cta }}</span>
+        </sc-if>
+        <sc-if value="{{ cf.hasAlt }}" hint-placeholder-val="{{ false }}">
+          <span onClick="{{ cf.altOn }}" style="font-size:14px;color:#12345A;cursor:pointer;align-self:flex-start">{{ cf.alt }}</span>
+        </sc-if>
+      </sc-if>
+    </div>
+  </section>
+
+  <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+    <aside style="position:relative;overflow:hidden;background:{{ asBg }};display:flex;align-items:center;justify-content:center;padding:48px;transition:background .5s">
+      <div style="position:absolute;right:-100px;bottom:-120px;width:380px;height:380px;border-radius:50%;background:{{ asC1 }};transition:background .5s"></div>
+      <div style="position:absolute;left:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:#FFF1E3;opacity:.8"></div>
+
+      <sc-if value="{{ asClient }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:13px;color:#3D5A58;margin-bottom:4px">Чекає у вашому кабінеті</div>
+          <div style="background:#12345A;color:#fff;border-radius:22px;padding:22px;box-shadow:0 24px 60px rgba(18,35,58,.16);transform:translateY({{ y1 }});transition:transform 3.4s ease-in-out">
+            <div style="font-size:12px;color:#A9B8CC;margin-bottom:8px">Наступна сесія</div>
+            <div style="font-size:20px;font-weight:500;letter-spacing:-0.02em;margin-bottom:4px">Четвер, 18:00</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#C9D4E3"><span style="width:24px;height:24px;border-radius:8px;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>Марія Коваль · 50 хв · онлайн</div>
+          </div>
+          <div style="background:#fff;border-radius:22px;padding:18px 20px;box-shadow:0 16px 40px rgba(18,35,58,.08);display:flex;justify-content:space-between;align-items:center;transform:translateY({{ y2 }});transition:transform 3.4s ease-in-out">
+            <span style="font-size:15px">Вправа «Щоденник думок»</span><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#FFE2C4">нове</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ asSpec }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:13px;color:#6B5B45;margin-bottom:4px">Сьогодні у вашій практиці</div>
+          <div style="background:#12345A;color:#fff;border-radius:22px;padding:22px;box-shadow:0 24px 60px rgba(18,35,58,.16);transform:translateY({{ y1 }});transition:transform 3.4s ease-in-out;display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:12px;color:#A9B8CC">3 сесії · перша о 10:00</div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:#C9D4E3"><span>10:00 · Андрій К. · онлайн</span><span>14:30 · Ірина С. · кабінет</span><span>18:00 · Олена П. · онлайн</span></div>
+          </div>
+          <div style="background:#fff;border-radius:22px;padding:18px 20px;box-shadow:0 16px 40px rgba(18,35,58,.08);display:flex;justify-content:space-between;align-items:center;transform:translateY({{ y2 }});transition:transform 3.4s ease-in-out">
+            <span style="font-size:15px">Нові запити</span><span style="min-width:24px;height:24px;padding:0 8px;border-radius:999px;background:#FFE2C4;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center">2</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ asQuiet }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:20px;max-width:320px;text-align:center">
+          <x-import component-from-global-scope="PCListen" size="{{ 112 }}" color="#0F2D52" ring="#8FCBC8" hint-size="112px,112px"></x-import>
+          <span style="font-size:15px;line-height:1.55;color:#3D5A58">Ваші сесії, записи й матеріали нікуди не діваються, поки ви відновлюєте доступ.</span>
+        </div>
+      </sc-if>
+    </aside>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;forgot&quot;,&quot;reset&quot;,&quot;verify&quot;,&quot;change&quot;],&quot;default&quot;:&quot;login&quot;,&quot;tsType&quot;:&quot;'login'|'forgot'|'reset'|'verify'|'change'&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;from&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;unknown&quot;,&quot;client&quot;,&quot;specialist&quot;],&quot;default&quot;:&quot;unknown&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;loginIssue&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;unverified&quot;,&quot;blocked&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;linkResult&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ok&quot;,&quot;expired&quot;,&quot;used&quot;],&quot;default&quot;:&quot;ok&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;invite&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
+class Component extends DCLogic {
+  state = { screen: null, role: null, method: 'pw', email: '', pw: '', showPw: false, rem: true, err: '', busy: false, linkSent: false, fSent: false, rState: null, cd: 0, ph: 0, fade: false, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() {
+    this.t = setInterval(() => this.setState(s => ({ ph: 1 - s.ph })), 3400);
+    this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize);
+    const r = this.props.from === 'client' || this.props.from === 'specialist' ? this.props.from : (localStorage.getItem('pc-auth-role') || 'client');
+    this.setState({ role: r });
+    if ((this.props.screen ?? 'login').match(/verify|change/)) this.later(() => this.setState({ confirmed: true }), 1600);
+  }
+  componentDidUpdate(p) { if (p.screen !== this.props.screen) { this.setState({ screen: null, confirmed: false }); this.later(() => this.setState({ confirmed: true }), 1600); } if (p.from !== this.props.from && this.props.from !== 'unknown') this.setState({ role: this.props.from }); }
+  componentWillUnmount() { clearInterval(this.t); clearInterval(this.cdT); clearTimeout(this.lt); window.removeEventListener('resize', this.onResize); }
+  later(f, ms) { clearTimeout(this.lt); this.lt = setTimeout(f, ms); }
+  go(screen) { this.setState({ fade: true }); setTimeout(() => this.setState({ screen, fade: false, err: '', pw: '', showPw: false, busy: false, fSent: false, rState: null, confirmed: false }, () => { if (screen.match(/verify|change/)) this.later(() => this.setState({ confirmed: true }), 1600); }), 180); }
+  startCd() { this.setState({ cd: 60 }); clearInterval(this.cdT); this.cdT = setInterval(() => this.setState(s => { if (s.cd <= 1) clearInterval(this.cdT); return { cd: s.cd - 1 }; }), 1000); }
+  renderVals() {
+    const S = this.state, nar = S.w < 768;
+    const screen = S.screen || this.props.screen || 'login';
+    const issue = this.props.loginIssue ?? 'none', linkRes = this.props.linkResult ?? 'ok';
+    const role = S.role || 'client', spec = role === 'specialist';
+    const emailOk = /.+@.+\..+/.test(S.email), emailShown = S.email || 'olena@example.com';
+    const pwOk = S.email.trim() && S.pw;
+    const shownIssue = S.issueShown;
+    const str = S.pw.length < 8 ? 0 : (/\d/.test(S.pw) && /[A-ZА-ЯІЇЄ]/.test(S.pw) ? 3 : 2);
+    const confirming = !S.confirmed;
+    const isVerify = screen === 'verify';
+    const CF = confirming ? { title: isVerify ? 'Підтверджуємо email…' : 'Підтверджуємо нову адресу…', body: 'Кілька секунд.', ring: '#8FCBC8', once: false, breath: true }
+      : linkRes === 'ok' ? { title: isVerify ? 'Email підтверджено' : 'Email змінено', body: isVerify ? 'Дякуємо. Тепер листи про сесії й запити приходитимуть на цю адресу.' : `Тепер для входу й листів використовується ${emailShown}. Стара адреса отримала повідомлення про зміну.`, ring: '#2F8C86', once: true, breath: false, cta: isVerify ? 'Перейти до кабінету' : 'Повернутися до налаштувань', on: () => this.go('login') }
+      : linkRes === 'expired' ? { title: 'Посилання прострочене', body: isVerify ? 'Воно діяло 24 години. Надішлемо новий лист — після входу або просто зараз.' : 'Воно діяло 24 години. Змініть email ще раз у налаштуваннях — надішлемо нове.', ring: '#C9C1B6', once: true, breath: false, cta: isVerify ? 'Надіслати новий лист' : 'До налаштувань', on: () => this.go('login'), alt: 'Увійти', altOn: () => this.go('login') }
+      : { title: 'Посилання вже використано', body: isVerify ? 'Схоже, email уже підтверджено. Можна просто увійти.' : 'Ця адреса вже підтверджена або посилання застаріло після нової зміни.', ring: '#C9C1B6', once: true, breath: false, cta: 'Увійти', on: () => this.go('login') };
+    return {
+      cols: nar ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)', wide: !nar, pad: nar ? '20px 20px 40px' : '28px clamp(24px,5vw,72px) 40px', logoH: nar ? '32px' : '40px',
+      op: S.fade ? 0 : 1, ty: S.fade ? '8px' : '0px',
+      isLogin: screen === 'login', notLogin: screen !== 'login',
+      v: { login: screen === 'login', forgot: screen === 'forgot', reset: screen === 'reset', confirm: screen === 'verify' || screen === 'change' },
+      toLogin: () => this.go('login'), toForgot: () => this.go('forgot'), toReset: () => this.go('reset'),
+      roles: [['client', 'Я клієнт'], ['specialist', 'Я спеціаліст']].map(([k, label]) => ({ label, sel: role === k ? 'true' : 'false', bg: role === k ? '#fff' : 'transparent', fg: role === k ? '#12233A' : '#5A6578', sh: role === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => { localStorage.setItem('pc-auth-role', k); this.setState({ role: k }); } })),
+      loginSub: spec ? 'Розклад, клієнти й запити — там, де ви їх залишили.' : 'Сесії, матеріали від спеціаліста й ваш щоденник.',
+      invite: !spec && (this.props.invite ?? false),
+      methods: [['pw', 'Пароль'], ['link', 'Посилання на email']].map(([k, label]) => ({ label, sel: S.method === k ? 'true' : 'false', fg: S.method === k ? '#12233A' : '#8B95A7', fw: S.method === k ? 500 : 400, bd: S.method === k ? '#12345A' : 'transparent', on: () => this.setState({ method: k, err: '', issueShown: null }) })),
+      isPw: S.method === 'pw', isLinkForm: S.method === 'link' && !S.linkSent, isLinkSent: S.method === 'link' && S.linkSent,
+      issueUnverified: shownIssue === 'unverified', issueBlocked: shownIssue === 'blocked',
+      email: S.email, pw: S.pw, emailShown,
+      onEmail: e => this.setState({ email: e.target.value, err: '' }), onPw: e => this.setState({ pw: e.target.value, err: '' }),
+      togglePw: () => this.setState({ showPw: !S.showPw }), pwType: S.showPw ? 'text' : 'password', pwToggle: S.showPw ? 'Сховати' : 'Показати', pwAria: S.showPw ? 'Сховати пароль' : 'Показати пароль',
+      fieldBd: S.err ? '#E8A8A8' : '#E6E0D8', err: S.err,
+      rem: S.rem ? 'true' : 'false', toggleRem: () => this.setState({ rem: !S.rem }), remBg: S.rem ? '#12345A' : '#fff', remBd: S.rem ? '#12345A' : '#C9C1B6', remMark: S.rem ? '✓' : '',
+      okBg: pwOk && !S.busy ? '#12345A' : '#B7C0CC', okCur: pwOk && !S.busy ? 'pointer' : 'default', submitL: S.busy ? 'Входимо…' : 'Увійти',
+      submit: () => { if (!pwOk || S.busy) return; this.setState({ busy: true, err: '', issueShown: null }); this.later(() => { if (issue !== 'none') return this.setState({ busy: false, issueShown: issue }); if (S.pw.length < 8) return this.setState({ busy: false, err: 'Не вдалося увійти з цими даними. Перевірте email і пароль.' }); this.setState({ busy: false, err: '' }); }, 900); },
+      emailOkBg: emailOk ? '#12345A' : '#B7C0CC', emailOkCur: emailOk ? 'pointer' : 'default',
+      sendLink: () => { if (!emailOk) return; this.setState({ linkSent: true }); this.startCd(); },
+      changeEmail: () => this.setState({ linkSent: false }),
+      resend: () => { if (S.cd > 0) return; this.startCd(); }, resendL: S.cd > 0 ? `Надіслати ще раз · ${S.cd} с` : 'Надіслати ще раз', resendFg: S.cd > 0 ? '#8B95A7' : '#12345A', resendCur: S.cd > 0 ? 'default' : 'pointer',
+      footQ: spec ? 'Ще не маєте простору?' : 'Шукаєте спеціаліста?', footL: spec ? 'Реєстрація спеціаліста' : 'Знайти без реєстрації',
+      forgotForm: !S.fSent, forgotSent: S.fSent, sendReset: () => { if (!emailOk) return; this.setState({ fSent: true }); this.startCd(); },
+      resetForm: !S.rState && linkRes === 'ok', resetDone: S.rState === 'done', resetBad: !S.rState && linkRes !== 'ok',
+      bars: [1, 2, 3].map(i => ({ c: S.pw.length === 0 ? '#EDE7DE' : i <= Math.max(1, str) ? ['#E8A8A8', '#E9C27A', '#7DB89A'][Math.max(1, str) - 1] : '#EDE7DE' })),
+      strL: S.pw.length === 0 ? 'Щонайменше 8 символів' : str === 0 ? `Ще ${8 - S.pw.length} симв.` : str === 2 ? 'Підійде. Цифра й велика літера зроблять надійнішим' : 'Надійний пароль', strFg: str === 3 ? '#2F7A55' : '#8B95A7',
+      pwOkBg: str ? '#12345A' : '#B7C0CC', pwOkCur: str ? 'pointer' : 'default', saveReset: () => str && this.setState({ rState: 'done' }),
+      cf: { ...CF, hasCta: !!CF.cta, hasAlt: !!CF.alt },
+      asClient: screen === 'login' && !spec, asSpec: screen === 'login' && spec, asQuiet: screen !== 'login',
+      asBg: screen === 'login' && spec ? '#F6F1EA' : '#EEF8F7', asC1: screen === 'login' && spec ? '#F1E6D6' : '#DDF1EF',
+      y1: S.ph ? '-6px' : '4px', y2: S.ph ? '5px' : '-5px',
+    };
+  }
+}
+</script>
+</body>
+</html>

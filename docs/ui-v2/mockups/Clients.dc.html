@@ -91,7 +91,7 @@
             <div style="display:flex;align-items:center;gap:14px">
               <span style="width:52px;height:52px;border-radius:999px;background:{{ c.av }};font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ c.ini }}</span>
               <div style="flex:1;min-width:0"><div style="font-size:22px;font-weight:500;letter-spacing:-0.02em">{{ c.name }}</div><div style="font-size:13px;color:#5A6578">{{ c.subline }}</div></div>
-              <sc-if value="{{ c.closable }}" hint-placeholder-val="{{ true }}"><span onClick="{{ closeCard }}" style="width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span></sc-if>
+              <sc-if value="{{ c.closable }}" hint-placeholder-val="{{ true }}"><span onClick="{{ closeCard }}" role="button" aria-label="Закрити" style="width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span></sc-if>
             </div>
             <sc-if value="{{ c.archived }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:#F1EBE2;font-size:14px"><span>Робота завершена {{ c.archivedOn }}</span><span onClick="{{ c.unarchive }}" style="color:#12345A;cursor:pointer;white-space:nowrap">Повернути в активні</span></div>
@@ -280,7 +280,7 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="">
-const NAV = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Задачі', 'Відгуки', 'Чати', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
+const NAV = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
 const AV = ['#DDF1EF', '#FFE2C4', '#EEF4FA', '#F1EBE2'];
 const PD = ['22 жовт', '15 жовт', '8 жовт', '1 жовт'];
 const C0 = [
@@ -319,6 +319,7 @@ class Component extends DCLogic {
   T = [];
   later(fn, ms) { const id = setTimeout(fn, ms); this.T.push(id); return id; }
   componentDidMount() {
+    this.onEsc = e => { if (e.key === 'Escape' && this.state.open) this.setState({ open: false, wbFull: false }); }; window.addEventListener('keydown', this.onEsc);
     this.onResize = () => this.setState({ vw: window.innerWidth }); window.addEventListener('resize', this.onResize);
     this.iv = setInterval(() => this.setState(s => {
       const idle = Date.now() - s.lastAct > 30000 && Object.keys(s.revealed).length;
@@ -326,7 +327,7 @@ class Component extends DCLogic {
     }), 1000);
     this.later(() => { this.setState({ loading: false }); this.later(() => { this.setState({ revealedUI: true }); this.count(); }, 40); }, 650);
   }
-  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.iv); this.T.forEach(clearTimeout); cancelAnimationFrame(this.raf); clearTimeout(this.tt); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onEsc); clearInterval(this.iv); this.T.forEach(clearTimeout); cancelAnimationFrame(this.raf); clearTimeout(this.tt); }
   count() { cancelAnimationFrame(this.raf); const t0 = performance.now(); const st = t => { const p = Math.min(1, (t - t0) / 800); this.setState({ p }); if (p < 1) this.raf = requestAnimationFrame(st); }; this.raf = requestAnimationFrame(st); }
   snapS() { return { clients: JSON.parse(JSON.stringify(this.state.clients)) }; }
   toast(msg, snap) { this.setState({ toast: true, toastMsg: msg, snap }); clearTimeout(this.tt); this.tt = setTimeout(() => this.setState({ toast: false }), 5000); }
