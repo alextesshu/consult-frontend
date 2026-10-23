@@ -1,48 +1,61 @@
-# Pro Consult UI v2 — reference index
+# Pro Consult UI v2 — current reference index
 
-## Current supplied design snapshot
+## Current supplied snapshot — v3
 
-- ID: `claude-design-2026-10-23-265f221a`; ingestion date 2026-10-23.
-- SHA-256: `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`.
-- Source: `C:\Users\admin\dev\portfolio\consult\design-sources\Модернізація дизайну сайту ProConsult.zip`.
-- [Claude project](https://claude.ai/design/p/c453ec11-5135-4169-a1c2-cf1d64218392) is provenance, not an automatic sync. New date-named exports in that folder require explicit import/checksum/version comparison.
-- [Manifest and changed-file inventory](SNAPSHOT_MANIFEST.json), [page matrix / findings / contract gates / prioritized roadmap](DESIGN_SYNC_2026-10-23.md), [mandatory future-task checklist](DESIGN_SYNC_CHECKLIST.md).
-- [Exact handoff sources](snapshots/2026-10-23-265f221a/README.md) and [previous Git references](snapshots/baseline-e4b903e/README.md).
+- ID: `claude-design-2026-10-23-e43f5f80`, imported 2026-10-23.
+- Source: `C:/Users/admin/dev/portfolio/consult/design-sources/Модернізація дизайну сайту ProConsult (v3).zip`.
+- SHA-256: `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. Size: 1,432,398 bytes, 57 entries.
+- [Start here](START_HERE.md), [source CHANGELOG](CHANGELOG.md), [v3 manifest](SNAPSHOT_MANIFEST_V3.json), [audit](DESIGN_SYNC_2026-10-23_V3.md), [page/Jira matrix](IMPLEMENTATION_MATRIX_V3.md), [Jira recommendations](JIRA_ALIGNMENT_V3.md), [future-sync checklist](DESIGN_SYNC_CHECKLIST.md).
+- [Frozen supplied handoff](snapshots/2026-10-23-e43f5f80/README.md) and its exact `source.zip` preserve the full package. This is not a live Claude synchronization.
+- Previous snapshot: `claude-design-2026-10-23-265f221a`; [original manifest](SNAPSHOT_MANIFEST.json), [original sync report](DESIGN_SYNC_2026-10-23.md), [original sources](snapshots/2026-10-23-265f221a/README.md), [former active references](snapshots/baseline-ce49fc5/README.md). All are retained. V2 ZIP was not supplied locally; its source CHANGELOG entry is not independent archive evidence.
 
-Every future implementation and PR must identify its exact Claude snapshot and full checksum. The ZIP defines current UX/UI intent; runtime/product/permission contracts and explicit authorization govern execution. Prototype scripts and controls do not prove server capability.
+## Design readiness and implementation are different
 
-## Actual implementation state
+25 supplied HTML references are DESIGN READY. Public Journal (list/post/collection), standalone FAQ and Tour are DESIGN IN PROGRESS with no HTML. The For Clients FAQ accordion and AuthorJournal tools are separate READY identities. Every task must identify the exact snapshot and check that exact page status.
 
-Frontend base is `e4b903e523836f44c2ac79c0403621382cf92d55`. Stage 0A/0B and 1.1/1.2/1.3a are merged. Registration completion #54, public profile #55, discovery #56 and client dashboard #57 remain Draft; backend registration #63 remains Draft. This sync does not change those branches/states or approve their merge.
+Frontend base is `ce49fc5097cdd2f6d999b52d76a45a12448f535d`. Foundations/header/initial Home/registration visual are merged through #53; Design Sync #58 is merged. #54–#57/#59 and backend #63 are still Draft. #59 already refreshes Home against the byte-identical Home reference. No existing branch/state is modified here.
 
-**Further Client Dashboard implementation is HOLD** until updated UX approval and verification of request ownership/actions, reminders, rescheduling/cancellation, payment/material and diary boundaries. Reassess Homepage and Discovery against new references. For Clients is a new independent stage. Stage 4 has mockups now.
+**Client Dashboard remains HOLD** despite DESIGN READY. Registration retains backend-first rollout constraints. All new auth/diary/timed-task/group-preview/legal/crisis/undo behavior requires actual contracts and authorization. See the audit for new-to-import requirements; inherited KAN-163 boundaries are not cleared by readiness.
 
-## Active reference pages
+## Current reference pages
 
-| Scope | Reference |
+| Exact reference | Source design status |
 | --- | --- |
-| Homepage / public header | [Home](mockups/Home.dc.html) |
-| Specialist signup | [Signup](mockups/Signup.dc.html) |
-| Public specialist profile | [Specialist-Profile](mockups/Specialist-Profile.dc.html) |
-| Discovery | [Find-Specialist](mockups/Find-Specialist.dc.html) |
-| Client signup | [Client-Signup](mockups/Client-Signup.dc.html) |
-| Client dashboard — HOLD | [Client-Cabinet](mockups/Client-Cabinet.dc.html) |
-| New public client landing | [For-Clients](mockups/For-Clients.dc.html) |
-| Specialist dashboard | [Cabinet-Dashboard](mockups/Cabinet-Dashboard.dc.html) |
-| Shared forms | [Cabinet-Drawer](mockups/Cabinet-Drawer.dc.html) |
-| Specialist sessions | [Sessions](mockups/Sessions.dc.html) |
-| Specialist clients/workbook | [Clients](mockups/Clients.dc.html) |
-| Mobile cabinet/admin | [Cabinet-Mobile](mockups/Cabinet-Mobile.dc.html) |
-| Admin | [Admin](mockups/Admin.dc.html) |
-| Brand | [Brand](mockups/Brand.dc.html) |
-| Component reference | [Handoff-Spec](mockups/Handoff-Spec.dc.html) |
+| [Home.dc.html](mockups/Home.dc.html) | DESIGN READY |
+| [Signup.dc.html](mockups/Signup.dc.html) | DESIGN READY |
+| [Specialist-Profile.dc.html](mockups/Specialist-Profile.dc.html) | DESIGN READY |
+| [For-Clients.dc.html](mockups/For-Clients.dc.html) | DESIGN READY |
+| [Find-Specialist.dc.html](mockups/Find-Specialist.dc.html) | DESIGN READY |
+| [Client-Signup.dc.html](mockups/Client-Signup.dc.html) | DESIGN READY |
+| [Client-Cabinet.dc.html](mockups/Client-Cabinet.dc.html) | DESIGN READY |
+| [Auth.dc.html](mockups/Auth.dc.html) | DESIGN READY |
+| [Client-Pages.dc.html](mockups/Client-Pages.dc.html) | DESIGN READY |
+| [Cabinet-Dashboard.dc.html](mockups/Cabinet-Dashboard.dc.html) | DESIGN READY |
+| [Cabinet-Drawer.dc.html](mockups/Cabinet-Drawer.dc.html) | DESIGN READY |
+| [Sessions.dc.html](mockups/Sessions.dc.html) | DESIGN READY |
+| [Clients.dc.html](mockups/Clients.dc.html) | DESIGN READY |
+| [Admin.dc.html](mockups/Admin.dc.html) | DESIGN READY |
+| [Cabinet-Mobile.dc.html](mockups/Cabinet-Mobile.dc.html) | DESIGN READY |
+| [Chat.dc.html](mockups/Chat.dc.html) | DESIGN READY |
+| [Inquiries.dc.html](mockups/Inquiries.dc.html) | DESIGN READY |
+| [Schedule.dc.html](mockups/Schedule.dc.html) | DESIGN READY |
+| [Profile-Edit.dc.html](mockups/Profile-Edit.dc.html) | DESIGN READY |
+| [Billing.dc.html](mockups/Billing.dc.html) | DESIGN READY |
+| [Settings.dc.html](mockups/Settings.dc.html) | DESIGN READY |
+| [Specialist-Tools.dc.html](mockups/Specialist-Tools.dc.html) | DESIGN READY |
+| [Guest.dc.html](mockups/Guest.dc.html) | DESIGN READY |
+| [Brand.dc.html](mockups/Brand.dc.html) | DESIGN READY |
+| [Handoff-Spec.dc.html](mockups/Handoff-Spec.dc.html) | DESIGN READY |
+| Журнал (список / допис / добірка) | DESIGN IN PROGRESS |
+| FAQ | DESIGN IN PROGRESS |
+| Тур | DESIGN IN PROGRESS |
 
-Home A/B/C, Practice-Block-Options and Specialist-Dashboard are archived variants, not current targets. Images under mockups are documentation-only, including fictional demonstration people and the new fennec brand. No production logo/favicon has been changed.
+## Safe reference boundary
 
-## Reference execution boundary
+Source tokens/components/uiVersion/PATCHES/design system and Home/Discovery/Brand/Handoff-Spec are unchanged from the previous export. Production files and assets remain untouched; do not reapply the original copy/install prompts.
 
-Raw HTML preserves the export content (except three documented trailing-whitespace removals in Clients/Sessions; source and destination hashes are recorded separately) and contains x-dc/sc-* placeholders, inline styles, inert text/x-dc logic and original external font/script references. `support.js` and `brand-listen.js` are intentionally excluded. Do not execute prototypes, serve them as app pages, fetch their CDN dependencies or import these files into runtime. Static asset checks distinguish excluded scripts, dynamic template references and actual local image/page files.
+Raw HTML contains inline styles, x-dc/sc-* placeholders, inert text/x-dc logic and original external font references. Do not execute or serve prototypes. Active `support.js` / `brand-listen.js` references are intentionally excluded; exact scripts exist only as frozen source evidence inside the versioned handoff and source.zip. No runtime import is added.
 
-Source CSS/TypeScript are frozen reference copies only. Existing runtime remains hardened: query v1/v2 overrides stored pc.ui, then exact VITE_UI_V2=true, else v1; independent storage read/write failures and per-document memory fallback cannot block bootstrap. applyUiVersion runs before createApp; only successful navigation synchronizes reactive state/html[data-ui]. Default remains v1. Existing muted-text/focus/isolation fixes and v1 rules remain intact.
+Only Clients source lines 85/272 and Sessions line 153 have trailing ASCII whitespace removed in extracted HTML copies, exactly as recorded by source/destination hashes. All original bytes remain in source.zip. CHANGELOG is published byte-identically, including its v3→v2→v1 chronology. Claude version labels do not prove separately available exports.
 
-See [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md), [integrated TZ](TZ_CODEX.md), [task entrypoint](CODEX_TASKS.md), [design system](../DESIGN_SYSTEM.md) and [migration plan](../UI_MIGRATION_PLAN.md). Source conflicts are findings, not permission to copy runtime files or publish unverified SLA/payment/cancellation/crisis claims.
+Canonical safeguards remain: default v1, query → storage → environment precedence, independent storage-failure fallback, successful-navigation reactive synchronization, v2 selector isolation, muted/focus contrast corrections, real tariff/API/permission rules and separate Git/rollout authorization. [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md), [integrated TZ](TZ_CODEX.md), [plan](MIGRATION_PLAN_V2.md), [task entry point](CODEX_TASKS.md), [design system](../DESIGN_SYSTEM.md).

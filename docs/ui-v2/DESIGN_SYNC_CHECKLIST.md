@@ -1,20 +1,18 @@
-# UI v2 — Design Sync checklist
+# UI v2 — repeatable Design Sync checklist
 
-Before every future implementation task:
+Current snapshot `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. [Entry point](START_HERE.md), [manifest](SNAPSHOT_MANIFEST_V3.json), [audit](DESIGN_SYNC_2026-10-23_V3.md).
 
-- [ ] Read AGENTS.md, Master TZ, current sync audit and the exact page mockup from the selected Claude snapshot.
-- [ ] State snapshot ID, archive filename/source, ingestion date and full SHA-256 in the task evidence and PR. Current: `claude-design-2026-10-23-265f221a`, hash `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`.
-- [ ] Select the explicitly supplied archive from `C:\Users\admin\dev\portfolio\consult\design-sources`; date-named future exports do not automatically update repo references. Resolve ambiguous selection before importing.
-- [ ] Verify checksum and manifest; do not equate a snapshot with the live Claude project.
-- [ ] Compare the page with current origin/dev AND relevant unmerged PR heads. Record differences without changing those branches/states.
-- [ ] Use this ZIP for UX/UI intent; record accessibility/security/contract conflicts as findings instead of silently redesigning.
-- [ ] Map every control/copy claim to actual data, roles and existing APIs. Demo behavior/data is not backend evidence.
-- [ ] Resolve applicable [B1–B14/C1–C8 gates](DESIGN_SYNC_2026-10-23.md). Further Client Dashboard remains HOLD until UX approval and contract verification.
-- [ ] Separate visual and behavior work; identify exact file scope, v1 isolation, default-v1 rollback and acceptance tests before editing.
-- [ ] Preserve query/storage/env precedence, independent storage-failure handling, reactive successful-navigation sync, auth/verification/permissions and real product terms.
-- [ ] Never import reference scripts/CDNs/dependencies or copy source CSS/TypeScript blindly into runtime. Brand references are not approval to replace production logos.
-- [ ] Validate focused functional/CSS tests, build/typecheck baseline, browser states/keyboard/reduced-motion/overflow, and v1 parity appropriate to the authorized change. Distinguish fixtures from real integration.
-- [ ] For future exports, extract safely without modifying the archive; preserve earlier snapshot provenance, hash imports, validate links/assets and record intentional script exclusions.
-- [ ] Follow explicit Git authorization; one scoped PR when requested. CI, Ready, merge and deployments retain their separate gates; no manual reruns by inference.
+1. Receive an explicitly supplied ZIP; record exact filename/path, SHA-256, import date and checksum-derived snapshot ID. It is a supplied snapshot, not live cloud state. Never substitute an old export when the requested archive is missing.
+2. Read AGENTS and current canonical safeguards; inspect clean index/worktrees, fetch latest origin/dev and isolate this task. Preserve local dev and unrelated PR branches.
+3. Validate ZIP integrity and every path before extraction: absolute/drive/traversal paths, case/Windows aliases, symlinks/special files and out-of-root destinations are rejected. Never execute bundled code or install prototype dependencies.
+4. Read the full CHANGELOG and START_HERE screen map. Cross-check every exact file/component identity and status. **DESIGN IN PROGRESS blocks implementation and integration**; READY only permits contract/authorization review. Do not confuse standalone FAQ/Journal with embedded FAQ or author tools.
+5. Compare checksums and semantic document/HTML changes against current snapshot, optional intermediate exports, current dev and affected PR heads. Record unavailable comparisons; do not infer the cloud chronology. Reassess changed READY screens after every export.
+6. Import reference material incrementally, preserving all old snapshots/manifests and Git provenance. Keep the exact source package, original payload hashes, destination hashes and any explicit whitespace-only normalization. Preserve CHANGELOG chronology and distinguish design releases from implementation commits. Never replace a whole docs directory or reapply source Step 0.
+7. Update canonical docs/active mockups while preserving confirmed product/privacy/security/API rules, existing runtime architecture, v1 blocks, storage/bootstrap/isolation and contrast safeguards. Source visual priority is tokens > TZ > HTML only within those boundaries. Record source conflicts rather than silently redesigning.
+8. Reassess affected PRs and Jira identities, recording head SHA, design status, implementation coverage, backend readiness and proposed issue updates. Do not mutate Jira, change existing PR states/branches or create duplicates without explicit authorization.
+9. Reuse established capability audits; investigate only materially new behavior. Prototype controls, data, prices, time promises, legal/crisis copy, tokens and field names are not backend evidence. Keep private notes separate from published materials, confirmed-session rescheduling separate from automatic moves, payment status separate from confirmation.
+10. Publish an ordered roadmap of small independent READY candidates, carrying HOLD/backend/product gates. Never start a stage just because it was next previously. State the exact next eligible scope or report no eligible candidate.
+11. Validate source/archive/snapshot hashes, Markdown paths, HTML/assets/component references, readiness/status consistency, unchanged source chronology, exact changed-file inventory and ordinary `git diff --check`. Prove no src/public/runtime/config/backend changes and no historical deletions. Classify intentionally excluded prototype scripts and imported source-document path claims separately from broken canonical links.
+12. Perform only expressly authorized Git finalization. Preserve one focused commit/branch/Draft PR if requested; observe actual automatic CI. No manual dispatch/rerun, Ready, merge, default-v2 change or deployment follows from a sync.
 
-See [current audit and roadmap](DESIGN_SYNC_2026-10-23.md), [manifest](SNAPSHOT_MANIFEST.json) and [reference index](README.md).
+Before every later implementation: cite this snapshot ID/full checksum, exact page/status, Git base, affected PRs, file scope and acceptance plan. Preserve v1 default and query/storage/env behavior, real tariffs/routes/auth/verification/permissions, keyboard/focus/reduced-motion and loading/empty/error states. Run focused tests/build/typecheck/browser checks appropriate to that authorized change; distinguish fixtures from real backend integration and report unexecuted cases.

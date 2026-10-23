@@ -1,15 +1,22 @@
+# UI v2 — repository integration overlay (Claude v3)
+
+Current snapshot: `claude-design-2026-10-23-e43f5f80`; SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`.
+Read [START_HERE](START_HERE.md), [original CHANGELOG](CHANGELOG.md), [matrix](IMPLEMENTATION_MATRIX_V3.md), [v3 audit](DESIGN_SYNC_2026-10-23_V3.md), [exact source TZ](snapshots/2026-10-23-e43f5f80/handoff/TZ_CODEX.md) and [implementation routing](MIGRATION_PLAN_V2.md).
+
+- Actual product/security/privacy/backend contracts and implemented runtime safeguards take precedence. Source design priority is source tokens > source TZ > HTML, not permission to overwrite hardened runtime.
+- Check exact readiness. Public Journal/standalone FAQ/Tour are DESIGN IN PROGRESS, even though related author-blog/For Clients FAQ states are READY. Client dashboard remains HOLD despite READY.
+- Preserve v1 default, query → storage → env → v1, independent storage failures, successful-navigation reactive synchronization and all auth/verification/permission boundaries. Do not repeat Stage 0 or delete snapshots.
+- Preserve #54–#57/#59 and backend #63. Home HTML is unchanged; #59 owns the pending refresh. Source replacement instructions never authorize runtime edits, PR state changes or deployment.
+- Signup field is `password_confirm`; reset still requires `new_password_confirm`. #63 adds only the reviewed registration contract; it does not supply magic login or other v3 APIs.
+- KAN-163 gates remain. New diary/privacy sharing, timed tasks, auth session persistence, guest-group preview, stale-request handling, real undo, legal deletion copy and crisis configuration need separate evidence/approval. No fictional data, SLA, payment automation or client guarantee.
+- Source text/HTML are design references. Prototype strings are not real prices/identities/payment data/booking states. Keep existing muted-text/focus corrections and tint inks.
+- For Clients retains its own canonical stage 4.12 even where source groups it under Brand §4.11. `/for-clients` and `/find` are not present routes yet. Preserve working navigation until specifically authorized.
+
+The complete source specification follows for screen detail. Its install/confirmation/deploy wording is subordinate to the explicit task and this overlay. Unresolved source discrepancies are recorded in the audit, not silently corrected.
+
+---
+
 # ТЗ для Codex: ProConsult UI v2
-
-## Repository integration overlay — 2026-10-23
-
-Snapshot: `claude-design-2026-10-23-265f221a`; SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`.
-This document integrates the latest supplied task specification. [Exact source](snapshots/2026-10-23-265f221a/handoff/TZ_CODEX.md) is preserved unchanged. [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md), [sync audit](DESIGN_SYNC_2026-10-23.md) and [checklist](DESIGN_SYNC_CHECKLIST.md) supply repository execution/contract boundaries, not alternative UX design.
-
-- Identify the exact snapshot in every future task/PR; ZIP is not a live Claude sync.
-- **Further Client Dashboard work is HOLD** pending updated UX approval and backend contract verification. Draft #54–#57/#63 are not changed or implicitly approved.
-- One-password/three-step signup is target UX. Legacy confirmation and field/API semantics stay intact until separately accepted backend-first rollout. Actual field: `password_confirm`; the supplied source prompt incorrectly names `password_confirmation`. Contract v2 uses strict JSON integer `registration_contract_version: 2`, `first_name` and canonical specialist `professional_focus`; #54/#63 remain unmerged.
-- Visual requirements come from the ZIP; undocumented SLA, nearest-slot, semantic-search, cancellation, reminder and payment claims must pass the audit B-gates before use. Source CSS/TypeScript are reference-only and must not replace hardened runtime files.
-- Preserve v1 default/isolation, independent storage-failure handling, query → storage → env → v1 precedence and successful-navigation reactivity; no routing/auth/permission/API changes by inference.
 
 **Мета:** перевести frontend на новий візуальний шар UI v2 так, щоб функціональність не змінилася. Новий вигляд вмикається прапорцем `data-ui="v2"`. Без прапорця все виглядає й працює як зараз.
 
@@ -29,7 +36,7 @@ This document integrates the latest supplied task specification. [Exact source](
 | Візуальний еталон компонентів | `docs/ui-v2/mockups/Handoff-Spec.dc.html` | Звіряти стани hover / focus / disabled |
 | Перемикач версії | `src/lib/uiVersion.ts` | `applyUiVersion()` у `main.ts`; у компонентах `isUiV2()` або CSS `html[data-ui="v2"] …` |
 | Порядок робіт і smoke-перевірки | `docs/UI_MIGRATION_PLAN.md`, розділ «UI v2» | Одна сторінка = один PR |
-| Контракт API | Backend canonical `docs/AI_CONTRACT.md`, actual frontend SDK and server evidence | Required for every behavior/data claim; see Design Sync B1–B14, not only signup |
+| Контракт API | `..\backend\docs\AI_CONTRACT.md` | Тільки для 1.3b / 2.3b (пароль) |
 
 ### Макет → файл коду
 | Макет | Vue-файли |
@@ -41,6 +48,8 @@ This document integrates the latest supplied task specification. [Exact source](
 | `Find-Specialist.dc.html` | `src/views/PublicTherapistsView.vue`, `src/components/PublicSpecialistCard.vue` |
 | `Client-Signup.dc.html` | `src/views/ClientSignupView.vue` |
 | `Client-Cabinet.dc.html` | `src/views/ClientDashboardView.vue` |
+| `Auth.dc.html` | `LoginView.vue`, `ForgotPasswordView.vue`, `ResetPasswordView.vue`, `VerifyEmailView.vue`, `AccountEmailChangeConfirmView.vue` |
+| `Client-Pages.dc.html` | `ClientMaterialsView.vue`, `ClientTherapistsView.vue`, `ClientProfileView.vue`, `ClientFeedbackView.vue`, `ClientGroupEventView.vue`; щоденник — новий `ClientDiaryView.vue` |
 | `Cabinet-Dashboard.dc.html` + `Cabinet-Drawer.dc.html` | `src/views/CabinetView.vue`; drawer — новий спільний компонент кабінету |
 | `Sessions.dc.html` (+ `Cabinet-Drawer.dc.html`) | `src/views/TherapistSessionsView.vue`, `src/views/TherapistSessionDetailView.vue`, `src/views/ExternalSessionsView.vue` (гостьові — у спільний календар) |
 | `Clients.dc.html` (+ `Cabinet-Drawer.dc.html`, kind `client`) | `src/views/TherapistClientsView.vue` (список + модалка картки → панель), `src/views/TherapistClientWorkbookView.vue` (зошит → вкладка + «на весь екран») |
@@ -56,7 +65,7 @@ This document integrates the latest supplied task specification. [Exact source](
 - Радіуси: 8 — теги; 12 — поля й квадратні кнопки; **16 — картки й панелі**; 24 — hero, діалоги, нижній лист; pill — CTA, чипи, сегменти.
 - Картка за замовчуванням без тіні: біла, рамка `--pc-border-hair`.
 - Фокус: `:focus-visible` — 2px navy outline, offset 2px. Disabled — opacity .45.
-- Пароль (цільовий UX після окремого контрактного rollout): **одне поле + кнопка «Показати / Сховати»**. Legacy confirmation не прибирати лише за візуальним завданням.
+- Пароль: **одне поле + кнопка «Показати / Сховати»**, без «Повторіть пароль».
 - Реєстрація (спеціаліст і клієнт): ім'я, email, пароль + одне питання чипами. Решта — в онбординг.
 - Рух: 150 / 200 / 400 мс, `cubic-bezier(.4,0,.2,1)`; повага до `prefers-reduced-motion`.
 
@@ -100,7 +109,7 @@ This document integrates the latest supplied task specification. [Exact source](
 `.pc2-input--lg`, `.pc2-password`, `.pc2-chips`, `.pc2-steps`, кнопка `.pc2-btn--primary.pc2-btn--lg.pc2-btn--block`. Поля й валідацію **не змінювати**.
 
 ### 1.3b Реєстрація спеціаліста, поведінка
-Прибрати «Повторіть пароль» і його валідацію. Перед цим перевірити в `AI_CONTRACT.md`, що бекенд не вимагає `password_confirm`; якщо вимагає — зупинитися й повідомити. Лишити ім'я / email / пароль / спеціалізацію (чипи). Оновити тести.
+Прибрати «Повторіть пароль» і його валідацію. Перед цим перевірити в `AI_CONTRACT.md`, що бекенд не вимагає `password_confirmation`; якщо вимагає — зупинитися й повідомити. Лишити ім'я / email / пароль / спеціалізацію (чипи). Оновити тести.
 
 ### 2.1 Профіль спеціаліста — `PublicProfileView.vue` + `public-profile/*`
 Сітка `minmax(0,1fr) 380px`; `.pc2-request-panel` липка (top 96px), <860px — нижній лист. Усередині панелі покроково: оффер → вільний час → контакт.
@@ -111,13 +120,9 @@ This document integrates the latest supplied task specification. [Exact source](
 **Приймання:** без рейтингів і сортування «найкращі»; фільтри, пошук, пагінація як раніше.
 
 ### 2.3a / 2.3b Реєстрація клієнта — `ClientSignupView.vue`
-
-Visual work is merged in #53; completion is already in Draft #54 with backend #63. Compare deltas; do not repeat completed registration work.
 Так само, як 1.3a / 1.3b. Запит без реєстрації має працювати як раніше.
 
 ### 3.1 Кабінет клієнта — `ClientDashboardView.vue`
-
-**HOLD further implementation.** The latest Client-Cabinet also contains pending-request amendment/cancellation, preparation/reminders, diary and session-panel rescheduling/cancellation/payment UX. These exceed #57's earlier hero/material/status foundation. Updated UX approval and Design Sync B1/B2/B6–B11 verification are required; the minimum foundation text below is not approval of those controls.
 Hero найближчої сесії (`.pc2-card--lg`, 24px), матеріали — `.pc2-card--interactive`, статуси — `.pc2-tag--*`.
 **Приймання:** показуються лише опубліковані матеріали; підтвердження сесії й статус оплати — окремі бейджі.
 
@@ -211,6 +216,7 @@ Hero найближчої сесії (`.pc2-card--lg`, 24px), матеріали
 - **Головна:** замість великого блоку для клієнтів — компактна смуга «Шукаєте спеціаліста для себе?» → `/for-clients`.
 - **Футер публічних сторінок** (головна, пошук, профіль спеціаліста): `.pc2-footer` + `mark-sand.png`.
 - **«Вас почули»:** замість ✓ на екранах «Запит надіслано» (профіль спеціаліста), «Простір готовий» (реєстрація спеціаліста), «Кабінет готовий» (реєстрація клієнта) — `.pc2-listen.pc2-listen--once` 72px, кільце #2F8C86, 2 хвилі, один раз.
+- **Панелі й drawer — однаково в усіх кабінетах:** Esc закриває (спершу drawer, якщо відкритий поверх панелі — далі панель); `role="dialog"`, ✕ — `aria-label="Закрити"`, 44×44; фокус переходить у панель і повертається на елемент, що її відкрив. Тост з undo — по центру області контенту (зсув на половину бічного меню), 5 с.
 - **Порожні стани:** `.pc2-empty` зі знаком 40px (`mark-pale.png` на бежевому, `mark-mint.png` на зеленому «усе зроблено»). Пошук спеціаліста — знак 56px над текстом.
 - **Очікування > 1 с** (пошук, відправка запиту, оплата): `.pc2-listen` 72px з кільцем #8FCBC8 + текст дії («Шукаємо вільні вікна…»). Списки — скелетони, як раніше.
 - **Кабінет:** згорнуте меню (768–1099px) — лише знак 32px; системні повідомлення й підтримка в чатах — аватар: білий знак на колі #0F2D52.
@@ -253,7 +259,81 @@ Hero найближчої сесії (`.pc2-card--lg`, 24px), матеріали
 - Приймання: 375 і 768px без горизонтального скролу сторінки; усі дії десктопа доступні; фокус і Esc працюють у листах.
 
 
-### 4.12 For Clients — окремий етап
+## Етап 5a — вхід і акаунт (макет `Auth.dc.html`, проп `screen`)
+Сітка — як `Client-Signup`: форма зліва (max 420px), бічна ілюстрація справа; < 768px — лише форма, лого 32px. Перехід між екранами — fade 180 мс.
+- **Вхід `/login`:** перемикач «Я клієнт / Я спеціаліст» — роль із джерела переходу (`?role=`, посилання «Увійти» з публічних сторінок клієнта/спеціаліста); інакше — остання обрана (`localStorage`). Роль змінює лише підзаголовок, ілюстрацію й нижнє посилання (реєстрація спеціаліста / «Знайти без реєстрації»); **куди вести після входу — як зараз, за ролями з `/me`**. Адмін — та сама форма.
+  Вкладки «Пароль / Посилання на email». Пароль: поле «Ел. пошта або логін», пароль з «Показати», «Забули пароль?» у підписі поля, «Запам’ятати мене» (увімкнено; вимкнено → сесійний токен), «Увійти» → «Входимо…». Помилка — текстом під полями, рамки полів червоні.
+  Стани від бекенду: **email не підтверджено** — жовта плашка з «Надіслати ще раз» (таймер 60 с); **акаунт заблоковано** — червона плашка + «Написати в підтримку». Запрошення (`redirect=/client/invite/…`) — плашка з аватаром спеціаліста.
+  ⚠ **Вхід за посиланням** — на бекенді немає. Потрібні ендпоінти «надіслати посилання» (15 хв, одноразове) і «обміняти токен на сесію». Стани `unverified` / `blocked` при логіні — перевірити коди помилок; якщо їх немає — зупинитись і описати. Візуал входу можна злити без вкладки «Посилання» (окремий PR).
+- **Забули пароль:** email → «Лист у дорозі» (текст не розкриває, чи існує акаунт) + повтор через 60 с.
+- **Новий пароль:** **одне поле** з «Показати» (поле «Повторіть» прибрати — як 1.3), індикатор надійності з 3 смуг; «Пароль змінено» — `.pc2-listen--once` 72px; недійсне посилання — «Посилання вже не діє» + «Запросити нове».
+- **Підтвердження email / зміна email:** «Підтверджуємо…» (`.pc2-listen` 72px, дихання) → успіх (`--once`, кільце #2F8C86) / прострочене / вже використане (кільце #C9C1B6). Тексти помилок за кодами з `VerifyEmailView` — зведені до 3 станів у макеті.
 
-Source: [For-Clients.dc.html](mockups/For-Clients.dc.html), exact source handoff README/CODEX_TASKS. Source CODEX_TASKS points to §4.11 by mistake (Brand); this entry resolves that documentation cross-reference only.
-New public landing and `/for-clients` are not implemented by Design Sync. Before a dedicated implementation task, approve the UX/copy and specific routing scope; verify search/topic/nearest-slot, SLA, reminders and crisis-information gates. Preserve guest access, actual discovery contracts and optional registration. Do not copy fictional specialists, slots or unsupported claims.
+## Етап 5b — підсторінки кабінету клієнта (макет `Client-Pages.dc.html`, проп `screen`)
+Оболонка — як `Client-Cabinet` (бічне меню 232px, sticky; < 768px — нижнє меню). Меню клієнта: Головна · Матеріали · **Мої спеціалісти** · Мій щоденник · Повідомлення · Профіль. **Окремої сторінки «Сесії» немає** — блок «Сесії» на головній (`#sessions`): «Минулі» по 3 + «Показати ще» (пагінація), фільтр за спеціалістом — лише якщо їх > 1; «Усі сесії з <ім’я>» з картки спеціаліста веде на `#sessions` з цим фільтром. Нижнє меню (< 768px): Головна · Матеріали · Щоденник · Чат · Ще.
+- **Матеріали:** групи за сесією (`session_id` → «Після сесії <дата>»; без сесії — «Загальне»), фільтри за типом з лічильниками (Завдання = homework, Вправи = exercise, Посилання = link, Інше — решта). Рядок → бічна панель (як деталі сесії, Esc): текст, посилання з попередженням, файли «Завантажити → Завантаження… → ✓». Відкриття знімає «нове». Пагінація — «Показати ще» як була. Лише опубліковані.
+- **Мої спеціалісти:** поточні — велика картка (Написати · Обрати час · Залишити відгук); «Раніше» — рядки; внизу «Потрібен ще хтось?» → `/find`. ⚠ Зараз view тягне **публічний** список спеціалістів — потрібен список саме пов’язаних з клієнтом (є в API клієнтського кабінету? якщо ні — зупинитись і описати).
+- **Профіль:** заголовок «Профіль» (не «Мій щоденник»). Фото, ім’я, email для входу (read-only + «Змінити» → налаштування акаунта), контактний email, телефон, код клієнта з «Копіювати». «Зберегти» активна лише при змінах. Видалення — діалог підтвердження → бейдж «Запит на розгляді» + «Скасувати видалення»; блокери з API — текстом над кнопкою, кнопка неактивна. Терміни/тексти про збереження записів спеціаліста — **погодити з юристом**, у макеті — чернетка.
+- **Відгук:** форма + праворуч 3 факти (анонімно / не публікується / лише після співпраці) і «Політика відгуків». Згода на зовнішнє використання — чекбокс. Ліміт відгуків — плашка, поле неактивне. Успіх — `.pc2-listen--once`.
+- **Групова подія:** hero як у кабінеті (заплановано / триває / завершено / скасовано); «Приєднатися» активна за 10 хв; «Додати в календар» (.ics). «Як усе пройде» — з `mode`, `is_recorded` (запис — жовтим + пояснення); «Учасники» — за `participant_list_visibility`, «N із M місць» — з `capacity_limit_snapshot`. Назва — `title` (опису в моделі немає — не вигадувати).
+- **Мій щоденник — НОВА функція (бекенд + фронт):** запис = настрій (5 значень) + текст + теги (5 базових) + прапорець «до сесії». Лента за днями, пошук, фільтри настрій/тег, календар настрою тиждень/місяць (колір дня = настрій першого запису). «Додати до сесії / Прибрати» на кожному записі. **Приватність:** спеціаліст бачить лише записи з прапорцем, поки прапорець стоїть; решта — тільки клієнт (не адмін, не бекап-експорт без згоди). Спеціалісту — блок «Записи клієнта до сесії» у картці клієнта (макет — наступний раунд). Потрібні: модель, CRUD для клієнта, read-only для пов’язаного спеціаліста. **Окремий PR після погодження.**
+
+## Чат — макет `Chat.dc.html` (`ChatView.vue`, обидві ролі, проп `role`)
+- Оболонка за роллю: меню клієнта (232px) або спеціаліста (220px). Дві панелі ≥ 1024px: список 260–320px + розмова; < 1024px — по одній, «‹» назад; < 768px — без бічного меню, у клієнта нижнє меню видно лише на списку.
+- Список: «Активні / Архів» з лічильниками, пошук клієнта (лише спеціаліст), превʼю «Ви: …», час (сьогодні — год:хв, інакше «22 жов»), бейдж непрочитаних. Архівація — з undo-тоста (5 с) замість ConfirmModal; рядок згортається 400 мс.
+- Розмова: шапка — аватар, ім’я, контекст (спеціаліст: «Клієнтка · N сесій · наступна …» з даних треду; клієнт: підзаголовок спеціаліста). Дії ≥ 1180px: «Картка клієнта», «Сесії» (`openClientTarget`, `openSessionsTarget`) / «Сесія <дата>» у клієнта; «В архів». Повідомлення — розділювачі днів, групування підряд (радіус 6px на стику), час під останнім у групі; свої — #12345A праворуч. Видалення свого — «×» → «Повідомлення видалено» + undo. Відкриття треду — прокрутка до кінця.
+- **Поле вводу — внизу** (зараз над стрічкою). Enter — надіслати, Shift+Enter — рядок, IME-composition не надсилає (як зараз). Авто-висота до 5 рядків. Архів: замість поля — «Повернути з архіву».
+- **Екстрена допомога** (клієнт, під полем; також `For-Clients` FAQ): «Чат — не для екстрених ситуацій. Якщо потрібна допомога зараз — 112 або 7333». **Номери — з конфігу** (`VITE_CRISIS_LINES` або settings), не хардкод. ⚠ На 23.10.2026 сайт Lifeline Ukraine повідомляє про паузу лінії, у Facebook — графік 18:00–08:00. Перед релізом перевірити 7333 або замінити на інший цілодобовий номер; 112 — завжди першим.
+
+## Запити — макет `Inquiries.dc.html` (`SpecialistInquiriesView.vue`)
+- Це канал коротких питань до першої сесії (inquiry threads), не заявки на сесію. Розкладка як у Чаті: список 280–360px + деталі; < 1024px — по одній панелі.
+- Фільтри з лічильниками: «Чекають відповіді» (`can_specialist_reply`), «Чекають клієнта» (`WAIT_FOR_CLIENT_MESSAGE`), «Завершені» (`ACTIVE_CLIENT`, `CLOSED`, `ARCHIVED`, `BLOCKED`). Бейдж «Запити» в меню = кількість «Чекають відповіді». `?thread_id=` відкриває тред (як зараз).
+- Рядок: ініціали/фото, ім’я, давність, перше питання (2 рядки), статус-тег. Деталі: плашка стану з `mapInquiryStateToUi` (4 тони за макетом), повідомлення картками (клієнт — біла, ви — #EEF4FA з відступом), «Картка клієнта» при `client_id`, для `ACTIVE_CLIENT` — «Перейти в чат».
+- Відповідь: шаблони-чипи (вставляють текст, тексти — погодити), `maxlength` — з бекенду (у макеті 600, якщо ліміту немає — не показувати лічильник), «Надіслати відповідь» → тред переходить у «Чекають клієнта» (рядок згортається), тост без undo. Підпис «Клієнт отримає відповідь на email» — лише якщо бекенд справді шле лист.
+
+## Розклад — макет `Schedule.dc.html` (`SlotsView.vue`, `AvailabilityRulesView.vue`, проп `tab`)
+- Вкладки «Вікна для запису · Робочі години · Відпустка» у темному hero (`/cabinet/slots`, `/cabinet/availability-rules`, `/cabinet/availability-exceptions`). **Вкладку «Календар» прибрати** — тиждень сесій живе в «Сесіях» (4.2a); у hero — «Календар сесій →». `publicGuestRequestContext` (вибір часу для запиту) — переїжджає в «Сесії → Тиждень».
+- **Вікна:** hero «N вільних вікон на сторінці» + «Заповнити тиждень · +N» (= наявний fill-week з правил; N — скільки додасться, 0 → неактивна). Тиждень 7 колонок (< 1100px — 4, < 768px — рядок днів + один день). Вікно: вільне — рамка #8FCBC8, заброньоване — #12345A з ім’ям, минуле — 50%. Клік по вільному — вибір; панель знизу «Вибрано: N · Скасувати · Видалити» (= bulk delete). «+ Вікно» — поповер з часом із правил (або всі години, якщо правил на день немає) → create one. «Очистити тиждень» — лише вільні. Усі видалення/заповнення — undo-тост 5 с (видалення на бекенд — після закриття тоста або відкат через повторне створення). «Показати минулі» більше не потрібне — минулі видно блідими.
+- **Робочі години:** день = перемикач + проміжки (select початок/кінець, «N сес.»), «+ Проміжок», «×». **Тривалість і пауза — одні на тиждень** у UI; на бекенді правило має свої `session_duration_minutes`/`buffer_minutes` — при збереженні записувати в кожне правило; якщо в наявних правилах значення різні — показати «Різна тривалість у днях» і не перезаписувати без підтвердження. «Зберегти» активна лише при змінах. Текст: правила — шаблон, нічого не публікують.
+- **Відпустка:** форма з/по/підпис (підпис — приватний), «Додати паузу»; якщо в період є сесії — жовта плашка «пауза їх не скасує». Список пауз з «Прибрати» + undo.
+
+## Профіль спеціаліста (редагування) — макет `Profile-Edit.dc.html` (`TherapistProfileView.vue`)
+- Структура: липкий рядок розділів (Основне · Ціни й формат · Запис · Про вас · Контакти · Документи; точка — бірюзова = розділ готовий, помаранчева = бракує, без точки — необов’язковий). Перехід — плавна прокрутка контейнера (не scrollIntoView). ≥ 1180px — права липка колонка 320px, інакше під формою.
+- Права колонка: темна картка — кільце готовності (`publicProfileReadiness*`, ключі як зараз), статус публікації, чипи «чого бракує» → прокрутка до розділу (= `onProfileReadinessChipClick`), посилання + «Копіювати» / «Змінити адресу» (slug-редагування — інлайн як зараз), перемикач «Показувати в пошуку» (`is_search_visible`, ті самі обмеження `canChangeSearchVisibility`, неперевірений email), «Переглянути сторінку». Нижче — живе прев’ю картки пошуку (`PublicSpecialistCard` з поточними незбереженими даними).
+- **Видимість полів** (`ProfileVisibilityControl`) — компактний перемикач-пігулка «Показувати / Приховано / Порожньо (не вказано)» праворуч від поля; порожнє поле — неактивний. Тексти-попередження «заповнено, але не показується» — у title/aria-describedby.
+- Спеціалізації — чипи-пресети (максимум 5, решта неактивні) + поле для власної (як зараз, datalist). Мови, «Основні запити» — чипи.
+- Ціни: рядки «Консультація / Ознайомча / Парна» — ціна, валюта (select лишається, у макеті — грн), тривалість, видимість. Парна — видимість активна лише з ціною і тривалістю (`isCoupleOfferConfigured`).
+- Запис: 2 картки-радіо (`public_booking_mode`), під «Клієнт обирає час» — `public_booking_slot_policy`; «Умови перед записом» (`setting_text`) з приміткою про повторне підтвердження. Перемикач «Показувати вільні вікна» — у розділі «Запис» (у макеті злитий з режимом direct; якщо треба окремо — додати рядок).
+- Тексти (Про мене, Підходи, Як проходить робота, З чим не працюю, Освіта) — згортаються, статус «Заповнено / Порожньо»; підказки-чипи для «З чим не працюю» (`profileSuggestionCategories`). Коротке представлення — лічильник 240.
+- **Збереження — одна липка панель знизу** «Є незбережені зміни · Скасувати · Зберегти» (з’являється при `isDirty`), після успіху «✓ Зміни збережено» 2 с. Фото/відео/документи зберігаються одразу при завантаженні (як зараз).
+- Документи: список з видимістю «Показується у публічному профілі», «+ Документ».
+
+## Тарифи і доступ — макет `Billing.dc.html` (`BillingView.vue`, проп `access`)
+- Hero за станом: trial (`complimentary_trial_warning` EXPIRING) · pending (є заявка PENDING) · approved (APPROVED без оплати → блок «Оплата Pro» з реквізитами й «Копіювати») · pro (оплачений, дата до) · expired / start (сірий #3F4B5E). CTA одна, в hero: «Продовжити / Повернути / Подати заявку на Pro» = `requestAccess('PRO')`. Тексти станів — зведені з наявних computed (`requiresRenewal`, grace тощо) — не губити grace-період.
+- Праворуч у hero — кільце «активних клієнтів N з M» (жовте при вичерпанні).
+- Тарифи — 3 картки (Start / Pro / Leader «Готується», напівпрозора). Поточний — рамка #12345A + тег. Фічі — з `plans` (скорочені в макеті; брати як є).
+- «Більше активних клієнтів»: степер +0…+6 (= `extra slots`, ліміти з API), ціна і «Разом … грн/міс», «Подати заявку». Після заявки — неактивно до рішення.
+- Реквізити оплати Pro в макеті — демо; брати з `payment_instructions`.
+
+## Налаштування — макет `Settings.dc.html` (`SettingsHubView.vue`, `NotificationSettingsView.vue`, проп `tab`)
+- Ліва під-навігація (< 1000px — рядок): Реквізити для оплати · Сповіщення · Акаунт і безпека; блок «Також» — посилання на Профіль/Розклад/Тарифи (замість карток-хабу `SettingsHubView`).
+- **Реквізити:** картки IBAN / Картка — порожня («Додати»), перегляд, редагування інлайн; основна — рамка + тег «За замовчуванням», «Зробити основним» лише коли є обидва (`default_method_type`). Видалення — undo-тост.
+- **Сповіщення:** таблиця «Подія · У кабінеті · Email». Кабінет — 4 перемикачі (`notify_*_in_app`). **Email — один прапорець** `notify_session_reminders_email`: перемикачі в рядках «за 24 год» і «за 1 год» зв’язані (вмикають/вимикають обидва); в інших рядках email-колонки немає. `email_session_reminders_available=false` → неактивно + плашка «доступні на Pro». Збереження — автоматично при перемиканні (тост «Збережено»), без кнопки — або лишити кнопку, якщо API не любить часті PATCH.
+- **Акаунт:** email для входу (статус підтвердження, «Змінити» → поле → «Надіслати лист» → жовта плашка до підтвердження з «Скасувати зміну»), «Змінити пароль» → лист (= forgot-password flow для поточного email), видалення — з блокерами з API (у макеті: активні клієнти й сесії), кнопка неактивна.
+
+## Інструменти спеціаліста — макет `Specialist-Tools.dc.html` (проп `screen`)
+Меню спеціаліста (14 пунктів): Кабінет · Профіль · Клієнти · Розклад · Сесії · Запити · **Завдання** (було «Задачі» — перейменувати в меню й заголовку) · Відгуки · Чати · **Групові події** · Власний блог · Аналітика · Тарифи і доступ · Налаштування.
+- **Завдання** (`SpecialistPracticeBoardView.vue`): поле «Нове завдання — Enter». Два вигляди (проп `taskView`):
+  - «За статусом» — як зараз (Заплановано / У роботі / Завершено), дії на картці + undo.
+  - **«За часом» (новий, за замовчуванням)** — Сьогодні / До наступних сесій / Колись / Готово; drag-n-drop між колонками + кнопки «→ …» (клавіатурна альтернатива); чекбокс «готово»; фільтр за клієнтом; плашка «Після сесії з <клієнт>» з 3 пропозиціями («Додати всі / Не зараз»). ⚠ **Бекенд:** у завдання додати `client_id`, `session_id`, `due` (date або bucket), `source=auto`; генерація пропозицій після `complete` сесії. Окремий PR; до того — лише вигляд «За статусом».
+- **Відгуки** (`TherapistReviewsView.vue`): фільтри Нові / Переглянуті / Спам і приховані / Усі (= PENDING / APPROVED / REJECTED); картка — дата, текст, тег «можна поширити» (`allow_anonymous_external_use`), дії зі статусами як зараз + undo. Лічильник нових — у меню.
+- **Аналітика** (`AnalyticsView.vue`): періоди 7/30/90; 4 KPI (сесії — темна картка; підтвердження, скасування, нові клієнти); стовпчики по днях; «Коли записуються» — бари за днями тижня + найчастіша година й частка онлайн; «Що можна покращити» — з `recommendations` з посиланнями в Розклад/Профіль. Порожній стан — як зараз («недостатньо даних»).
+- **Групові події** (`GroupEventsView.vue`): список (дата-плитка, назва, час/режим/запис, заповненість `N з capacity`, статус, «Посилання-запрошення»). «+ Нова подія» — інлайн-форма: назва, режим, дата/час, місця, `participant_list_visibility`, `is_recorded` → «Створити й запросити» (створює invite і копіює посилання). Учасники/запрошення по email — у панелі події (наступний раунд; зараз — як у поточному view).
+- **Власний блог** (`AuthorJournalView.vue`): ліворуч дописи (статус, перегляди) і добірки (публічно/приховано); праворуч редактор — заголовок, превʼю 2–3 речення, Markdown-текст, лічильник слів/хвилин, автозбереження чернетки, «Опублікувати / Оновити / Зняти з публікації» (undo).
+
+## Гостьові сторінки — макет `Guest.dc.html` (пропси `screen`, `state`, `format`, `signedIn`)
+Спільна оболонка (`meta.minimalShell`): лого + «Що таке Pro Consult?» → `/for-clients`; колонка max 560px; внизу «Посилання персональне — не пересилайте його». Порядок блоків: спеціаліст (ініціали/фото, імʼя, підпис) → H1 → підзаголовок → «квиток» (плитка дати + час + формат/тривалість + адреса для офлайн) → дії.
+- **Запрошення на сесію** (`ExternalGuestSessionInviteView.vue`, `/guest/external-session/:token`): квиток з `starts_at/ends_at`, формату, `offline_location`. Блок оплати при `shouldShowPaymentBlock`: сума, статус-тег (очікує — жовтий, оплачено — зелений), перемикач IBAN/Картка лише якщо методів > 1, рядки реквізитів з «Скопіювати» (IBAN, картка, призначення; кнопка → «✓ Скопійовано» 2 с + тост). Основна кнопка: онлайн — «Приєднатися до сесії» (`joinInvite`, неактивна при `!can_join`, підказка під нею — з причини: неоплачено / ще рано, якщо бекенд віддає причину; інакше загальна); офлайн — «Переглянути деталі зустрічі». Помилки (`errorState`) → стан `expired`: H1 з `errorTitle`, текст, кнопка до профілю.
+- **Пропозиція часу** (`PublicGuestBookingTimeProposalView.vue`): `proposal.message` — цитата-плашка; `options` згруповані за днем, вибір чипом (radio), **підтвердження окремою кнопкою** «Підтвердити: чт, 18:00» (зараз — один клік «Обрати цей час»; змінюємо, щоб уникнути випадкового вибору). Під варіантами — тривалість, формат, `timezone`, `expires_at`. Успіх (`confirmedSession`): «Час підтверджено» + зелений квиток + посилання на зустріч (Відкрити / Скопіювати) або адреса. Стани `accepted/expired/cancelled/closed/invalid` → `expired` з текстами з поточного `stateTitle/stateText`. Рядок «Ми надіслали деталі на пошту» — лише якщо бекенд шле лист.
+- **Запрошення до групи** (`GroupInviteJoinView.vue`, `/invite/:token`): назва події як H1, квиток, заповненість і приватність (`participant_list_visibility`, `is_recorded`), плашка згоди (текст «ви стаєте активним клієнтом» — зберегти зміст, формулювання з макета), «Прийняти запрошення» + «Ви увійшли як …». Успіх → «Ви в групі», «Відкрити подію» (`/client/group-events/:id`), «До кабінету». Коди `EVENT_CANCELLED/COMPLETED/NOT_READY/NOT_AVAILABLE` → стан `expired` з відповідним H1.
+  ⚠ Зараз гість без входу одразу редіректиться на /login і не бачить подію. Макет (`signedIn=false`) показує подію і «Увійти й прийняти / Створити акаунт» з `redirect` назад. Потрібен публічний `GET /group-invites/:token/` (назва, дата, режим, місця, приватність, спеціаліст). До того — лишити редірект.

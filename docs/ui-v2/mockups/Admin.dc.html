@@ -115,7 +115,7 @@
           <aside style="flex:0 1 400px;min-width:min(100%,320px);position:sticky;top:0;background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:16px;opacity:{{ dOp }};transform:translateX({{ dX }}px);transition:opacity .3s ease,transform .4s cubic-bezier(.2,.8,.2,1)">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
               <span style="font-size:13px;color:#5A6578">{{ wq.sel.type }}</span>
-              <span onClick="{{ wq.close }}" style="width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
+              <span onClick="{{ wq.close }}" role="button" aria-label="Закрити" style="width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
             </div>
             <h2 style="margin:0;font-weight:500;font-size:21px;letter-spacing:-0.015em;line-height:1.25">{{ wq.sel.title }}</h2>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -183,7 +183,7 @@
           <aside style="flex:0 1 400px;min-width:min(100%,320px);position:sticky;top:0;background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:16px;opacity:{{ dOp }};transform:translateX({{ dX }}px);transition:opacity .3s ease,transform .4s cubic-bezier(.2,.8,.2,1)">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
               <span style="font-size:13px;color:#5A6578">Запит #{{ ib.sel.num }}</span>
-              <span onClick="{{ ib.close }}" style="width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
+              <span onClick="{{ ib.close }}" role="button" aria-label="Закрити" style="width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
             </div>
             <h2 style="margin:0;font-weight:500;font-size:21px;letter-spacing:-0.015em">{{ ib.sel.title }}</h2>
             <span style="align-self:flex-start;font-size:12px;padding:3px 9px;border-radius:999px;background:{{ ib.sel.stBg }};color:{{ ib.sel.stC }};transition:all .4s">{{ ib.sel.stL }}</span>
@@ -257,7 +257,7 @@
           <aside style="flex:0 1 400px;min-width:min(100%,320px);position:sticky;top:0;background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:16px;opacity:{{ dOp }};transform:translateX({{ dX }}px);transition:opacity .3s ease,transform .4s cubic-bezier(.2,.8,.2,1)">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
               <span style="font-size:13px;color:#5A6578">Запит №{{ bl.sel.num }}</span>
-              <span onClick="{{ bl.close }}" style="width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
+              <span onClick="{{ bl.close }}" role="button" aria-label="Закрити" style="width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
               <h2 style="margin:0;font-weight:500;font-size:21px;letter-spacing:-0.015em">{{ bl.sel.kind }}</h2>
@@ -296,7 +296,7 @@
         <div><div style="font-size:14px;color:#C9D4E3;margin-bottom:6px">Спеціалісти</div><h1 style="margin:0;font-weight:500;font-size:32px;letter-spacing:-0.03em">{{ sx.headline }}</h1></div>
         <div style="position:relative;max-width:640px">
           <input value="{{ sx.q }}" onChange="{{ sx.onQ }}" placeholder="Email, логін, слаг або ім’я" style="width:100%;height:56px;padding:0 48px 0 20px;border-radius:16px;border:none;background:#FBF9F5;font:inherit;font-size:17px;color:#12233A;outline:none;box-shadow:0 0 0 0 rgba(247,183,126,0);transition:box-shadow .25s" style-focus="box-shadow:0 0 0 3px #F7B77E">
-          <sc-if value="{{ sx.hasQ }}" hint-placeholder-val="{{ false }}"><span onClick="{{ sx.clearQ }}" style="position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer" style-hover="background:#F1EBE2">✕</span></sc-if>
+          <sc-if value="{{ sx.hasQ }}" hint-placeholder-val="{{ false }}"><span onClick="{{ sx.clearQ }}" role="button" aria-label="Закрити" style="position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#5A6578;cursor:pointer" style-hover="background:#F1EBE2">✕</span></sc-if>
         </div>
         <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px">
           <div style="font-size:14px;color:#C9D4E3">{{ sx.sub }}</div>
@@ -500,11 +500,12 @@ class Component extends DCLogic {
   T = [];
   later(fn, ms) { const id = setTimeout(fn, ms); this.T.push(id); return id; }
   componentDidMount() {
+    this.onEsc = e => { if (e.key === 'Escape' && (this.state.wqSel || this.state.ibSel || this.state.blSel)) this.setState({ wqSel: null, ibSel: null, blSel: null }); }; window.addEventListener('keydown', this.onEsc);
     this.iv = setInterval(() => this.setState(s => ({ pulse: !s.pulse })), 1000);
     const s = this.props.startScreen; if (s && s !== 'specs') this.setState({ screen: s });
     this.reveal(700);
   }
-  componentWillUnmount() { clearInterval(this.iv); this.T.forEach(clearTimeout); cancelAnimationFrame(this.raf); clearTimeout(this.tt); }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onEsc); clearInterval(this.iv); this.T.forEach(clearTimeout); cancelAnimationFrame(this.raf); clearTimeout(this.tt); }
   reveal(ms) {
     this.setState({ loading: true, revealed: false, p: 0, dIn: false });
     this.later(() => { this.setState({ loading: false }); this.later(() => { this.setState({ revealed: true, dIn: true }); this.count(); }, 40); }, ms);

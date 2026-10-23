@@ -8,11 +8,17 @@
 
 ## Claude snapshot integration — 2026-10-23
 
-Current UX/UI reference is `claude-design-2026-10-23-265f221a`, SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. See [sync audit](ui-v2/DESIGN_SYNC_2026-10-23.md), [exact supplied design-system document](ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/docs/DESIGN_SYSTEM.md) and [future-task checklist](ui-v2/DESIGN_SYNC_CHECKLIST.md).
+Historical v1 UX/UI reference is `claude-design-2026-10-23-265f221a`, SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. See [sync audit](ui-v2/DESIGN_SYNC_2026-10-23.md), [exact supplied design-system document](ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/docs/DESIGN_SYSTEM.md) and [future-task checklist](ui-v2/DESIGN_SYNC_CHECKLIST.md).
 
 Comparison finds the existing core palette/Onest/radius/button/card scales retained. Source §5/§10 soft-text usage conflicts with the repository's existing accessibility findings; muted-text/focus rules below remain implementation safeguards, not a redesigned source mockup. Source §8 overgeneralizes v1 shape history; §12 omits the repository's legacy/signup contract gate. Preserve these documented corrections, all v1 rule blocks and product §§1–4. No design file or runtime color is silently corrected in this sync.
 
 New cabinet/session/client/admin components, responsive patterns and fennec brand are described in the supplied source TZ/CSS and active reference pages. They are reference intent, not classes/assets already activated in production. Current runtime tokens/components and logos are unchanged; no prototype dependency is introduced. New behavior must pass the audit contract gates. Further Client Dashboard work is HOLD until updated UX and backend dependencies are approved/verified.
+
+## Current supplied snapshot — v3
+
+Current reference: `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. See [entry point](ui-v2/START_HERE.md), [v3 audit](ui-v2/DESIGN_SYNC_2026-10-23_V3.md) and [source design system](ui-v2/snapshots/2026-10-23-e43f5f80/handoff/frontend/docs/DESIGN_SYSTEM.md). The source design system, tokens, components and feature-flag source are byte-identical to the preceding export. Existing v1 blocks, product sections 1–4 and runtime contrast/storage/isolation corrections remain intact. Earlier snapshot integration notes above are historical.
+
+DESIGN READY is a screen-reference status; it is not backend approval. Public Journal, standalone FAQ and Tour remain IN PROGRESS. Do not replace runtime files, logos or historical docs from source Step 0. New auth, diary, undo, timed-task, legal and crisis claims require separate contract review.
 
 ## 1. Purpose
 

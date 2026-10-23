@@ -1964,6 +1964,14 @@ Follow-up (same date, hero parity adjustments):
 
 ---
 
+## UI v2 v3 readiness and routing — current overlay (2026-10-23)
+
+Current supplied snapshot: `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. [Entry point](ui-v2/START_HERE.md), [unchanged source CHANGELOG](ui-v2/CHANGELOG.md), [integrated current plan](ui-v2/MIGRATION_PLAN_V2.md), [matrix](ui-v2/IMPLEMENTATION_MATRIX_V3.md) and [audit/next task](ui-v2/DESIGN_SYNC_2026-10-23_V3.md).
+
+Only DESIGN READY screens enter implementation after real product/backend checks. Public Journal, standalone FAQ and Tour remain DESIGN IN PROGRESS. Client dashboard remains HOLD. Current coverage includes stages 5a/5b, 6, 7, 8 and 9; older “no mockups” assumptions below are historical for those identities. Do not repeat Stage 0, overwrite production assets or remove v1. Existing #54–#57 and #59 plus backend #63 remain unchanged.
+
+Next eligible candidate: KAN-158 v2-only public header/footer brand visuals, preserving working routes and excluding HomeView (#59). KAN-156 is READY but its contract/copy/crisis gates still apply. See the matrix before selecting any stage; this is not automatic Stage 4 or rollout authorization. Earlier migration logs and accepted product rules below remain historical evidence.
+
 ## UI v2 - staged migration (default v1; per-stage acceptance required)
 
 Imported from `handoff/MIGRATION_PLAN_V2.md`; the earlier migration history is unchanged.
