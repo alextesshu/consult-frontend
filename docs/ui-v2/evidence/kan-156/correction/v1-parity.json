@@ -1,0 +1,77 @@
+{
+  "base": "d47bae52562f13a80cb5118bd68823b3bf1a5abf",
+  "results": [
+    {
+      "width": 375,
+      "size": [
+        375,
+        8750
+      ],
+      "pixel_identical": true,
+      "baseline_sha256": "a5d1be38d6aa0312d8ad585952d35bd1676e56c0a9139ed48071aad4cb67471f",
+      "candidate_sha256": "a5d1be38d6aa0312d8ad585952d35bd1676e56c0a9139ed48071aad4cb67471f",
+      "reference_hero_size": [
+        335,
+        1173
+      ],
+      "implementation_hero_size": [
+        335,
+        1311
+      ]
+    },
+    {
+      "width": 768,
+      "size": [
+        768,
+        6137
+      ],
+      "pixel_identical": true,
+      "baseline_sha256": "585ebaa1785dfeec51e252c79d8b598e77092b1f238712c503bb6205ac48dc8d",
+      "candidate_sha256": "585ebaa1785dfeec51e252c79d8b598e77092b1f238712c503bb6205ac48dc8d",
+      "reference_hero_size": [
+        708,
+        761
+      ],
+      "implementation_hero_size": [
+        708,
+        839
+      ]
+    },
+    {
+      "width": 1280,
+      "size": [
+        1280,
+        4561
+      ],
+      "pixel_identical": true,
+      "baseline_sha256": "e17e781461516757ac0095bb4993ead489c8f6e601c49e443444c4f636a647c8",
+      "candidate_sha256": "e17e781461516757ac0095bb4993ead489c8f6e601c49e443444c4f636a647c8",
+      "reference_hero_size": [
+        1144,
+        651
+      ],
+      "implementation_hero_size": [
+        1144,
+        710
+      ]
+    },
+    {
+      "width": 1440,
+      "size": [
+        1440,
+        4513
+      ],
+      "pixel_identical": true,
+      "baseline_sha256": "0b4e410d88ab3502d261b29bbcdbe65450d80f3560e445bc0419599d77b63de9",
+      "candidate_sha256": "0b4e410d88ab3502d261b29bbcdbe65450d80f3560e445bc0419599d77b63de9",
+      "reference_hero_size": [
+        1144,
+        651
+      ],
+      "implementation_hero_size": [
+        1144,
+        710
+      ]
+    }
+  ]
+}

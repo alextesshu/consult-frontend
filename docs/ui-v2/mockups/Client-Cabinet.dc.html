@@ -17,7 +17,7 @@
 </helmet>
 <div style="min-height:100vh;display:grid;grid-template-columns:{{ cols }}">
 
-  <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><aside style="position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:28px;padding:24px 16px;border-right:1px solid #EDE7DE;background:#FBF9F5">
+  <aside style="position:sticky;top:0;align-self:start;height:100vh;display:{{ sideDisp }};flex-direction:column;gap:28px;padding:24px 16px;border-right:1px solid #EDE7DE;background:#FBF9F5">
     <a href="For-Clients.dc.html" style="align-self:flex-start;display:block"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:36px;width:auto;display:block;margin-left:-4px"></a>
     <nav style="display:flex;flex-direction:column;gap:2px">
       <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
@@ -34,7 +34,7 @@
         <div style="font-size:14px;line-height:1.3">Олена<div style="font-size:12px;color:#8B95A7">Кабінет клієнта</div></div>
       </div>
     </div>
-  </aside></sc-if>
+  </aside>
 
   <main style="padding:{{ mainPad }};max-width:1120px;width:100%">
     <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 20px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;display:block;margin-left:-6px"><span style="width:36px;height:36px;border-radius:50%;background:#DDF1EF;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">О</span></div></sc-if>
@@ -139,7 +139,7 @@
       </section>
     </div>
 
-    <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;margin-bottom:16px">
+    <section id="sessions" style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;margin-bottom:16px;scroll-margin-top:24px">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
         <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Сесії</h2>
         <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px">
@@ -165,6 +165,7 @@
             </div>
           </div>
         </sc-for>
+        <sc-if value="{{ canMore }}" hint-placeholder-val="{{ false }}"><div style="border-top:1px solid #F1EBE2;padding-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:13px;color:#8B95A7">Показано 3 з 6</span><span onClick="{{ showMore }}" style="padding:10px 18px;border-radius:999px;border:1px solid #D4CCC2;font-size:14px;cursor:pointer" style-hover="border-color:#12345A">Показати ще</span></div></sc-if>
       </div>
     </section>
 
@@ -177,7 +178,7 @@
             <div style="font-size:16px;font-weight:500">Марія Коваль</div>
             <div style="font-size:13px;color:#2F7A55">Активна співпраця · 6 сесій</div>
           </div>
-          <span style="font-size:14px;color:#12345A;cursor:pointer;white-space:nowrap">Профіль →</span>
+          <a href="Client-Pages.dc.html" style="font-size:14px;white-space:nowrap">Профіль →</a>
         </div>
       </div>
       <div style="background:#F6F1EA;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px">
@@ -232,7 +233,7 @@
     </aside>
   </sc-if>
 
-  <div style="position:fixed;left:50%;bottom:{{ toastBottom }};transform:translate(-50%,{{ toastY }});opacity:{{ toastOp }};pointer-events:{{ toastPe }};display:flex;align-items:center;gap:14px;padding:10px 10px 10px 18px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);transition:all .35s cubic-bezier(.2,.8,.2,1);z-index:60">{{ toastMsg }}<span onClick="{{ undo }}" style="padding:6px 12px;border-radius:999px;color:#F7B77E;cursor:pointer">Скасувати</span></div>
+  <div style="position:fixed;left:{{ toastLeft }};bottom:{{ toastBottom }};transform:translate(-50%,{{ toastY }});opacity:{{ toastOp }};pointer-events:{{ toastPe }};display:flex;align-items:center;gap:16px;padding:12px 14px 12px 20px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);transition:all .35s cubic-bezier(.2,.8,.2,1);z-index:60">{{ toastMsg }}<span onClick="{{ undo }}" style="padding:6px 12px;border-radius:999px;color:#F7B77E;cursor:pointer">Скасувати</span></div>
 
   <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
     <nav style="position:fixed;left:0;right:0;bottom:0;z-index:30;height:72px;padding:6px 6px 14px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)">
@@ -245,18 +246,18 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;heroState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;upcoming&quot;,&quot;live&quot;,&quot;pending&quot;,&quot;none&quot;],&quot;default&quot;:&quot;upcoming&quot;,&quot;tsType&quot;:&quot;'upcoming'|'live'|'pending'|'none'&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
 class Component extends DCLogic {
-  state = { nav: 0, mood: null, note: '', saved: false, tab: 0, fade: false, read: {}, pulse: true, panel: null, resch: null, rem: { day: true, hour: true }, hw: false, toast: false, toastMsg: '', snap: null, reqd: {}, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  state = { nav: 0, mood: null, note: '', saved: false, tab: 0, fade: false, read: {}, pulse: true, panel: null, resch: null, rem: { day: true, hour: true }, hw: false, toast: false, toastMsg: '', snap: null, reqd: {}, more: false, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
   componentDidMount() { this.t = setInterval(() => this.setState(s => ({ pulse: !s.pulse })), 900); this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize); this.onEsc = e => { if (e.key === 'Escape') this.setState({ panel: null }); }; window.addEventListener('keydown', this.onEsc); }
   toast(msg, snap) { clearTimeout(this.t4); this.setState({ toast: true, toastMsg: msg, snap }); this.t4 = setTimeout(() => this.setState({ toast: false, snap: null }), 5000); }
   componentWillUnmount() { window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onEsc); clearTimeout(this.t4); clearInterval(this.t); clearTimeout(this.t2); clearTimeout(this.t3); }
   renderVals() {
-    const { nav, mood, note, saved, tab, fade, read, pulse, panel, resch, rem, hw, toast, toastMsg, snap, reqd, w } = this.state;
+    const { nav, mood, note, saved, tab, fade, read, pulse, panel, resch, rem, hw, toast, toastMsg, snap, reqd, more, w } = this.state;
     const nar = w < 768;
     if (!this.listenNode && window.PCListen) this.listenNode = React.createElement(window.PCListen, { size: 72, color: '#0F2D52', ring: '#2F8C86' });
     const st = this.props.heroState ?? 'upcoming';
     const live = st === 'live', none = st === 'none', pending = st === 'pending';
     const unread = ['m1'].filter(k => !read[k]).length;
-    const N = ['Головна', 'Сесії', 'Матеріали', 'Мій щоденник', 'Повідомлення', 'Профіль'];
+    const N = ['Головна', 'Матеріали', 'Мої спеціалісти', 'Мій щоденник', 'Повідомлення', 'Профіль'];
     const S0 = [
       { wd: 'Чт', d: 29, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Підтверджено', stBg: '#EEF8F1', stFg: '#2F7A55', pay: 'Очікує підтвердження оплати', payBg: '#FFF5DF', payFg: '#8A5A12', dateBg: '#EEF8F7' },
       { wd: 'Чт', d: 5, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Заплановано', stBg: '#EEF4FA', stFg: '#2F6FA8', pay: '', dateBg: '#FBF9F5' },
@@ -267,6 +268,10 @@ class Component extends DCLogic {
       { wd: 'Чт', d: 15, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
       { wd: 'Пн', d: 6, time: '19:00', kind: 'Ознайомча сесія', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
     ];
+    if (more) S1.push(
+      { wd: 'Чт', d: 8, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+      { wd: 'Чт', d: 1, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+      { wd: 'Пн', d: 28, time: '19:00', kind: 'Ознайомча сесія', fmt: 'онлайн', st: 'Скасовано вами', stBg: '#F1EBE2', stFg: '#8B95A7', pay: '', dateBg: '#FBF9F5' });
     const MAT = [
       { k: 'm1', kind: 'PDF', t: 'Вправа «Щоденник думок»', d: 'Після сесії 22 жовтня', tint: '#FFE2C4' },
       { k: 'm2', kind: 'Аудіо', t: 'Техніка дихання 4–7–8', d: '3 хв', tint: '#DDF1EF' },
@@ -279,8 +284,8 @@ class Component extends DCLogic {
     return {
       nav: N.map((label, i) => ({ label, on: () => this.setState({ nav: i }), bg: nav === i ? '#12345A' : 'transparent', fg: nav === i ? '#fff' : '#3F4B5E', fw: nav === i ? 500 : 400,
         badge: label === 'Матеріали' && unread ? String(unread) : label === 'Повідомлення' ? '1' : '' })),
-      cols: nar ? 'minmax(0,1fr)' : '232px minmax(0,1fr)', wide: !nar, narrow: nar, mainPad: nar ? '20px 16px 104px' : '32px clamp(24px,4vw,56px) 72px',
-      panelW: nar ? '100%' : 'min(100%,460px)', toastBottom: nar ? '88px' : '24px',
+      cols: nar ? 'minmax(0,1fr)' : '232px minmax(0,1fr)', wide: !nar, sideDisp: nar ? 'none' : 'flex', narrow: nar, mainPad: nar ? '20px 16px 104px' : '32px clamp(24px,4vw,56px) 72px',
+      panelW: nar ? '100%' : 'min(100%,460px)', toastBottom: nar ? '88px' : '24px', toastLeft: nar ? '50%' : 'calc(50% + 116px)',
       rowCols: nar ? '60px minmax(0,1fr)' : '72px minmax(0,1fr) auto', rowBadgeCol: nar ? '2' : 'auto', rowBadgeDir: nar ? 'row' : 'column', rowBadgeAl: nar ? 'flex-start' : 'flex-end',
       isPending: pending, listenBig: this.listenNode || null,
       showPrep: !none && !pending && !live, prepCount: hw ? 'Усе готово' : '1 завдання від спеціаліста',
@@ -295,7 +300,7 @@ class Component extends DCLogic {
       cancelSes: () => { const prev = reqd; this.setState({ panel: null }); this.toast('Сесію скасовано · Марія отримає повідомлення', { reqd: prev }); },
       toastMsg, toastOp: toast ? 1 : 0, toastY: toast ? '0px' : '24px', toastPe: toast ? 'auto' : 'none',
       undo: () => { clearTimeout(this.t4); this.setState({ ...(snap || {}), toast: false, snap: null }); },
-      tabbar: [['Головна'], ['Сесії'], ['Матеріали', unread ? String(unread) : ''], ['Щоденник'], ['Ще', '1']].map(([label, badge], i) => { const on = i === Math.min(nav, 4); return { label, badge, fg: on ? '#12345A' : '#8B95A7', fw: on ? 500 : 400, ibg: on ? '#DDF1EF' : 'transparent', on: () => this.setState({ nav: i }) }; }),
+      tabbar: [['Головна'], ['Матеріали', unread ? String(unread) : ''], ['Щоденник'], ['Чат', '1'], ['Ще']].map(([label, badge], i) => { const on = i === Math.min(nav, 4); return { label, badge, fg: on ? '#12345A' : '#8B95A7', fw: on ? 500 : 400, ibg: on ? '#DDF1EF' : 'transparent', on: () => this.setState({ nav: i }) }; }),
       greeting: 'Добрий вечір, Олено',
       heroTitle: live ? 'Сесія триває' : pending ? 'Запит надіслано' : none ? 'Продовжити роботу з Марією Коваль' : 'Найближча сесія',
       hasSession: !none && !pending, noSession: none,
@@ -315,6 +320,7 @@ class Component extends DCLogic {
       savedOp: saved ? 1 : 0,
       tabs: ['Найближчі', 'Минулі'].map((label, i) => ({ label, on: () => switchTab(i), bg: tab === i ? '#fff' : 'transparent', sh: tab === i ? '0 1px 2px rgba(18,35,58,.1)' : 'none' })),
       sessions: (tab === 0 ? ALL.filter(x => x.future) : ALL.filter(x => !x.future)).map(x => ({ ...x, st: reqd[x.id] ? 'Перенос: ' + reqd[x.id] : x.st, stBg: reqd[x.id] ? '#FFF1E3' : x.stBg, stFg: reqd[x.id] ? '#8A4B12' : x.stFg, on: () => this.setState({ panel: x.id, resch: null }) })), listOp: fade ? 0 : 1,
+      canMore: tab === 1 && !more, showMore: () => this.setState({ more: true }),
       viewed: [{ name: 'Андрій Лисенко', ini: 'АЛ', tint: '#DDF1EF' }, { name: 'Олена Гнатюк', ini: 'ОГ', tint: '#FFE2C4' }],
     };
   }

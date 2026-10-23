@@ -1,0 +1,32 @@
+{
+  "colors": {
+    "mint": {
+      "color": "rgb(31, 94, 90)",
+      "background": "rgb(238, 248, 247)",
+      "ratio": 6.9132914793159825
+    },
+    "crisis": {
+      "color": "rgb(138, 75, 22)",
+      "background": "rgb(255, 241, 227)",
+      "ratio": 6.11337215003731
+    },
+    "button": {
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(18, 52, 90)",
+      "ratio": 12.615997358287789
+    },
+    "cabinet": {
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(18, 52, 90)",
+      "ratio": 12.615997358287789
+    }
+  },
+  "scenarios": [
+    "all five chip mappings",
+    "query v1 overrides stored v2",
+    "acquisition query retained on v1 fallback",
+    "persisted v2 on direct URL without query",
+    "throwing localStorage getter: mount and SPA navigation"
+  ],
+  "errors": []
+}

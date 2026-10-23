@@ -1,48 +1,57 @@
-# Pro Consult UI v2 — reference index
+# Pro Consult UI v2 — current reference index (v5)
 
-## Current supplied design snapshot
+Snapshot `claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`; imported 2026-10-23. Source archive: `C:/Users/admin/dev/portfolio/consult/design-sources/Модернізація дизайну сайту ProConsult (v5).zip`; 1,474,654 bytes; 62 payload files.
 
-- ID: `claude-design-2026-10-23-265f221a`; ingestion date 2026-10-23.
-- SHA-256: `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`.
-- Source: `C:\Users\admin\dev\portfolio\consult\design-sources\Модернізація дизайну сайту ProConsult.zip`.
-- [Claude project](https://claude.ai/design/p/c453ec11-5135-4169-a1c2-cf1d64218392) is provenance, not an automatic sync. New date-named exports in that folder require explicit import/checksum/version comparison.
-- [Manifest and changed-file inventory](SNAPSHOT_MANIFEST.json), [page matrix / findings / contract gates / prioritized roadmap](DESIGN_SYNC_2026-10-23.md), [mandatory future-task checklist](DESIGN_SYNC_CHECKLIST.md).
-- [Exact handoff sources](snapshots/2026-10-23-265f221a/README.md) and [previous Git references](snapshots/baseline-e4b903e/README.md).
+[Start here](START_HERE.md), [manifest](SNAPSHOT_MANIFEST_V5.json), [active pointer](SNAPSHOT_CURRENT.json), [CHANGELOG](CHANGELOG.md), [v5 audit](DESIGN_SYNC_2026-10-23_V5.md), [implementation matrix](IMPLEMENTATION_MATRIX_V5.md), [Jira recommendations](JIRA_ALIGNMENT_V5.md), [validation](DESIGN_SYNC_V5_VALIDATION.md), [exact file inventory](DESIGN_SYNC_V5_FILES.json).
 
-Every future implementation and PR must identify its exact Claude snapshot and full checksum. The ZIP defines current UX/UI intent; runtime/product/permission contracts and explicit authorization govern execution. Prototype scripts and controls do not prove server capability.
+[Exact frozen v5 source](snapshots/2026-10-23-7570f1ad/README.md) includes source.zip. Previous snapshot `claude-design-2026-10-23-e43f5f80`, [v3 manifest](SNAPSHOT_MANIFEST_V3.json), [v3 audit](DESIGN_SYNC_2026-10-23_V3.md), [v3 source](snapshots/2026-10-23-e43f5f80/README.md), original 265f221a sources and all older references remain unchanged. V4 ZIP is absent: only its original CHANGELOG account is available. This is the latest supplied snapshot, not automatically synchronized Claude cloud state.
 
-## Actual implementation state
+## Readiness
 
-Frontend base is `e4b903e523836f44c2ac79c0403621382cf92d55`. Stage 0A/0B and 1.1/1.2/1.3a are merged. Registration completion #54, public profile #55, discovery #56 and client dashboard #57 remain Draft; backend registration #63 remains Draft. This sync does not change those branches/states or approve their merge.
-
-**Further Client Dashboard implementation is HOLD** until updated UX approval and verification of request ownership/actions, reminders, rescheduling/cancellation, payment/material and diary boundaries. Reassess Homepage and Discovery against new references. For Clients is a new independent stage. Stage 4 has mockups now.
-
-## Active reference pages
-
-| Scope | Reference |
+| Exact reference / identity | Current design status |
 | --- | --- |
-| Homepage / public header | [Home](mockups/Home.dc.html) |
-| Specialist signup | [Signup](mockups/Signup.dc.html) |
-| Public specialist profile | [Specialist-Profile](mockups/Specialist-Profile.dc.html) |
-| Discovery | [Find-Specialist](mockups/Find-Specialist.dc.html) |
-| Client signup | [Client-Signup](mockups/Client-Signup.dc.html) |
-| Client dashboard — HOLD | [Client-Cabinet](mockups/Client-Cabinet.dc.html) |
-| New public client landing | [For-Clients](mockups/For-Clients.dc.html) |
-| Specialist dashboard | [Cabinet-Dashboard](mockups/Cabinet-Dashboard.dc.html) |
-| Shared forms | [Cabinet-Drawer](mockups/Cabinet-Drawer.dc.html) |
-| Specialist sessions | [Sessions](mockups/Sessions.dc.html) |
-| Specialist clients/workbook | [Clients](mockups/Clients.dc.html) |
-| Mobile cabinet/admin | [Cabinet-Mobile](mockups/Cabinet-Mobile.dc.html) |
-| Admin | [Admin](mockups/Admin.dc.html) |
-| Brand | [Brand](mockups/Brand.dc.html) |
-| Component reference | [Handoff-Spec](mockups/Handoff-Spec.dc.html) |
+| [Admin.dc.html](mockups/Admin.dc.html) | DESIGN READY |
+| [Auth.dc.html](mockups/Auth.dc.html) | DESIGN READY |
+| [Billing.dc.html](mockups/Billing.dc.html) | DESIGN READY |
+| [Brand.dc.html](mockups/Brand.dc.html) | DESIGN READY |
+| [Cabinet-Dashboard.dc.html](mockups/Cabinet-Dashboard.dc.html) | DESIGN READY |
+| [Cabinet-Drawer.dc.html](mockups/Cabinet-Drawer.dc.html) | DESIGN READY |
+| [Cabinet-Mobile.dc.html](mockups/Cabinet-Mobile.dc.html) | DESIGN READY |
+| [Chat.dc.html](mockups/Chat.dc.html) | DESIGN READY |
+| [Client-Cabinet.dc.html](mockups/Client-Cabinet.dc.html) | DESIGN READY |
+| [Client-Pages.dc.html](mockups/Client-Pages.dc.html) | DESIGN READY |
+| [Client-Signup.dc.html](mockups/Client-Signup.dc.html) | DESIGN READY |
+| [Clients.dc.html](mockups/Clients.dc.html) | DESIGN READY |
+| [Emails.dc.html](mockups/Emails.dc.html) | DESIGN READY |
+| [Find-Specialist.dc.html](mockups/Find-Specialist.dc.html) | DESIGN READY |
+| [For-Clients.dc.html](mockups/For-Clients.dc.html) | DESIGN READY |
+| [Guest.dc.html](mockups/Guest.dc.html) | DESIGN READY |
+| [Handoff-Spec.dc.html](mockups/Handoff-Spec.dc.html) | DESIGN READY |
+| [Home.dc.html](mockups/Home.dc.html) | DESIGN READY |
+| [Inquiries.dc.html](mockups/Inquiries.dc.html) | DESIGN READY |
+| [Profile-Edit.dc.html](mockups/Profile-Edit.dc.html) | DESIGN READY |
+| [Public-Content.dc.html](mockups/Public-Content.dc.html) | DESIGN READY |
+| [Schedule.dc.html](mockups/Schedule.dc.html) | DESIGN READY |
+| [Service-Pages.dc.html](mockups/Service-Pages.dc.html) | DESIGN READY |
+| [Session-Pages.dc.html](mockups/Session-Pages.dc.html) | DESIGN READY |
+| [Sessions.dc.html](mockups/Sessions.dc.html) | DESIGN READY |
+| [Settings.dc.html](mockups/Settings.dc.html) | DESIGN READY |
+| [Signup.dc.html](mockups/Signup.dc.html) | DESIGN READY |
+| [Specialist-Profile.dc.html](mockups/Specialist-Profile.dc.html) | DESIGN READY |
+| [Specialist-Tools.dc.html](mockups/Specialist-Tools.dc.html) | DESIGN READY |
+| Support Chat | DESIGN IN PROGRESS |
+| Expanded Blog Editor follow-up | DESIGN IN PROGRESS |
+| Public Profile follow-up | DESIGN IN PROGRESS |
+| Tour | NOT REQUIRED — REDIRECT |
 
-Home A/B/C, Practice-Block-Options and Specialist-Dashboard are archived variants, not current targets. Images under mockups are documentation-only, including fictional demonstration people and the new fennec brand. No production logo/favicon has been changed.
+Current Blog Editor 8.6 and Public Profile 2.1 remain READY; their expanded/future versions are separate IN PROGRESS identities. See the audit for source profile-status drift. Client Dashboard remains HOLD regardless of design readiness. For Clients inline FAQ is separate from now-READY standalone FAQ.
 
-## Reference execution boundary
+All previous 25 HTML files and 19 images are byte-identical to v3 source. New references: Public-Content, Session-Pages, Service-Pages, Emails and legal-texts.json. Source tokens/components/uiVersion/design system/PATCHES/CODEX_TASKS are unchanged. Existing implementation #54–#57/#59 and backend #63 remain Draft without branch/state changes.
 
-Raw HTML preserves the export content (except three documented trailing-whitespace removals in Clients/Sessions; source and destination hashes are recorded separately) and contains x-dc/sc-* placeholders, inline styles, inert text/x-dc logic and original external font/script references. `support.js` and `brand-listen.js` are intentionally excluded. Do not execute prototypes, serve them as app pages, fetch their CDN dependencies or import these files into runtime. Static asset checks distinguish excluded scripts, dynamic template references and actual local image/page files.
+## Safe reference boundary
 
-Source CSS/TypeScript are frozen reference copies only. Existing runtime remains hardened: query v1/v2 overrides stored pc.ui, then exact VITE_UI_V2=true, else v1; independent storage read/write failures and per-document memory fallback cannot block bootstrap. applyUiVersion runs before createApp; only successful navigation synchronizes reactive state/html[data-ui]. Default remains v1. Existing muted-text/focus/isolation fixes and v1 rules remain intact.
+No application source/runtime CSS/assets/config/backend changes. Do not repeat initial handoff installation. Active scripts support.js and brand-listen.js remain excluded; raw versions are retained only as frozen source evidence. External font references and text/x-dc logic are inert references, not dependencies. Service-Pages' legal-texts.json resolves locally; do not replace current legal text with an unverified extract.
 
-See [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md), [integrated TZ](TZ_CODEX.md), [task entrypoint](CODEX_TASKS.md), [design system](../DESIGN_SYSTEM.md) and [migration plan](../UI_MIGRATION_PLAN.md). Source conflicts are findings, not permission to copy runtime files or publish unverified SLA/payment/cancellation/crisis claims.
+Four source trailing-whitespace-only lines across Clients/Sessions/Service-Pages are normalized in extracted copies; original bytes/hashes remain in source.zip. CHANGELOG is byte-identical with v5→v4→v3→v2→v1 chronology. Full source and destination hashes are in the manifest.
+
+[Design system](../DESIGN_SYSTEM.md), [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md), [integrated TZ](TZ_CODEX.md), [roadmap](MIGRATION_PLAN_V2.md), [future-sync checklist](DESIGN_SYNC_CHECKLIST.md).

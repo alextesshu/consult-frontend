@@ -55,7 +55,7 @@
 
       <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:22px">
-          <div style="display:flex"><x-import component-from-global-scope="PCListen" size="72" color="#0F2D52" ring="#2F8C86" rings="2" dur="2.2" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
+          <div style="display:flex"><x-import component-from-global-scope="PCListen" size="{{ 72 }}" color="#0F2D52" ring="#2F8C86" rings="{{ 2 }}" dur="{{ 2.2 }}" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
           <div>
             <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Кабінет готовий</h1>
             <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">{{ doneCopy }}</p>

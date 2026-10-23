@@ -12,11 +12,11 @@
 </helmet>
 <div style="position:absolute;inset:0;z-index:30;font-family:Onest,system-ui,sans-serif;color:#12233A">
   <div onClick="{{ close }}" style="position:absolute;inset:0;background:rgba(18,35,58,.28);opacity:{{ bo }};transition:opacity .32s ease"></div>
-  <aside style="position:absolute;top:0;right:0;bottom:0;width:440px;max-width:100%;background:#FBF9F5;box-shadow:-24px 0 60px rgba(18,35,58,.18);display:flex;flex-direction:column;transform:translateX({{ px }}px);transition:transform .4s cubic-bezier(.2,.8,.2,1)">
+  <aside role="dialog" aria-modal="true" style="position:absolute;top:0;right:0;bottom:0;width:440px;max-width:100%;background:#FBF9F5;box-shadow:-24px 0 60px rgba(18,35,58,.18);display:flex;flex-direction:column;transform:translateX({{ px }}px);transition:transform .4s cubic-bezier(.2,.8,.2,1)">
     <div style="padding:24px 28px 16px;display:flex;flex-direction:column;gap:6px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
         <h3 style="margin:0;font-weight:500;font-size:22px;letter-spacing:-0.02em">{{ title }}</h3>
-        <span onClick="{{ close }}" style="width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
+        <span onClick="{{ close }}" role="button" aria-label="Закрити" style="width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
       </div>
       <div style="font-size:14px;color:#5A6578">{{ ctx }}</div>
     </div>
@@ -281,8 +281,8 @@ class Component extends DCLogic {
     pName: 'Марія Коваль', about: '', specs: [], pfmt: null, price: '', intake: null,
     plan: null, reason: '', trialDays: null, payRef: '', period: '1 міс', scope: [],
     msg: 'Добрий день! Можу запропонувати такі вікна для першої зустрічі. Оберіть зручне — і я підтверджу.', url: '', remember: true, note: '' };
-  componentDidMount() { this.r = requestAnimationFrame(() => { this.r = requestAnimationFrame(() => this.setState({ shown: true })); }); }
-  componentWillUnmount() { cancelAnimationFrame(this.r); clearTimeout(this.t); clearTimeout(this.t2); }
+  componentDidMount() { this.onEsc = e => { if (e.key !== 'Escape') return; e.stopPropagation(); this.out(() => this.props.onClose && this.props.onClose()); }; window.addEventListener('keydown', this.onEsc, true); this.r = requestAnimationFrame(() => { this.r = requestAnimationFrame(() => this.setState({ shown: true })); }); }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onEsc, true); cancelAnimationFrame(this.r); clearTimeout(this.t); clearTimeout(this.t2); }
   out(cb) { this.setState({ shown: false }); clearTimeout(this.t); this.t = setTimeout(cb, 340); }
   go(n) { this.setState({ fading: true }); clearTimeout(this.t2); this.t2 = setTimeout(() => this.setState({ step: n, fading: false }), 170); }
   renderVals() {
