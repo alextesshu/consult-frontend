@@ -1,0 +1,163 @@
+{
+  "source": {
+    "1280": {
+      "errors": []
+    },
+    "1440": {
+      "errors": []
+    }
+  },
+  "widths": [
+    {
+      "width": 375,
+      "geometry": {
+        "heroName": "26px",
+        "clock": "40px",
+        "columns": 1,
+        "stripScrolls": true,
+        "queueButtonHeight": 44,
+        "readinessFull": false,
+        "readinessRow": true
+      },
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "errors": []
+    },
+    {
+      "width": 390,
+      "geometry": {
+        "heroName": "26px",
+        "clock": "40px",
+        "columns": 1,
+        "stripScrolls": true,
+        "queueButtonHeight": 44,
+        "readinessFull": false,
+        "readinessRow": true
+      },
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "errors": []
+    },
+    {
+      "width": 640,
+      "geometry": {
+        "heroName": "26px",
+        "clock": "40px",
+        "columns": 1,
+        "stripScrolls": false,
+        "queueButtonHeight": 44,
+        "readinessFull": false,
+        "readinessRow": true
+      },
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "errors": []
+    },
+    {
+      "width": 768,
+      "geometry": {
+        "heroName": "40px",
+        "clock": "88px",
+        "columns": 1,
+        "stripScrolls": false,
+        "queueButtonHeight": 42,
+        "readinessFull": true,
+        "readinessRow": false
+      },
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "geometry": {
+        "heroName": "40px",
+        "clock": "88px",
+        "columns": 2,
+        "stripScrolls": false,
+        "queueButtonHeight": 42,
+        "readinessFull": true,
+        "readinessRow": false
+      },
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "geometry": {
+        "heroName": "40px",
+        "clock": "88px",
+        "columns": 2,
+        "stripScrolls": false,
+        "queueButtonHeight": 42,
+        "readinessFull": true,
+        "readinessRow": false
+      },
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "errors": []
+    }
+  ],
+  "interactions": {
+    "countdown": [
+      "39:58",
+      "39:56"
+    ],
+    "persisted": true,
+    "rangePressed": "true",
+    "links": [
+      "/cabinet/slots?action=create-session",
+      "/cabinet/sessions/11",
+      "/cabinet/sessions/10",
+      "/cabinet/sessions/14",
+      "/cabinet/sessions/15",
+      "/cabinet/external-sessions#guest-requests",
+      "/cabinet/profile",
+      "/cabinet/sessions/12",
+      "/cabinet/sessions/16",
+      "/cabinet/sessions/13"
+    ],
+    "errors": []
+  },
+  "roles": {
+    "guest": "/login",
+    "client": "/403",
+    "clientDashboard": 0
+  },
+  "states": {
+    "skeleton": true,
+    "empty": {
+      "hero": "Сесій сьогодні немає.Можна перейти до розкладу або створити сесію з верхньої дії.Перейти до розкладу",
+      "queue": "Усе зроблено — черга порожня.",
+      "practice": "Не вдалося завантажити підсумок практики. Повторити",
+      "ready": "Профіль опублікований і приймає звернення"
+    }
+  },
+  "motion": {
+    "reduced": {
+      "opacity": "1",
+      "transform": "none",
+      "transition": "none 0.001s",
+      "metric": "42"
+    }
+  }
+}

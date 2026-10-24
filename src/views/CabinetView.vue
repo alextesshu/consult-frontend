@@ -1,5 +1,157 @@
 <template>
-  <section class="cabinet">
+  <section v-if="uiV2" class="pc2-dashboard" :class="{ 'is-reduced': motion.reduced.value }" aria-labelledby="dashboard-title">
+    <h1 id="dashboard-title" class="pc2-dashboard__sr-only">Кабінет</h1>
+
+    <section v-if="showExpiredTrialNotice" class="pc2-dashboard__notice" role="alert" aria-labelledby="expired-trial-title-v2">
+      <h2 id="expired-trial-title-v2">Тестовий доступ до Pro завершився</h2>
+      <p>Ваш простір перейшов на тариф Start. Частина можливостей Pro більше недоступна — зокрема більший ліміт активних клієнтів, email-нагадування про сесії та власний блог.</p>
+      <p>Нагадування в застосунку залишаються доступними.</p>
+      <div class="pc2-dashboard__notice-actions">
+        <RouterLink class="pc2-dashboard__btn" to="/cabinet/billing" @click="dismissExpiredTrialNotice">Повернути Pro</RouterLink>
+        <RouterLink class="pc2-dashboard__btn is-ghost" to="/cabinet/billing" @click="dismissExpiredTrialNotice">Дізнатися більше</RouterLink>
+        <button class="pc2-dashboard__btn is-ghost" type="button" @click="dismissExpiredTrialNotice">Залишитися на Start</button>
+      </div>
+    </section>
+
+    <div v-if="dashboardReady" class="pc2-dashboard__body" :class="{ 'is-revealed': motion.revealed.value }">
+      <section class="pc2-dashboard__hero" :class="{ 'is-live': heroIsLive }" aria-label="Наступна сесія">
+        <div class="pc2-dashboard__hero-top">
+          <span class="pc2-dashboard__date">{{ dashboardDate }}</span>
+          <RouterLink class="pc2-dashboard__hero-create" :to="{ path: '/cabinet/slots', query: { action: 'create-session' } }">+ Нова сесія</RouterLink>
+        </div>
+        <div v-if="heroSessionsError" class="pc2-dashboard__hero-error" role="alert">
+          <span>{{ heroSessionsError }}</span>
+          <button type="button" class="pc2-dashboard__hero-ghost" @click="retryHeroSessionsLoad">Повторити</button>
+        </div>
+        <div v-else-if="heroSession" class="pc2-dashboard__hero-main">
+          <div class="pc2-dashboard__hero-who">
+            <div class="pc2-dashboard__kicker"><span class="pc2-dashboard__pulse" :class="{ 'is-dim': !motion.pulse.value }" aria-hidden="true"></span>{{ heroKicker }}</div>
+            <div class="pc2-dashboard__hero-name">{{ sessionClientLabel(heroSession) }}</div>
+            <div class="pc2-dashboard__hero-meta">{{ heroTimeRange }}<span v-if="heroSession.status === 'SCHEDULED'" class="pc2-dashboard__hero-chip">потребує підтвердження</span></div>
+          </div>
+          <div class="pc2-dashboard__hero-clock">
+            <div class="pc2-dashboard__clock-label">
+              <span>{{ heroClockLabel }}</span>
+              <button v-if="heroIsToday" type="button" class="pc2-dashboard__timer-toggle" :aria-pressed="!hideTimer" :title="hideTimer ? 'Показувати зворотний відлік до сесії' : 'Показувати лише час початку'" @click="toggleHeroTimer">{{ hideTimer ? 'Показати таймер' : 'Сховати таймер' }}</button>
+            </div>
+            <span class="pc2-dashboard__clock" :aria-live="hideTimer ? undefined : 'off'">{{ heroClock }}</span>
+            <div class="pc2-dashboard__hero-actions">
+              <a v-if="heroCanJoin" class="pc2-dashboard__join is-ready" :href="heroJoinUrl" target="_blank" rel="noopener noreferrer">Приєднатися</a>
+              <span v-else-if="!heroIsOffline" class="pc2-dashboard__join" aria-disabled="true">Приєднатися</span>
+              <RouterLink class="pc2-dashboard__hero-ghost" :to="`/cabinet/sessions/${heroSession.id}`">Відкрити сесію</RouterLink>
+            </div>
+            <span class="pc2-dashboard__join-hint">{{ heroJoinHint }}</span>
+          </div>
+        </div>
+        <div v-else class="pc2-dashboard__hero-empty">
+          <div class="pc2-dashboard__hero-name">Сесій сьогодні немає.</div>
+          <p>Можна перейти до розкладу або створити сесію з верхньої дії.</p>
+          <RouterLink class="pc2-dashboard__hero-ghost" to="/cabinet/slots">Перейти до розкладу</RouterLink>
+        </div>
+        <ol v-if="todayPills.length" class="pc2-dashboard__today" aria-label="Сесії сьогодні">
+          <li v-for="pill in todayPills" :key="pill.id">
+            <RouterLink class="pc2-dashboard__pill" :class="pill.state" :to="`/cabinet/sessions/${pill.id}`">
+              <span class="pc2-dashboard__pill-time">{{ pill.time }}<span v-if="pill.flag" class="pc2-dashboard__pill-flag" :title="pill.flag"><span class="pc2-dashboard__sr-only">{{ pill.flag }}</span></span></span>
+              <span class="pc2-dashboard__pill-name">{{ pill.name }}</span>
+              <span class="pc2-dashboard__pill-state">{{ pill.label }}</span>
+            </RouterLink>
+          </li>
+        </ol>
+      </section>
+
+      <div class="pc2-dashboard__columns">
+        <section class="pc2-dashboard__queue" aria-labelledby="dashboard-queue-title">
+          <div class="pc2-dashboard__heading">
+            <h2 id="dashboard-queue-title">Потребує уваги</h2>
+            <span class="pc2-dashboard__count">{{ queueCount }}</span>
+          </div>
+          <p v-if="workQueueError" class="pc2-dashboard__inline-error" role="alert">{{ workQueueError }} <button type="button" @click="retryWorkQueueLoad">Повторити</button></p>
+          <div v-if="workQueueLoading && !workQueueLoaded" class="pc2-dashboard__skeleton-card" aria-hidden="true"></div>
+          <div v-else-if="!queueItems.length" class="pc2-dashboard__queue-empty">
+            <img :src="fennecSymbol" alt="" width="40" height="40">
+            <span>Усе зроблено — черга порожня.</span>
+          </div>
+          <article v-for="item in queueItems" v-else :key="item.key" class="pc2-dashboard__card">
+            <div class="pc2-dashboard__card-top">
+              <span class="pc2-dashboard__tag" :class="queueTagClass[item.kind]">{{ item.tag }}</span>
+              <span v-if="item.topics.length" class="pc2-dashboard__topics"><span v-for="topic in item.topics" :key="topic">#{{ topic }}</span></span>
+            </div>
+            <div class="pc2-dashboard__card-row">
+              <div class="pc2-dashboard__card-copy"><h3>{{ item.title }}</h3><p>{{ item.body }}</p></div>
+              <RouterLink class="pc2-dashboard__btn" :to="item.to">{{ item.primary }}</RouterLink>
+            </div>
+          </article>
+          <p v-if="queueOverflow" class="pc2-dashboard__more">{{ queueOverflow }}</p>
+        </section>
+
+        <div class="pc2-dashboard__side">
+          <RouterLink v-if="readiness && !readiness.ready" class="pc2-dashboard__readiness-row" :class="readiness.state" :to="readiness.rowTo">
+            <span class="pc2-dashboard__ring is-sm" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" class="pc2-dashboard__ring-track" /><circle cx="24" cy="24" r="18" class="pc2-dashboard__ring-value" transform="rotate(-90 24 24)" :style="{ strokeDashoffset: readiness.offset }" /></svg>
+              <span>{{ readiness.done }}/{{ readiness.total }}</span>
+            </span>
+            <span class="pc2-dashboard__readiness-row-copy"><strong>Готовність до звернень</strong><span>{{ readiness.summary }}</span></span>
+            <span aria-hidden="true">›</span>
+          </RouterLink>
+          <section v-if="readiness && !readiness.ready" class="pc2-dashboard__readiness" :class="readiness.state" aria-labelledby="dashboard-readiness-title">
+            <div class="pc2-dashboard__readiness-head">
+              <span class="pc2-dashboard__ring" aria-hidden="true">
+                <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" class="pc2-dashboard__ring-track" /><circle cx="24" cy="24" r="18" class="pc2-dashboard__ring-value" transform="rotate(-90 24 24)" :style="{ strokeDashoffset: readiness.offset }" /></svg>
+                <span>{{ readiness.done }}/{{ readiness.total }}</span>
+              </span>
+              <div><h2 id="dashboard-readiness-title">Готовність до звернень</h2><p>{{ readiness.status }}</p></div>
+            </div>
+            <ol class="pc2-dashboard__steps">
+              <li v-for="step in readiness.steps" :key="step.key">
+                <RouterLink v-if="!step.done" class="pc2-dashboard__step" :to="step.to"><span class="pc2-dashboard__check" aria-hidden="true"></span><span>{{ step.label }}</span><span class="pc2-dashboard__step-cta">Заповнити →</span></RouterLink>
+                <span v-else class="pc2-dashboard__step is-done"><span class="pc2-dashboard__check" aria-hidden="true">✓</span><span>{{ step.label }}</span><span class="pc2-dashboard__sr-only">— готово</span></span>
+              </li>
+            </ol>
+            <RouterLink v-if="readiness.cta" class="pc2-dashboard__btn" :to="readiness.cta.to">{{ readiness.cta.label }}</RouterLink>
+          </section>
+          <div v-else-if="readiness?.ready" class="pc2-dashboard__ready-line"><span aria-hidden="true"></span>Профіль опублікований і приймає звернення</div>
+          <p v-else-if="onboardingLoadError" class="pc2-dashboard__inline-error" role="alert">{{ onboardingLoadError }} <button type="button" @click="retryOnboardingStateLoad">Повторити</button></p>
+
+          <section class="pc2-dashboard__practice" aria-labelledby="dashboard-practice-title" :aria-busy="practiceAnalyticsLoading">
+            <div class="pc2-dashboard__practice-head">
+              <h2 id="dashboard-practice-title">Практика</h2>
+              <div class="pc2-dashboard__ranges" role="group" aria-label="Період">
+                <button v-for="range in practiceAnalyticsRanges" :key="range" type="button" :aria-pressed="practiceAnalyticsRange === range" :disabled="practiceAnalyticsLoading" @click="setPracticeAnalyticsRange(range)">{{ practiceAnalyticsRangeLabel(range) }}</button>
+              </div>
+            </div>
+            <p v-if="practiceAnalyticsError" class="pc2-dashboard__inline-error" role="alert">{{ practiceAnalyticsError }} <button type="button" @click="loadPracticeAnalytics">Повторити</button></p>
+            <div v-else-if="practiceMetrics" class="pc2-dashboard__metrics" :class="{ 'is-loading': practiceAnalyticsLoading }">
+              <div><strong class="is-lg">{{ practiceMetrics.completed }}</strong><span>{{ practiceMetrics.completedLabel }}</span></div>
+              <div><strong class="is-lg">{{ practiceMetrics.requests }}</strong><span>{{ practiceMetrics.requestsLabel }}</span></div>
+              <div v-if="practiceMetrics.paid"><strong>{{ practiceMetrics.paid }}</strong><span>оплачено</span></div>
+              <div v-if="practiceMetrics.unconfirmed"><strong class="is-warn">{{ practiceMetrics.unconfirmed }}</strong><span>не підтверджено</span></div>
+            </div>
+            <div v-else-if="practiceAnalyticsLoading" class="pc2-dashboard__skeleton-line" aria-hidden="true"></div>
+            <div class="pc2-dashboard__usage">
+              <div><span>Активні клієнти</span><span>{{ activeClientsCount }} з {{ activeClientLimitLabel }}</span></div>
+              <div v-if="clientUsageWidth !== null" class="pc2-dashboard__bar"><span :style="{ width: `${clientUsageWidth}%` }"></span></div>
+            </div>
+          </section>
+
+          <section class="pc2-dashboard__ahead" aria-labelledby="dashboard-ahead-title">
+            <h2 id="dashboard-ahead-title">Попереду</h2>
+            <RouterLink v-for="row in aheadRows" :key="row.id" class="pc2-dashboard__ahead-row" :to="`/cabinet/sessions/${row.id}`"><span>{{ row.day }}</span><span>{{ row.time }}</span><span>{{ row.name }}</span></RouterLink>
+            <p v-if="!aheadRows.length" class="pc2-dashboard__ahead-empty">Інших запланованих сесій поки немає.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="dashboardFailure" class="pc2-dashboard__state" role="alert">
+      <p>{{ dashboardFailure }}</p>
+      <button type="button" class="pc2-dashboard__btn is-ghost" @click="retryDashboardShell">Повторити</button>
+    </div>
+    <div v-else class="pc2-dashboard__skeleton" :class="{ 'is-dim': !motion.pulse.value }" aria-busy="true" aria-label="Завантаження кабінету">
+      <div class="pc2-dashboard__skeleton-hero"></div>
+      <div class="pc2-dashboard__skeleton-grid"><div></div><div></div></div>
+    </div>
+  </section>
+  <section v-else class="cabinet">
     <header class="cabinet__hero">
       <div>
         <h1 class="title cabinet__title">Робоча панель</h1>
@@ -463,8 +615,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import { isUiV2 } from '../lib/uiVersion'
+import { useDashboardMotion } from '../composables/useDashboardMotion'
+import {
+  QUEUE_TAG_CLASS,
+  countdownLabel,
+  dashboardDateLine,
+  pluralUk,
+  ringOffset,
+  shortDayLabel,
+  timeHHMM,
+  tween,
+  type DashboardQueueItem,
+} from '../lib/specialistDashboardV2'
+import fennecSymbol from '../assets/brand-v2/proconsult-fennec-symbol-blue.svg'
+import '../styles/specialistDashboardV2.css'
 import {
   apiGet,
   fetchChatThreads,
@@ -721,6 +888,7 @@ const hasPracticeFinancialData = computed(() => {
   ))
 })
 const heroSessionsLoading = ref(false)
+const heroSessionsSettled = ref(false)
 const heroSessionsError = ref('')
 const profileLoading = ref(false)
 const profileError = ref('')
@@ -1391,6 +1559,7 @@ async function loadSessionsForHero() {
     heroSessionsError.value = 'Не вдалося завантажити статус найближчої сесії.'
   } finally {
     heroSessionsLoading.value = false
+    heroSessionsSettled.value = true
   }
 }
 
@@ -1545,6 +1714,204 @@ onBeforeUnmount(() => {
     nowIntervalId = null
   }
 })
+
+// --- UI v2 Dashboard (Cabinet-Dashboard.dc.html / Cabinet-Mobile.dc.html M1) ---
+// Presentation only: every value below comes from the same cabinet DTOs as v1.
+const uiV2 = computed(isUiV2)
+const dashboardReady = computed(() => Boolean(me.value && hasCabinetDataSnapshot.value) && heroSessionsSettled.value)
+const motion = useDashboardMotion({ ready: () => uiV2.value && dashboardReady.value })
+const queueTagClass = QUEUE_TAG_CLASS
+const dashboardDate = computed(() => dashboardDateLine(new Date(motion.now.value)))
+const dashboardFailure = computed(() => {
+  if (profileError.value) return profileError.value
+  if (cabinetDataError.value) return cabinetDataError.value
+  if (!me.value && !profileLoading.value && !auth.accessToken) return 'Профіль кабінету тимчасово недоступний.'
+  return ''
+})
+function retryDashboardShell() {
+  if (profileError.value || !me.value) retryCabinetProfileLoad()
+  else retryCabinetDataLoad()
+}
+
+const HIDE_TIMER_KEY = 'pc:dashboard:hideTimer'
+function readHideTimer() {
+  try { return window.localStorage.getItem(HIDE_TIMER_KEY) !== '0' } catch { return true }
+}
+const hideTimer = ref(readHideTimer())
+function toggleHeroTimer() {
+  hideTimer.value = !hideTimer.value
+  try { window.localStorage.setItem(HIDE_TIMER_KEY, hideTimer.value ? '1' : '0') } catch { /* Keep the in-page choice. */ }
+}
+
+const heroSession = computed<CabinetSession | null>(() => {
+  const signal = dashboardHeroSignal.value
+  if (signal?.type === 'live') return signal.session
+  return upcomingSorted.value[0] || null
+})
+const heroIsLive = computed(() => {
+  const session = heroSession.value
+  return Boolean(session && dashboardHeroSignal.value?.type === 'live' && dashboardHeroSignal.value.session.id === session.id)
+})
+const heroIsToday = computed(() => Boolean(heroSession.value && isSessionOnDay(heroSession.value, 0)))
+const heroIsOffline = computed(() => Boolean(heroSession.value && isOfflineSession(heroSession.value)))
+const heroJoinUrl = computed(() => (heroSession.value ? normalizeMeetingUrl(heroSession.value.meeting_url) : ''))
+const heroCanJoin = computed(() => {
+  const session = heroSession.value
+  if (!session || heroIsOffline.value || !session.join_available || !heroJoinUrl.value) return false
+  return canJoinExternalMeeting({ status: session.status, session_format: session.session_format, meeting_mode: session.meeting_mode, meeting_url: session.meeting_url })
+})
+const heroKicker = computed(() => `${heroIsLive.value ? 'Сесія триває' : 'Наступна сесія'} · ${heroIsOffline.value ? 'офлайн' : 'онлайн'}`)
+const heroTimeRange = computed(() => {
+  const session = heroSession.value
+  if (!session) return ''
+  const start = sessionJoinStartAt(session)
+  const end = sessionJoinEndAt(session)
+  const range = [timeHHMM(start), timeHHMM(end)].filter(Boolean).join('–')
+  return heroIsToday.value || heroIsLive.value ? range : [shortDayLabel(start), range].filter(Boolean).join(' · ')
+})
+const heroClock = computed(() => {
+  const session = heroSession.value
+  if (!session) return ''
+  const start = getSessionStartMs(session)
+  if (hideTimer.value || !heroIsToday.value || start === null) return timeHHMM(sessionJoinStartAt(session))
+  return heroIsLive.value ? countdownLabel(motion.now.value - start) : countdownLabel(start - motion.now.value)
+})
+const heroClockLabel = computed(() => {
+  if (!heroIsToday.value && !heroIsLive.value) return 'початок о'
+  if (hideTimer.value) return heroIsLive.value ? 'триває з' : heroCanJoin.value ? 'початок о · можна приєднатися' : 'початок о'
+  return heroIsLive.value ? 'від початку сесії' : heroCanJoin.value ? 'до початку — можна приєднатися' : 'до початку'
+})
+const heroJoinHint = computed(() => {
+  const session = heroSession.value
+  if (!session) return ''
+  if (heroIsOffline.value) return sessionSecondaryLine(session)
+  if (heroCanJoin.value) return 'Приєднання доступне. Можна перейти у зустріч.'
+  if (!heroJoinUrl.value) return 'Додайте посилання на онлайн-зустріч у деталях сесії.'
+  return 'Посилання на зустріч додано. Приєднання стане доступним ближче до початку.'
+})
+
+const todayPills = computed(() => workQueueTodaySessions.value.map((session) => {
+  const id = workQueueSessionId(session)
+  const isHero = heroSession.value?.id === id
+  const done = session.status === 'COMPLETED'
+  const state = isHero ? (heroIsLive.value ? 'is-live' : 'is-next') : done ? 'is-done' : ''
+  const label = isHero
+    ? (heroIsLive.value ? 'Триває зараз' : 'Наступна')
+    : done ? 'Завершено' : workQueueSessionStatusLabel(session)
+  return { id, time: timeHHMM(workQueueSessionStart(session)), name: workQueueSessionClientLabel(session), state, label, flag: done && session.has_note === false ? 'без нотатки' : '' }
+}))
+
+function guestRequestTitle(request: WorkQueueGuestRequestPreviewItem) {
+  return normalizeClientName(request.client_display_name) || normalizeClientName(request.guest_name) || 'Клієнт'
+}
+const queueItems = computed<DashboardQueueItem[]>(() => {
+  const items: DashboardQueueItem[] = []
+  const signal = dashboardHeroSignal.value
+  if (signal && (signal.type === 'needs_confirmation_now' || signal.type === 'needs_confirmation_soon' || signal.type === 'missing_meeting_link')) {
+    const link = signal.type === 'missing_meeting_link'
+    items.push({
+      key: 'hero-signal', kind: link ? 'link' : 'confirm', tag: link ? 'Немає посилання' : 'Потрібне підтвердження',
+      title: [sessionClientLabel(signal.session), formatDateTime(sessionJoinStartAt(signal.session))].filter(Boolean).join(' · '),
+      body: signal.message || '', topics: [], primary: link ? 'Додати посилання' : 'Відкрити сесію',
+      to: link ? `/cabinet/sessions/${signal.session.id}?focus=meeting_link` : signal.to,
+    })
+  }
+  for (const request of workQueue.value.guestRequestsPreview) {
+    const slot = request.requested_slot_start || request.starts_at
+    const format = request.session_format === 'offline' || request.meeting_mode === 'OFFLINE' ? 'офлайн' : 'онлайн'
+    items.push({
+      key: `request-${request.id}`, kind: 'request', tag: slot ? 'Новий запит' : 'Запит без часу', title: guestRequestTitle(request),
+      body: slot ? `Бажаний час: ${formatDateTime(slot)} · ${format}` : 'Просить запропонувати час для першої зустрічі',
+      topics: guestRequestTopicLabels(request), primary: 'Опрацювати', to: '/cabinet/external-sessions#guest-requests',
+    })
+  }
+  for (const session of practicePayments.value?.unconfirmed_sessions || []) {
+    items.push({
+      key: `pay-${session.session_id}`, kind: 'pay', tag: 'Оплата',
+      title: [session.client_name || 'Клієнт', formatDateTime(session.starts_at)].filter(Boolean).join(' · '),
+      body: `${formatPracticeAmount({ currency: session.price_currency, amount: session.price_amount })} · ${practicePaymentStateLabel(session.payment_state).toLocaleLowerCase('uk-UA')}`,
+      topics: [], primary: 'Відкрити сесію', to: `/cabinet/sessions/${session.session_id}`,
+    })
+  }
+  for (const reminder of workQueue.value.notesRemindersPreview) {
+    const sessionId = Number(reminder.session_id || 0)
+    const name = normalizeClientName(reminder.client_display_name) || fullName(reminder.client_first_name, reminder.client_last_name) || 'Клієнт'
+    const when = formatDateTime(reminder.slot_start_at || reminder.starts_at || reminder.reminder_at)
+    items.push({
+      key: `note-${reminder.id ?? sessionId}`, kind: 'note', tag: 'Без нотатки', title: [name, when].filter(Boolean).join(' · '),
+      body: 'Запишіть, поки свіже — нотатки бачите лише ви', topics: [], primary: 'Додати нотатку',
+      to: sessionId ? `/cabinet/sessions/${sessionId}` : '/cabinet/sessions',
+    })
+  }
+  for (const update of activeProductUpdates.value) {
+    items.push({ key: `update-${update.update_key}`, kind: 'update', tag: 'Оновлення', title: update.title, body: update.body, topics: [], primary: update.cta_label, to: update.target_url })
+  }
+  return items
+})
+// Badge counts real totals; cards show the previews the work queue returns.
+const queueCount = computed(() => {
+  const signalCount = queueItems.value.some((item) => item.key === 'hero-signal') ? 1 : 0
+  return signalCount + Math.max(pendingGuestRequestsCount.value, workQueue.value.guestRequestsPreview.length)
+    + (practicePayments.value?.unconfirmed_count || 0)
+    + Math.max(workQueue.value.notesRemindersCount, workQueue.value.notesRemindersPreview.length)
+    + activeProductUpdates.value.length
+})
+const queueOverflow = computed(() => {
+  const hidden = queueCount.value - queueItems.value.length
+  return hidden > 0 ? `Ще ${hidden} ${pluralUk(hidden, ['пункт', 'пункти', 'пунктів'])} — у розділах «Запити», «Сесії» та «Нотатки».` : ''
+})
+
+const readiness = computed(() => {
+  const vm = onboardingViewModel.value
+  if (!vm) return null
+  const total = vm.steps.length
+  const done = vm.steps.filter((step) => step.done).length
+  const ready = vm.status === 'ready'
+  const state = ready || done === total ? 'is-ok' : 'is-missing'
+  return {
+    ready, state, total, done,
+    offset: ringOffset(done, total, motion.progress.value),
+    status: ready ? '✓ профіль приймає звернення' : vm.publicationSummary || vm.helper,
+    summary: vm.missingSummary || vm.publicationSummary || vm.helper,
+    rowTo: vm.primaryCta?.to || vm.steps.find((step) => !step.done)?.to || '/cabinet/profile',
+    steps: vm.steps.map((step) => ({ key: step.key, label: compactOnboardingStepTitle(step), done: step.done, to: onboardingStepTo(step) })),
+    cta: vm.primaryCta ? { to: vm.primaryCta.to, label: compactPrimaryCtaLabel.value } : null,
+  }
+})
+
+function amountLine(rows: PracticeCurrencyAmount[] | undefined, progress: number) {
+  if (!rows?.length) return ''
+  if (rows.length === 1) {
+    const value = Number(rows[0]!.amount)
+    if (Number.isFinite(value)) return formatPracticeAmount({ currency: rows[0]!.currency, amount: String(tween(value, progress)) })
+  }
+  return rows.map((row) => formatPracticeAmount(row)).join(' · ')
+}
+const practiceMetrics = computed(() => {
+  const data = practiceAnalytics.value
+  if (!data) return null
+  const p = motion.progress.value
+  const completed = data.sessions.completed
+  const requests = data.acquisition.guest_booking_requests
+  return {
+    completed: tween(completed, p),
+    completedLabel: `завершено ${pluralUk(completed, ['сесію', 'сесії', 'сесій'])}`,
+    requests: tween(requests, p),
+    requestsLabel: pluralUk(requests, ['новий запит', 'нові запити', 'нових запитів']),
+    paid: amountLine(data.payments?.paid_total_by_currency, p),
+    unconfirmed: data.payments?.unconfirmed_count ? amountLine(data.payments.unconfirmed_total_by_currency, p) : '',
+  }
+})
+watch(practiceAnalytics, () => { if (uiV2.value && motion.revealed.value) motion.count() })
+const clientUsageWidth = computed(() => {
+  if (!Number.isFinite(activeClientLimit.value) || activeClientLimit.value <= 0) return null
+  return Math.min(100, (activeClientsCount.value / activeClientLimit.value) * 100 * motion.progress.value)
+})
+
+const aheadRows = computed(() => upcomingSorted.value
+  .filter((session) => session.id !== heroSession.value?.id && !isSessionOnDay(session, 0))
+  .slice(0, 4)
+  .map((session) => ({ id: session.id, day: shortDayLabel(sessionJoinStartAt(session)), time: timeHHMM(sessionJoinStartAt(session)), name: sessionClientLabel(session) })))
 </script>
 
 <style scoped>

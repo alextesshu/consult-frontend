@@ -1,0 +1,26 @@
+[
+  {
+    "width": 375,
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  }
+]
