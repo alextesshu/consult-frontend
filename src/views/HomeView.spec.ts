@@ -366,6 +366,25 @@ describe('HomeView', () => {
 describe('HomeView v2', () => {
   beforeEach(() => { applyUiVersion('v2') })
 
+  it('adds the Public-Mobile P1 step strip from the same four journey steps, with keyboard dots', async () => {
+    const { container } = await renderHome()
+    const cards = container.querySelectorAll('.pc2-home__strip-card')
+    expect(Array.from(cards, (card) => card.querySelector('h3')?.textContent)).toEqual(['Покажіть, хто ви', 'Клієнт звертається напряму', 'Час — в одному календарі', 'Контекст кожного клієнта'])
+    expect(cards[0]).toHaveTextContent('Крок 1 з 4')
+    const track = container.querySelector('.pc2-home__strip-track') as HTMLElement
+    expect(track).toHaveAttribute('tabindex', '0')
+    track.scrollTo = vi.fn() as any
+    const dots = screen.getAllByRole('button', { name: /^Крок \d з 4:/ })
+    expect(dots).toHaveLength(4)
+    expect(dots[0]).toHaveAttribute('aria-current', 'step')
+    await fireEvent.click(dots[2]!)
+    expect(dots[2]).toHaveAttribute('aria-current', 'step')
+    expect(dots[0]).not.toHaveAttribute('aria-current')
+    expect(track.scrollTo).toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Створити свій простір Створити простір безкоштовно' })).toHaveAttribute('href', '/signup')
+    expect(screen.getByRole('link', { name: 'Як це працює' })).toHaveAttribute('href', '/#how-it-works')
+  })
+
   it('renders the current snapshot composition with explicitly labelled examples and working client links', async () => {
     const { container } = await renderHome()
     expect(container.querySelector('.pc2-home__hero-mark')).toHaveAttribute('aria-hidden', 'true')
@@ -434,7 +453,8 @@ describe('HomeView v2', () => {
     expect(container.querySelectorAll('#pricing')).toHaveLength(1)
     expect(container.querySelectorAll('.pc2-home__plan')).toHaveLength(2)
     expect(container.textContent).not.toMatch(/Leader|рейтинг спеціалістів/)
-    for (const link of container.querySelectorAll('a')) expect(['/signup', '/specialists', '/for-clients', '/support-and-data-requests']).toContain(link.getAttribute('href'))
+    // '/#how-it-works' is the Public-Mobile P1 secondary hero action (an existing anchor, same as /tour).
+    for (const link of container.querySelectorAll('a')) expect(['/signup', '/specialists', '/for-clients', '/support-and-data-requests', '/#how-it-works']).toContain(link.getAttribute('href'))
   })
 
   it('keeps billing and one-shot analytics state when switching versions', async () => {

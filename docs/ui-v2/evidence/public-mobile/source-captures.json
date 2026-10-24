@@ -1,0 +1,18 @@
+{
+  "open": {
+    "heightRatio": 0.7181490384615384,
+    "transition": "transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "transform": "matrix(1, 0, 0, 1, 0, 0)",
+    "dimTransition": "opacity 0.3s",
+    "dimOpacity": "1"
+  },
+  "closed": {
+    "heightRatio": 0.7181490384615384,
+    "transition": "transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "transform": "matrix(1, 0, 0, 1, 0, 588.164)",
+    "dimTransition": "opacity 0.3s",
+    "dimOpacity": "0"
+  },
+  "errors": [],
+  "adaptation": "Component instance exposed via renderVals hook; content, styles and handlers unchanged."
+}
