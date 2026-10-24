@@ -34,7 +34,18 @@ Screenshots: `candidate-v2-<role>-<375|1280>-<home|for-clients|s-olena|cabinet>-
 
 ## V1 pixel parity
 
-56 full-page pairs: guest 5 routes, specialist 5 (incl. `/cabinet`), client 4, each at 375/768/1280/1440, against `origin/dev`, with a second baseline capture as noise control. All 56 match exactly (`parity.json`).
+56 full-page pairs: guest 5 routes, specialist 5 (incl. `/cabinet`), client 4, each at 375/768/1280/1440, against `origin/dev`, with a second baseline capture as noise control (`parity.json`).
+
+The first run gave 52/56 exact matches. The four other pairs were re-captured separately and classified as capture instability, not regressions:
+
+| Pair | First run | Cause |
+|---|---|---|
+| 375 guest `/` | 304 500 px, different heights (812 vs 8750) | First pair of the run during the cold Vite compile; the script waited a fixed delay with no readiness check, so the candidate was blank and the baseline was captured before full height. With a readiness wait, both builds are 375×8750 and identical in 3/3 runs. |
+| 375 client `/specialists` | 16 px, max Δ 2/255 | Isolated background-gradient pixels; the same 16 px differ between baseline runs. |
+| 1440 guest `/specialists` | 35 px, max Δ 2/255 | Gradient rasterization noise; 0 px on re-capture. |
+| 1440 client `/specialists` | 25 px, max Δ 2/255 | Gradient noise; baseline vs control was 63 px; the same 18 px differ between candidate runs on re-capture. |
+
+In the re-capture, scroll position, fonts, animations, auth fixtures and DOM matched; the only DOM difference is the hidden per-build `data-build-marker`. No UI v1 regression was found.
 
 ## Known limitations and decisions
 
