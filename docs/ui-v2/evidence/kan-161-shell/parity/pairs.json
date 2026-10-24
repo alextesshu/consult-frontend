@@ -1,0 +1,114 @@
+[
+  {
+    "width": 375,
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-375-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-375-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-375-cabinet.png"
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/clients",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-375-cabinet-clients.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-375-cabinet-clients.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-375-cabinet-clients.png"
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/sessions",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-375-cabinet-sessions.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-375-cabinet-sessions.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-375-cabinet-sessions.png"
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/settings",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-375-cabinet-settings.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-375-cabinet-settings.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-375-cabinet-settings.png"
+  },
+  {
+    "width": 768,
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-768-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-768-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-768-cabinet.png"
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/clients",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-768-cabinet-clients.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-768-cabinet-clients.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-768-cabinet-clients.png"
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/sessions",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-768-cabinet-sessions.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-768-cabinet-sessions.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-768-cabinet-sessions.png"
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/settings",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-768-cabinet-settings.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-768-cabinet-settings.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-768-cabinet-settings.png"
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1280-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1280-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1280-cabinet.png"
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/clients",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1280-cabinet-clients.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1280-cabinet-clients.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1280-cabinet-clients.png"
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/sessions",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1280-cabinet-sessions.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1280-cabinet-sessions.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1280-cabinet-sessions.png"
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/settings",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1280-cabinet-settings.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1280-cabinet-settings.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1280-cabinet-settings.png"
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1440-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1440-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1440-cabinet.png"
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/clients",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1440-cabinet-clients.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1440-cabinet-clients.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1440-cabinet-clients.png"
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/sessions",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1440-cabinet-sessions.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1440-cabinet-sessions.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1440-cabinet-sessions.png"
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/settings",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\baseline-v1-1440-cabinet-settings.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\control-v1-1440-cabinet-settings.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_cabinet_shell\\docs\\ui-v2\\evidence\\kan-161-shell\\parity\\candidate-v1-1440-cabinet-settings.png"
+  }
+]
