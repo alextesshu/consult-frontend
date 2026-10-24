@@ -1,0 +1,562 @@
+{
+  "api": "explicit intercepted browser fixtures; no real backend acceptance",
+  "matrix": [
+    {
+      "width": 375,
+      "initial": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": true,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "initial": {
+        "innerWidth": 390,
+        "scrollWidth": 390,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 310,
+          "height": 720,
+          "top": 56,
+          "right": 350,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 390,
+        "scrollWidth": 390,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 310,
+          "height": 720,
+          "top": 56,
+          "right": 350,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": true,
+      "pageErrors": []
+    },
+    {
+      "width": 640,
+      "initial": {
+        "innerWidth": 640,
+        "scrollWidth": 640,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 560,
+          "height": 720,
+          "top": 56,
+          "right": 600,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 640,
+        "scrollWidth": 640,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 560,
+          "height": 720,
+          "top": 56,
+          "right": 600,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "initial": {
+        "innerWidth": 768,
+        "scrollWidth": 768,
+        "root": {
+          "x": 264,
+          "y": 80,
+          "width": 460,
+          "height": 760,
+          "top": 80,
+          "right": 724,
+          "bottom": 840,
+          "left": 264
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 768,
+        "scrollWidth": 768,
+        "root": {
+          "x": 264,
+          "y": 80,
+          "width": 460,
+          "height": 760,
+          "top": 80,
+          "right": 724,
+          "bottom": 840,
+          "left": 264
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": false,
+      "pageErrors": []
+    },
+    {
+      "width": 1023,
+      "initial": {
+        "innerWidth": 1023,
+        "scrollWidth": 1023,
+        "root": {
+          "x": 264.546875,
+          "y": 80,
+          "width": 713.90625,
+          "height": 760,
+          "top": 80,
+          "right": 978.453125,
+          "bottom": 840,
+          "left": 264.546875
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 1023,
+        "scrollWidth": 1023,
+        "root": {
+          "x": 264.546875,
+          "y": 80,
+          "width": 713.90625,
+          "height": 760,
+          "top": 80,
+          "right": 978.453125,
+          "bottom": 840,
+          "left": 264.546875
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": false,
+      "pageErrors": []
+    },
+    {
+      "width": 1024,
+      "initial": {
+        "innerWidth": 1024,
+        "scrollWidth": 1024,
+        "root": {
+          "x": 264.5625,
+          "y": 80,
+          "width": 714.875,
+          "height": 760,
+          "top": 80,
+          "right": 979.4375,
+          "bottom": 840,
+          "left": 264.5625
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 1024,
+        "scrollWidth": 1024,
+        "root": {
+          "x": 264.5625,
+          "y": 80,
+          "width": 714.875,
+          "height": 760,
+          "top": 80,
+          "right": 979.4375,
+          "bottom": 840,
+          "left": 264.5625
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": false,
+      "pageErrors": []
+    },
+    {
+      "width": 1280,
+      "initial": {
+        "innerWidth": 1280,
+        "scrollWidth": 1280,
+        "root": {
+          "x": 282.71875,
+          "y": 84,
+          "width": 934.5625,
+          "height": 760,
+          "top": 84,
+          "right": 1217.28125,
+          "bottom": 844,
+          "left": 282.71875
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 1280,
+        "scrollWidth": 1280,
+        "root": {
+          "x": 282.71875,
+          "y": 84,
+          "width": 934.5625,
+          "height": 760,
+          "top": 84,
+          "right": 1217.28125,
+          "bottom": 844,
+          "left": 282.71875
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": false,
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "initial": {
+        "innerWidth": 1440,
+        "scrollWidth": 1440,
+        "root": {
+          "x": 286,
+          "y": 84,
+          "width": 1088,
+          "height": 760,
+          "top": 84,
+          "right": 1374,
+          "bottom": 844,
+          "left": 286
+        },
+        "body": "visible"
+      },
+      "final": {
+        "innerWidth": 1440,
+        "scrollWidth": 1440,
+        "root": {
+          "x": 286,
+          "y": 84,
+          "width": 1088,
+          "height": 760,
+          "top": 84,
+          "right": 1374,
+          "bottom": 844,
+          "left": 286
+        },
+        "body": "visible"
+      },
+      "filtersKeyboard": true,
+      "headingFocus": true,
+      "backHistory": true,
+      "doubleSubmitGuard": true,
+      "draftPreserved": true,
+      "unreadReconciled": true,
+      "privateDraftNotPersisted": true,
+      "shellTabbarRetained": false,
+      "pageErrors": []
+    }
+  ],
+  "states": [
+    {
+      "scenario": "empty",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "list-error",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "list-loading",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "message-error",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "send-error",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "switch",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "closed",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    }
+  ],
+  "parity": [
+    {
+      "width": 375,
+      "baseline": "baseline-v1-375.png",
+      "candidate": "candidate-v1-375.png"
+    },
+    {
+      "width": 390,
+      "baseline": "baseline-v1-390.png",
+      "candidate": "candidate-v1-390.png"
+    },
+    {
+      "width": 640,
+      "baseline": "baseline-v1-640.png",
+      "candidate": "candidate-v1-640.png"
+    },
+    {
+      "width": 768,
+      "baseline": "baseline-v1-768.png",
+      "candidate": "candidate-v1-768.png"
+    },
+    {
+      "width": 1023,
+      "baseline": "baseline-v1-1023.png",
+      "candidate": "candidate-v1-1023.png"
+    },
+    {
+      "width": 1024,
+      "baseline": "baseline-v1-1024.png",
+      "candidate": "candidate-v1-1024.png"
+    },
+    {
+      "width": 1280,
+      "baseline": "baseline-v1-1280.png",
+      "candidate": "candidate-v1-1280.png"
+    },
+    {
+      "width": 1440,
+      "baseline": "baseline-v1-1440.png",
+      "candidate": "candidate-v1-1440.png"
+    }
+  ],
+  "motionResults": [
+    {
+      "motion": "no-preference",
+      "animation": {
+        "rows": [
+          {
+            "disabled": true,
+            "hidden": "true",
+            "animations": [
+              {
+                "duration": 400,
+                "delay": 350
+              },
+              {
+                "duration": 300,
+                "delay": 300
+              }
+            ]
+          }
+        ],
+        "toast": [
+          350
+        ],
+        "reduced": false
+      },
+      "pageErrors": []
+    },
+    {
+      "motion": "reduce",
+      "animation": {
+        "rows": [],
+        "toast": [],
+        "reduced": true
+      },
+      "pageErrors": []
+    }
+  ]
+}

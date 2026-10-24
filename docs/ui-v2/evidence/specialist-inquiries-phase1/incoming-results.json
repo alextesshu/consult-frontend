@@ -1,0 +1,54 @@
+{
+  "targetDev": "6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00",
+  "method": "read-only git-show overlay for App.vue and components-v2.css; no merge/rebase or shared-file edits",
+  "rows": [
+    {
+      "width": 375,
+      "innerWidth": 375,
+      "scrollWidth": 375,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "pageErrors": []
+    },
+    {
+      "width": 640,
+      "innerWidth": 640,
+      "scrollWidth": 640,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "pageErrors": []
+    },
+    {
+      "width": 1023,
+      "innerWidth": 1023,
+      "scrollWidth": 1023,
+      "pageErrors": []
+    },
+    {
+      "width": 1024,
+      "innerWidth": 1024,
+      "scrollWidth": 1024,
+      "pageErrors": []
+    },
+    {
+      "width": 1280,
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "pageErrors": []
+    }
+  ]
+}

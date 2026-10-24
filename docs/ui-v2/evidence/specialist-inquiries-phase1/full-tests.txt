@@ -1,0 +1,1999 @@
+> frontend@0.0.0 test:run
+> vitest run --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_specialist_inquiries_v2
+
+npm : stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows loading state while clients list i
+s pending
+At line:2 char:242
++ ... TEXITCODE"; npm run test:run -- --maxWorkers=1 --minWorkers=1 2>&1 |  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/vi...list is pending:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows explicit error state and retries clients
+ list
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows explicit reminders error state and retri
+es reminders fetch from new endpoint
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > uses reminders endpoint as canonical source
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders note reminders as a compact optional s
+ummary before revealing a limited list
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > can close a note reminder without creating fak
+e note text
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > confirms ending work before archiving client u
+sing client_id from relation payload
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > cancels ending work without calling archive en
+dpoint
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates board task from client quick-add modal
+ with custom title and client context
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > validates empty title in client quick-add moda
+l and does not submit
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates board task from client quick-add witho
+ut board_id when no board exists yet
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads private history from metadata endpoint a
+nd renders continuation actions
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows client session notes dose-wise and revea
+ls older notes on demand
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > handles has_workbook_content=false and workboo
+k_updated_at=null without extra workbook fetch
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > searches identity and existing contact fields:
+ linked-login@example.com
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > searches identity and existing contact fields:
+ registered-login@example.com
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > searches identity and existing contact fields:
+ Linked Identity
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > searches identity and existing contact fields:
+ manual-contact@example.com
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > searches identity and existing contact fields:
+ 380501234567
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > searches clients by name, code and id and keep
+s status filter active
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders summary counts from currently loaded r
+egistered and manual clients
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders Ukrainian status badges and key client
+ metadata without raw status values
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders compact rows and keeps the old selecte
+d-client panel out of the page layout
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens client management modal when a registere
+d client row is clicked and updates it for another client
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens client management modal when a manual cl
+ient row is clicked
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens edit form from active manual client mana
+gement modal
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not show edit action in archived manual c
+lient management modal
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows registered client access state in manage
+ment modal without invite controls
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens registered client conditions modal and s
+aves only individual price fields
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows manual access invite CTA in management m
+odal for records without account
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not show invite CTA in management modal f
+or linked manual records
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows active invite URL and copy action in man
+agement access tab
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > regenerates active invite without URL from man
+agement access tab
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > revokes active invite and handles already-link
+ed errors in management access tab
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows registered private notebook status and o
+pens the existing workbook route
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows empty private notebook state for registe
+red clients without exposing private body
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows unavailable private notebook state for m
+anual clients without unsupported workbook calls
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows registered session-note metadata in clie
+nt management without private note body
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows manual client session-note metadata from
+ session rows
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows notes empty state and avoids fake sessio
+n links when note session id is unavailable
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows read-only sessions tab for manual client
+ using client_record_id session rows
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows payments tab after sessions and keeps ex
+isting client card tabs
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads payments tab for manual client using cli
+ent id as record id and shows no-account note
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps loaded payments mounted when switching c
+lient card tabs
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads payments tab for registered client using
+ client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows payments working-card state for register
+ed client without client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > lets recent sessions use the main area when up
+coming sessions are empty
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders compact calm empty states when both se
+ssion groups are empty
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows truthful limited sessions summary for re
+gistered client without session ids
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads regular time tab in client management fo
+r manual client using client record id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads regular time tab in client management fo
+r registered client using client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows graceful regular time copy for registere
+d client without client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows regular time empty state and creates a m
+odal regular time
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps manual modal regular time date typing an
+d validates invalid dates
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > edits, pauses and resumes regular time from cl
+ient management modal
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not open client management modal when nes
+ted right-panel controls are clicked
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > places selected client details directly after
+the selected row in DOM order
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps selected client detail in inline visual
+order on tablet-width layouts
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > moves inline selected client detail under the
+newly selected row
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps regular time accordion available inside
+inline selected client details
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows useful empty copy for no clients, filter
+ed lists, archive, and search
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens manual client create modal and posts dis
+play_name payload
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows contact conflict candidates and creates
+a separate record only after confirmation
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens the existing candidate card instead of c
+reating or changing it
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > edits manual client record using display_name
+payload
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows account badge for linked manual client r
+ecords without leaving manual-card behavior
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows contact and account email separately for
+ linked manual client when they differ
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows only account email when contact email is
+ empty
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not render account email row for unlinked
+ manual client
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not duplicate email row when contact and
+account email are equal
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows cabinet access invite block inside clien
+t management for manual client records without account
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not show manual account invite CTA for li
+nked manual client records
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not show manual account invite CTA for re
+gistered client relations
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders registered client email when client_em
+ail exists
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not render empty registered email block w
+hen client_email is missing
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates manual account invite and shows invite
+ URL with copy action
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows active invite without URL as regenerate
+guidance
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > regenerates manual account invite and shows ne
+w invite URL
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > revokes manual account invite and returns to c
+reate CTA state
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows friendly error when backend reports alre
+ady linked client record
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates session for linked manual client throu
+gh client-record endpoint only
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates a session from registered client card
+using client_record_id without client selector
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not show add-session action for registere
+d client without client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > archives and restores manual client records wi
+thout registered client actions
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps registered clients visible when manual r
+ecords endpoint fails
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > filters manual records by active and archive s
+tatus
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows human fallback client title when name an
+d code are missing
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > prefers client_display_name over login-like va
+lues
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > uses chat thread display_name when clients pay
+load has only login
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens and highlights deep-linked client card a
+utomatically with metadata history endpoint
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows soft materials notice for manual client
+without linked account
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps right panel compact and opens full clien
+t management modal from selected manual client
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > opens full client management modal for registe
+red client branch
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates draft material via specialist endpoint
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps add-material modal closed until requeste
+d and cancel resets it
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > normalizes create material URL without protoco
+l to https
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > requires URL for link material type and shows
+scoped create error
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > localizes backend URL validation error in crea
+te form
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows edit and action errors only on affected
+material card
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > publishes and revokes material from materials
+block
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows materials block for registered client an
+d fetches materials via client_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates material for registered client using c
+lient_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps materials state isolated for registered
+and manual cards with the same numeric id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders attachment helper and uploads multiple
+ selected files one by one
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps upload failures scoped and still uploads
+ valid files from the same selection
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > deletes attachment from the correct material
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads regular times for manual client using cl
+ient record id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > loads regular times for registered client usin
+g client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not call regular-times endpoints for regi
+stered client without client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows neutral regular-time helper for inactive
+ registered client without client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows activation CTA in client management for
+inactive registered client without client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > activates inactive registered client from mana
+gement and enables regular time section
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not show activation CTA for active regist
+ered client
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows return-to-work copy for archived registe
+red client
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not fallback to client id for registered
+client without client_record_id even when payload is manual-like
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not fallback to client id for registered
+client when a manual record has the same id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows regular time loading state while section
+ request is pending
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows regular time empty state with create CTA
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows only regular time load error when sectio
+n request fails
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows inaccessible client record copy when reg
+ular times request returns 404
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates regular time for registered client usi
+ng client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > uses specialist standard session duration as n
+ew regular time default
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > updates regular time for registered client usi
+ng client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > pauses and creates next session for registered
+ client using client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > resumes regular time for registered client usi
+ng client_record_id
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders active regular time details
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders paused regular time with resume action
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > renders regular time edit form after first sel
+ected card and before second card
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > moves regular time edit form under second card
+ when editing another regular time
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps only one regular time edit form visible
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > closes regular time edit form when cancel is c
+licked
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates next session from active regular time
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > prevents duplicate next-session clicks while r
+equest is pending
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows already-created toast for existing next
+session
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows conflict copy when creating next session
+ fails
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > keeps regular time card editable when create-n
+ext-session returns anchor mismatch
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows warning and disables next-session action
+ for existing anchor mismatch
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows CLIENT_RECORD_ARCHIVED copy when creatin
+g next session fails
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows CLIENT_REGULAR_TIME_PAUSED copy when cre
+ating next session fails
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates regular time without timezone field
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > creates offline regular time with empty meetin
+g URL string
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > rejects missing regular time date before reque
+st
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > rejects mismatched regular time weekday and st
+art date before create request
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > rejects missing regular time start time before
+ request
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > rejects mismatched regular time weekday and st
+art date before update request
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > updates regular time
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+ ✓ src/views/TherapistClientsView.spec.ts (152 tests) 10133ms
+   ✓ TherapistClientsView > shows regular time empty state and creates a modal regular time 530ms
+   ✓ TherapistClientsView > creates regular time for registered client using client_record_id 311ms
+   ✓ TherapistClientsView > uses specialist standard session duration as new regular time default 401ms
+   ✓ TherapistClientsView > creates regular time without timezone field 516ms
+   ✓ TherapistClientsView > creates offline regular time with empty meeting URL string 385ms
+   ✓ TherapistClientsView > rejects mismatched regular time weekday and start date before create request 394ms
+   ✓ TherapistClientsView > rejects missing regular time start time before request 407ms
+   ✓ TherapistClientsView > shows duplicate regular time backend error copy 415ms
+   ✓ TherapistClientsView > shows archived client regular time backend error copy 360ms
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not submit regular time update when user
+cancels future-session move confirm
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows update-conflict copy when future-session
+ move fails
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > pauses regular time
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > resumes regular time
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows duplicate regular time backend error cop
+y
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > shows archived client regular time backend err
+or copy
+[Vue warn]: injection "Symbol(router)" not found.
+  at <TherapistClientsView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+ ✓ src/views/PublicProfileView.spec.ts (144 tests) 21829ms
+   ✓ PublicProfileView > renders the main public profile sections from loaded data 440ms
+   ✓ PublicProfileView > opens guest booking request flow from slot click without auth 328ms
+   ✓ PublicProfileView > shows consultation offer selector and submits standard offer_type by default 325ms
+   ✓ PublicProfileView > keeps the chosen request option visible and editable without clearing the request draft 442ms
+   ✓ PublicProfileView > keeps the selected request option on dialog reopen and resets it after success 491ms
+   ✓ PublicProfileView > submits couple offer_type only when couple offer is public 336ms
+   ✓ PublicProfileView > allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal 377ms
+   ✓ PublicProfileView > filters available times by selected offer duration 364ms
+   ✓ PublicProfileView > shows calm Ukrainian copy for backend offer duration mismatch 417ms
+   ✓ PublicProfileView > renders simplified request topic and message copy while keeping topic selection stable 645ms
+   ✓ PublicProfileView > keeps the request input simple when the Other topic is selected 631ms
+   ✓ PublicProfileView > submits a valid guest booking request and renders success state copy 355ms
+   ✓ PublicProfileView > submits guest booking request with canonical telegram contact channel value 327ms
+   ✓ PublicProfileView > submits guest booking request with canonical phone contact channel value 358ms
+   ✓ PublicProfileView > shows specific validation message for unsupported contact channel choice 405ms
+   ✓ PublicProfileView > shows friendly unavailable slot error for guest booking request 337ms
+   ✓ PublicProfileView > shows friendly guest-flow restriction error for entitlement limits 318ms
+   ✓ PublicProfileView > does not re-prompt booking rules after successful acceptance for repeated booking actions 335ms
+   ✓ PublicProfileView > requires guest booking rules checkbox when active rules are present 333ms
+   ✓ PublicProfileView > shows inquiry CTA instead of full-chat CTA for a non-active client 307ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > resets only the desktop panel when opening, closing and reopening the form 395ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > reuses the guest request form inline and sends the existing request contract only after submission 340ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > restores the original calendar and preserves entered values through v2/v1 switches 356ms
+ ✓ src/views/SlotsView.spec.ts (91 tests) 4188ms
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > validates profile document files before upload
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > uploads a valid pending document and clears th
+e local preview after success
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > keeps the selected document available for retr
+y when upload fails
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > blocks oversized photo on client side
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > blocks invalid photo type on client side
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > blocks oversized video on client side
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > blocks invalid video type on client side
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > valid video flow still uploads
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > closes crop modal and keeps updated preview vi
+sible after successful photo save
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/views/TherapistProfileView.spec.ts (106 tests) 22036ms
+   ✓ TherapistProfileView > uploads a valid pending document and clears the local preview after success 358ms
+   ✓ TherapistProfileView > keeps the selected document available for retry when upload fails 315ms
+   ✓ TherapistProfileView > confirms disabling an active public profile and keeps the change in the save flow 506ms
+   ✓ TherapistProfileView > keeps unpublish and search disable available for a published incomplete profile 416ms
+   ✓ TherapistProfileView > shows missing readiness items when backend rejects activation 385ms
+   ✓ TherapistProfileView > supports adding and saving an optional secondary phone 413ms
+   ✓ TherapistProfileView > removes the optional secondary phone and clears visibility 370ms
+   ✓ TherapistProfileView > shows local secondary phone validation errors before saving 351ms
+   ✓ TherapistProfileView > shows duplicate secondary phone validation before saving 382ms
+   ✓ TherapistProfileView > renders backend secondary phone field errors near the field 391ms
+   ✓ TherapistProfileView > shows pending search visibility helpers before save 405ms
+   ✓ TherapistProfileView > updates canonical profile slug via secondary edit flow 417ms
+   ✓ TherapistProfileView > maps SLUG_INVALID slug update code to inline user-friendly feedback 404ms
+   ✓ TherapistProfileView > maps SLUG_RESERVED slug update code to inline user-friendly feedback 390ms
+   ✓ TherapistProfileView > maps SLUG_TAKEN slug update code to inline user-friendly feedback 403ms
+   ✓ TherapistProfileView > updates specialization presets when professional_focus changes 384ms
+   ✓ TherapistProfileView > preserves selected specialization tags when professional_focus changes 355ms
+   ✓ TherapistProfileView > saves a normalized payload via sticky save action and hides sticky bar after success 806ms
+   ✓ TherapistProfileView > shows a clear profile save error when saving fails 358ms
+   ✓ TherapistProfileView > warns before leaving with unsaved profile changes and stops warning after save 363ms
+   ✓ TherapistProfileView > renders couple consultation settings and saves configured couple offer fields 431ms
+   ✓ TherapistProfileView > renders and saves public booking slot policy settings 997ms
+   ✓ TherapistProfileView > hides public availability visibility control in request-only mode and restores it with preserved true state 1012ms
+   ✓ TherapistProfileView > hides public availability visibility control in request-only mode and restores it with preserved false state 1056ms
+   ✓ TherapistProfileView > allows saving disabled couple offer without price 376ms
+   ✓ TherapistProfileView > keeps existing validation flow when both online and offline options are disabled 481ms
+   ✓ TherapistProfileView > hides and shows offline location field based on offline availability 616ms
+ ✓ src/views/TherapistSessionDetailView.spec.ts (77 tests) 2080ms
+ ✓ src/views/ExternalSessionsView.spec.ts (66 tests) 4422ms
+stderr | src/__tests__/app.spec.ts > App shell > allows guests to open /specialists without redirect to signup-client
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+ ✓ src/__tests__/app.spec.ts (86 tests) 2285ms
+ ✓ src/views/CabinetView.spec.ts (73 tests) 1252ms
+stderr | src/views/TherapistSessionsView.spec.ts > TherapistSessionsView > shows empty states when there are no session
+s or transfer requests
+Error: Not implemented: navigation (except hash changes)
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at navigateFetch (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\window\navigati
+on.js:77:3)
+    at exports.navigate (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\window\navig
+ation.js:55:3)
+    at Timeout._onTimeout (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\nodes\HTML
+HyperlinkElementUtils-impl.js:81:7)
+    at listOnTimeout (node:internal/timers:573:17)
+    at processTimers (node:internal/timers:514:7) undefined
+
+ ✓ src/views/TherapistSessionsView.spec.ts (28 tests) 1148ms
+ ✓ src/views/AdminSpecialistDetailView.spec.ts (27 tests) 1216ms
+ ✓ src/views/AdminWorkQueueView.spec.ts (35 tests) 764ms
+ ✓ src/views/BillingView.spec.ts (39 tests) 781ms
+ ✓ src/views/HomeView.spec.ts (21 tests) 1141ms
+ ✓ src/views/PublicTherapistsView.spec.ts (36 tests) 1731ms
+   ✓ Discovery v5 interactions > keeps typing presentation separate from real submit and supports chip toggling without submitting draft text 747ms
+ ✓ src/views/ExternalSessionDetailView.spec.ts (19 tests) 612ms
+stderr | src/views/ClientSessionDetailView.spec.ts > ClientSessionDetailView > uploads payment proof from client block
+and refreshes payment-proof state
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/views/ClientSessionDetailView.spec.ts (17 tests) 457ms
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps list and detail aligned after conf
+irming from list and cancelling from detail
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps detail and list aligned after a st
+ale confirm rejection from detail
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps list and detail aligned after resc
+heduling from detail suggestions
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps detail and list aligned after appr
+oving a reschedule request from detail
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps detail and list aligned after appr
+oving a reschedule request from detail
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps detail and list aligned after decl
+ining a reschedule request from detail
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps detail and list aligned after a st
+ale complete rejection from detail
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps list and detail aligned after comp
+leting a session from detail and navigating back
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+[Vue Router warn]: No match found for location with path "/cabinet/clients?client=77&autoOpen=1"
+[Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
+
+ ✓ src/views/SpecialistSessionsFlow.spec.ts (7 tests) 851ms
+ ✓ src/views/SettingsHubView.spec.ts (20 tests) 498ms
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView create validation > does not expose raw server validat
+ion after selecting a cover and clearing the form
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing > allows adding a cover after a post was
+ created without one
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing > adds a cover to an existing post, prev
+iews it, and keeps the edit payload current
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing > replaces and removes an existing cover
+ without changing publication state or text
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing > does not remove an unchanged cover and
+ ignores a cancelled file selection
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing > shows local validation and upload erro
+rs without replacing the saved preview
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing > keeps the existing create-with-cover f
+low intact before an article is edited
+Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
+
+ ✓ src/views/AuthorJournalView.spec.ts (23 tests) 856ms
+ ✓ src/views/SpecialistInquiriesView.spec.ts (16 tests) 474ms
+ ✓ src/views/SignupView.spec.ts (24 tests) 409ms
+ ✓ src/views/NotificationSettingsView.spec.ts (18 tests) 525ms
+stderr | src/router/index.spec.ts > router specialist session routes > matches the specialist session detail route for
+numeric ids
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > keeps the list route distinct and rejects non-nu
+meric specialist session ids
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches external sessions routes and rejects non
+-numeric detail id
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches client account invite route as public pr
+eview
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches the public account email confirmation ro
+ute
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows anonymous navigation to the account email
+ confirmation route
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > keeps email verification confirmation public and
+ out of route params
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > provides the existing settings hub to authentica
+ted client accounts
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > classifies neutral and specialist-owned public s
+urfaces explicitly
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches only the approved psychological support
+discovery landing
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches client materials route and requires clie
+nt role
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches specialist reviews route and requires sp
+ecialist role
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches admin billing request routes and rejects
+ non-numeric detail id
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches admin work queue route and requires admi
+n role
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches admin specialist detail route and reject
+s non-numeric id
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches specialist practice board route
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects unauthenticated users away from specia
+list session routes
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105 undef
+ined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects unauthenticated users away from specia
+list session routes
+Error: Cross origin http://localhost:3000 forbidden
+    at dispatchError (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.j
+s:63:19)
+    at Object.validCORSHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\x
+hr-utils.js:75:5)
+    at receiveResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRe
+quest-impl.js:794:19)
+    at Request.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHt
+tpRequest-impl.js:658:43)
+    at Request.emit (node:events:514:28)
+    at Request._processResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\help
+ers\http-request.js:235:12)
+    at ClientRequest.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\hel
+pers\http-request.js:107:12)
+    at Object.onceWrapper (node:events:629:26)
+    at ClientRequest.emit (node:events:526:35)
+    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:693:27) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects unauthenticated users away from specia
+list session routes
+Error: Cross origin http://localhost:3000 forbidden
+    at dispatchError (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.j
+s:63:19)
+    at Object.validCORSHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\x
+hr-utils.js:75:5)
+    at receiveResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRe
+quest-impl.js:794:19)
+    at Request.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHt
+tpRequest-impl.js:658:43)
+    at Request.emit (node:events:514:28)
+    at Request._processResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\help
+ers\http-request.js:235:12)
+    at ClientRequest.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\hel
+pers\http-request.js:107:12)
+    at Object.onceWrapper (node:events:629:26)
+    at ClientRequest.emit (node:events:526:35)
+    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:693:27) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects unauthenticated users away from extern
+al specialist routes
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects unauthenticated users away from extern
+al specialist routes
+Error: Cross origin http://localhost:3000 forbidden
+    at dispatchError (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.j
+s:63:19)
+    at Object.validCORSHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\x
+hr-utils.js:75:5)
+    at receiveResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRe
+quest-impl.js:794:19)
+    at Request.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHt
+tpRequest-impl.js:658:43)
+    at Request.emit (node:events:514:28)
+    at Request._processResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\help
+ers\http-request.js:235:12)
+    at ClientRequest.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\hel
+pers\http-request.js:107:12)
+    at Object.onceWrapper (node:events:629:26)
+    at ClientRequest.emit (node:events:526:35)
+    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:693:27) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects unauthenticated users away from extern
+al specialist routes
+Error: Cross origin http://localhost:3000 forbidden
+    at dispatchError (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.j
+s:63:19)
+    at Object.validCORSHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\x
+hr-utils.js:75:5)
+    at receiveResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRe
+quest-impl.js:794:19)
+    at Request.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHt
+tpRequest-impl.js:658:43)
+    at Request.emit (node:events:514:28)
+    at Request._processResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\help
+ers\http-request.js:235:12)
+    at ClientRequest.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\hel
+pers\http-request.js:107:12)
+    at Object.onceWrapper (node:events:629:26)
+    at ClientRequest.emit (node:events:526:35)
+    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:693:27) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > waits auth bootstrap for admin route and avoids
+forbidden redirect for ADMIN
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > treats singular role=ADMIN as admin access for r
+oute guard
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows authenticated specialists to open the ses
+sion detail route
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows authenticated specialists to open the ses
+sion detail route
+Error: Cross origin http://localhost:3000 forbidden
+    at dispatchError (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.j
+s:63:19)
+    at validCORSHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-util
+s.js:75:5)
+    at validCORSPreflightHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr
+\xhr-utils.js:89:8)
+    at Request.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-u
+tils.js:377:12)
+    at Request.emit (node:events:514:28)
+    at Request._processResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\help
+ers\http-request.js:235:12)
+    at ClientRequest.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\hel
+pers\http-request.js:107:12)
+    at Object.onceWrapper (node:events:629:26)
+    at ClientRequest.emit (node:events:514:28)
+    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:693:27) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows authenticated specialists to open the ext
+ernal session detail route
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows authenticated specialists to open the ext
+ernal session detail route
+Error: Cross origin http://localhost:3000 forbidden
+    at dispatchError (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.j
+s:63:19)
+    at validCORSHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-util
+s.js:75:5)
+    at validCORSPreflightHeaders (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr
+\xhr-utils.js:89:8)
+    at Request.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-u
+tils.js:377:12)
+    at Request.emit (node:events:514:28)
+    at Request._processResponse (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\help
+ers\http-request.js:235:12)
+    at ClientRequest.<anonymous> (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\living\hel
+pers\http-request.js:107:12)
+    at Object.onceWrapper (node:events:629:26)
+    at ClientRequest.emit (node:events:514:28)
+    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:693:27) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows unauthenticated access to public external
+ guest session route
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > allows unauthenticated access to public guest bo
+oking time proposal route
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > does not force redirect to login on transient me
+ bootstrap failure when token exists
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > triggers one-shot me reconcile on critical speci
+alist routes
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > applies cooldown for rapid critical-route reconc
+ile calls
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > does not run specialist reconcile on non-critica
+l routes
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > does not run specialist reconcile for non-specia
+list users
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > matches the specialist client workbook route for
+ numeric ids
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > redirects specialist to public profile when prof
+ile is published
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+stderr | src/router/index.spec.ts > router specialist session routes > keeps specialist in cabinet profile when public
+profile is not published
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+ ✓ src/router/index.spec.ts (51 tests) 732ms
+ ✓ src/components/ClientPaymentsOverview.spec.ts (28 tests) 290ms
+ ✓ src/lib/productAnalytics.spec.ts (24 tests) 16ms
+ ✓ src/components/SessionPaymentProofBlock.spec.ts (13 tests) 210ms
+ ✓ src/composables/useSpecialistDiscovery.spec.ts (23 tests) 614ms
+ ✓ src/components/reviews/ReviewShareCardModal.spec.ts (22 tests) 310ms
+ ✓ src/views/SpecialistPracticeBoardView.spec.ts (13 tests) 352ms
+ ✓ src/stores/auth.spec.ts (13 tests) 48ms
+ ✓ src/views/CabinetView.v2.spec.ts (10 tests) 405ms
+ ✓ src/lib/specialistOnboarding.spec.ts (10 tests) 9ms
+ ✓ src/components/public-profile/PublicProfileAboutSection.spec.ts (20 tests) 160ms
+ ✓ src/views/ClientDashboardView.spec.ts (11 tests) 431ms
+ ✓ src/views/TherapistReviewsView.spec.ts (12 tests) 328ms
+ ✓ src/lib/specialistSessions.spec.ts (12 tests) 11ms
+ ✓ src/views/ClientProfileView.spec.ts (8 tests) 223ms
+ ✓ src/views/ClientMaterialsView.spec.ts (8 tests) 167ms
+ ✓ src/styles/uiV2.spec.ts (13 tests) 136ms
+ ✓ src/composables/useForClientsMotion.spec.ts (26 tests) 78ms
+ ✓ src/views/ClientSignupView.spec.ts (12 tests) 278ms
+ ✓ src/views/PublicGuestBookingTimeProposalView.spec.ts (11 tests) 159ms
+ ✓ src/views/AnalyticsView.spec.ts (7 tests) 190ms
+ ✓ src/views/AdminSpecialistsSearchView.spec.ts (8 tests) 432ms
+ ✓ src/views/ChatView.spec.ts (7 tests) 313ms
+ ✓ src/views/TherapistClientWorkbookView.spec.ts (10 tests) 293ms
+ ✓ src/views/ClientSessionRecoveryIntentFlow.spec.ts (2 tests) 285ms
+ ✓ src/views/ClientRecordAccountInviteView.spec.ts (7 tests) 175ms
+stderr | src/views/AdminBillingAccessRequestDetailView.spec.ts > AdminBillingAccessRequestDetailView > approves pending
+ request and refreshes detail state
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+
+stderr | src/views/AdminBillingAccessRequestDetailView.spec.ts > AdminBillingAccessRequestDetailView > keeps detail scr
+een stable when canonical labels are absent
+[Vue Router warn]: No match found for location with path "/admin/specialists/55"
+
+ ✓ src/views/AdminBillingAccessRequestDetailView.spec.ts (4 tests) 165ms
+ ✓ src/views/AdminInboxView.spec.ts (4 tests) 184ms
+ ✓ src/lib/registrationAttribution.spec.ts (13 tests) 255ms
+ ✓ src/views/ForClientsView.spec.ts (14 tests) 478ms
+stderr | src/views/AdminBillingAccessRequestsView.spec.ts > AdminBillingAccessRequestsView > renders canonical list pay
+load and deep-link to detail route
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+
+stderr | src/views/AdminBillingAccessRequestsView.spec.ts > AdminBillingAccessRequestsView > hydrates filters from rout
+e query and fetches backend-filtered set
+[Vue Router warn]: No match found for location with path "/admin/specialists/1"
+
+stderr | src/views/AdminBillingAccessRequestsView.spec.ts > AdminBillingAccessRequestsView > updates and clears route q
+uery when filters change
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+[Vue Router warn]: No match found for location with path "/admin/specialists/13"
+
+ ✓ src/views/AdminBillingAccessRequestsView.spec.ts (4 tests) 156ms
+ ✓ src/composables/useDiscoveryMotion.spec.ts (14 tests) 52ms
+ ✓ src/views/PublicJournalPostView.spec.ts (8 tests) 269ms
+ ✓ src/components/ShareDialog.spec.ts (11 tests) 191ms
+ ✓ src/components/PublicSpecialistCard.spec.ts (10 tests) 136ms
+ ✓ src/components/public-profile/PublicProfileTrustSection.spec.ts (7 tests) 149ms
+ ✓ src/views/PublicTherapistsView.mobile.spec.ts (7 tests) 429ms
+ ✓ src/lib/api.clientMaterials.spec.ts (11 tests) 7ms
+ ✓ src/composables/useHomeMotion.spec.ts (19 tests) 68ms
+ ✓ src/styles/signupV2.spec.ts (7 tests) 40ms
+stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > renders online resolve sta
+te without offline helper text
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > renders offline resolve st
+ate with offline helper and location
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > opens online meeting URL f
+rom nested join payload in a new tab
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > supports fallback top-leve
+l meeting_url for compatibility
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > shows error when online jo
+in response has no valid meeting_url
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > does not force offline hel
+per for online session when optional fields are missing and keeps can_join mapping
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomEleme
+nt.
+  at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
+  at <VTUROOT>
+
+ ✓ src/views/ExternalGuestSessionInviteView.spec.ts (6 tests) 112ms
+ ✓ src/styles/publicMobileV2.spec.ts (9 tests) 48ms
+ ✓ src/lib/specialistPracticeBoard.spec.ts (12 tests) 8ms
+ ✓ src/views/LoginView.v2.spec.ts (6 tests) 278ms
+ ✓ src/components/cabinet-v2/SpecialistCabinetShellV2.spec.ts (4 tests) 367ms
+ ✓ src/views/PublicJournalView.spec.ts (4 tests) 186ms
+ ✓ src/views/LegalPages.spec.ts (4 tests) 138ms
+ ✓ src/main.spec.ts (5 tests) 2369ms
+   ✓ application bootstrap > sanitizes the real import-time URL before the router module is created 584ms
+   ✓ application bootstrap > creates the router normally for a direct cabinet URL 410ms
+   ✓ application bootstrap > applies UI selection before createApp and survives verification URL sanitization 440ms
+   ✓ application bootstrap > keeps successful query navigation and browser history synchronized 512ms
+   ✓ application bootstrap > boots when the storage accessor is unavailable 422ms
+ ✓ src/lib/uiVersion.spec.ts (21 tests) 119ms
+ ✓ src/views/ClientFeedbackView.spec.ts (7 tests) 146ms
+ ✓ src/views/LoginView.spec.ts (7 tests) 198ms
+ ✓ src/components/public-profile/PublicProfileOverlay.spec.ts (6 tests) 136ms
+ ✓ src/components/PublicMobileMenuV2.spec.ts (4 tests) 226ms
+ ✓ src/views/VerifyEmailView.spec.ts (10 tests) 117ms
+ ✓ src/views/ResetPasswordView.spec.ts (5 tests) 145ms
+ ✓ src/lib/api.clientRegularTimes.spec.ts (7 tests) 5ms
+ ✓ src/views/AccountEmailChangeConfirmView.spec.ts (7 tests) 101ms
+ ✓ src/lib/api.reviews.spec.ts (7 tests) 6ms
+ ✓ src/lib/publicMetadata.spec.ts (5 tests) 36ms
+ ✓ src/styles/cabinetShellV2.spec.ts (4 tests) 18ms
+ ✓ src/components/public-profile/PublicProfileIdentityRail.spec.ts (5 tests) 106ms
+ ✓ src/components/ProfileVisibilityControl.spec.ts (4 tests) 102ms
+ ✓ src/styles/specialistDashboardV2.spec.ts (5 tests) 22ms
+ ✓ src/styles/discoveryV2.spec.ts (6 tests) 14ms
+ ✓ src/components/EmailVerificationNotice.spec.ts (5 tests) 105ms
+ ✓ src/styles/publicProfileV2.spec.ts (6 tests) 25ms
+ ✓ src/test/bookingCopy.test.ts (7 tests) 3ms
+ ✓ src/composables/useProfileMotion.spec.ts (5 tests) 20ms
+ ✓ src/components/public-profile/PublicProfileHeroSection.spec.ts (3 tests) 86ms
+ ✓ src/lib/specialistCabinetNav.spec.ts (5 tests) 6ms
+ ✓ src/styles/forClientsV2.spec.ts (5 tests) 18ms
+ ✓ src/lib/profilePanelScroll.spec.ts (4 tests) 20ms
+ ✓ src/views/ClientInquiryRedirectView.spec.ts (2 tests) 62ms
+ ✓ src/components/DatePickerField.spec.ts (5 tests) 201ms
+ ✓ src/lib/emailVerificationToken.spec.ts (3 tests) 22ms
+ ✓ src/lib/http.spec.ts (4 tests) 9ms
+ ✓ src/composables/useMobileOverlay.spec.ts (3 tests) 35ms
+ ✓ src/lib/dateFormat.spec.ts (7 tests) 17ms
+ ✓ src/lib/api.dataDeletionRequests.spec.ts (4 tests) 4ms
+ ✓ src/styles/homeV2.spec.ts (4 tests) 13ms
+ ✓ src/views/SupportAndDataRequestsView.spec.ts (2 tests) 109ms
+ ✓ src/views/ClientTherapistsView.spec.ts (2 tests) 98ms
+ ✓ src/composables/useDashboardMotion.spec.ts (3 tests) 21ms
+ ✓ src/composables/useSnapStrip.spec.ts (2 tests) 22ms
+ ✓ src/views/ForgotPasswordView.spec.ts (2 tests) 86ms
+ ✓ src/components/AnalyticsConsentBanner.spec.ts (3 tests) 174ms
+ ✓ src/lib/entitlementReconcile.spec.ts (6 tests) 3ms
+ ✓ src/lib/clientAcquisitionAttribution.spec.ts (3 tests) 10ms
+ ✓ src/views/SlotsView.layout.spec.ts (5 tests) 21ms
+ ✓ src/lib/sessionExecution.spec.ts (4 tests) 14ms
+ ✓ src/lib/analyticsConsent.spec.ts (4 tests) 5ms
+ ✓ src/lib/publicBookingRecovery.spec.ts (8 tests) 3ms
+ ✓ src/lib/api.specialistDiscovery.spec.ts (3 tests) 4ms
+ ✓ src/lib/specialistDashboardV2.spec.ts (4 tests) 14ms
+ ✓ src/lib/dateTime.spec.ts (4 tests) 15ms
+ ✓ src/lib/telegramApi.spec.ts (2 tests) 4ms
+ ✓ src/components/TimeSelectField.spec.ts (3 tests) 143ms
+ ✓ src/views/FaqView.spec.ts (1 test) 72ms
+ ✓ src/lib/completedSessionsBadge.spec.ts (5 tests) 3ms
+ ✓ src/lib/analytics.spec.ts (5 tests) 3ms
+ ✓ src/styles/inquiriesV2.spec.ts (2 tests) 9ms
+ ✓ src/test/dates.test.ts (2 tests) 3ms
+ ✓ src/lib/specialistDiscoveryApi.spec.ts (1 test) 3ms
+ ✓ src/lib/frontendBuildConfig.spec.ts (1 test) 2ms
+ ✓ src/lib/timeOptions.spec.ts (3 tests) 3ms
+ ✓ src/lib/emailVerification.spec.ts (1 test) 2ms
+ ✓ src/lib/specialistDiscoveryRotation.spec.ts (1 test) 2ms
+
+ Test Files  129 passed (129)
+      Tests  1953 passed (1953)
+   Start at  18:21:14
+   Duration  213.21s (transform 9.24s, setup 7.98s, collect 31.61s, tests 95.41s, environment 55.24s, prepare 8.29s)

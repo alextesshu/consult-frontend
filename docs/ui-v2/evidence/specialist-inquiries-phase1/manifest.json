@@ -1,0 +1,607 @@
+{
+  "base": "b2d3e3eb90562b000a6ffd2e35eeda8302d003b8",
+  "incomingDevChecked": "6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00",
+  "hashPolicy": "UTF-8 LF without BOM for text; exact binary bytes; manifest excludes itself.",
+  "files": [
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-1023.png",
+      "bytes": 323885,
+      "mode": "binary",
+      "sha256": "1846ac0088d1606a4753837c4718504a0256d1de9cd86d004a7643bb040788f5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-1024.png",
+      "bytes": 324837,
+      "mode": "binary",
+      "sha256": "871abd4ce2f7c16b03c95341def510755457428e27de534c1483bd3d16709a69"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-1280.png",
+      "bytes": 337518,
+      "mode": "binary",
+      "sha256": "ea8caa920ae63fba828bde1f80b2525dae204612121ef2095da4f04c0124033c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-1440.png",
+      "bytes": 337386,
+      "mode": "binary",
+      "sha256": "bdde2d27004d476c4290cd855487cba0f4c1057fe5e2d8a4f32df49f453d87b2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-375.png",
+      "bytes": 225768,
+      "mode": "binary",
+      "sha256": "04ffa1ed2c99462497c8b881adc5da360117b2fe59ab582641f7219c9ebdc0cb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-390.png",
+      "bytes": 228545,
+      "mode": "binary",
+      "sha256": "1474262d110806e9866062fb4b6d11f3563bd0cefe6c703f9461c25713e7f093"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-640.png",
+      "bytes": 211632,
+      "mode": "binary",
+      "sha256": "76e91c7ddebfffa7627faffb22329db3306a5a30ead0dcd3a99017c09f3c8be8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline-v1-768.png",
+      "bytes": 229468,
+      "mode": "binary",
+      "sha256": "876505fe7d982b3c4fd7c70d2f072da16ada522805c42039dd613f967fcbd901"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/baseline.config.mjs",
+      "bytes": 617,
+      "mode": "utf8-lf",
+      "sha256": "b2658fba28140471570f0e240c87df37511a6e3dd7c59ccb86d0f75f9f4502a6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/browser-results.json",
+      "bytes": 12321,
+      "mode": "utf8-lf",
+      "sha256": "728d2dd3db1c91dffe196b478df7c208cb5d2c7caa0f47750abf6dcd1563cbe4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/browser.cjs",
+      "bytes": 13087,
+      "mode": "utf8-lf",
+      "sha256": "75808db402b6bff1d1d0b48ee31bf30da8edb4e7407ba0af2943d17ecc9243e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/build.txt",
+      "bytes": 1756,
+      "mode": "utf8-lf",
+      "sha256": "479b593b6898a8b00310c1e0db3b1799773605e206beb19bb56133fe2239386a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-1023.png",
+      "bytes": 323885,
+      "mode": "binary",
+      "sha256": "1846ac0088d1606a4753837c4718504a0256d1de9cd86d004a7643bb040788f5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-1024.png",
+      "bytes": 324837,
+      "mode": "binary",
+      "sha256": "871abd4ce2f7c16b03c95341def510755457428e27de534c1483bd3d16709a69"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-1280.png",
+      "bytes": 337518,
+      "mode": "binary",
+      "sha256": "ea8caa920ae63fba828bde1f80b2525dae204612121ef2095da4f04c0124033c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-1440.png",
+      "bytes": 337386,
+      "mode": "binary",
+      "sha256": "bdde2d27004d476c4290cd855487cba0f4c1057fe5e2d8a4f32df49f453d87b2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-375.png",
+      "bytes": 225768,
+      "mode": "binary",
+      "sha256": "04ffa1ed2c99462497c8b881adc5da360117b2fe59ab582641f7219c9ebdc0cb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-390.png",
+      "bytes": 228545,
+      "mode": "binary",
+      "sha256": "1474262d110806e9866062fb4b6d11f3563bd0cefe6c703f9461c25713e7f093"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-640.png",
+      "bytes": 211632,
+      "mode": "binary",
+      "sha256": "76e91c7ddebfffa7627faffb22329db3306a5a30ead0dcd3a99017c09f3c8be8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-768.png",
+      "bytes": 229468,
+      "mode": "binary",
+      "sha256": "876505fe7d982b3c4fd7c70d2f072da16ada522805c42039dd613f967fcbd901"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate.config.mjs",
+      "bytes": 304,
+      "mode": "utf8-lf",
+      "sha256": "23169257212d2c1cb17aa6dcdb10e6888cd98da96236bd26c450ccc97e772803"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/claude-desktop-1440.png",
+      "bytes": 104842,
+      "mode": "binary",
+      "sha256": "94fe02048cc27eda71db801ffee2f9c15683d362e8ad83cb21fded3d3a53a19e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/claude-list-375.png",
+      "bytes": 39091,
+      "mode": "binary",
+      "sha256": "1b6987b20cade303d2ac9e61bc35d70e69aea844a9dff3850976221025788035"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/claude-m10.png",
+      "bytes": 38996,
+      "mode": "binary",
+      "sha256": "3b9e29c3ced1e29f561bf89e3f9a88311c6735e73f811bc46cd430cdf8fb70e7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/claude-m9.png",
+      "bytes": 43493,
+      "mode": "binary",
+      "sha256": "a0e5e477eb26ebbaab2c50ef2c2837aa790e2a6c2013cae910083d99927a1b31"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/closed-final.png",
+      "bytes": 56340,
+      "mode": "binary",
+      "sha256": "8a913ceec4724181950f76a56e0231dd97b55312e8e04d706a250b6205147849"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/empty-final.png",
+      "bytes": 39285,
+      "mode": "binary",
+      "sha256": "adffb48f594264abb25ef279064dc9cd8e04a84e300ff053094f2574a6c290f2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/focused-tests.txt",
+      "bytes": 523,
+      "mode": "utf8-lf",
+      "sha256": "0ff7eb1ca0a8b6781baa67feaba57112c4e6cbfe9065699f51332974b3f35990"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/full-tests.txt",
+      "bytes": 112452,
+      "mode": "utf8-lf",
+      "sha256": "67233e4e80bd44f7ccb2a96df9e63fbd1c7bdbacf7586cb634c5ec5159a956f3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-1023.png",
+      "bytes": 272869,
+      "mode": "binary",
+      "sha256": "3a713640e9ca93d817d630ea5d38638071691d90fdc4e7f7f56d4d80eb8bd982"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-1024.png",
+      "bytes": 273392,
+      "mode": "binary",
+      "sha256": "c621f0d746229f1bd38e81ea5c08f5b93b1c5dd236b7c30edfcddd284e569e20"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-1280.png",
+      "bytes": 282605,
+      "mode": "binary",
+      "sha256": "a8b25d0360b687a49513f668b2604c316fb3671299e5a1bb412d1d79d9925e5b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-1440.png",
+      "bytes": 281240,
+      "mode": "binary",
+      "sha256": "7432a2728bc6112cff22adfb38913a1931c1d8b91b252f4f3f986da852bd14da"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-375.png",
+      "bytes": 169973,
+      "mode": "binary",
+      "sha256": "256b0f10bfce96eaea9b57ba1eabcb5b8ffcbc119f21df979df75d4e6c8f8698"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-390.png",
+      "bytes": 171773,
+      "mode": "binary",
+      "sha256": "9673b816d78630dd9a54ea2c4cebc18df41c662f7e2e9ba7b584adf6e999948e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-640.png",
+      "bytes": 210827,
+      "mode": "binary",
+      "sha256": "05ac6be657f0536fdb47d5931750ded45dd2b344054f293085e8ccb0d4b47cab"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-768.png",
+      "bytes": 238081,
+      "mode": "binary",
+      "sha256": "6b84eddf7d03d888694786f49fd6f77e8ad85fba9eebfd2cc1d0fdb27991f277"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-1023.png",
+      "bytes": 272869,
+      "mode": "binary",
+      "sha256": "3a713640e9ca93d817d630ea5d38638071691d90fdc4e7f7f56d4d80eb8bd982"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-1024.png",
+      "bytes": 273392,
+      "mode": "binary",
+      "sha256": "c621f0d746229f1bd38e81ea5c08f5b93b1c5dd236b7c30edfcddd284e569e20"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-1280.png",
+      "bytes": 282605,
+      "mode": "binary",
+      "sha256": "a8b25d0360b687a49513f668b2604c316fb3671299e5a1bb412d1d79d9925e5b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-1440.png",
+      "bytes": 281240,
+      "mode": "binary",
+      "sha256": "7432a2728bc6112cff22adfb38913a1931c1d8b91b252f4f3f986da852bd14da"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-375.png",
+      "bytes": 169973,
+      "mode": "binary",
+      "sha256": "256b0f10bfce96eaea9b57ba1eabcb5b8ffcbc119f21df979df75d4e6c8f8698"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-390.png",
+      "bytes": 171773,
+      "mode": "binary",
+      "sha256": "9673b816d78630dd9a54ea2c4cebc18df41c662f7e2e9ba7b584adf6e999948e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-640.png",
+      "bytes": 210827,
+      "mode": "binary",
+      "sha256": "05ac6be657f0536fdb47d5931750ded45dd2b344054f293085e8ccb0d4b47cab"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-candidate-v1-768.png",
+      "bytes": 238081,
+      "mode": "binary",
+      "sha256": "6b84eddf7d03d888694786f49fd6f77e8ad85fba9eebfd2cc1d0fdb27991f277"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-results.json",
+      "bytes": 1060,
+      "mode": "utf8-lf",
+      "sha256": "ab2f619a6a945da42c1882b71105e6ba7485200126ae266871547de57ec9cdf7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-v1-parity.json",
+      "bytes": 1407,
+      "mode": "utf8-lf",
+      "sha256": "31f44bef593629b015a2fc33a30242895493c7572d58c8efc21478cac2bac8f3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-v2-1280.png",
+      "bytes": 112175,
+      "mode": "binary",
+      "sha256": "c1dc6e7ea8d7fd744ff576df9d22a3048a9c243f350b16762bb3278f12092ad8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-v2-375.png",
+      "bytes": 60457,
+      "mode": "binary",
+      "sha256": "4732a53bb9ce4d224d2284ccf3446eac6f7fc9ba68bfe38a29f0a0a2f25aa931"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming.cjs",
+      "bytes": 2670,
+      "mode": "utf8-lf",
+      "sha256": "7db1a1e7a7f0e32b16645bee2117bf687ce94d29fbf8ea66781054b830f69527"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming.config.mjs",
+      "bytes": 823,
+      "mode": "utf8-lf",
+      "sha256": "b8da1df7efd39b8ad0e080e4f06f8b9162009fc028dfa67e9ae9d6a48c89ac5f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/list-error-final.png",
+      "bytes": 56564,
+      "mode": "binary",
+      "sha256": "e3e47c34540e4224f7b697a879bc6d6c01438f0480496367c6f47424f069c695"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/list-error.png",
+      "bytes": 40090,
+      "mode": "binary",
+      "sha256": "6c24498f27f92743cab5a1ba51a418e6da1c7ec9b92029dc27fb3310f65b3394"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/list-loading-final.png",
+      "bytes": 56564,
+      "mode": "binary",
+      "sha256": "e3e47c34540e4224f7b697a879bc6d6c01438f0480496367c6f47424f069c695"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/list-loading.png",
+      "bytes": 37443,
+      "mode": "binary",
+      "sha256": "d80f2f004989234a333f5058bae406acc0b3ccdef50ef767b8c49483f6a611f1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/message-error-final.png",
+      "bytes": 62559,
+      "mode": "binary",
+      "sha256": "80256c384c29d3cfaf178027f1679408160ee500824da906c0b0c1e57383df36"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/message-loading.png",
+      "bytes": 58530,
+      "mode": "binary",
+      "sha256": "449f2ca1ac64a076664fdfb6ad32ca91f815575b3eaeabad033ad045cb0285f7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/motion-1280.webm",
+      "bytes": 234485,
+      "mode": "binary",
+      "sha256": "e6b9f6a375faa63558ad4007ff3b18ef3ccab58ae14d436d93a8c6e01f1297c9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/motion-no-preference.png",
+      "bytes": 107180,
+      "mode": "binary",
+      "sha256": "1df6fc4791f91d57666e88a31a48a596a5f5184951aad5ab89deb805e6a9b9ab"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/motion-reduce.png",
+      "bytes": 107131,
+      "mode": "binary",
+      "sha256": "769a19f825c2a93bfdcae8740b84663fda34b9f5fdab9013621fc24055e12705"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/README.md",
+      "bytes": 2904,
+      "mode": "utf8-lf",
+      "sha256": "309b24fc1618311fa9f38361ccf1300fb23d1bd5f06da32d6224eeb3c6a453e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/send-error-final.png",
+      "bytes": 65586,
+      "mode": "binary",
+      "sha256": "aa964fd12996b849adb61e35406eba36d550b4bb7592d46bba1db673264dc964"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/source-provenance.json",
+      "bytes": 351,
+      "mode": "utf8-lf",
+      "sha256": "a69b449764588c74abeb30b291d968841cb38afef4fe042c1c95d8f5ec11b76e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/source.cjs",
+      "bytes": 2115,
+      "mode": "utf8-lf",
+      "sha256": "b24e6fdffca484ed2d75109bd30f740bb3996346cd139012d8f0166f3095c430"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/switch-final.png",
+      "bytes": 60027,
+      "mode": "binary",
+      "sha256": "180c7646982ed3f4d23758e5dfba40a983f74e48c29b2234bd202f4e5d3e17f5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/typecheck-baseline.txt",
+      "bytes": 1522,
+      "mode": "utf8-lf",
+      "sha256": "de96ab9980d27eceb57a4247f1a4197ce85b6020e1385bbb53dc092d813628d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/typecheck-candidate.txt",
+      "bytes": 1522,
+      "mode": "utf8-lf",
+      "sha256": "de96ab9980d27eceb57a4247f1a4197ce85b6020e1385bbb53dc092d813628d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/typecheck-comparison.json",
+      "bytes": 2802,
+      "mode": "utf8-lf",
+      "sha256": "bc0127b68d1db83fd5388f7bbe87e944bead9278dd138258ce266d50316778ef"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v1-parity.json",
+      "bytes": 1263,
+      "mode": "utf8-lf",
+      "sha256": "c648555887b0791c523911295c2410887d449d57ee8cb7d982c55872930ef83f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v1-source-isolation.json",
+      "bytes": 228,
+      "mode": "utf8-lf",
+      "sha256": "60ce78e9a448eb1489ee68257243738fc6d2af9ed78c1407bf7787d72e9f4170"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1023-list.png",
+      "bytes": 85374,
+      "mode": "binary",
+      "sha256": "34ec50aa0324d71cafe76f09b86cceeb835fd38b39c73b3fb682c31f9a47b3ad"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1023-sending.png",
+      "bytes": 80514,
+      "mode": "binary",
+      "sha256": "17b992ad99f72ddbf7f8b0613250b04c6e5ee16a42bdb0ba27662d223081306f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1023-thread.png",
+      "bytes": 83720,
+      "mode": "binary",
+      "sha256": "2b99d1f25ccbbf8b573f1e820d691b79a95f850c246c97d2808db1638e80fd86"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1024-list.png",
+      "bytes": 121821,
+      "mode": "binary",
+      "sha256": "a0ee738a98f8a7649986de8a2a5da14b83d4c48702eb5c1525696e6878974b13"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1024-sending.png",
+      "bytes": 116981,
+      "mode": "binary",
+      "sha256": "edc399e01f5022cf62fa873604820388bf7475cbdeba1ad5a62822917a9e36c1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1024-thread.png",
+      "bytes": 119942,
+      "mode": "binary",
+      "sha256": "44bbda064e2f32295dbc5cf9b7c46d945f91e212b57e516a0c4d1b8110cb3b78"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1280-list.png",
+      "bytes": 123055,
+      "mode": "binary",
+      "sha256": "d7f18fae18e23992c0e8f1506f33bf717c54e9b3d7e46aaf0a6a02e3ee3cc338"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1280-sending.png",
+      "bytes": 117896,
+      "mode": "binary",
+      "sha256": "01e585027f8bc91747429739a0ed87c0f8345d5cd1fb20137caae969c94794cb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1280-thread.png",
+      "bytes": 121098,
+      "mode": "binary",
+      "sha256": "97840c3229575fec73f7cc07abc7cff2b2f85f158a71ce728cd6f8ff6f6d9052"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1440-list.png",
+      "bytes": 124716,
+      "mode": "binary",
+      "sha256": "fea44e0223edd4ab268d1ebb3654e491c7d5b55ff1a97eab47a7ffe9492816bc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1440-sending.png",
+      "bytes": 119527,
+      "mode": "binary",
+      "sha256": "e7038377ff20a671b4ba54336d05a8c70d009da9cb4d760f71331de9c6db78db"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-1440-thread.png",
+      "bytes": 122938,
+      "mode": "binary",
+      "sha256": "c16b83521da7fa34bef4f7a4214232771c770e9404549de7361b5aa4483d39a0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-375-list.png",
+      "bytes": 56538,
+      "mode": "binary",
+      "sha256": "0e0b7d1a35617a622a774dfb287d682245260420bf79e1c3043c9e581424ec1f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-375-sending.png",
+      "bytes": 56539,
+      "mode": "binary",
+      "sha256": "41007ea3173f805bd33333295557357d0b9736510128b2914f9314ebe1da544c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-375-thread.png",
+      "bytes": 60027,
+      "mode": "binary",
+      "sha256": "180c7646982ed3f4d23758e5dfba40a983f74e48c29b2234bd202f4e5d3e17f5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-390-list.png",
+      "bytes": 56983,
+      "mode": "binary",
+      "sha256": "34855ba763bddf959f84a021dcc9e4a3c78a543cbca015186dd6d78ccebde5cd"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-390-sending.png",
+      "bytes": 56628,
+      "mode": "binary",
+      "sha256": "56047139de72fe72d5e8a0aaea9761ba626a3914b072747b0fc23b6a1691af3e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-390-thread.png",
+      "bytes": 60094,
+      "mode": "binary",
+      "sha256": "25d9114dfb3e8c6ce5007f2d4894a55f4447fc4b5606db2c290588aff5b8b8dc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-640-list.png",
+      "bytes": 60762,
+      "mode": "binary",
+      "sha256": "c7146392d13bf1f32c8a9808f1dea0e5cf72327610a93b3e622268e88d585ffc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-640-sending.png",
+      "bytes": 58086,
+      "mode": "binary",
+      "sha256": "4de924686ccef1c2ee417863434b4cb12f69b457472405ae4f0f087a9ce713e7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-640-thread.png",
+      "bytes": 61515,
+      "mode": "binary",
+      "sha256": "103ac101d45a5436cb014d7ebbccbf31bd3f85ec32b2da5bab030e5b42d48f1b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-768-list.png",
+      "bytes": 85302,
+      "mode": "binary",
+      "sha256": "429af329fa7058b8e3eb129e5677c3000534bc8dfaa353d184fb72f15fbdbb6d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-768-sending.png",
+      "bytes": 79517,
+      "mode": "binary",
+      "sha256": "68156cae50044adecbbaa56e3d99ae415fcb009968a814e53d64ca547ea52eb0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-768-thread.png",
+      "bytes": 82711,
+      "mode": "binary",
+      "sha256": "2948160fc80ccafe0a3a8e011928dd6d00a9694ad6c100b4ea5eafa451ccf9bc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/verify.py",
+      "bytes": 4682,
+      "mode": "utf8-lf",
+      "sha256": "dc52b43c7b9cb4ec11e9f270f67ce7acee331ebf04bcf938e602fea810609f75"
+    },
+    {
+      "path": "docs/ui-v2/SPECIALIST_INQUIRIES_PHASE1.md",
+      "bytes": 10079,
+      "mode": "utf8-lf",
+      "sha256": "eef8b3520f55ea9e96a80e86ed52c14896363c40fb18faf174c3a6e2cafc64c6"
+    },
+    {
+      "path": "src/styles/inquiriesV2.css",
+      "bytes": 14005,
+      "mode": "utf8-lf",
+      "sha256": "e8ed1f5b00cde4dac2f07c99cfd3ca1cb29c9dab054561ffcf2f843073aa0a30"
+    },
+    {
+      "path": "src/styles/inquiriesV2.spec.ts",
+      "bytes": 1105,
+      "mode": "utf8-lf",
+      "sha256": "c5c308cab6c5a9ea1712d3c387eaac0bcd058f7735843f8a92cb62ecd560b96a"
+    },
+    {
+      "path": "src/views/SpecialistInquiriesView.spec.ts",
+      "bytes": 22659,
+      "mode": "utf8-lf",
+      "sha256": "4d42db4de269f2b611c49b6d6bd14cfdb6b91eff52455967f99080f04292fd54"
+    },
+    {
+      "path": "src/views/SpecialistInquiriesView.vue",
+      "bytes": 28068,
+      "mode": "utf8-lf",
+      "sha256": "099234663bdd5975fe385363a57e6dd71ae0d89907442b90a45582ceb6d3ca0d"
+    }
+  ]
+}
