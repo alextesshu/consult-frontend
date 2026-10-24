@@ -1,0 +1,114 @@
+[
+  {
+    "width": 375,
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/clients",
+    "candidateVsBaseline": 21,
+    "candidateVsControl": 21,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/sessions",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/settings",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 2609,
+    "controlVsBaseline": 2609
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/clients",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/sessions",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/settings",
+    "candidateVsBaseline": 389,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 389
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/clients",
+    "candidateVsBaseline": 4,
+    "candidateVsControl": 4,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/sessions",
+    "candidateVsBaseline": 1184,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 1184
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/settings",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/clients",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/sessions",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/settings",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  }
+]

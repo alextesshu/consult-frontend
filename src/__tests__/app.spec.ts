@@ -741,6 +741,54 @@ describe('App shell', () => {
     expect(within(footer as HTMLElement).queryByRole('link', { name: 'Створити простір' })).not.toBeInTheDocument()
   })
 
+  describe('KAN-161 specialist cabinet shell UI v2', () => {
+    afterEach(() => { vi.unstubAllGlobals(); document.body.style.overflow = ''; document.documentElement.style.overflow = '' })
+
+    it('replaces the legacy cabinet header and sidebar for a v2 specialist', async () => {
+      applyUiVersion('v2')
+      await renderWithProviders({ initialPath: '/cabinet/clients', roles: ['SPECIALIST'] })
+      const header = document.querySelector('header.topbar') as HTMLElement
+      expect(header).toHaveClass('pc2-cabinet-header')
+      expect(header.querySelector('.pc2-brand-lockup')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
+      expect(document.querySelector('.shell')).toHaveClass('shell--cabinet-v2')
+      expect(document.querySelector('.specialist-shell')).toBeNull()
+      const sidebar = document.querySelector('.pc2-cabinet-sidebar') as HTMLElement
+      expect(within(sidebar).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('aria-current', 'page')
+      expect(within(sidebar).getByRole('link', { name: 'Групові події' })).toHaveAttribute('href', '/cabinet/group-events')
+      // Header keeps working account actions.
+      expect(within(header).getByRole('link', { name: 'Публічний профіль' })).toHaveAttribute('href', '/public')
+      expect(within(header).getByRole('button', { name: 'Вийти' })).toBeInTheDocument()
+      expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
+    })
+
+    it('opens the «Ще» sheet from the mobile account button and closes it on navigation', async () => {
+      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders({ initialPath: '/cabinet', roles: ['SPECIALIST'] })
+      const account = screen.getByRole('button', { name: 'Акаунт та інші розділи кабінету' })
+      await fireEvent.click(account)
+      const sheet = document.querySelector('.pc2-cabinet-more') as HTMLElement
+      expect(sheet).toHaveClass('is-open')
+      expect(account).toHaveAttribute('aria-expanded', 'true')
+      expect(document.body.style.overflow).toBe('hidden')
+      await router.push('/cabinet/sessions')
+      await waitFor(() => expect(sheet).not.toHaveClass('is-open'))
+      expect(document.body.style.overflow).toBe('')
+    })
+
+    it('keeps v1 specialists, v2 clients and public pages on their existing chrome', async () => {
+      await renderWithProviders({ initialPath: '/cabinet', roles: ['SPECIALIST'] })
+      expect(document.querySelector('.specialist-shell')).not.toBeNull()
+      expect(document.querySelector('.pc2-cabinet-shell')).toBeNull()
+      expect(document.querySelector('header.topbar')).not.toHaveClass('pc2-cabinet-header')
+      document.body.innerHTML = ''
+      applyUiVersion('v2')
+      await renderWithProviders({ initialPath: '/client', roles: ['CLIENT'] })
+      expect(document.querySelector('.pc2-cabinet-shell')).toBeNull()
+      expect(document.querySelector('header.topbar')).not.toHaveClass('pc2-cabinet-header')
+    })
+  })
+
   it('renders technical build probe for deploy verification', async () => {
     await renderWithProviders()
     const probe = document.querySelector('#fe-build-probe') as HTMLDivElement | null

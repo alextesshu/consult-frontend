@@ -8,13 +8,14 @@
         'shell--authenticated': isAuthenticatedLayout,
         'shell--public-profile': isPublicProfilePage,
         'shell--public-header-v2': usePublicHeaderV2,
+        'shell--cabinet-v2': useCabinetShellV2,
       },
     ]"
   >
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
-          <img v-if="usePublicHeaderV2" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
+          <img v-if="usePublicHeaderV2 || useCabinetShellV2" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
           <span v-else class="brand__logo-frame">
             <img class="brand__logo brand__logo--full" :class="{ 'pc2-header__logo': usePublicHeaderV2 }" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
@@ -257,6 +258,18 @@
         <button v-if="isAuthenticated" class="btn btn--ghost nav__desktop-only" type="button" @click="onLogout">
           Вийти
         </button>
+        <button
+          v-if="useCabinetShellV2"
+          class="pc2-cabinet-header__account"
+          type="button"
+          aria-label="Акаунт та інші розділи кабінету"
+          aria-haspopup="dialog"
+          aria-controls="cabinet-more-sheet"
+          :aria-expanded="showCabinetMore ? 'true' : 'false'"
+          @click="openCabinetMore"
+        >
+          <span aria-hidden="true">{{ cabinetAccountInitials }}</span>
+        </button>
         <div v-if="isAuthenticated && showMobileMenu" ref="mobileMenuPanelRef" class="mobile-menu" role="menu">
           <RouterLink
             v-if="hasSupportedCabinetRole && !isSpecialist"
@@ -353,7 +366,20 @@
       ]"
     >
       <EmailVerificationNotice v-if="isAuthenticated && isAuthenticatedCabinetRoute && !useMinimalShell" />
-      <div v-if="showSpecialistCabinetShell" class="specialist-shell">
+      <SpecialistCabinetShellV2
+        v-if="useCabinetShellV2"
+        v-model:more-open="showCabinetMore"
+        :path="route.path"
+        :badges="cabinetNavBadges"
+        :account-title="cabinetAccountTitle"
+        :account-subtitle="cabinetAccountSubtitle"
+        :account-initials="cabinetAccountInitials"
+        public-profile-to="/public"
+        @logout="onLogout"
+      >
+        <RouterView :key="route.path" />
+      </SpecialistCabinetShellV2>
+      <div v-else-if="showSpecialistCabinetShell" class="specialist-shell">
         <aside class="specialist-sidebar" role="navigation" aria-label="Навігація кабінету спеціаліста">
           <div class="specialist-sidebar__label">Кабінет</div>
           <nav class="specialist-sidebar__nav">
@@ -606,6 +632,8 @@ import { useAuthStore } from './stores/auth'
 import { isUiV2 } from './lib/uiVersion'
 import fennecLockup from './assets/brand-v2/proconsult-fennec-lockup.svg'
 import fennecHeader from './assets/brand-v2/proconsult-fennec-header.svg'
+import SpecialistCabinetShellV2 from './components/cabinet-v2/SpecialistCabinetShellV2.vue'
+import { accountInitials, planLabel, type CabinetNavBadges } from './lib/specialistCabinetNav'
 import PublicMobileMenuV2 from './components/PublicMobileMenuV2.vue'
 import type { PublicMenuAudience } from './lib/publicMobileMenu'
 import fennecSymbol from './assets/brand-v2/proconsult-fennec-symbol-blue.svg'
@@ -770,6 +798,27 @@ const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
 const showSpecialistCabinetShell = computed(
   () => isAuthenticated.value && isSpecialist.value && !useMinimalShell.value && route.path.startsWith('/cabinet')
 )
+// KAN-161: UI v2 specialist cabinet shell (sidebar, M1 tab bar, M2 «Ще»); v1 keeps the legacy shell.
+const useCabinetShellV2 = computed(() => isUiV2() && showSpecialistCabinetShell.value)
+const showCabinetMore = ref(false)
+function openCabinetMore() {
+  showNotifications.value = false
+  showSettings.value = false
+  showMobileMenu.value = false
+  showCabinetMore.value = true
+}
+watch(useCabinetShellV2, (enabled) => { if (!enabled) showCabinetMore.value = false })
+const cabinetNavBadges = computed<CabinetNavBadges>(() => ({
+  sessions: pendingSessionsCount.value || undefined,
+  requests: pendingGuestRequestsCount.value || undefined,
+  chats: chatUnreadCount.value || undefined,
+}))
+const cabinetAccountTitle = computed(() => auth.me?.user?.email || auth.me?.user?.username || 'Мій акаунт')
+const cabinetAccountSubtitle = computed(() => {
+  const plan = planLabel(auth.me?.effective_entitlements?.plan)
+  return plan ? `Тариф ${plan}` : 'Кабінет спеціаліста'
+})
+const cabinetAccountInitials = computed(() => accountInitials(auth.me?.user?.username || auth.me?.user?.email))
 watchEffect(() => {
   const path = route.path || ''
   const role =
@@ -820,6 +869,7 @@ const topbarClass = computed(() => [
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
     'pc2-header': usePublicHeaderV2.value,
+    'pc2-cabinet-header': useCabinetShellV2.value,
   },
 ])
 

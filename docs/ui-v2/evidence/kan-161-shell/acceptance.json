@@ -1,0 +1,2123 @@
+{
+  "source": {},
+  "routes": [
+    {
+      "width": 375,
+      "route": "/cabinet",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/profile",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/clients",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Клієнти"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/slots",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 2026,
+        "innerWidth": 375,
+        "ok": false
+      },
+      "coveredByTabbar": 0,
+      "baselineOverflow": {
+        "scrollWidth": 2234,
+        "innerWidth": 375,
+        "ok": false
+      }
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/sessions",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Сесії"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/external-sessions",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/inquiries",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/practice-board",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/reviews",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/chat",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/group-events",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/journal",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/analytics",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/billing",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "route": "/cabinet/settings",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 375,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/cabinet",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/profile",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/clients",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Клієнти"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/slots",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/sessions",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Сесії"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/external-sessions",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/inquiries",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/practice-board",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/reviews",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/chat",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/group-events",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/journal",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/analytics",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/billing",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "route": "/cabinet/settings",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 390,
+      "errors": []
+    },
+    {
+      "width": 640,
+      "route": "/cabinet",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/profile",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/clients",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Клієнти"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/slots",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/sessions",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Сесії"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/external-sessions",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/inquiries",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/practice-board",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/reviews",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/chat",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/group-events",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/journal",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/analytics",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/billing",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "route": "/cabinet/settings",
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 640,
+        "innerWidth": 640,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 640,
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/cabinet",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/profile",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Профіль"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/clients",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Клієнти"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/slots",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Розклад"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/sessions",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Сесії"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/external-sessions",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/inquiries",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/practice-board",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Завдання"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/reviews",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Відгуки"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/chat",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Чати"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/group-events",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Групові події"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/journal",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Власний блог"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/analytics",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Аналітика"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/billing",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Тарифи і доступ"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "route": "/cabinet/settings",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Налаштування"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 768,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/profile",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Профіль"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/clients",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Клієнти"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/slots",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Розклад"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/sessions",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Сесії"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/external-sessions",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/inquiries",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/practice-board",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Завдання"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/reviews",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Відгуки"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/chat",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Чати"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/group-events",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Групові події"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/journal",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Власний блог"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/analytics",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Аналітика"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/billing",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Тарифи і доступ"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "route": "/cabinet/settings",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Налаштування"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1280,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/profile",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Профіль"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/clients",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Клієнти"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/slots",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Розклад"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/sessions",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Сесії"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/external-sessions",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/inquiries",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Запити"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/practice-board",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Завдання"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/reviews",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Відгуки"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/chat",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Чати"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/group-events",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Групові події"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/journal",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Власний блог"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/analytics",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Аналітика"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/billing",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Тарифи і доступ"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "route": "/cabinet/settings",
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Налаштування"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false,
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "coveredByTabbar": 0
+    },
+    {
+      "width": 1440,
+      "errors": []
+    }
+  ],
+  "mobile": {
+    "opened": {
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет",
+        "Ще"
+      ],
+      "moreOpen": true,
+      "bodyOverflow": "hidden",
+      "focus": "FSfixture@example.testТа",
+      "legacyShell": false
+    },
+    "trapped": true,
+    "afterEscape": {
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "Ще1, нових: 1",
+      "legacyShell": false
+    },
+    "afterBackdrop": {
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "Ще1, нових: 1",
+      "legacyShell": false
+    },
+    "afterSwipe": {
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "Ще1, нових: 1",
+      "legacyShell": false
+    },
+    "afterNav": {
+      "headerH": 52,
+      "headerV2": true,
+      "sidebar": false,
+      "tabbar": true,
+      "tabbarTop": 731,
+      "active": [
+        "Ще"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "Ще1, нових: 1",
+      "legacyShell": false
+    },
+    "afterResize": {
+      "headerH": 60,
+      "headerV2": true,
+      "sidebar": true,
+      "tabbar": false,
+      "tabbarTop": null,
+      "active": [
+        "Кабінет"
+      ],
+      "moreOpen": false,
+      "bodyOverflow": "",
+      "focus": "простір для ведення конс",
+      "legacyShell": false
+    }
+  },
+  "desktop": {
+    "focusRing": "solid",
+    "afterClients": [
+      "Клієнти"
+    ],
+    "afterGroups": [
+      "Групові події"
+    ],
+    "afterBack": [
+      "Клієнти"
+    ]
+  },
+  "reduced": {
+    "transition": "none 0.001s",
+    "transform": "matrix(1, 0, 0, 1, 0, 0)"
+  },
+  "roles": {
+    "guest": "/login",
+    "client": "/403",
+    "clientShell": 0
+  }
+}
