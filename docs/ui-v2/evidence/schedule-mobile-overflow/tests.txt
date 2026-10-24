@@ -1,0 +1,14 @@
+> frontend@0.0.0 test:run
+> vitest run src/views/SlotsView.spec.ts src/views/SlotsView.layout.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_schedule_mobile_overflow
+
+ ✓ src/views/SlotsView.spec.ts (91 tests) 7011ms
+   ✓ SlotsView > blocks invalid smart fill form submissions before calling backend 540ms
+ ✓ src/views/SlotsView.layout.spec.ts (5 tests) 33ms
+
+ Test Files  2 passed (2)
+      Tests  96 passed (96)
+   Start at  17:05:10
+   Duration  10.91s (transform 1.36s, setup 190ms, collect 1.66s, tests 7.04s, environment 1.33s, prepare 276ms)
