@@ -135,9 +135,50 @@ Full-page PNGs (149 MB) are kept outside the repository, as in previous evidence
 - **`vite build`:** OK; only the existing chunk-size warning.
 - **`git diff --check`:** OK.
 
+## Visual-review follow-up: footer clearance above the mobile booking bar
+
+**Review note:** on 375×667 the profile's fixed mobile booking bar (`.pc2-profile-bottom-bar`, rendered only for the compact profile, ≤859px) partly covered the lower footer area.
+
+**Diagnosis on 34cc303** (`footer-clearance.cjs` → `footer-clearance-before-fix.json`), at the end of the scroll:
+- Every footer link and the privacy-settings button was above the bar.
+  - `elementFromPoint` hit each control.
+  - A real click on «Налаштування конфіденційності» opened the consent region.
+- The disclaimer ended only **5px** above the bar.
+- The footer's own bottom spacing and the watermark sat under the bar. The profile reserves its 112px bar space inside the profile content, above the footer, not below it.
+
+**Fix:** footer-only CSS in `components-v2.css`.
+- Rule: `html[data-ui="v2"] .shell:has(.pc2-profile-bottom-bar) .footer.pc2-footer.footer--specialist-owned`.
+- Applied at `max-width: 859px`.
+- It adds the bar height (80px plus the safe area) to the footer's usual 64px bottom padding.
+- It applies only while the bar is in the DOM. Desktop, journal and feedback pages, UI v1, the booking flow, the bar and its sticky logic are unchanged.
+- A CSS contract test in `src/styles/uiV2.spec.ts` covers the rule.
+
+**After** (`footer-clearance-after-fix.json`, `screenshots/after-fix-footer-clearance-*.png`), guest and client:
+
+| Viewport | Bar top | Disclaimer bottom | All controls above the bar and hittable | Real click on privacy settings |
+|---|---|---|---|---|
+| 375×667 | 590 | 505 (was 585) | yes | yes |
+| 390×844 | 767 | 682 (was 762) | yes | yes |
+| 1280×800 | no bar | 705–706 (unchanged) | yes | yes |
+
+Re-verification after the fix (`acceptance.json`, `parity.json` regenerated):
+- **Matrix:** 42 rows, 12 interactions, 0 problems.
+- **Other v2 public pages:** 16/16 pixel-identical.
+- **UI v1:** again 54/60 exact on the first run, but with a different set of pairs than before:
+  - 768 guest `/for-clients`, `/specialists`, `/s/olena/journal`;
+  - 1440 guest `/for-clients`;
+  - 1440 specialist/client `/specialists`.
+- **Classification:** every one is capture instability, max Δ ≤ 2/255.
+  - On a 3× re-capture per build, the DOM (build marker excluded) is identical between builds.
+  - The same differences appear between captures of one build:
+    - `/for-clients`: varying restored scroll offset;
+    - `/specialists`: gradient pixels at (1403,530)–(1406,663);
+    - journal: 9/9 exact on re-capture.
+  - The only CSS change is gated by `html[data-ui="v2"]`, so it cannot reach v1.
+
 ## Known limitations
 
 - **Snapshot vs product rule.** The snapshot's audience tabs and «Знайти спеціаліста» are intentionally not shown on specialist-owned pages (confirmed product rule).
 - **Signed-in header design.** The snapshot has no signed-in public header. The signed-in frame reuses the guest public header geometry and the cabinet header's action treatment; the set of actions is unchanged.
-- **Mobile booking bar.** On phones the profile's own fixed booking bar overlaps the lowest part of the page at the very end of the scroll. The footer links and the disclaimer stay readable above it; previously the bar covered the legacy footer links. The bar belongs to profile content and is not changed here.
+- **Mobile booking bar.** Resolved in the visual-review follow-up below with footer-only spacing; the bar itself is unchanged.
 - **Footer artwork.** The footer uses the approved fennec lockup and blue watermark instead of the snapshot's legacy raster logo and sand mark, per the approved brand override.

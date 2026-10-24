@@ -47,7 +47,7 @@
       "fonts": "loaded",
       "running": 0,
       "height": 8750,
-      "scrollY": 90
+      "scrollY": 83
     },
     "candidate": "v1-parity\\candidate-guest-375-for-clients.png"
   },
@@ -430,14 +430,14 @@
       "fonts": "loaded",
       "running": 0,
       "height": 6137,
-      "scrollY": 68
+      "scrollY": 75
     },
     "control": "v1-parity\\control-guest-768-for-clients.png",
     "candidateState": {
       "fonts": "loaded",
       "running": 0,
       "height": 6137,
-      "scrollY": 68
+      "scrollY": 83
     },
     "candidate": "v1-parity\\candidate-guest-768-for-clients.png"
   },
@@ -813,14 +813,14 @@
       "fonts": "loaded",
       "running": 0,
       "height": 4561,
-      "scrollY": 32
+      "scrollY": 47
     },
     "baseline": "v1-parity\\baseline-guest-1280-for-clients.png",
     "controlState": {
       "fonts": "loaded",
       "running": 0,
       "height": 4561,
-      "scrollY": 38
+      "scrollY": 35
     },
     "control": "v1-parity\\control-guest-1280-for-clients.png",
     "candidateState": {
@@ -1203,21 +1203,21 @@
       "fonts": "loaded",
       "running": 0,
       "height": 4513,
-      "scrollY": 72
+      "scrollY": 41
     },
     "baseline": "v1-parity\\baseline-guest-1440-for-clients.png",
     "controlState": {
       "fonts": "loaded",
       "running": 0,
       "height": 4513,
-      "scrollY": 37
+      "scrollY": 34
     },
     "control": "v1-parity\\control-guest-1440-for-clients.png",
     "candidateState": {
       "fonts": "loaded",
       "running": 0,
       "height": 4513,
-      "scrollY": 41
+      "scrollY": 37
     },
     "candidate": "v1-parity\\candidate-guest-1440-for-clients.png"
   },

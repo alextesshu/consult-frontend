@@ -410,6 +410,13 @@ html[data-ui="v2"] .pc2-footer button:focus-visible {
   outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset);
 }
 html[data-ui="v2"] .footer .footer__logo.pc2-footer__compact-logo { height: var(--pc-space-16); width: auto; }
+/* While the profile's fixed mobile booking bar (~77px + safe area) is rendered, the specialist-owned footer keeps
+   its usual bottom spacing above that bar instead of underneath it. The bar itself is not changed. */
+@media (max-width: 859px) {
+  html[data-ui="v2"] .shell:has(.pc2-profile-bottom-bar) .footer.pc2-footer.footer--specialist-owned {
+    padding-bottom: calc(var(--pc-space-16) + 80px + env(safe-area-inset-bottom));
+  }
+}
 @media (max-width: 1100px) {
   html[data-ui="v2"] .shell--public-header-v2 { --pc-header-h: 76px; }
   html[data-ui="v2"] .shell.shell--public-header-v2 .pc2-header.topbar--guest .topbar__inner {

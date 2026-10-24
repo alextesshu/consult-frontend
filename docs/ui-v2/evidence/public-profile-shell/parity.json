@@ -22,24 +22,10 @@
         "role": "guest",
         "route": "/for-clients",
         "candidateVsBaseline": {
-          "pixels": 118293,
-          "bbox": [
-            0,
-            0,
-            375,
-            1062
-          ],
-          "maxDelta": 251
+          "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 118293,
-          "bbox": [
-            0,
-            0,
-            375,
-            1062
-          ],
-          "maxDelta": 251
+          "pixels": 0
         },
         "controlVsBaseline": {
           "pixels": 0
@@ -190,13 +176,27 @@
         "role": "client",
         "route": "/specialists",
         "candidateVsBaseline": {
-          "pixels": 0
+          "pixels": 16,
+          "bbox": [
+            24,
+            606,
+            27,
+            741
+          ],
+          "maxDelta": 2
         },
         "candidateVsControl": {
           "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 0
+          "pixels": 16,
+          "bbox": [
+            24,
+            606,
+            27,
+            741
+          ],
+          "maxDelta": 2
         }
       },
       {
@@ -218,13 +218,27 @@
         "role": "client",
         "route": "/s/olena/journal",
         "candidateVsBaseline": {
-          "pixels": 0
+          "pixels": 11,
+          "bbox": [
+            24,
+            284,
+            51,
+            324
+          ],
+          "maxDelta": 1
         },
         "candidateVsControl": {
           "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 0
+          "pixels": 11,
+          "bbox": [
+            24,
+            284,
+            51,
+            324
+          ],
+          "maxDelta": 1
         }
       },
       {
@@ -246,27 +260,27 @@
         "role": "guest",
         "route": "/for-clients",
         "candidateVsBaseline": {
-          "pixels": 122803,
+          "pixels": 51555,
           "bbox": [
             0,
-            18,
+            19,
             768,
-            1135
+            1143
           ],
-          "maxDelta": 2
+          "maxDelta": 1
         },
         "candidateVsControl": {
-          "pixels": 0
-        },
-        "controlVsBaseline": {
-          "pixels": 122803,
+          "pixels": 51555,
           "bbox": [
             0,
-            18,
+            19,
             768,
-            1135
+            1143
           ],
-          "maxDelta": 2
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 0
         }
       },
       {
@@ -274,10 +288,24 @@
         "role": "guest",
         "route": "/specialists",
         "candidateVsBaseline": {
-          "pixels": 0
+          "pixels": 55,
+          "bbox": [
+            24,
+            686,
+            744,
+            969
+          ],
+          "maxDelta": 2
         },
         "candidateVsControl": {
-          "pixels": 0
+          "pixels": 55,
+          "bbox": [
+            24,
+            686,
+            744,
+            969
+          ],
+          "maxDelta": 2
         },
         "controlVsBaseline": {
           "pixels": 0
@@ -316,27 +344,34 @@
         "role": "guest",
         "route": "/s/olena/journal",
         "candidateVsBaseline": {
-          "pixels": 0
+          "pixels": 10,
+          "bbox": [
+            741,
+            303,
+            744,
+            310
+          ],
+          "maxDelta": 1
         },
         "candidateVsControl": {
-          "pixels": 1102,
+          "pixels": 21,
           "bbox": [
             24,
-            124,
-            470,
-            410
+            270,
+            744,
+            310
           ],
-          "maxDelta": 87
+          "maxDelta": 1
         },
         "controlVsBaseline": {
-          "pixels": 1102,
+          "pixels": 11,
           "bbox": [
             24,
-            124,
-            470,
-            410
+            270,
+            51,
+            310
           ],
-          "maxDelta": 87
+          "maxDelta": 1
         }
       },
       {
@@ -375,24 +410,10 @@
           "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 2022,
-          "bbox": [
-            55,
-            125,
-            644,
-            3535
-          ],
-          "maxDelta": 79
+          "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 2022,
-          "bbox": [
-            55,
-            125,
-            644,
-            3535
-          ],
-          "maxDelta": 79
+          "pixels": 0
         }
       },
       {
@@ -512,34 +533,27 @@
         "role": "guest",
         "route": "/for-clients",
         "candidateVsBaseline": {
-          "pixels": 205705,
+          "pixels": 101665,
           "bbox": [
             0,
             0,
             1280,
-            1095
+            1107
           ],
-          "maxDelta": 1
+          "maxDelta": 2
         },
         "candidateVsControl": {
-          "pixels": 206570,
-          "bbox": [
-            0,
-            0,
-            1280,
-            1098
-          ],
-          "maxDelta": 1
+          "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 95336,
+          "pixels": 101665,
           "bbox": [
             0,
             0,
             1280,
-            1098
+            1107
           ],
-          "maxDelta": 1
+          "maxDelta": 2
         }
       },
       {
@@ -589,27 +603,13 @@
         "role": "guest",
         "route": "/s/olena/journal",
         "candidateVsBaseline": {
-          "pixels": 1091,
-          "bbox": [
-            64,
-            130,
-            1200,
-            359
-          ],
-          "maxDelta": 87
+          "pixels": 0
         },
         "candidateVsControl": {
           "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 1091,
-          "bbox": [
-            64,
-            130,
-            1200,
-            359
-          ],
-          "maxDelta": 87
+          "pixels": 0
         }
       },
       {
@@ -648,24 +648,10 @@
           "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 2317,
-          "bbox": [
-            69,
-            131,
-            1163,
-            2766
-          ],
-          "maxDelta": 80
+          "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 2317,
-          "bbox": [
-            69,
-            131,
-            1163,
-            2766
-          ],
-          "maxDelta": 80
+          "pixels": 0
         }
       },
       {
@@ -743,13 +729,27 @@
         "role": "client",
         "route": "/s/olena/journal",
         "candidateVsBaseline": {
-          "pixels": 0
+          "pixels": 25,
+          "bbox": [
+            42,
+            110,
+            1238,
+            113
+          ],
+          "maxDelta": 2
         },
         "candidateVsControl": {
           "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 0
+          "pixels": 25,
+          "bbox": [
+            42,
+            110,
+            1238,
+            113
+          ],
+          "maxDelta": 2
         }
       },
       {
@@ -771,16 +771,6 @@
         "role": "guest",
         "route": "/for-clients",
         "candidateVsBaseline": {
-          "pixels": 372942,
-          "bbox": [
-            0,
-            0,
-            1440,
-            1132
-          ],
-          "maxDelta": 2
-        },
-        "candidateVsControl": {
           "pixels": 83543,
           "bbox": [
             0,
@@ -790,15 +780,25 @@
           ],
           "maxDelta": 1
         },
-        "controlVsBaseline": {
-          "pixels": 384556,
+        "candidateVsControl": {
+          "pixels": 247973,
           "bbox": [
             0,
             0,
             1440,
-            1132
+            1097
           ],
-          "maxDelta": 2
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 257289,
+          "bbox": [
+            0,
+            0,
+            1440,
+            1101
+          ],
+          "maxDelta": 1
         }
       },
       {
@@ -806,14 +806,7 @@
         "role": "guest",
         "route": "/specialists",
         "candidateVsBaseline": {
-          "pixels": 35,
-          "bbox": [
-            120,
-            524,
-            1320,
-            657
-          ],
-          "maxDelta": 2
+          "pixels": 0
         },
         "candidateVsControl": {
           "pixels": 35,
@@ -826,7 +819,14 @@
           "maxDelta": 2
         },
         "controlVsBaseline": {
-          "pixels": 0
+          "pixels": 35,
+          "bbox": [
+            120,
+            524,
+            1320,
+            657
+          ],
+          "maxDelta": 2
         }
       },
       {
@@ -851,24 +851,10 @@
           "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 2661,
-          "bbox": [
-            70,
-            130,
-            1296,
-            2723
-          ],
-          "maxDelta": 90
+          "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 2661,
-          "bbox": [
-            70,
-            130,
-            1296,
-            2723
-          ],
-          "maxDelta": 90
+          "pixels": 0
         }
       },
       {
@@ -876,24 +862,10 @@
         "role": "guest",
         "route": "/s/olena/journal",
         "candidateVsBaseline": {
-          "pixels": 1091,
-          "bbox": [
-            144,
-            130,
-            1280,
-            359
-          ],
-          "maxDelta": 87
+          "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 1091,
-          "bbox": [
-            144,
-            130,
-            1280,
-            359
-          ],
-          "maxDelta": 87
+          "pixels": 0
         },
         "controlVsBaseline": {
           "pixels": 0
@@ -918,17 +890,24 @@
         "role": "specialist",
         "route": "/specialists",
         "candidateVsBaseline": {
-          "pixels": 0
-        },
-        "candidateVsControl": {
-          "pixels": 18,
+          "pixels": 35,
           "bbox": [
-            1403,
+            34,
             530,
             1406,
-            663
+            813
           ],
-          "maxDelta": 1
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 17,
+          "bbox": [
+            34,
+            807,
+            1406,
+            813
+          ],
+          "maxDelta": 2
         },
         "controlVsBaseline": {
           "pixels": 18,
@@ -963,24 +942,10 @@
           "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 1100,
-          "bbox": [
-            34,
-            136,
-            1366,
-            365
-          ],
-          "maxDelta": 87
+          "pixels": 0
         },
         "controlVsBaseline": {
-          "pixels": 1100,
-          "bbox": [
-            34,
-            136,
-            1366,
-            365
-          ],
-          "maxDelta": 87
+          "pixels": 0
         }
       },
       {
@@ -1016,13 +981,34 @@
         "role": "client",
         "route": "/specialists",
         "candidateVsBaseline": {
-          "pixels": 0
+          "pixels": 25,
+          "bbox": [
+            34,
+            530,
+            1406,
+            813
+          ],
+          "maxDelta": 2
         },
         "candidateVsControl": {
-          "pixels": 0
+          "pixels": 18,
+          "bbox": [
+            1403,
+            530,
+            1406,
+            663
+          ],
+          "maxDelta": 1
         },
         "controlVsBaseline": {
-          "pixels": 0
+          "pixels": 7,
+          "bbox": [
+            34,
+            807,
+            37,
+            813
+          ],
+          "maxDelta": 2
         }
       },
       {
@@ -1044,24 +1030,10 @@
         "role": "client",
         "route": "/s/olena/journal",
         "candidateVsBaseline": {
-          "pixels": 34,
-          "bbox": [
-            34,
-            110,
-            1395,
-            265
-          ],
-          "maxDelta": 2
+          "pixels": 0
         },
         "candidateVsControl": {
-          "pixels": 34,
-          "bbox": [
-            34,
-            110,
-            1395,
-            265
-          ],
-          "maxDelta": 2
+          "pixels": 0
         },
         "controlVsBaseline": {
           "pixels": 0
