@@ -1,0 +1,92 @@
+[
+  {
+    "width": 375,
+    "homeCTA": true,
+    "browserBackForward": true,
+    "reload": true,
+    "loginToSignup": true,
+    "clientLoginBackReload": true,
+    "uiV2Preserved": true,
+    "singleWizard": true,
+    "geometry": {
+      "headerBottom": 60,
+      "progressTop": 84,
+      "actionsTop": 805,
+      "actionsBottom": 900,
+      "overflow": false
+    },
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "homeCTA": true,
+    "browserBackForward": true,
+    "reload": true,
+    "loginToSignup": true,
+    "clientLoginBackReload": true,
+    "uiV2Preserved": true,
+    "singleWizard": true,
+    "geometry": {
+      "headerBottom": 60,
+      "progressTop": 84,
+      "actionsTop": 805,
+      "actionsBottom": 900,
+      "overflow": false
+    },
+    "pageErrors": []
+  },
+  {
+    "width": 640,
+    "homeCTA": true,
+    "browserBackForward": true,
+    "reload": true,
+    "loginToSignup": true,
+    "clientLoginBackReload": true,
+    "uiV2Preserved": true,
+    "singleWizard": true,
+    "geometry": {
+      "headerBottom": 60,
+      "progressTop": 84,
+      "actionsTop": 805,
+      "actionsBottom": 900,
+      "overflow": false
+    },
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "homeCTA": true,
+    "browserBackForward": true,
+    "reload": true,
+    "loginToSignup": true,
+    "clientLoginBackReload": true,
+    "uiV2Preserved": true,
+    "singleWizard": true,
+    "geometry": {
+      "headerBottom": 76,
+      "progressTop": 259.59375,
+      "actionsTop": 577.53125,
+      "actionsBottom": 631.53125,
+      "overflow": false
+    },
+    "pageErrors": []
+  },
+  {
+    "width": 1280,
+    "homeCTA": true,
+    "browserBackForward": true,
+    "reload": true,
+    "loginToSignup": true,
+    "clientLoginBackReload": true,
+    "uiV2Preserved": true,
+    "singleWizard": true,
+    "geometry": {
+      "headerBottom": 76,
+      "progressTop": 283.59375,
+      "actionsTop": 612.34375,
+      "actionsBottom": 666.34375,
+      "overflow": false
+    },
+    "pageErrors": []
+  }
+]

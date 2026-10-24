@@ -1,0 +1,146 @@
+[
+  {
+    "width": 375,
+    "name": "psychological_practice",
+    "top": 335.046875,
+    "bottom": 377.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 375,
+    "name": "coaching_practice",
+    "top": 387.046875,
+    "bottom": 429.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 375,
+    "name": "mentoring_practice",
+    "top": 439.046875,
+    "bottom": 481.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 375,
+    "name": "consulting_practice",
+    "top": 491.046875,
+    "bottom": 533.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 375,
+    "name": "teaching_practice",
+    "top": 528.046875,
+    "bottom": 570.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 375,
+    "name": "other",
+    "top": 528.046875,
+    "bottom": 570.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 390,
+    "name": "psychological_practice",
+    "top": 335.046875,
+    "bottom": 377.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 390,
+    "name": "coaching_practice",
+    "top": 387.046875,
+    "bottom": 429.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 390,
+    "name": "mentoring_practice",
+    "top": 439.046875,
+    "bottom": 481.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 390,
+    "name": "consulting_practice",
+    "top": 491.046875,
+    "bottom": 533.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 390,
+    "name": "teaching_practice",
+    "top": 528.046875,
+    "bottom": 570.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 390,
+    "name": "other",
+    "top": 528.046875,
+    "bottom": 570.046875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 640,
+    "name": "psychological_practice",
+    "top": 311.796875,
+    "bottom": 353.796875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 640,
+    "name": "coaching_practice",
+    "top": 311.796875,
+    "bottom": 353.796875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 640,
+    "name": "mentoring_practice",
+    "top": 311.796875,
+    "bottom": 353.796875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 640,
+    "name": "consulting_practice",
+    "top": 363.796875,
+    "bottom": 405.796875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 640,
+    "name": "teaching_practice",
+    "top": 363.796875,
+    "bottom": 405.796875,
+    "footer": 582,
+    "visible": true
+  },
+  {
+    "width": 640,
+    "name": "other",
+    "top": 363.796875,
+    "bottom": 405.796875,
+    "footer": 582,
+    "visible": true
+  }
+]
