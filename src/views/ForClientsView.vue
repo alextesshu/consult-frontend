@@ -12,7 +12,7 @@
               <input id="client-search" v-model="query" type="search" name="q" :aria-invalid="Boolean(queryError)" :aria-describedby="queryError ? 'client-search-error' : 'client-search-hint'" @focus="motion.focus" @blur="motion.blur" @input="motion.focus" />
               <span v-if="!query && !motion.focused" class="pc2-for-clients__typed" aria-hidden="true">{{ motion.typed }}<span v-if="motion.phase === 'type' && !motion.reduced" class="pc2-for-clients__caret"></span></span>
             </div>
-            <button type="submit" class="pc2-btn pc2-btn--primary">Знайти</button>
+            <button type="submit" class="pc2-btn pc2-btn--primary"><span class="pc2-for-clients__label-wide">Знайти</span><span class="pc2-for-clients__label-narrow">Знайти спеціаліста</span></button>
           </div>
           <p v-if="queryError" id="client-search-error" class="pc2-error" role="alert">{{ queryError }}</p>
           <p v-else id="client-search-hint" class="pc2-for-clients__sr">Введіть свій запит або оберіть приклад. Кнопка «Знайти» з порожнім полем шукає поточний приклад.</p>
@@ -43,7 +43,7 @@
     <section ref="stepsRoot" class="pc2-for-clients__journey" :data-seen="motion.stepsSeen" aria-labelledby="clients-journey-title">
       <h2 id="clients-journey-title">Від запиту до першої зустрічі</h2>
       <ol class="pc2-for-clients__steps">
-        <li v-for="(step, index) in steps" :key="step.title" :style="{ '--reveal-delay': `${0.1 + index * 0.12}s` }"><span class="pc2-for-clients__number" aria-hidden="true">0{{ index + 1 }}</span><h3>{{ step.title }}</h3><p>{{ step.text }}</p></li>
+        <li v-for="(step, index) in steps" :key="step.title" :style="{ '--reveal-delay': `${0.1 + index * 0.12}s` }"><span class="pc2-for-clients__number" aria-hidden="true"><span class="pc2-for-clients__label-wide">0</span>{{ index + 1 }}</span><h3>{{ step.title }}</h3><p>{{ step.text }}</p></li>
       </ol>
     </section>
 
@@ -245,6 +245,37 @@ html[data-ui="v2"] .pc2-for-clients__perks dd { margin: 0; font-size: var(--pc-f
   html[data-ui="v2"] .pc2-for-clients__faq, html[data-ui="v2"] .pc2-for-clients__steps, html[data-ui="v2"] .pc2-for-clients__perks { grid-template-columns: 1fr; }
   html[data-ui="v2"] .pc2-for-clients__faq { gap: var(--pc-space-8); }
   html[data-ui="v2"] .pc2-for-clients__cabinet .pc2-btn { white-space: normal; text-align: center; line-height: var(--pc-lh-head); }
+}
+/* Public-Mobile.dc.html P3 (< 768px): search card in a column, topic strip, numbered step list. */
+html[data-ui="v2"] .pc2-for-clients__label-narrow { display: none; }
+@media (max-width: 767px) {
+  html[data-ui="v2"] .pc2-for-clients__label-wide { display: none; }
+  html[data-ui="v2"] .pc2-for-clients__label-narrow { display: inline; }
+  html[data-ui="v2"] .pc2-for-clients { padding-top: 0; }
+  html[data-ui="v2"] .pc2-for-clients__hero { display: block; margin: 0 calc(var(--pc-gutter) * -1); padding: 24px var(--pc-gutter) 0; border-radius: 0; background: linear-gradient(180deg, var(--pc-teal-100) 0, var(--pc-bg-main) 360px); }
+  html[data-ui="v2"] .pc2-for-clients__intro { gap: 16px; }
+  html[data-ui="v2"] .pc2-for-clients__intro .pc2-for-clients__eyebrow { font-size: 13px; letter-spacing: .04em; color: var(--pc-demo-motion-accent); }
+  html[data-ui="v2"] .pc2-for-clients h1 { font-size: 36px; line-height: 1.04; letter-spacing: -.045em; text-wrap: balance; }
+  html[data-ui="v2"] .pc2-for-clients__lead { font-size: 16px; line-height: 1.55; color: var(--pc-teal-ink); text-wrap: pretty; }
+  html[data-ui="v2"] .pc2-for-clients__search { flex-direction: column; align-items: stretch; gap: 8px; min-height: 0; padding: 8px; border: 1px solid var(--pc-teal-200); border-radius: 22px; box-shadow: 0 12px 32px rgb(18 35 58 / 6%); }
+  html[data-ui="v2"] .pc2-for-clients[data-demo-phase="type"] .pc2-for-clients__search { border-color: var(--pc-teal-200); }
+  html[data-ui="v2"] .pc2-for-clients__search:focus-within { border-color: var(--pc-navy-900); }
+  html[data-ui="v2"] .pc2-for-clients__input-wrap { min-height: 52px; padding: 0 14px; }
+  html[data-ui="v2"] .pc2-for-clients__search input { padding: 14px 0; line-height: 1.4; }
+  html[data-ui="v2"] .pc2-for-clients__typed { inset: 50% 14px auto; color: var(--pc-text-soft); }
+  html[data-ui="v2"] .pc2-for-clients__search .pc2-btn { width: 100%; min-height: 52px; border-radius: 999px; font-size: 16px; font-weight: 500; }
+  html[data-ui="v2"] .pc2-for-clients .pc2-chips { flex-wrap: nowrap; gap: 6px; overflow-x: auto; margin: 0 calc(var(--pc-gutter) * -1); padding: 0 var(--pc-gutter); scrollbar-width: none; overscroll-behavior-x: contain; }
+  html[data-ui="v2"] .pc2-for-clients .pc2-chips::-webkit-scrollbar { display: none; }
+  html[data-ui="v2"] .pc2-for-clients .pc2-chip { flex-shrink: 0; white-space: nowrap; min-height: 40px; padding: 0 14px; font-size: 14px; }
+  html[data-ui="v2"] .pc2-for-clients .pc2-chip:not([aria-pressed="true"]) { background: var(--pc-bg-card); border-color: var(--pc-teal-200); }
+  html[data-ui="v2"] .pc2-for-clients__preview { display: none; }
+  html[data-ui="v2"] .pc2-for-clients__journey { padding-block: 32px var(--pc-space-12); }
+  html[data-ui="v2"] .pc2-for-clients__journey h2 { font-size: 24px; letter-spacing: -.03em; }
+  html[data-ui="v2"] .pc2-for-clients__steps { gap: 0; margin-top: 16px; }
+  html[data-ui="v2"] .pc2-for-clients__steps li { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; align-items: start; padding: 14px 0; border-top: 1px solid var(--pc-border-hair); }
+  html[data-ui="v2"] .pc2-for-clients__number { grid-row: 1 / span 2; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--pc-teal-100); color: var(--pc-teal-ink); font-size: 14px; font-weight: 500; }
+  html[data-ui="v2"] .pc2-for-clients__steps h3 { margin: 0; font-size: 16px; font-weight: 500; }
+  html[data-ui="v2"] .pc2-for-clients__steps p { font-size: 14px; line-height: 1.5; color: var(--pc-text-muted); }
 }
 @media (max-width: 639px) {
   html[data-ui="v2"] .pc2-for-clients__profile-card { grid-template-columns: 52px minmax(0, 1fr); }

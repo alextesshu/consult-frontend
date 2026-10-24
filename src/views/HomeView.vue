@@ -11,14 +11,25 @@
         <p class="pc2-home__lead">Публічна сторінка, запити, сесії й нотатки — один зрозумілий шлях від першого звернення до регулярної роботи.</p>
         <div class="pc2-home__actions">
           <button v-if="isAuthenticated" class="pc2-btn pc2-btn--primary" type="button" @click="goToCabinet">Перейти до кабінету</button>
-          <RouterLink v-else class="pc2-btn pc2-btn--primary" to="/signup">Створити свій простір</RouterLink>
-          <RouterLink class="pc2-btn pc2-btn--secondary" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+          <RouterLink v-else class="pc2-btn pc2-btn--primary" to="/signup"><span class="pc2-home__label-wide">Створити свій простір</span><span class="pc2-home__label-narrow">Створити простір безкоштовно</span></RouterLink>
+          <RouterLink class="pc2-btn pc2-btn--secondary pc2-home__wide-only" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+          <RouterLink class="pc2-btn pc2-btn--secondary pc2-home__narrow-only" :to="{ hash: '#how-it-works' }">Як це працює</RouterLink>
         </div>
         <p class="pc2-home__meta">Start — 0 грн · 30 днів Pro безкоштовно · 0% комісії з консультацій</p>
       </section>
 
       <section id="how-it-works" class="pc2-home__journey" aria-labelledby="workflow-title">
         <h2 id="workflow-title" class="pc2-home__sr-only">Від знайомства до регулярної роботи</h2>
+        <div class="pc2-home__strip">
+          <ol ref="stripTrack" class="pc2-home__strip-track" tabindex="0" aria-label="Етапи роботи, гортайте вбік" @scroll.passive="onStripScroll">
+            <li v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__strip-card">
+              <span>Крок {{ index + 1 }} з 4</span><h3>{{ step.title }}</h3><p>{{ step.copy }}</p>
+            </li>
+          </ol>
+          <div class="pc2-home__dots" role="group" aria-label="Перейти до кроку">
+            <button v-for="(step, index) in journeySteps" :key="step.label" type="button" :aria-label="`Крок ${index + 1} з 4: ${step.title}`" :aria-current="stripIndex === index ? 'step' : undefined" @click="scrollStripTo(index)"><span></span></button>
+          </div>
+        </div>
         <div class="pc2-home__steps" role="group" aria-label="Етапи роботи">
           <span class="pc2-home__track" aria-hidden="true"><span :style="{ width: `${activeJourneyStep / 3 * 100}%` }"></span></span>
           <button v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__step" :class="{ 'is-complete': index <= activeJourneyStep }" type="button" :aria-pressed="activeJourneyStep === index" aria-controls="home-journey-panel" @click="pickJourneyStep(index)">
@@ -552,6 +563,7 @@ import homeMarkBand from '../assets/home-v2/mark-band.png'
 import homeDemoPortrait from '../assets/home-v2/maria-koval.webp'
 import homeFennec from '../assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 import { useHomeMotion } from '../composables/useHomeMotion'
+import { useSnapStrip } from '../composables/useSnapStrip'
 import { isUiV2 } from '../lib/uiVersion'
 import heroSpecialistDemo from '../assets/home/hero-specialist-demo.webp'
 
@@ -578,6 +590,8 @@ let clientEntryCtaTracked = false
 const homeRoot = ref<HTMLElement | null>(null)
 const { index: activeJourneyStep, automatic: homeAutomatic, reduced: homeReduced, hidden: homeHidden,
   seen: homeSeen, pick: pickJourneyStep, toggle: toggleJourney } = useHomeMotion(isUiV2, homeRoot)
+const stripTrack = ref<HTMLElement | null>(null)
+const { index: stripIndex, onScroll: onStripScroll, scrollTo: scrollStripTo } = useSnapStrip(stripTrack)
 function journeyLayer(step: number, visible = activeJourneyStep.value === step) {
   return { opacity: visible ? 1 : 0, transform: `translateY(${visible ? 0 : step < activeJourneyStep.value ? -14 : step === 2 ? 16 : 14}px)` }
 }
@@ -4163,6 +4177,42 @@ html[data-ui="v2"] .pc2-home__mini-calendar time { font-size: 12px; opacity: .8;
   html[data-ui="v2"] .pc2-home__profile-footer { flex-wrap: wrap; }
   html[data-ui="v2"] .pc2-home__work-layer { padding: 0; }
   html[data-ui="v2"] .pc2-home__work-preview li { flex-wrap: wrap; padding: 10px 12px; gap: 4px; font-size: 14px; }
+}
+/* Public-Mobile.dc.html P1 (< 768px): centered hero, 72px mark, full-width actions, snap step strip. */
+html[data-ui="v2"] .pc2-home__strip, html[data-ui="v2"] .pc2-home__label-narrow, html[data-ui="v2"] .pc2-home__narrow-only { display: none; }
+@media (max-width: 767px) {
+  html[data-ui="v2"] .pc2-home__label-wide, html[data-ui="v2"] .pc2-home__wide-only { display: none; }
+  html[data-ui="v2"] .pc2-home__label-narrow { display: inline; }
+  html[data-ui="v2"] .pc2-home .pc2-home__narrow-only { display: inline-flex; }
+  html[data-ui="v2"] .pc2-home__hero { display: flex; flex-direction: column; gap: 18px; padding: 28px 0 0; }
+  html[data-ui="v2"] .pc2-home__listen { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; background: var(--pc-info-soft); }
+  html[data-ui="v2"] .pc2-home__hero-mark { inset: 14px; width: 44px; height: 44px; }
+  html[data-ui="v2"] .pc2-home__hero .pc2-home__eyebrow { margin: 0; font-size: 13px; color: var(--pc-teal-ink); }
+  html[data-ui="v2"] .pc2-home__hero h1 { margin: 0; font-size: 36px; line-height: 1.05; letter-spacing: -.045em; }
+  html[data-ui="v2"] .pc2-home__hero .pc2-home__lead { margin: 0; font-size: 16px; line-height: 1.55; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-home__actions { flex-direction: column; flex-wrap: nowrap; gap: 8px; }
+  html[data-ui="v2"] .pc2-home__actions .pc2-btn { width: 100%; justify-content: center; padding: 0 20px; }
+  html[data-ui="v2"] .pc2-home__actions .pc2-btn--primary { min-height: 52px; font-size: 16px; font-weight: 500; }
+  html[data-ui="v2"] .pc2-home__actions .pc2-btn--secondary { min-height: 48px; font-size: 15px; font-weight: 400; border-color: var(--pc-border); }
+  html[data-ui="v2"] .pc2-home .pc2-home__meta { margin: 0; }
+  html[data-ui="v2"] .pc2-home__journey { padding: 26px 0 56px; }
+  html[data-ui="v2"] .pc2-home__steps, html[data-ui="v2"] .pc2-home__journey-panel, html[data-ui="v2"] .pc2-home__autoplay { display: none; }
+  html[data-ui="v2"] .pc2-home__strip { display: flex; flex-direction: column; gap: 18px; }
+  html[data-ui="v2"] .pc2-home__strip-track { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--pc-gutter); overscroll-behavior-x: contain; margin: 0 calc(var(--pc-gutter) * -1); padding: 0 var(--pc-gutter); list-style: none; scrollbar-width: none; }
+  html[data-ui="v2"] .pc2-home__strip-track::-webkit-scrollbar { display: none; }
+  html[data-ui="v2"] .pc2-home__strip-track:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: -2px; }
+  html[data-ui="v2"] .pc2-home__strip-card { flex: 0 0 82%; scroll-snap-align: start; display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 20px; background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); }
+  html[data-ui="v2"] .pc2-home__strip-card > span { font-size: 12px; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-home__strip-card h3 { margin: 0; font-size: 19px; letter-spacing: -.02em; line-height: 1.2; }
+  html[data-ui="v2"] .pc2-home__strip-card p { font-size: 14px; line-height: 1.5; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-home__dots { display: flex; justify-content: center; gap: 6px; }
+  html[data-ui="v2"] .pc2-home__dots button { display: grid; place-items: center; min-width: 6px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; }
+  html[data-ui="v2"] .pc2-home__dots button > span { display: block; width: 6px; height: 6px; border-radius: 999px; background: var(--pc-border-strong); transition: width .3s ease, background .3s ease; }
+  html[data-ui="v2"] .pc2-home__dots button[aria-current="step"] > span { width: 18px; background: var(--pc-navy-900); }
+  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: 1fr; }
+  html[data-ui="v2"] .pc2-home__feature--profile, html[data-ui="v2"] .pc2-home__feature--sessions { grid-column: auto; flex-direction: column; }
+  html[data-ui="v2"] .pc2-home__mini-profile, html[data-ui="v2"] .pc2-home__mini-calendar { width: 100%; }
+  html[data-ui="v2"] .pc2-home__plans { grid-template-columns: 1fr; }
 }
 html[data-ui="v2"] .pc2-home.is-reduced *, html[data-ui="v2"] .pc2-home.is-reduced *::before { animation: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {

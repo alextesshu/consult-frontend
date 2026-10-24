@@ -1,0 +1,38 @@
+// Captures the original Claude prototype frames P1–P6 and the P4 sheet transition.
+// Adaptation: React runtime from unpkg is allowed; the component instance is exposed to drive state.
+const { chromium, fs, out, path, repo, source, candidate, context, settle } = require('./common.cjs')
+;(async () => {
+  const browser = await chromium.launch()
+  const { c, p, errors } = await context(browser, 1440, { height: 1000, video: true })
+  await c.route('https://unpkg.com/**', (r) => r.continue())
+  const raw = fs.readFileSync(path.join(repo, source, 'Public-Mobile.dc.html'), 'utf8')
+  await c.route('**/Public-Mobile.dc.html', (r) => r.fulfill({ contentType: 'text/html', body: raw.replace('renderVals() {', 'renderVals() { window.__pm = this;') }))
+  await p.goto(candidate + source + 'Public-Mobile.dc.html')
+  await p.waitForFunction(() => !!window.__pm && document.getElementById('p6').getBoundingClientRect().width > 0)
+  await settle(p, 1200)
+  for (const id of ['p1', 'p2', 'p3', 'p4', 'p5', 'p6']) await p.locator('#' + id).screenshot({ path: path.join(out, `claude-${id}.png`) })
+  const sheet = () => p.evaluate(() => {
+    const el = [...document.querySelectorAll('#p4 div')].find((d) => d.style.height === '72%')
+    const dim = [...document.querySelectorAll('#p4 div')].find((d) => d.style.background.includes('0.42'))
+    const s = getComputedStyle(el), dS = getComputedStyle(dim)
+    return { heightRatio: el.getBoundingClientRect().height / el.parentElement.getBoundingClientRect().height, transition: s.transition, transform: s.transform, dimTransition: dS.transition, dimOpacity: dS.opacity }
+  })
+  const open = await sheet()
+  await p.evaluate(() => window.__pm.setState({ f: false }))
+  await p.waitForTimeout(150)
+  await p.locator('#p4').screenshot({ path: path.join(out, 'claude-p4-sheet-closing.png') })
+  await p.waitForTimeout(600)
+  await p.locator('#p4').screenshot({ path: path.join(out, 'claude-p4-sheet-closed.png') })
+  const closed = await sheet()
+  await p.evaluate(() => window.__pm.setState({ f: true }))
+  await p.waitForTimeout(150)
+  await p.locator('#p4').screenshot({ path: path.join(out, 'claude-p4-sheet-opening.png') })
+  await p.waitForTimeout(700)
+  const result = { open, closed, errors, adaptation: 'Component instance exposed via renderVals hook; content, styles and handlers unchanged.' }
+  fs.writeFileSync(path.join(out, 'source-captures.json'), JSON.stringify(result, null, 2) + '\n')
+  console.log(JSON.stringify(result))
+  const video = p.video()
+  await c.close()
+  if (video) await video.saveAs(path.join(out, 'recordings', 'claude-p4-sheet.webm'))
+  await browser.close()
+})().catch((e) => { console.error(e); process.exit(1) })

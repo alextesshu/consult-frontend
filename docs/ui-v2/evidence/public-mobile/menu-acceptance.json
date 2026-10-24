@@ -1,0 +1,197 @@
+[
+  {
+    "width": 375,
+    "audience": "specialists",
+    "rows": [
+      {
+        "text": "Як це працює→",
+        "height": 56,
+        "href": "/#how-it-works"
+      },
+      {
+        "text": "Можливості→",
+        "height": 56,
+        "href": "/#features"
+      },
+      {
+        "text": "Тарифи→",
+        "height": 56,
+        "href": "/#pricing"
+      },
+      {
+        "text": "Часті питання→",
+        "height": 56,
+        "href": "/faq"
+      }
+    ],
+    "scrollLocked": "hidden",
+    "closedOnEscape": true,
+    "focusAfterClose": "BODY",
+    "overflow": {
+      "scrollWidth": 375,
+      "innerWidth": 375,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 375,
+    "audience": "clients",
+    "rows": [
+      {
+        "text": "Знайти спеціаліста→",
+        "height": 56,
+        "href": "/specialists"
+      },
+      {
+        "text": "Як це працює→",
+        "height": 56,
+        "href": "/for-clients#clients-journey-title"
+      },
+      {
+        "text": "Часті питання→",
+        "height": 56,
+        "href": "/for-clients#clients-faq-title"
+      }
+    ],
+    "scrollLocked": "hidden",
+    "closedOnEscape": true,
+    "focusAfterClose": "BODY",
+    "overflow": {
+      "scrollWidth": 375,
+      "innerWidth": 375,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 390,
+    "audience": "specialists",
+    "rows": [
+      {
+        "text": "Як це працює→",
+        "height": 56,
+        "href": "/#how-it-works"
+      },
+      {
+        "text": "Можливості→",
+        "height": 56,
+        "href": "/#features"
+      },
+      {
+        "text": "Тарифи→",
+        "height": 56,
+        "href": "/#pricing"
+      },
+      {
+        "text": "Часті питання→",
+        "height": 56,
+        "href": "/faq"
+      }
+    ],
+    "scrollLocked": "hidden",
+    "closedOnEscape": true,
+    "focusAfterClose": "BODY",
+    "overflow": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 390,
+    "audience": "clients",
+    "rows": [
+      {
+        "text": "Знайти спеціаліста→",
+        "height": 56,
+        "href": "/specialists"
+      },
+      {
+        "text": "Як це працює→",
+        "height": 56,
+        "href": "/for-clients#clients-journey-title"
+      },
+      {
+        "text": "Часті питання→",
+        "height": 56,
+        "href": "/for-clients#clients-faq-title"
+      }
+    ],
+    "scrollLocked": "hidden",
+    "closedOnEscape": true,
+    "focusAfterClose": "BODY",
+    "overflow": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 640,
+    "audience": "specialists",
+    "rows": [
+      {
+        "text": "Як це працює→",
+        "height": 56,
+        "href": "/#how-it-works"
+      },
+      {
+        "text": "Можливості→",
+        "height": 56,
+        "href": "/#features"
+      },
+      {
+        "text": "Тарифи→",
+        "height": 56,
+        "href": "/#pricing"
+      },
+      {
+        "text": "Часті питання→",
+        "height": 56,
+        "href": "/faq"
+      }
+    ],
+    "scrollLocked": "hidden",
+    "closedOnEscape": true,
+    "focusAfterClose": "BODY",
+    "overflow": {
+      "scrollWidth": 640,
+      "innerWidth": 640,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 640,
+    "audience": "clients",
+    "rows": [
+      {
+        "text": "Знайти спеціаліста→",
+        "height": 56,
+        "href": "/specialists"
+      },
+      {
+        "text": "Як це працює→",
+        "height": 56,
+        "href": "/for-clients#clients-journey-title"
+      },
+      {
+        "text": "Часті питання→",
+        "height": 56,
+        "href": "/for-clients#clients-faq-title"
+      }
+    ],
+    "scrollLocked": "hidden",
+    "closedOnEscape": true,
+    "focusAfterClose": "BODY",
+    "overflow": {
+      "scrollWidth": 640,
+      "innerWidth": 640,
+      "ok": true
+    },
+    "errors": []
+  }
+]

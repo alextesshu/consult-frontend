@@ -1,13 +1,17 @@
 <template>
   <section v-if="uiV2" ref="discoveryRoot" class="pc2-discovery" :class="{ 'is-reduced': motionReduced, 'is-hidden': motionHidden }" :data-placeholder-index="placeholderIndex" :data-placeholder-shown="placeholderShown" :data-results-ready="cardsReady">
-    <header class="pc2-discovery__hero">
+    <header class="pc2-discovery__hero" :class="{ 'is-landing': Boolean(landing) }">
       <h1>{{ landing?.heading || 'Знайдіть спеціаліста для вашого запиту' }}</h1>
       <p>{{ landing?.intro || 'Опишіть своїми словами або оберіть тему.' }} <span>Перше звернення — без реєстрації.</span></p>
+    </header>
+
+    <div class="pc2-discovery__bar">
+    <div class="pc2-discovery__bar-row">
       <form v-if="mode === 'request'" class="pc2-discovery__search" @submit.prevent="submitQuery">
         <label class="pc2-discovery__sr-only" for="discovery-query">Опишіть запит своїми словами</label>
         <div class="pc2-discovery__search-row">
           <div class="pc2-discovery__field">
-            <input id="discovery-query" v-model="queryDraft" type="text" autocomplete="off" :aria-invalid="fieldError?.field === 'q' ? 'true' : undefined" :aria-describedby="fieldError?.field === 'q' ? 'discovery-query-error' : 'discovery-query-hint'" @focus="focusSearch" @blur="blurSearch">
+            <input id="discovery-query" v-model="queryDraft" type="text" autocomplete="off" enterkeyhint="search" :aria-invalid="fieldError?.field === 'q' ? 'true' : undefined" :aria-describedby="fieldError?.field === 'q' ? 'discovery-query-error' : 'discovery-query-hint'" @focus="focusSearch" @blur="blurSearch">
             <span class="pc2-discovery__placeholder" aria-hidden="true" :class="{ 'is-off': !placeholderShown || Boolean(queryDraft) }">{{ discoveryPlaceholders[placeholderIndex] }}</span>
           </div>
           <button type="submit" class="pc2-btn pc2-btn--primary">Знайти</button>
@@ -15,7 +19,12 @@
         <p id="discovery-query-hint" class="pc2-discovery__sr-only">Введіть від 3 до 240 символів і натисніть «Знайти». Приклади не заповнюють поле.</p>
         <p v-if="fieldError?.field === 'q'" id="discovery-query-error" class="pc2-discovery__error" role="alert">{{ fieldError.detail }}</p>
       </form>
-    </header>
+      <p v-else class="pc2-discovery__bar-mode">Пошук за професійним напрямом</p>
+      <button ref="filtersTrigger" class="pc2-discovery__filters-toggle" type="button" aria-haspopup="dialog" aria-controls="discovery-filter-sheet" :aria-expanded="filtersOpen" :aria-label="activeFilterCount ? `Фільтри, активних: ${activeFilterCount}` : 'Фільтри'" @click="filtersOpen = true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        <span v-if="activeFilterCount" class="pc2-discovery__filters-count" aria-hidden="true">{{ activeFilterCount }}</span>
+      </button>
+    </div>
 
     <section class="pc2-discovery__filters" aria-label="Пошук спеціалістів">
       <div v-if="mode === 'request'" class="pc2-discovery__topics pc2-chips" role="group" aria-label="Оберіть запит">
@@ -47,6 +56,7 @@
       <p v-if="fieldError && fieldError.field !== 'q'" class="pc2-discovery__error" role="alert">{{ fieldError.detail }}</p>
       <RouterLink v-if="landing" class="pc2-discovery__broad" to="/specialists">{{ landing.broadDiscoveryLinkLabel }}</RouterLink>
     </section>
+    </div>
 
     <section class="pc2-discovery__results" :aria-busy="loading" aria-label="Результати пошуку">
       <p v-if="isPendingDirection">Оберіть професійний напрям, щоб переглянути спеціалістів.</p>
@@ -89,6 +99,34 @@
         </div></div>
       </section>
     </aside>
+
+    <Teleport to="body">
+      <div class="pc2-discovery-sheet" :class="{ 'is-open': filtersOpen, 'is-reduced': motionReduced }">
+        <div class="pc2-discovery-sheet__backdrop" aria-hidden="true" @click="filtersOpen = false"></div>
+        <div id="discovery-filter-sheet" ref="filtersPanel" class="pc2-discovery-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="discovery-filter-title" tabindex="-1" :aria-hidden="filtersOpen ? undefined : 'true'" :inert="filtersOpen ? undefined : true">
+          <div class="pc2-discovery-sheet__handle" aria-hidden="true"><span></span></div>
+          <div class="pc2-discovery-sheet__head"><h2 id="discovery-filter-title">Фільтри</h2><button type="button" :disabled="!hasActiveSearch" @click="reset">Скинути</button></div>
+          <div class="pc2-discovery-sheet__body">
+            <fieldset>
+              <legend>Спосіб пошуку</legend>
+              <div class="pc2-discovery-sheet__options">
+                <label><input name="sheet-discovery-mode" type="radio" :checked="mode === 'request'" @change="setMode('request')">За запитом</label>
+                <label><input name="sheet-discovery-mode" type="radio" :checked="mode === 'direction'" @change="setMode('direction')">За напрямом</label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Формат</legend>
+              <div class="pc2-discovery-sheet__options">
+                <label><input name="sheet-format" type="radio" :checked="format === 'online'" @change="setFormat('online')">Онлайн</label>
+                <label><input name="sheet-format" type="radio" :checked="format === 'offline'" @change="setFormat('offline')">Офлайн</label>
+                <label><input name="sheet-format" type="radio" :checked="format === null" @change="setFormat(null)">Будь-який</label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="pc2-discovery-sheet__foot"><button class="pc2-btn pc2-btn--primary" type="button" @click="filtersOpen = false">{{ sheetSubmitLabel }}</button></div>
+        </div>
+      </div>
+    </Teleport>
   </section>
 
   <section v-else class="discovery-page" :class="{ 'pc2-discovery': uiV2 }">
@@ -282,6 +320,7 @@ import { productAnalytics } from '../lib/productAnalytics'
 import { applyPublicPageMetadata, resetPublicPageMetadata } from '../lib/publicMetadata'
 import { isUiV2 } from '../lib/uiVersion'
 import { discoveryPlaceholders, useDiscoveryMotion } from '../composables/useDiscoveryMotion'
+import { useMobileOverlay } from '../composables/useMobileOverlay'
 import discoveryFennec from '../assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 import { PSYCHOLOGICAL_SUPPORT_LANDING } from '../lib/specialistDiscoveryLanding'
 
@@ -300,6 +339,18 @@ const { mode, queryDraft, requestGroup, direction, format, response, loading, fi
 const discoveryRoot = ref<HTMLElement | null>(null)
 const lookupOpen = ref(false)
 const { placeholderIndex, placeholderShown, reduced: motionReduced, hidden: motionHidden, cardsReady, focus: focusSearch, blur: blurSearch } = useDiscoveryMotion({ active: () => uiV2.value, query: () => queryDraft.value, loading: () => loading.value, root: discoveryRoot })
+// Public-Mobile.dc.html P4: only filters the discovery API supports live in the sheet.
+const filtersOpen = ref(false)
+const filtersTrigger = ref<HTMLElement | null>(null)
+const filtersPanel = ref<HTMLElement | null>(null)
+useMobileOverlay({ open: filtersOpen, panel: filtersPanel, trigger: filtersTrigger })
+const activeFilterCount = computed(() => (format.value ? 1 : 0) + (mode.value === 'direction' ? (direction.value ? 1 : 0) : (requestGroup.value ? 1 : 0)))
+const sheetSubmitLabel = computed(() => {
+  if (isPendingDirection.value) return 'Оберіть професійний напрям'
+  if (loading.value || !response.value) return 'Оновлюємо результати…'
+  return `Показати ${specialistCount(response.value.total)}`
+})
+watch(() => route.path, () => { filtersOpen.value = false })
 const legacyQuery = ref('')
 const legacyLoading = ref(false)
 const legacyError = ref(false)
@@ -479,7 +530,9 @@ onBeforeUnmount(resetPublicPageMetadata)
 html[data-ui="v2"] .pc2-discovery { --pc2-discovery-width: calc(min(100vw, 1240px) - var(--pc-gutter) * 2); width: var(--pc2-discovery-width); margin: -24px calc((100% - var(--pc2-discovery-width)) / 2) 0; min-width: 0; font-family: var(--pc-font); color: var(--pc-text-main); }
 html[data-ui="v2"] .pc2-discovery p { margin: 0; }
 html[data-ui="v2"] .pc2-discovery h1, html[data-ui="v2"] .pc2-discovery h2, html[data-ui="v2"] .pc2-discovery h3 { font-weight: 500; color: inherit; }
-html[data-ui="v2"] .pc2-discovery__hero { padding: clamp(48px,7vw,80px) 0 32px; max-width: 820px; }
+html[data-ui="v2"] .pc2-discovery__hero { padding: clamp(48px,7vw,80px) 0 0; max-width: 820px; }
+html[data-ui="v2"] .pc2-discovery__bar-row { max-width: 820px; padding-bottom: 32px; }
+html[data-ui="v2"] .pc2-discovery__bar-mode, html[data-ui="v2"] .pc2-discovery__filters-toggle, html[data-ui="v2"] .pc2-discovery-sheet { display: none; }
 html[data-ui="v2"] .pc2-discovery__hero h1 { font-size: clamp(38px,5vw,60px); line-height: 1.04; letter-spacing: -.04em; margin: 0 0 16px; text-wrap: balance; }
 html[data-ui="v2"] .pc2-discovery__hero > p { font-size: 18px; line-height: 1.6; color: var(--pc-text-body); margin: 0 0 32px; max-width: 560px; }
 html[data-ui="v2"] .pc2-discovery__search-row { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 22px; border-radius: 999px; background: var(--pc-bg-card); border: 1.5px solid var(--pc-border-hair); box-shadow: 0 16px 40px rgb(18 35 58 / 6%); transition: border-color .25s; }
@@ -570,6 +623,70 @@ html[data-ui="v2"] .pc2-discovery__sr-only { position: absolute; width: 1px; hei
   html[data-ui="v2"] .pc2-discovery__empty { padding: 32px 20px; }
   html[data-ui="v2"] .pc2-discovery__lookup-row { flex-wrap: wrap; }
   html[data-ui="v2"] .pc2-discovery__lookup-row input { flex-basis: 100%; width: 100%; }
+}
+/* Public-Mobile.dc.html P4 (< 768px): sticky search + filter button, quick chip strip, compact cards, bottom sheet. */
+@media (max-width: 767px) {
+  html[data-ui="v2"] .pc2-discovery { --pc2-discovery-width: calc(100vw - 32px); margin-top: -24px; }
+  html[data-ui="v2"] .pc2-discovery__hero:not(.is-landing) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  html[data-ui="v2"] .pc2-discovery__hero.is-landing { padding: 20px 0 12px; }
+  html[data-ui="v2"] .pc2-discovery__hero.is-landing h1 { font-size: 28px; margin-bottom: 8px; }
+  html[data-ui="v2"] .pc2-discovery__hero.is-landing > p { font-size: 15px; margin: 0; }
+  html[data-ui="v2"] .pc2-discovery__bar { position: sticky; top: var(--pc-header-h); z-index: 15; display: flex; flex-direction: column; gap: 10px; margin: 0 -16px; padding: 8px 16px 10px; background: var(--pc-bg-main); border-bottom: 1px solid var(--pc-border-hair); }
+  html[data-ui="v2"] .pc2-discovery__bar-row { display: flex; align-items: center; gap: 8px; max-width: none; padding: 0; }
+  html[data-ui="v2"] .pc2-discovery__search { flex: 1; min-width: 0; }
+  html[data-ui="v2"] .pc2-discovery__search-row { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  html[data-ui="v2"] .pc2-discovery__search-row .pc2-btn { display: none; }
+  html[data-ui="v2"] .pc2-discovery__field { height: 48px; border: 1.5px solid var(--pc-navy-900); border-radius: 999px; background: var(--pc-bg-card); }
+  html[data-ui="v2"] .pc2-discovery__field input { padding: 0 16px; border-radius: 999px; font-size: 15px; }
+  html[data-ui="v2"] .pc2-discovery__field:focus-within { box-shadow: 0 0 0 4px rgb(18 52 90 / 8%); }
+  html[data-ui="v2"] .pc2-discovery__placeholder { left: 16px; max-width: calc(100% - 32px); font-size: 15px; }
+  html[data-ui="v2"] .pc2-discovery__bar-mode { display: block; flex: 1; min-width: 0; font-size: 15px; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-discovery__filters-toggle { position: relative; display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; padding: 0; border: 1px solid var(--pc-border); border-radius: 50%; background: var(--pc-bg-card); color: var(--pc-text-main); cursor: pointer; }
+  html[data-ui="v2"] .pc2-discovery__filters-toggle svg { width: 20px; height: 20px; }
+  html[data-ui="v2"] .pc2-discovery__filters-count { position: absolute; top: -2px; right: -2px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--pc-navy-900); color: var(--pc-bg-card); font-size: 11px; font-weight: 600; }
+  html[data-ui="v2"] .pc2-discovery__filters { gap: 10px; padding-bottom: 0; border-bottom: 0; }
+  html[data-ui="v2"] .pc2-discovery__directions legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  html[data-ui="v2"] .pc2-discovery__topics { flex-wrap: nowrap; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  html[data-ui="v2"] .pc2-discovery__topics::-webkit-scrollbar { display: none; }
+  html[data-ui="v2"] .pc2-discovery__topics :is(button,label,a) { flex-shrink: 0; white-space: nowrap; min-height: 34px; padding: 0 12px; font-size: 13px; border-color: var(--pc-border); }
+  html[data-ui="v2"] .pc2-discovery__filter-row { display: none; }
+  html[data-ui="v2"] .pc2-discovery__broad { font-size: 13px; }
+  html[data-ui="v2"] .pc2-discovery__results { padding: 12px 0 40px; }
+  html[data-ui="v2"] .pc2-discovery__result-heading { flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 0 6px; margin-bottom: 10px; }
+  html[data-ui="v2"] .pc2-discovery__result-heading > div { gap: 8px; min-height: 20px; }
+  html[data-ui="v2"] .pc2-discovery__result-heading h2 { font-size: 13px; font-weight: 400; letter-spacing: 0; color: #5a6578; }
+  html[data-ui="v2"] .pc2-discovery__result-heading > p { font-size: 13px; color: #5a6578; }
+  html[data-ui="v2"] .pc2-discovery__result-heading > p::before { content: '· '; }
+  html[data-ui="v2"] .pc2-discovery__listen { width: 20px; height: 20px; }
+  html[data-ui="v2"] .pc2-discovery__list { gap: 10px; }
+  html[data-ui="v2"] .pc2-discovery__group-heading h3 { font-size: 17px; }
+  html[data-ui="v2"] .pc2-discovery__help { padding-bottom: 64px; }
+  html[data-ui="v2"] .pc2-discovery-sheet { display: block; position: fixed; inset: 0; z-index: 60; visibility: hidden; pointer-events: none; transition: visibility 0s .4s; font-family: var(--pc-font); color: var(--pc-text-main); }
+  html[data-ui="v2"] .pc2-discovery-sheet.is-open { visibility: visible; pointer-events: auto; transition: visibility 0s; }
+  html[data-ui="v2"] .pc2-discovery-sheet__backdrop { position: absolute; inset: 0; background: rgb(18 35 58 / 42%); opacity: 0; transition: opacity .3s; }
+  html[data-ui="v2"] .pc2-discovery-sheet.is-open .pc2-discovery-sheet__backdrop { opacity: 1; }
+  html[data-ui="v2"] .pc2-discovery-sheet__panel { position: absolute; left: 0; right: 0; bottom: 0; height: 72%; display: flex; flex-direction: column; background: var(--pc-bg-card); border-radius: 28px 28px 0 0; transform: translateY(105%); transition: transform .4s cubic-bezier(.2,.8,.2,1); outline: none; }
+  html[data-ui="v2"] .pc2-discovery-sheet.is-open .pc2-discovery-sheet__panel { transform: translateY(0); }
+  html[data-ui="v2"] .pc2-discovery-sheet__handle { display: flex; justify-content: center; padding: 10px 0 4px; }
+  html[data-ui="v2"] .pc2-discovery-sheet__handle span { width: 40px; height: 5px; border-radius: 999px; background: var(--pc-border-strong); }
+  html[data-ui="v2"] .pc2-discovery-sheet__head { display: flex; justify-content: space-between; align-items: center; padding: 4px 16px 8px; }
+  html[data-ui="v2"] .pc2-discovery-sheet__head h2 { margin: 0; font-size: 19px; font-weight: 500; color: inherit; }
+  html[data-ui="v2"] .pc2-discovery-sheet__head button { min-height: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 14px; color: var(--pc-navy-900); cursor: pointer; }
+  html[data-ui="v2"] .pc2-discovery-sheet__head button:disabled { color: var(--pc-text-soft); cursor: default; }
+  html[data-ui="v2"] .pc2-discovery-sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 18px; padding: 4px 16px 16px; }
+  html[data-ui="v2"] .pc2-discovery-sheet fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+  html[data-ui="v2"] .pc2-discovery-sheet legend { margin-bottom: 8px; padding: 0; font-size: 13px; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-discovery-sheet__options { display: flex; flex-wrap: wrap; gap: 6px; }
+  html[data-ui="v2"] .pc2-discovery-sheet__options label { position: relative; display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--pc-border); background: var(--pc-bg-card); color: var(--pc-text-main); font-size: 14px; white-space: nowrap; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+  html[data-ui="v2"] .pc2-discovery-sheet__options label:has(input:checked) { background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card); }
+  html[data-ui="v2"] .pc2-discovery-sheet__options input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  html[data-ui="v2"] .pc2-discovery-sheet__options label:has(input:focus-visible), html[data-ui="v2"] .pc2-discovery-sheet :is(button):focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+  html[data-ui="v2"] .pc2-discovery-sheet__foot { padding: 12px 16px max(28px, env(safe-area-inset-bottom)); border-top: 1px solid var(--pc-bg-sunk); }
+  html[data-ui="v2"] .pc2-discovery-sheet__foot .pc2-btn { width: 100%; min-height: 52px; justify-content: center; font-size: 16px; font-weight: 500; }
+  html[data-ui="v2"] .pc2-discovery-sheet.is-reduced *, html[data-ui="v2"] .pc2-discovery-sheet.is-reduced { transition: none; }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-discovery-sheet, html[data-ui="v2"] .pc2-discovery-sheet * { transition: none; }
 }
 html[data-ui="v2"] .pc2-discovery.is-reduced *, html[data-ui="v2"] .pc2-discovery.is-reduced *::before { animation: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {

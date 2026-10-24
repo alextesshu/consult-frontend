@@ -1,5 +1,37 @@
 ﻿<template>
-  <section class="auth">
+  <section v-if="uiV2" class="pc2-login" aria-labelledby="login-title">
+    <div class="pc2-login__column">
+      <h1 id="login-title" class="pc2-login__title"><span class="pc2-login__wide">З поверненням</span><span class="pc2-login__narrow">Вхід</span></h1>
+      <p class="pc2-login__lead pc2-login__wide">{{ loginRole === 'specialist' ? 'Розклад, клієнти й запити — там, де ви їх залишили.' : 'Сесії та матеріали від вашого спеціаліста.' }}</p>
+      <div class="pc2-login__roles" role="group" aria-label="Я входжу як">
+        <button v-for="option in loginRoleOptions" :key="option.value" type="button" :aria-pressed="loginRole === option.value" @click="setLoginRole(option.value)">{{ option.label }}</button>
+      </div>
+      <p v-if="isClientInviteRedirect" class="pc2-login__invite">
+        Ви відкрили запрошення до акаунта клієнта. Увійдіть, щоб продовжити підключення до клієнтської картки.
+      </p>
+      <form class="pc2-login__form" novalidate :aria-busy="loading" @submit.prevent="onSubmit">
+        <label class="pc2-login__field">
+          <span>Ел. пошта або логін</span>
+          <input v-model="identifier" type="text" name="identifier" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="name@example.com" :aria-invalid="error ? 'true' : undefined" :aria-describedby="error ? 'login-error' : undefined" />
+        </label>
+        <div class="pc2-login__field">
+          <span class="pc2-login__label-row"><label for="login-password">Пароль</label><RouterLink to="/forgot-password">Забули пароль?</RouterLink></span>
+          <span class="pc2-login__password">
+            <input id="login-password" v-model="password" :type="showPassword ? 'text' : 'password'" name="password" autocomplete="current-password" placeholder="••••••••" :aria-invalid="error ? 'true' : undefined" :aria-describedby="error ? 'login-error' : undefined" />
+            <button type="button" :aria-label="showPassword ? 'Сховати пароль' : 'Показати пароль'" @click="showPassword = !showPassword">{{ showPassword ? 'Сховати' : 'Показати' }}</button>
+          </span>
+        </div>
+        <p v-if="error" id="login-error" class="pc2-login__error" role="alert">{{ error }}</p>
+        <button class="pc2-login__submit" type="submit" :disabled="loading">{{ loading ? 'Входимо…' : 'Увійти' }}</button>
+      </form>
+      <p class="pc2-login__foot">
+        <template v-if="loginRole === 'specialist'">Ще немає простору? <RouterLink to="/signup">Створити безкоштовно</RouterLink></template>
+        <template v-else>Шукаєте спеціаліста? <RouterLink to="/specialists">Знайти без реєстрації</RouterLink></template>
+      </p>
+      <p class="pc2-login__legal">Продовжуючи, ви погоджуєтеся з <RouterLink to="/terms">Умовами</RouterLink> та <RouterLink to="/privacy">Політикою конфіденційності</RouterLink>.</p>
+    </div>
+  </section>
+  <section v-else class="auth">
     <div class="auth__card">
       <div class="badge">Вхід</div>
       <h1 class="title auth__title">Повернення до кабінету</h1>
@@ -117,6 +149,30 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from '../lib/entitlementReconcile'
+import { isUiV2 } from '../lib/uiVersion'
+
+const uiV2 = computed(isUiV2)
+// Auth.dc.html role switch: presentation only (copy and footer link). Login itself stays role-agnostic.
+type LoginRole = 'client' | 'specialist'
+const LOGIN_ROLE_KEY = 'pc-auth-role'
+const loginRoleOptions: Array<{ value: LoginRole; label: string }> = [
+  { value: 'client', label: 'Я клієнт' },
+  { value: 'specialist', label: 'Я спеціаліст' },
+]
+function storedLoginRole(): LoginRole {
+  try {
+    const value = window.localStorage.getItem(LOGIN_ROLE_KEY)
+    if (value === 'client' || value === 'specialist') return value
+  } catch {
+    // Storage may be unavailable; the switch still works for this page.
+  }
+  return 'client'
+}
+const loginRole = ref<LoginRole>(storedLoginRole())
+function setLoginRole(value: LoginRole) {
+  loginRole.value = value
+  try { window.localStorage.setItem(LOGIN_ROLE_KEY, value) } catch { /* Keep the in-page choice. */ }
+}
 
 const identifier = ref('')
 const password = ref('')
@@ -419,5 +475,53 @@ onMounted(() => {
   .auth {
     grid-template-columns: 1fr;
   }
+}
+</style>
+
+<style>
+/* Auth.dc.html login form + Public-Mobile.dc.html P5; v1 keeps the scoped .auth layout above. */
+html[data-ui="v2"] .pc2-login { padding: clamp(32px, 7vh, 80px) clamp(0px, 3vw, 48px) 40px; font-family: var(--pc-font); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-login__column { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 420px; margin: 0 auto; }
+html[data-ui="v2"] .pc2-login p { margin: 0; }
+html[data-ui="v2"] .pc2-login__title { margin: 0 0 -10px; font-size: clamp(32px, 3.4vw, 42px); font-weight: 500; line-height: 1.08; letter-spacing: -.035em; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-login__narrow { display: none; }
+html[data-ui="v2"] .pc2-login__lead { font-size: 16px; line-height: 1.55; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-login__roles { order: -1; display: flex; align-self: flex-start; gap: 2px; padding: 4px; border-radius: 999px; background: var(--pc-bg-sunk); }
+html[data-ui="v2"] .pc2-login__roles button { padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--pc-text-muted); font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer; transition: all .25s; }
+html[data-ui="v2"] .pc2-login__roles button[aria-pressed="true"] { background: var(--pc-bg-card); color: var(--pc-text-main); box-shadow: 0 1px 2px rgb(18 35 58 / 10%); }
+html[data-ui="v2"] .pc2-login__invite { padding: 14px 16px; border-radius: 16px; background: var(--pc-teal-100); color: var(--pc-teal-ink); font-size: 14px; line-height: 1.45; }
+html[data-ui="v2"] .pc2-login__form { display: flex; flex-direction: column; gap: 16px; }
+html[data-ui="v2"] .pc2-login__field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-login__label-row { display: flex; justify-content: space-between; gap: 12px; }
+html[data-ui="v2"] .pc2-login__label-row a, html[data-ui="v2"] .pc2-login__foot a, html[data-ui="v2"] .pc2-login__legal a { color: var(--pc-navy-900); text-decoration: none; }
+html[data-ui="v2"] .pc2-login__label-row a:hover, html[data-ui="v2"] .pc2-login__foot a:hover, html[data-ui="v2"] .pc2-login__legal a:hover { color: var(--pc-navy-950); text-decoration: underline; }
+html[data-ui="v2"] .pc2-login__field input { width: 100%; height: 54px; padding: 0 16px; border: 1.5px solid var(--pc-border); border-radius: 14px; background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; font-size: 16px; outline: none; transition: border-color .2s, box-shadow .2s; }
+html[data-ui="v2"] .pc2-login__field input::placeholder { color: var(--pc-text-soft); }
+html[data-ui="v2"] .pc2-login__field input:focus { border-color: var(--pc-navy-900); box-shadow: 0 0 0 4px rgb(18 52 90 / 8%); }
+html[data-ui="v2"] .pc2-login__field input[aria-invalid="true"] { border-color: color-mix(in srgb, var(--pc-danger) 45%, var(--pc-bg-card)); }
+html[data-ui="v2"] .pc2-login__password { position: relative; display: block; }
+html[data-ui="v2"] .pc2-login__password input { padding-right: 96px; }
+html[data-ui="v2"] .pc2-login__password button { position: absolute; top: 8px; right: 8px; height: 38px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: var(--pc-navy-900); font: inherit; font-size: 13px; cursor: pointer; }
+html[data-ui="v2"] .pc2-login__password button:hover { background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-login__error { font-size: 14px; line-height: 1.45; color: var(--pc-danger); }
+html[data-ui="v2"] .pc2-login__submit { min-height: 54px; padding: 0 24px; border: 0; border-radius: 999px; background: var(--pc-navy-900); color: var(--pc-bg-card); font: inherit; font-size: 16px; font-weight: 500; cursor: pointer; transition: background .3s; }
+html[data-ui="v2"] .pc2-login__submit:hover { background: var(--pc-navy-950); }
+html[data-ui="v2"] .pc2-login__submit:disabled { background: #b7c0cc; cursor: default; }
+html[data-ui="v2"] .pc2-login__foot { font-size: 14px; line-height: 1.55; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-login__legal { font-size: 13px; line-height: 1.5; color: var(--pc-text-soft); }
+html[data-ui="v2"] .pc2-login :focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+@media (max-width: 767px) {
+  html[data-ui="v2"] .pc2-login { padding: 20px 0 32px; }
+  html[data-ui="v2"] .pc2-login__column { gap: 16px; max-width: none; }
+  html[data-ui="v2"] .pc2-login__wide { display: none; }
+  html[data-ui="v2"] .pc2-login__narrow { display: inline; }
+  html[data-ui="v2"] .pc2-login__title { margin: 0; font-size: 32px; }
+  html[data-ui="v2"] .pc2-login__roles { order: 0; display: grid; grid-template-columns: 1fr 1fr; align-self: stretch; padding: 3px; }
+  html[data-ui="v2"] .pc2-login__roles button { height: 40px; padding: 0 8px; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-login__foot { margin-top: 8px; text-align: center; }
+  html[data-ui="v2"] .pc2-login__legal { text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-login * { transition: none; }
 }
 </style>
