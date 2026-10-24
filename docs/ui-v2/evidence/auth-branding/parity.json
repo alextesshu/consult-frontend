@@ -1,0 +1,450 @@
+[
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 51,
+    "controlVsBaseline": 51
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/login",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/s/olena",
+    "candidateVsBaseline": 199,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 199
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 1954,
+    "controlVsBaseline": 1954
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/specialists",
+    "candidateVsBaseline": 55,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 55
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/login",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/login",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 35,
+    "controlVsBaseline": 35
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/login",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 2155,
+    "controlVsBaseline": 2155
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/specialists",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 18,
+    "controlVsBaseline": 18
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/cabinet",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/specialists",
+    "candidateVsBaseline": 18,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 18
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/faq",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/s/olena",
+    "candidateVsBaseline": 0,
+    "candidateVsControl": 0,
+    "controlVsBaseline": 0
+  }
+]
