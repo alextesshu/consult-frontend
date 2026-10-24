@@ -1,5 +1,5 @@
 <template>
-  <section v-if="uiV2" class="pc2-inquiries" :class="{ 'is-thread-open': detailOpen }" aria-label="Короткі запити клієнтів">
+  <section v-if="uiV2" class="pc2-inquiries" :class="{ 'is-thread-open': detailOpen, 'is-list-empty': !threadsLoading && !listError && !visibleThreads.length }" aria-label="Короткі запити клієнтів">
     <aside ref="listPane" class="pc2-inquiries__list" aria-labelledby="inquiries-title">
       <div class="pc2-inquiries__intro">
         <h1 id="inquiries-title">Запити</h1>

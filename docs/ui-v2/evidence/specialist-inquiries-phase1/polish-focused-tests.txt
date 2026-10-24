@@ -1,0 +1,13 @@
+> frontend@0.0.0 test:run
+> vitest run src/views/SpecialistInquiriesView.spec.ts src/styles/inquiriesV2.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_specialist_inquiries_v2
+
+ ✓ src/views/SpecialistInquiriesView.spec.ts (19 tests) 601ms
+ ✓ src/styles/inquiriesV2.spec.ts (3 tests) 17ms
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  19:18:46
+   Duration  2.62s (transform 280ms, setup 145ms, collect 506ms, tests 618ms, environment 910ms, prepare 163ms)

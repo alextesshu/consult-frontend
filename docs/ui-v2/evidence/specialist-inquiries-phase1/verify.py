@@ -55,6 +55,27 @@ for name in ['v1-parity.json', 'incoming-v1-parity.json']:
     else:
         assert rows == json.loads((HERE / name).read_text())
 diagnostics = lambda file: re.findall(r'^src/[^\n]+error TS[^\n]+', (HERE / file).read_text(encoding='utf8'), re.M)
+polish = json.loads((HERE / 'polish-browser-results.json').read_text())
+assert [row['width'] for row in polish['rows']] == [375, 390, 640, 768, 1280]
+for row in polish['rows']:
+    width, before, after = row['width'], row['before'], row['after']
+    assert after['list']['root']['height'] == before['list']['root']['height']
+    for state in ['list', 'empty', 'detail', 'sending']:
+        assert after[state]['scrollWidth'] <= width
+    assert after['filters']['scrollWidth'] <= after['filters']['clientWidth']
+    assert len(after['filters']['tabs']) == 3
+    if width < 1024:
+        assert after['empty']['root']['height'] < min(400, before['empty']['root']['height'])
+desktop_pixels = []
+for state in ['list', 'empty']:
+    first, second = [Image.open(HERE / f'polish-{label}-1280-{state}.png').convert('RGB') for label in ['before', 'after']]
+    assert first.size == second.size and ImageChops.difference(first, second).getbbox() is None, state
+    desktop_pixels.append({'width': 1280, 'state': state, 'changedPixels': 0})
+if refresh:
+    save('polish-desktop-parity.json', desktop_pixels)
+else:
+    assert desktop_pixels == json.loads((HERE / 'polish-desktop-parity.json').read_text())
+assert diagnostics('sync-typecheck-baseline.txt') == diagnostics('polish-typecheck-candidate.txt')
 sync = json.loads((HERE / 'sync-browser-results.json').read_text())
 assert [row['width'] for row in sync['rows']] == [375, 390, 768, 1280]
 sync_pixels = []
@@ -93,4 +114,4 @@ if refresh:
 else:
     assert manifest == json.loads((HERE / 'manifest.json').read_text(encoding='utf8'))
 subprocess.run(['git', 'diff', '--check'], cwd=ROOT, check=True)
-print(f'PASS: strict scope; V1 unchanged; 20 zero-pixel pairs including 4 actual merged-dev pairs; 8 original widths/9 states/motion; 4 merged widths; 9 baseline diagnostics; {len(inventory)} hashes')
+print(f'PASS: strict scope; V1 unchanged; 20 V1 and 2 desktop zero-pixel pairs; 8 widths/9 states/motion; 5 polish widths/all filters/compact empty; 9 baseline diagnostics; {len(inventory)} hashes')

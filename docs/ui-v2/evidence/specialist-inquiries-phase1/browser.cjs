@@ -50,7 +50,7 @@ async function bounds(p) {const result=await p.evaluate(()=>({innerWidth,scrollW
 async function shot(p,name) {await bounds(p);await p.mouse.move(0,0);await p.screenshot({path:path.join(out,name+'.png'),fullPage:true,animations:'disabled'})}
 async function choose(p,id) {await p.locator('#inquiry-thread-'+id).click();await p.locator('.pc2-inquiries__message p').filter({hasText:`Тестовий текст треду ${id}`}).waitFor()}
 async function waitSend(data) {for(let i=0;i<50&&!data.releaseSend;i++)await new Promise(r=>setTimeout(r,10));assert(data.releaseSend,'Fixture POST was not reached')}
-(async()=>{
+async function main(){
  const browser=await chromium.launch({args:['--disable-gpu','--disable-lcd-text','--force-color-profile=srgb']});const matrix=[],states=[],parity=[];
  try {
   // Warm Chromium's font raster cache before comparing independent V1 contexts.
@@ -107,4 +107,6 @@ async function waitSend(data) {for(let i=0;i<50&&!data.releaseSend;i++)await new
   }
   fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify({api:'explicit intercepted browser fixtures; no real backend acceptance',matrix,states,parity,motionResults},null,2)+'\n');
  }finally{await browser.close()}
-})().catch(error=>{console.error(error);process.exit(1)});
+}
+module.exports={open,shot,bounds,choose,waitSend};
+if(require.main===module)main().catch(error=>{console.error(error);process.exit(1)});

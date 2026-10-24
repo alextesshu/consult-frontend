@@ -271,6 +271,22 @@ describe('SpecialistInquiriesView v2 and reliability', () => {
     expect(remove).toHaveBeenCalledTimes(2)
   })
 
+  it('marks only a settled empty filter for compact content sizing', async () => {
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query.includes('1023px'), addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+    const pending = deferred<ReturnType<typeof buildThread>[]>()
+    mockedFetchInquiryThreads.mockReturnValue(pending.promise)
+    const { container } = renderView()
+    await screen.findByText('Завантажуємо запити…')
+    expect(container.querySelector('.pc2-inquiries')).not.toHaveClass('is-list-empty')
+    pending.resolve([buildThread()])
+    await screen.findByRole('tab', { name: 'Чекають відповіді 1' })
+    expect(container.querySelector('.pc2-inquiries')).not.toHaveClass('is-list-empty')
+    await fireEvent.click(screen.getByRole('tab', { name: 'Завершені 0' }))
+    expect(container.querySelector('.pc2-inquiries')).toHaveClass('is-list-empty')
+    await fireEvent.click(screen.getByRole('tab', { name: 'Чекають відповіді 1' }))
+    expect(container.querySelector('.pc2-inquiries')).not.toHaveClass('is-list-empty')
+  })
+
   it.each(['removed', 'forbidden'])('returns compact mode to the list when refreshed selection is %s', async outcome => {
     vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query.includes('1023px'), addEventListener: vi.fn(), removeEventListener: vi.fn() })))
     mockedSendInquiryMessage.mockResolvedValue(message(91, 'Accepted reply'))

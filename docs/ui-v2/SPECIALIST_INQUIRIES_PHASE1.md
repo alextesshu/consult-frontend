@@ -4,6 +4,26 @@
 
 Historical pre-sync validation: during implementation branding PR #68 merged; target dev became `6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00`. No automatic merge/rebase was performed. Its two runtime files were read through a temporary Vite git-show overlay for separate prospective integration checks. They were never copied into this worktree. Final PR CI is recorded separately for the pushed SHA; the workflow uses the normal pull_request checkout.
 
+## Mobile visual-review corrections
+
+Follow-up to review of HEAD `6395039d1795ba3a1642d923d3fd2171de3573fb`. M9 intentionally uses a horizontally scrollable 36px chip strip inside a 375px prototype phone. The current Cabinet Shell leaves a narrower local content area, causing the next chip to look clipped. The approved correction wraps the existing mobile chips onto complete lines at <=767px; labels, counts, colors, 36px target height, tab semantics and keyboard behavior remain. This is an explicit review-approved deviation from the source strip, not a replacement design source.
+
+The oversized empty container came from the same viewport-based root height as a populated working panel. A page-local `is-list-empty` presentation class applies only after loading finishes without a list error and when the current filter has no visible threads. At <=1023px, only a closed-detail empty list uses intrinsic height. Populated lists and open detail keep their working height; desktop has no new layout override. No mutation, DTO, API, shell, navigation or badge logic changed.
+
+| Width | Empty panel before | Empty panel after |
+| --- | --- | --- |
+| 375 | 720px | 328.59px |
+| 390 | 720px | 286.59px |
+| 640 | 720px | 223.59px |
+| 768 | 760px | 278.39px |
+| 1280 | 760px | 760px |
+
+[375px before filters](evidence/specialist-inquiries-phase1/polish-before-375-list.png), [375px after filters](evidence/specialist-inquiries-phase1/polish-after-375-list.png), [375px compact empty](evidence/specialist-inquiries-phase1/polish-after-375-empty.png). Complete per-width list/empty/detail/sending captures and measured filter bounds: [polish browser results](evidence/specialist-inquiries-phase1/polish-browser-results.json). Baseline preview reads the exact pre-correction view/CSS from Git without checkout or shared source changes.
+
+Latest local validation: focused **22/22 PASS**, full frontend Vitest **1964/1964 PASS** (129 files), production build PASS (existing chunk warning), forced typecheck **9 unchanged dev baseline diagnostics, 0 new** (advisory exit 2). [Focused tests](evidence/specialist-inquiries-phase1/polish-focused-tests.txt), [full tests](evidence/specialist-inquiries-phase1/polish-full-tests.txt), [typecheck comparison](evidence/specialist-inquiries-phase1/polish-typecheck-comparison.json). The original eight-width, nine-state and normal/reduced-motion browser harness was rerun successfully. V1 parity is **0 changed pixels on all eight widths**, including 375/390/640/768/1280px requested for this review. Captures use identical standard Chromium settings and completed render frames on both sides; no image masks/tolerances. Final automatic CI is recorded on PR #69 for the pushed SHA.
+
+All three filters are fully contained, selectable and keyboard-accessible. Empty filters are also checked individually. At 1280px both list and empty screenshots have **0 changed pixels** against the pre-correction branch: [desktop parity](evidence/specialist-inquiries-phase1/polish-desktop-parity.json). Existing API fixture limitations and product gates remain unchanged.
+
 ## Actual dev synchronization acceptance
 
 2026-10-24 follow-up: current origin/dev is `6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00`. It was merged into the existing feature branch with merge commit `22238ffb7a39c2b8b1a2f08139fdeb7ccc5abb12`, without conflicts or force push. No inquiry runtime edits were needed. App.vue, its tests and shared CSS came directly from the authorized dev merge; no shared-shell customization was made.
@@ -26,7 +46,7 @@ Sources: [Inquiries desktop/responsive HTML](snapshots/2026-10-23-4ff7cedd/hando
 | Source feature | Phase 1 result | Classification |
 | --- | --- | --- |
 | Desktop list/detail | Existing shell hosts a 280–360px list and minmax(0,1fr) detail pane; independent scroll regions; <1024px switches to one panel. Onest, navy/cream palette, 16px cards, two-line previews and colored status banners follow source. | IMPLEMENTED |
-| M9 list | 26px mobile title, horizontally scrollable 36px filter chips, 14px/two-line previews, unread dot/orange border, actual counts. Initial compact route shows the list unless thread_id is supplied. | IMPLEMENTED |
+| M9 list | 26px mobile title, 36px filter chips (wrapped after mobile visual review), 14px/two-line previews, unread dot/orange border, actual counts. Initial compact route shows the list unless thread_id is supplied. | IMPLEMENTED |
 | M10 thread | Back target 44px, heading, status, message bubbles, auto-growing composer (internal scroll capped at 200px). Existing registered-client card CTA is retained on a second mobile header row. | IMPLEMENTED WITH SHELL BOUNDARY |
 | Native accessible controls | Real buttons/tabs, arrow/Home/End filter navigation, focus to selected thread heading, Back restores list trigger/filter fallback; deep-link/history handling uses only existing thread_id. | IMPLEMENTED |
 | Motion | Row max-height 400ms +350ms delay; opacity 300ms +300ms delay; toast 350ms cubic-bezier(.2,.8,.2,1), 3200ms dwell. Actual server success drives transitions; no simulated 600ms API delay. Leaving rows are disabled/aria-hidden, removed after the transition, and all timers/listeners are cleaned up. | IMPLEMENTED |
