@@ -1,0 +1,314 @@
+[
+  {
+    "width": 375,
+    "height": 667,
+    "role": "guest",
+    "ok": true,
+    "clickOk": true,
+    "bar": "pc2-profile-bottom-bar",
+    "barTop": 590,
+    "footerBottom": 651,
+    "viewport": 667,
+    "scrollY": 3256,
+    "maxScroll": 3256,
+    "disclaimerBottom": 505,
+    "disclaimerAboveBar": true,
+    "controls": [
+      {
+        "name": "Pro Consult — головна",
+        "top": 128,
+        "bottom": 208,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Політика конфіденційності",
+        "top": 224,
+        "bottom": 268,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Умови користування",
+        "top": 276,
+        "bottom": 320,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Підтримка та запити щодо даних",
+        "top": 328,
+        "bottom": 372,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Налаштування конфіденційності",
+        "top": 380,
+        "bottom": 424,
+        "aboveBar": true,
+        "hittable": true
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "height": 667,
+    "role": "client",
+    "ok": true,
+    "clickOk": true,
+    "bar": "pc2-profile-bottom-bar",
+    "barTop": 590,
+    "footerBottom": 651,
+    "viewport": 667,
+    "scrollY": 3558,
+    "maxScroll": 3558,
+    "disclaimerBottom": 505,
+    "disclaimerAboveBar": true,
+    "controls": [
+      {
+        "name": "Pro Consult — головна",
+        "top": 128,
+        "bottom": 208,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Політика конфіденційності",
+        "top": 224,
+        "bottom": 268,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Умови користування",
+        "top": 276,
+        "bottom": 320,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Підтримка та запити щодо даних",
+        "top": 328,
+        "bottom": 372,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Налаштування конфіденційності",
+        "top": 380,
+        "bottom": 424,
+        "aboveBar": true,
+        "hittable": true
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "role": "guest",
+    "ok": true,
+    "clickOk": true,
+    "bar": "pc2-profile-bottom-bar",
+    "barTop": 767,
+    "footerBottom": 828,
+    "viewport": 844,
+    "scrollY": 3068,
+    "maxScroll": 3068,
+    "disclaimerBottom": 682,
+    "disclaimerAboveBar": true,
+    "controls": [
+      {
+        "name": "Pro Consult — головна",
+        "top": 305,
+        "bottom": 385,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Політика конфіденційності",
+        "top": 401,
+        "bottom": 445,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Умови користування",
+        "top": 453,
+        "bottom": 497,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Підтримка та запити щодо даних",
+        "top": 505,
+        "bottom": 549,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Налаштування конфіденційності",
+        "top": 557,
+        "bottom": 601,
+        "aboveBar": true,
+        "hittable": true
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "role": "client",
+    "ok": true,
+    "clickOk": true,
+    "bar": "pc2-profile-bottom-bar",
+    "barTop": 767,
+    "footerBottom": 828,
+    "viewport": 844,
+    "scrollY": 3370,
+    "maxScroll": 3370,
+    "disclaimerBottom": 682,
+    "disclaimerAboveBar": true,
+    "controls": [
+      {
+        "name": "Pro Consult — головна",
+        "top": 305,
+        "bottom": 385,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Політика конфіденційності",
+        "top": 401,
+        "bottom": 445,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Умови користування",
+        "top": 453,
+        "bottom": 497,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Підтримка та запити щодо даних",
+        "top": 505,
+        "bottom": 549,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Налаштування конфіденційності",
+        "top": 557,
+        "bottom": 601,
+        "aboveBar": true,
+        "hittable": true
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "height": 800,
+    "role": "guest",
+    "ok": true,
+    "clickOk": true,
+    "bar": null,
+    "barTop": 800,
+    "footerBottom": 772,
+    "viewport": 800,
+    "scrollY": 2196,
+    "maxScroll": 2196,
+    "disclaimerBottom": 706,
+    "disclaimerAboveBar": true,
+    "controls": [
+      {
+        "name": "Pro Consult — головна",
+        "top": 590,
+        "bottom": 670,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Політика конфіденційності",
+        "top": 608,
+        "bottom": 652,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Умови користування",
+        "top": 608,
+        "bottom": 652,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Підтримка та запити щодо даних",
+        "top": 608,
+        "bottom": 652,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Налаштування конфіденційності",
+        "top": 608,
+        "bottom": 652,
+        "aboveBar": true,
+        "hittable": true
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "height": 800,
+    "role": "client",
+    "ok": true,
+    "clickOk": true,
+    "bar": null,
+    "barTop": 800,
+    "footerBottom": 772,
+    "viewport": 800,
+    "scrollY": 2480,
+    "maxScroll": 2480,
+    "disclaimerBottom": 705,
+    "disclaimerAboveBar": true,
+    "controls": [
+      {
+        "name": "Pro Consult — головна",
+        "top": 589,
+        "bottom": 669,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Політика конфіденційності",
+        "top": 607,
+        "bottom": 651,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Умови користування",
+        "top": 607,
+        "bottom": 651,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Підтримка та запити щодо даних",
+        "top": 607,
+        "bottom": 651,
+        "aboveBar": true,
+        "hittable": true
+      },
+      {
+        "name": "Налаштування конфіденційності",
+        "top": 607,
+        "bottom": 651,
+        "aboveBar": true,
+        "hittable": true
+      }
+    ]
+  }
+]

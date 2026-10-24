@@ -206,4 +206,14 @@ describe('UI v2 CSS contract', () => {
     expect(vars['--pc-font']).toContain('system-ui')
     expect(read('.env.example')).toMatch(/^VITE_UI_V2=$/m)
   })
+
+  it('keeps the specialist-owned footer above the fixed mobile booking bar only while that bar exists', () => {
+    const rules: Rule[] = []
+    components.walkRules((rule) => { if (rule.selector.includes(':has(.pc2-profile-bottom-bar)')) rules.push(rule) })
+    expect(rules).toHaveLength(1)
+    const rule = rules[0]!
+    expect(rule.selector).toBe(`${gate} .shell:has(.pc2-profile-bottom-bar) .footer.pc2-footer.footer--specialist-owned`)
+    expect(rule.parent).toMatchObject({ type: 'atrule', name: 'media', params: '(max-width: 859px)' })
+    expect(rule.nodes).toEqual([expect.objectContaining({ prop: 'padding-bottom', value: 'calc(var(--pc-space-16) + 80px + env(safe-area-inset-bottom))' })])
+  })
 })
