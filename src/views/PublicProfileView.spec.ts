@@ -5016,6 +5016,33 @@ describe('PublicProfileView', () => {
       view.unmount()
     })
 
+    it('resets only the desktop panel when opening, closing and reopening the form', async () => {
+      const documentScroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      const view = renderView()
+      const slotAction = await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+      const panel = view.container.querySelector<HTMLElement>('.pc2-request-panel')!
+      try {
+        for (let cycle = 0; cycle < 2; cycle++) {
+          panel.scrollTop = 300
+          await fireEvent.click(slotAction)
+          await waitFor(() => {
+            expect(panel.scrollTop).toBe(0)
+            expect(document.activeElement).toBe(panel.querySelector('.pc2-profile-inline'))
+          })
+          panel.scrollTop = 500
+          await fireEvent.click(within(panel.querySelector<HTMLElement>('.pc2-profile-inline')!).getByRole('button', { name: 'Закрити' }))
+          await waitFor(() => expect(panel.querySelector('.guest-booking-form')).toBeNull())
+          expect(panel.scrollTop).toBe(0)
+        }
+        expect(documentScroll).not.toHaveBeenCalled()
+        expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+        expect(mockedApiPost).not.toHaveBeenCalled()
+      } finally {
+        view.unmount()
+        documentScroll.mockRestore()
+      }
+    })
+
     it('reuses the guest request form inline and sends the existing request contract only after submission', async () => {
       mockedApiPost.mockResolvedValue({ request: { id: 900, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
       const view = renderView()

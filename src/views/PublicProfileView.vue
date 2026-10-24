@@ -59,7 +59,7 @@
       </section>
 
       <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (compactProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep">
+      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (compactProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep" @keydown="handleProfileRequestKeydown">
         <ol v-if="uiV2" class="pc2-profile-steps" aria-label="Кроки запиту">
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'offer' ? 'step' : undefined">1. Послуга</li>
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'time' ? 'step' : undefined">2. Час</li>
@@ -655,6 +655,7 @@
       class="setting-modal"
       :class="{ 'pc2-profile-inline': uiV2 }"
       :role="uiV2 ? 'region' : 'dialog'"
+      :tabindex="uiV2 ? -1 : undefined"
       :aria-modal="!uiV2 ? true : undefined"
       aria-labelledby="guest-booking-modal-title"
     >
@@ -1049,6 +1050,7 @@ import PublicProfileJournalPreviewSection from '../components/public-profile/Pub
 import PublicProfileMediaSection from '../components/public-profile/PublicProfileMediaSection.vue'
 import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
 import ScrollToTopButton from '../components/ScrollToTopButton.vue'
+import { focusProfilePanelTarget, handleProfilePanelTab, revealProfilePanelTarget } from '../lib/profilePanelScroll'
 import ShareDialog from '../components/ShareDialog.vue'
 import { productAnalytics, type ProductAnalyticsProperties } from '../lib/productAnalytics'
 import { getApiErrorMessage } from '../lib/errors'
@@ -1142,8 +1144,16 @@ let profileMedia: MediaQueryList | undefined
 
 function syncProfileRequestStep(event: FocusEvent) {
   if (!uiV2.value || !(event.target instanceof HTMLElement)) return
+  if (!compactProfile.value && event.target.closest('.pc2-profile-inline')) {
+    const panel = event.target.closest<HTMLElement>('.pc2-request-panel')
+    if (panel) revealProfilePanelTarget(panel, event.target)
+  }
   if (event.target.closest('#pc2-profile-time')) profilePickStep.value = 'time'
   else if (event.target.closest('.identity-rail__services')) profilePickStep.value = 'offer'
+}
+function handleProfileRequestKeydown(event: KeyboardEvent) {
+  if (!uiV2.value || compactProfile.value || !(event.currentTarget instanceof HTMLElement)) return
+  handleProfilePanelTab(event.currentTarget, event)
 }
 function profileTeleportTarget(id: string) {
   return document.getElementById(id) ?? document.body
@@ -4127,7 +4137,7 @@ async function startChangingGuestBookingOffer() {
   const selectedOption = guestOfferSelectorRef.value?.querySelector<HTMLButtonElement>(
     '.guest-offer-option[aria-pressed="true"]'
   )
-  selectedOption?.focus()
+  if (selectedOption) focusGuestRequestField(selectedOption)
 }
 
 function resolveGuestBookingOfferType() {
@@ -4391,7 +4401,7 @@ async function submitGuestBookingRequest() {
   if (firstInvalidField) {
     guestBookingError.value = ''
     await nextTick()
-    firstInvalidField.focus()
+    focusGuestRequestField(firstInvalidField)
     return
   }
   if (!isSupportedContactChannel) {
@@ -4855,9 +4865,35 @@ watch([uiV2, profile, loading, error, ownerUnpublishedProfile], () => {
 watch([uiV2, compactProfile, profile, loading, error, ownerUnpublishedProfile], () => {
   if (!uiV2.value || !compactProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
 })
+function focusGuestRequestField(target: HTMLElement) {
+  const panel = uiV2.value && !compactProfile.value ? target.closest<HTMLElement>('.pc2-request-panel') : null
+  if (panel) focusProfilePanelTarget(panel, target)
+  else target.focus()
+}
+watch(guestBookingError, message => {
+  if (!message || !uiV2.value || compactProfile.value) return
+  const target = guestBookingModalRef.value?.querySelector<HTMLElement>('.form-error')
+  const panel = target?.closest<HTMLElement>('.pc2-request-panel')
+  if (panel && target) revealProfilePanelTarget(panel, target)
+}, { flush: 'post' })
 watch(showGuestBookingModal, open => {
   if (open && uiV2.value && compactProfile.value) openProfileRequestSheet()
 })
+watch([showGuestBookingModal, compactProfile, uiV2], async ([open, compact, v2], [wasOpen]) => {
+  if (!v2 || compact) return
+  await nextTick()
+  if (!uiV2.value || compactProfile.value || showGuestBookingModal.value !== open) return
+  const form = guestBookingModalRef.value
+  const panel = (form ?? document.getElementById('pc2-profile-contact'))?.closest<HTMLElement>('.pc2-request-panel')
+  if (!panel?.isConnected) return
+  if (open && form) {
+    form.focus({ preventScroll: true })
+    panel.scrollTop = 0
+  } else if (wasOpen) {
+    panel.querySelector<HTMLElement>('.identity-rail__actions button')?.focus({ preventScroll: true })
+    panel.scrollTop = 0
+  }
+}, { flush: 'post' })
 watch(() => route.fullPath ?? route.path, () => {
   profileShareAttempt++
   requestAfterAbout = false

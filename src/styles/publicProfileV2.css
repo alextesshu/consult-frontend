@@ -249,3 +249,13 @@ html[data-ui="v2"] .pc2-public-profile .pc2-profile-name-word { white-space: now
 html[data-ui="v2"] .pc2-public-profile .public__grid { align-content: start; }
 html[data-ui="v2"] .pc2-public-profile :is(.profile-content-section,.panel--trust,.scope-blocks,.work-with__chips) { align-content: start; }
 html[data-ui="v2"] .pc2-public-profile .public__sidebar.pc2-request-panel { scrollbar-width: thin; }
+
+/* The sidebar (desktop) or native sheet (mobile) is the single scroll owner. */
+html[data-ui="v2"] .pc2-public-profile .pc2-profile-inline { height: auto; max-height: none; overflow: visible; }
+html[data-ui="v2"] .pc2-public-profile .pc2-profile-inline .setting-modal__content { overflow: visible; }
+html[data-ui="v2"] .pc2-public-profile .pc2-profile-inline .setting-modal__body { flex: none; overflow: visible; }
+html[data-ui="v2"] .pc2-public-profile .pc2-profile-inline .guest-booking-form__submit { position: static; background: transparent; }
+html[data-ui="v2"] .pc2-public-profile .pc2-request-panel { scroll-behavior: auto; overflow-anchor: none; }
+@media (max-width: 859px) {
+ html[data-ui="v2"] .pc2-public-profile .public__sidebar.pc2-request-panel { overflow: visible; }
+}
