@@ -1,0 +1,26 @@
+[
+  {
+    "width": 375,
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\baseline-v1-375.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\control-v1-375.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\candidate-v1-375.png"
+  },
+  {
+    "width": 768,
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\baseline-v1-768.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\control-v1-768.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\candidate-v1-768.png"
+  },
+  {
+    "width": 1280,
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\baseline-v1-1280.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\control-v1-1280.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\candidate-v1-1280.png"
+  },
+  {
+    "width": 1440,
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\baseline-v1-1440.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\control-v1-1440.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_kan161_specialist_dashboard\\docs\\ui-v2\\evidence\\kan-161\\parity\\candidate-v1-1440.png"
+  }
+]
