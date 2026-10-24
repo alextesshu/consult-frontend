@@ -1,0 +1,58 @@
+[
+  {
+    "width": 375,
+    "baseline": "baseline-v1-375.png",
+    "candidate": "candidate-v1-375.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 390,
+    "baseline": "baseline-v1-390.png",
+    "candidate": "candidate-v1-390.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 640,
+    "baseline": "baseline-v1-640.png",
+    "candidate": "candidate-v1-640.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 768,
+    "baseline": "baseline-v1-768.png",
+    "candidate": "candidate-v1-768.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 1023,
+    "baseline": "baseline-v1-1023.png",
+    "candidate": "candidate-v1-1023.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 1024,
+    "baseline": "baseline-v1-1024.png",
+    "candidate": "candidate-v1-1024.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 1280,
+    "baseline": "baseline-v1-1280.png",
+    "candidate": "candidate-v1-1280.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "width": 1440,
+    "baseline": "baseline-v1-1440.png",
+    "candidate": "candidate-v1-1440.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "targetDev": "6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00",
+  "method": "actual merged branch on 5354; origin/dev view baseline on 5355, no App/CSS overlay",
+  "rows": [
+    {
+      "width": 375,
+      "innerWidth": 375,
+      "scrollWidth": 375,
+      "v1Bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375
+      },
+      "headerBrand": "approved fennec header",
+      "footerBrand": "existing dev cabinet legacy footer unchanged",
+      "guestNavigation": "/cabinet/external-sessions#guest-requests",
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "v1Bounds": {
+        "innerWidth": 390,
+        "scrollWidth": 390
+      },
+      "headerBrand": "approved fennec header",
+      "footerBrand": "existing dev cabinet legacy footer unchanged",
+      "guestNavigation": "/cabinet/external-sessions#guest-requests",
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "v1Bounds": {
+        "innerWidth": 768,
+        "scrollWidth": 768
+      },
+      "headerBrand": "approved fennec header",
+      "footerBrand": "existing dev cabinet legacy footer unchanged",
+      "guestNavigation": "/cabinet/external-sessions#guest-requests",
+      "pageErrors": []
+    },
+    {
+      "width": 1280,
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "v1Bounds": {
+        "innerWidth": 1280,
+        "scrollWidth": 1280
+      },
+      "headerBrand": "approved fennec header",
+      "footerBrand": "existing dev cabinet legacy footer unchanged",
+      "guestNavigation": "/cabinet/external-sessions#guest-requests",
+      "pageErrors": []
+    }
+  ]
+}
