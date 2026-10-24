@@ -1,0 +1,258 @@
+{
+  "base": "72ddf20533f60a9dcdb883bccc640e97703bb25c",
+  "hashPolicy": "UTF-8 LF without BOM for text; exact binary bytes; excludes manifest itself.",
+  "files": [
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/acceptance.cjs",
+      "bytes": 5143,
+      "mode": "utf8-lf",
+      "sha256": "0e4a6b2abe24f585f691f80a57e35aaf37d3e572ded9e39cbb454db4b0a9edfa"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v1-availability-1280.png",
+      "bytes": 387736,
+      "mode": "binary",
+      "sha256": "97ce1078177b630a7aa676d8ae2ca3028eace43df31c6cd23c64df89c63713cc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v1-availability-375.png",
+      "bytes": 422420,
+      "mode": "binary",
+      "sha256": "fed2f9d877068d386566bd54ddac3712102c97cb0220fdfaaaec682b29a75279"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v1-availability-768.png",
+      "bytes": 311932,
+      "mode": "binary",
+      "sha256": "4302ebf8b60cbcbf248c7609bb6e6f6e0f3f754e8890a61493635590acea6aba"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v1-calendar-1280.png",
+      "bytes": 313682,
+      "mode": "binary",
+      "sha256": "0dae8635bd9756da609c8bfc2f73c91c1ab5f502cd8da9cc603bf50f6f7d0dbb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v1-calendar-375.png",
+      "bytes": 241170,
+      "mode": "binary",
+      "sha256": "f34151838f199750c145a0a423c4862c0abb718c3b923ba620afab64936131a4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v1-calendar-768.png",
+      "bytes": 241749,
+      "mode": "binary",
+      "sha256": "c9fcc3f2cc925700f5a199ea1648954c48fe3b3ae38f52069d2f2dd01903c070"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v2-availability-375.png",
+      "bytes": 172100,
+      "mode": "binary",
+      "sha256": "0fca9dac75030c7f905ab62ad278b1f89ae1b84cfa552c48bbf3f30c798c7024"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline-v2-calendar-375.png",
+      "bytes": 73882,
+      "mode": "binary",
+      "sha256": "05690254d4e3d31eef9e8d4877daaa7d32031b59a59a4917b5e2d8432e7fdc1a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/baseline.config.mjs",
+      "bytes": 510,
+      "mode": "utf8-lf",
+      "sha256": "1ea3a0052ffc291a91345bafdb810f499ea71cbeb690a47e87d77c19af4f76bc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/build.txt",
+      "bytes": 1756,
+      "mode": "utf8-lf",
+      "sha256": "4483313175cfbea6e1b2fb83ea9bfa82edcb2fe903a72651be53c29105a05f53"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-availability-1280.png",
+      "bytes": 387736,
+      "mode": "binary",
+      "sha256": "97ce1078177b630a7aa676d8ae2ca3028eace43df31c6cd23c64df89c63713cc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-availability-375.png",
+      "bytes": 227758,
+      "mode": "binary",
+      "sha256": "3487ae138bef7f2ff4c9a116e52a9dc78734789f140b2f87655ce488a56e671f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-availability-390.png",
+      "bytes": 244728,
+      "mode": "binary",
+      "sha256": "935eb6dcbd00e18431d68bb05cbceccdbe7c102b987f03c18cd268a62c721046"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-availability-640.png",
+      "bytes": 320508,
+      "mode": "binary",
+      "sha256": "4be59c33accb4cd5d6a89406bec4fc5b7a1e2cd569c5c456a63f5b0d2f014f9b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-availability-768.png",
+      "bytes": 311932,
+      "mode": "binary",
+      "sha256": "4302ebf8b60cbcbf248c7609bb6e6f6e0f3f754e8890a61493635590acea6aba"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-calendar-1280.png",
+      "bytes": 313682,
+      "mode": "binary",
+      "sha256": "0dae8635bd9756da609c8bfc2f73c91c1ab5f502cd8da9cc603bf50f6f7d0dbb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-calendar-375.png",
+      "bytes": 137919,
+      "mode": "binary",
+      "sha256": "69c75cfdfc1fb1e6180d2989d41e64c27b1f2030cc8ac4f5a0a99be22e76d0d2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-calendar-390.png",
+      "bytes": 144292,
+      "mode": "binary",
+      "sha256": "60f871121ba24669c24c877a063a88e7bbb9f9d4516ea80938fb84537da2f83d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-calendar-640.png",
+      "bytes": 198743,
+      "mode": "binary",
+      "sha256": "d459e2df9ed14491b4f0f6c80ebe35ae4d53fc8d4e6a60eec04e29d14b38243d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v1-calendar-768.png",
+      "bytes": 241749,
+      "mode": "binary",
+      "sha256": "c9fcc3f2cc925700f5a199ea1648954c48fe3b3ae38f52069d2f2dd01903c070"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-availability-1280.png",
+      "bytes": 214463,
+      "mode": "binary",
+      "sha256": "64c5aa823effc2dd92bbf47db9ef7effa4ef1e2ab1d88e23a803b521bcf890ca"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-availability-375.png",
+      "bytes": 143047,
+      "mode": "binary",
+      "sha256": "8f5996ee41cb9657318a803be731d0ce5def0208de04a3456f1e9b98a4605b46"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-availability-390.png",
+      "bytes": 145029,
+      "mode": "binary",
+      "sha256": "f12dd907734cd1df5218ea06bd485dc8b5863c43adedcfdcf475b5d7c150e0a2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-availability-640.png",
+      "bytes": 173462,
+      "mode": "binary",
+      "sha256": "c94768338134ad83025cbae5ccff8e7a12f533db2079549058a599d3776e96c8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-availability-768.png",
+      "bytes": 189960,
+      "mode": "binary",
+      "sha256": "ff0e1423d694ff4aa239e607e711b6e9c299758093f7e4fe8dc449deb6799f0c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-calendar-1280.png",
+      "bytes": 138572,
+      "mode": "binary",
+      "sha256": "72500902c3afc6a9c3388c01638a94d09a422a6cc0f65f074888381957dd7e98"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-calendar-375.png",
+      "bytes": 62038,
+      "mode": "binary",
+      "sha256": "8bca359876878d5a19778e9f1471ef403b6a513bb47f31208bb4cde9a2809ba0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-calendar-390.png",
+      "bytes": 64116,
+      "mode": "binary",
+      "sha256": "acfc4cb8cd3849cfbf7d46f31f0f43f289cc301e9ee3063995ad58cbf012e718"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-calendar-640.png",
+      "bytes": 80376,
+      "mode": "binary",
+      "sha256": "e3478aefea0480bee68bb906601f152a415b53a953ec025edbc3e38485f8dc3c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate-v2-calendar-768.png",
+      "bytes": 101929,
+      "mode": "binary",
+      "sha256": "d122c15541fd80323baa550713fd202fa61dd4c0c2027a9c2722abb182353ae4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/candidate.config.mjs",
+      "bytes": 326,
+      "mode": "utf8-lf",
+      "sha256": "78ed6e7d1afc13027bd9a0f1619eeeeab5d1f99346bce8ba5cf1a42bdc351ce2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/matrix.json",
+      "bytes": 144127,
+      "mode": "utf8-lf",
+      "sha256": "827a396173ce374349160f46d3d1fa569913f1d65ddaf8037fca858d48919e02"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/tests.txt",
+      "bytes": 598,
+      "mode": "utf8-lf",
+      "sha256": "93ce168fade91024f4a99fa24b47d0f6b106bbb24cd78f2ab1694a0cca3a7cbb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/typecheck-baseline.txt",
+      "bytes": 1522,
+      "mode": "utf8-lf",
+      "sha256": "de96ab9980d27eceb57a4247f1a4197ce85b6020e1385bbb53dc092d813628d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/typecheck-candidate.txt",
+      "bytes": 1522,
+      "mode": "utf8-lf",
+      "sha256": "de96ab9980d27eceb57a4247f1a4197ce85b6020e1385bbb53dc092d813628d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/typecheck-comparison.json",
+      "bytes": 2806,
+      "mode": "utf8-lf",
+      "sha256": "944ee19cb8c1654268592feeab0575fbbfb39d76983a6876878d3dfcdac91113"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/v1-parity.json",
+      "bytes": 893,
+      "mode": "utf8-lf",
+      "sha256": "18cece4a2a724422665e3250e2d948fba97e016bede48948cd0d2a71ac7428cc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/schedule-mobile-overflow/verify.py",
+      "bytes": 3285,
+      "mode": "utf8-lf",
+      "sha256": "66afa50c10c58d168bdab8495c9691c39a299050e592174b67621f5bd091dc20"
+    },
+    {
+      "path": "docs/ui-v2/SCHEDULE_MOBILE_OVERFLOW.md",
+      "bytes": 6616,
+      "mode": "utf8-lf",
+      "sha256": "c3f7b82bc8a0d628980b027fd43e36f5f89ba475a09664d48a23006a55bca505"
+    },
+    {
+      "path": "src/views/SlotsView.layout.spec.ts",
+      "bytes": 1925,
+      "mode": "utf8-lf",
+      "sha256": "f745102f844730be6cf8ecad91b7b76c5f76034473f9f4b5b7243797c645be13"
+    },
+    {
+      "path": "src/views/SlotsView.vue",
+      "bytes": 224384,
+      "mode": "utf8-lf",
+      "sha256": "a48f7e342124f56b42ed244e0285add4e98d31ef8846a37cf6f12b3ccc86212c"
+    }
+  ]
+}
