@@ -1,0 +1,6742 @@
+{
+  "problems": [],
+  "interactions": [
+    {
+      "name": "client 375 mobile menu open/Escape",
+      "ok": true,
+      "detail": {
+        "items": [
+          "Кабінет",
+          "Матеріали",
+          "Чат",
+          "Вийти"
+        ],
+        "closed": true,
+        "focusBack": "Меню",
+        "expanded": "false"
+      }
+    },
+    {
+      "name": "specialist 375 mobile menu open/Escape",
+      "ok": true,
+      "detail": {
+        "items": [
+          "Публічний профіль (перегляд)",
+          "Налаштування",
+          "Вийти"
+        ],
+        "closed": true,
+        "focusBack": "Меню",
+        "expanded": "false"
+      }
+    },
+    {
+      "name": "specialist 1440 settings menu open/Escape",
+      "ok": true,
+      "detail": {
+        "open": true,
+        "focus": "Налаштування"
+      }
+    },
+    {
+      "name": "specialist 1440 notifications open/Escape",
+      "ok": true,
+      "detail": {
+        "open": true
+      }
+    },
+    {
+      "name": "specialist 1440 keyboard order and focus ring",
+      "ok": true,
+      "detail": {
+        "order": [
+          {
+            "name": "Pro Consult",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Мій кабінет",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Публічний профіль",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Чат",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Налаштування",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Сповіщення",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Вийти",
+            "inHeader": true,
+            "outline": true
+          },
+          {
+            "name": "Поділитися профілем",
+            "inHeader": false,
+            "outline": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "guest 375 login action",
+      "ok": true,
+      "detail": {
+        "url": "/login"
+      }
+    },
+    {
+      "name": "guest 1024 login action",
+      "ok": true,
+      "detail": {
+        "url": "/login"
+      }
+    },
+    {
+      "name": "guest footer privacy controls",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "client footer privacy controls",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "client 1440 sticky header and profile tabs",
+      "ok": true,
+      "detail": {
+        "headerTop": 0,
+        "headerBottom": 76,
+        "navTop": 76
+      }
+    },
+    {
+      "name": "client 375 sticky header and profile tabs",
+      "ok": true,
+      "detail": {
+        "headerTop": 0,
+        "headerBottom": 60,
+        "navTop": 60
+      }
+    },
+    {
+      "name": "guest 1440 sticky header and profile tabs",
+      "ok": true,
+      "detail": {
+        "headerTop": 0,
+        "headerBottom": 76,
+        "navTop": 76
+      }
+    }
+  ],
+  "rows": [
+    {
+      "width": 375,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 72,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5063,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 72,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5063,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 375,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Увійти",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3923,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Увійти",
+              "href": "/login"
+            },
+            {
+              "tag": "button",
+              "name": "Меню сайту",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3524,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 375,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5090,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5090,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 375,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3942,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3563,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 375,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5354,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5354,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 375,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4225,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3846,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 390,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 72,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5001,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 72,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5001,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 390,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Увійти",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3912,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Увійти",
+              "href": "/login"
+            },
+            {
+              "tag": "button",
+              "name": "Меню сайту",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3513,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 390,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5028,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5028,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 390,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3931,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3552,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 390,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5292,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 5292,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 390,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4214,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3835,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 640,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 72,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4345,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 72,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4345,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 640,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Увійти",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3608,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Увійти",
+              "href": "/login"
+            },
+            {
+              "tag": "button",
+              "name": "Меню сайту",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3335,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 640,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4372,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4372,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 640,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3627,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3374,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 640,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4576,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 0
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4576,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 640,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 60,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 30
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3839,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Меню",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3586,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 768,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 74,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3791,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 74,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3791,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 768,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3605,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            },
+            {
+              "tag": "button",
+              "name": "Меню сайту",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3368,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 768,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3805,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3805,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 768,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3613,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3380,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 768,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4028,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4028,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 768,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3844,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3611,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 74,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3691,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 74,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3691,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4063,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            },
+            {
+              "tag": "button",
+              "name": "Меню сайту",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3929,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3697,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3697,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4082,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3952,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3903,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3903,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4351,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 4221,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2906,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2906,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2996,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2878,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2918,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2918,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2996,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2882,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3083,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3083,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3280,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3165,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "role": "guest",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2870,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2870,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "role": "guest",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3003,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--guest pc2-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Вхід",
+              "href": "/login"
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2885,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "role": "specialist",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2870,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2870,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "role": "specialist",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--specialist pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3003,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--specialist",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Мій кабінет",
+              "href": "/cabinet"
+            },
+            {
+              "tag": "a",
+              "name": "Публічний профіль",
+              "href": "/public"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/cabinet/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 2889,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "role": "client",
+      "ui": "v1",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3030,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-logo-dark.png",
+            "height": 44
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro ConsultPRO CONSULTпростір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-logo-dark.png"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3030,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "role": "client",
+      "ui": "v2",
+      "candidate": {
+        "header": {
+          "classes": "topbar topbar--client pc2-public-auth-header",
+          "height": 76,
+          "position": "sticky",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned pc2-footer",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Pro Consult — головна",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка та запити щодо даних",
+              "href": "/support-and-data-requests"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            }
+          ],
+          "disclaimer": true,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3287,
+          "scrollY": 0
+        }
+      },
+      "baseline": {
+        "header": {
+          "classes": "topbar topbar--client",
+          "height": 80,
+          "position": "relative",
+          "lockup": {
+            "src": "proconsult-fennec-header.svg",
+            "height": 32
+          },
+          "controls": [
+            {
+              "tag": "a",
+              "name": "простір для ведення консультацій",
+              "href": "/"
+            },
+            {
+              "tag": "a",
+              "name": "Кабінет",
+              "href": "/client"
+            },
+            {
+              "tag": "a",
+              "name": "Матеріали",
+              "href": "/client/materials"
+            },
+            {
+              "tag": "a",
+              "name": "Чат",
+              "href": "/client/chat"
+            },
+            {
+              "tag": "button",
+              "name": "Сповіщення",
+              "href": null
+            },
+            {
+              "tag": "button",
+              "name": "Вийти",
+              "href": null
+            }
+          ]
+        },
+        "footer": {
+          "classes": "footer footer--specialist-owned",
+          "controls": [
+            {
+              "tag": "a",
+              "name": "Умови користування",
+              "href": "/terms"
+            },
+            {
+              "tag": "a",
+              "name": "Політика конфіденційності",
+              "href": "/privacy"
+            },
+            {
+              "tag": "button",
+              "name": "Налаштування конфіденційності",
+              "href": null
+            },
+            {
+              "tag": "a",
+              "name": "Підтримка",
+              "href": "/support-and-data-requests"
+            }
+          ],
+          "disclaimer": false,
+          "lockup": "proconsult-fennec-lockup.svg"
+        },
+        "promoInChrome": [],
+        "overflow": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "ok": true
+        },
+        "errors": [],
+        "state": {
+          "fonts": "loaded",
+          "running": 0,
+          "height": 3172,
+          "scrollY": 0
+        }
+      }
+    }
+  ]
+}
