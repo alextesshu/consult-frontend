@@ -3969,7 +3969,8 @@ describe('PublicProfileView', () => {
     expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
   })
 
-  it('shows no-slots helper and request CTA when no public slots are available', async () => {
+  it.each(['v1', 'v2'] as const)('shows a coherent no-slots request action in %s', async (version) => {
+    applyUiVersion(version)
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
@@ -3980,7 +3981,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Оберіть час для запиту' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: version === 'v2' ? 'Вільні вікна' : 'Оберіть час для запиту' })).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.queryByText('Завантажуємо вільні вікна')).not.toBeInTheDocument()
     })
@@ -3991,6 +3992,10 @@ describe('PublicProfileView', () => {
     expect(bookingCard.getByText('Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.')).toBeInTheDocument()
     expect(screen.getByText(/У цьому місяці немає доступних вікон/)).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Обрати час' })).not.toBeInTheDocument()
+    await fireEvent.click(bookingCard.getByRole('button', { name: 'Залишити запит' }))
+    expect(await screen.findByLabelText('Ім’я')).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalled()
   })
 
   it('keeps the availability error distinct from an empty direct-booking horizon', async () => {

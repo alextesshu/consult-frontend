@@ -242,3 +242,10 @@ html[data-ui="v2"] .pc2-public-profile .pc2-profile-inline .setting-modal__conte
 html[data-ui="v2"] .pc2-public-profile .slot-filter, html[data-ui="v2"] .pc2-public-profile .slot-filter__format { padding: 0; border: 0; background: transparent; }
 html[data-ui="v2"] .pc2-public-profile .slot-format__fixed { font-size: 13px; padding: 0; border: 0; background: transparent; }
 html[data-ui="v2"] .pc2-public-profile .slot-time { font-size: 14px; font-weight: 400; }
+
+/* Intrinsic content must stay at the top of equal-height source cards. */
+html[data-ui="v2"] .pc2-public-profile .public__title { overflow-wrap: normal; word-break: normal; hyphens: manual; }
+html[data-ui="v2"] .pc2-public-profile .pc2-profile-name-word { white-space: nowrap; }
+html[data-ui="v2"] .pc2-public-profile .public__grid { align-content: start; }
+html[data-ui="v2"] .pc2-public-profile :is(.profile-content-section,.panel--trust,.scope-blocks,.work-with__chips) { align-content: start; }
+html[data-ui="v2"] .pc2-public-profile .public__sidebar.pc2-request-panel { scrollbar-width: thin; }

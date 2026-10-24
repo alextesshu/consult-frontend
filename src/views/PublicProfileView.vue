@@ -5,7 +5,7 @@
     </PublicProfileOverlay>
     <PublicProfileOverlay v-if="uiV2" v-model:open="showAboutModal" kind="about" title="Про мене" title-id="pc2-profile-about-title" @closed="afterProfileAboutClosed">
       <div class="pc2-profile-about-text">{{ aboutNarrativeText }}</div>
-      <button class="pc2-profile-about-cta" type="button" @click="requestFromAbout">{{ compactProfile ? 'Обрати час' : 'Залишити запит' }}</button>
+      <button class="pc2-profile-about-cta" type="button" @click="requestFromAbout">{{ profilePrimaryLabel }}</button>
     </PublicProfileOverlay>
     <div v-if="loading" class="muted" role="status" aria-live="polite">Завантаження профілю...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
@@ -70,7 +70,7 @@
           :profile="profile"
           :meeting-format-label="meetingFormatLabel"
           :hero-cta-title="uiV2 ? 'Формат зустрічі' : heroCtaTitle"
-          :hero-primary-label="uiV2 && publicDirectBookingEnabled ? 'Обрати час' : heroPrimaryLabel"
+          :hero-primary-label="uiV2 ? profilePrimaryLabel : heroPrimaryLabel"
           :show-client-sessions-cta="showClientSessionsCta"
           :primary-action-next-step-copy="primaryActionNextStepCopy"
           :intro-price-display="introPriceDisplay"
@@ -522,7 +522,7 @@
         class="public__final-cta"
         :closing-cta-support-line="closingCtaSupportLine"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
-        :closing-primary-label="uiV2 && publicDirectBookingEnabled ? 'Обрати час' : closingPrimaryLabel"
+        :closing-primary-label="uiV2 ? profilePrimaryLabel : closingPrimaryLabel"
         :closing-secondary-kind="closingSecondaryKind"
         :contact-cta-label="CONTACT_CHOOSER_COPY.ctaLabel"
         :show-chat-cta="canMessageSpecialist"
@@ -541,7 +541,7 @@
     <template v-if="uiV2 && profile && !loading && !error && !ownerUnpublishedProfile">
       <div v-if="compactProfile" class="pc2-profile-bottom-bar">
         <div><strong v-if="mobileProfilePrice">{{ mobileProfilePrice }}</strong><span>{{ mobileProfileAvailability }}</span></div>
-        <button class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">Обрати час</button>
+        <button class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">{{ profilePrimaryLabel }}</button>
       </div>
     </template>
 
@@ -2327,6 +2327,10 @@ const heroPrimaryLabel = computed(() => {
   if (!publicDirectBookingEnabled.value || usesPublicRequestFlow.value) return REQUEST_GENERIC_CTA_LABEL
   return CHOOSE_TIME_CTA_LABEL
 })
+
+const profilePrimaryLabel = computed(() =>
+  publicDirectBookingEnabled.value && !usesPublicRequestFlow.value ? 'Обрати час' : REQUEST_GENERIC_CTA_LABEL
+)
 
 const primaryActionNextStepCopy = computed(() => {
   if (canMessageSpecialist.value) {
