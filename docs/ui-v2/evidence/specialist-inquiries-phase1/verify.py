@@ -36,7 +36,7 @@ assert original == current
 archive = git('show', BASE + ':docs/ui-v2/snapshots/2026-10-23-4ff7cedd/source.zip')
 assert hashlib.sha256(archive).hexdigest() == '4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347'
 browser = json.loads((HERE / 'browser-results.json').read_text())
-assert len(browser['matrix']) == 8 and len(browser['states']) == 7
+assert len(browser['matrix']) == 8 and len(browser['states']) == 9
 assert all(row['final']['scrollWidth'] <= row['width'] and not row['pageErrors'] for row in browser['matrix'])
 assert all(row['passed'] and not row['pageErrors'] for row in browser['states'])
 assert len(browser['motionResults']) == 2
@@ -78,4 +78,4 @@ if refresh:
 else:
     assert manifest == json.loads((HERE / 'manifest.json').read_text(encoding='utf8'))
 subprocess.run(['git', 'diff', '--check'], cwd=ROOT, check=True)
-print(f'PASS: strict scope; V1 unchanged; 16 zero-pixel pairs; 8 widths/7 states/motion; 9 baseline diagnostics; {len(inventory)} hashes')
+print(f'PASS: strict scope; V1 unchanged; 16 zero-pixel pairs; 8 widths/9 states/motion; 9 baseline diagnostics; {len(inventory)} hashes')

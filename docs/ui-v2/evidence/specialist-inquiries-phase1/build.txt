@@ -14,9 +14,9 @@ dist/assets/maria-koval-BzVCsYF6.webp                           35.64 kB
 dist/assets/mark-navy-C8b0ifZH.png                              95.53 kB
 dist/assets/mark-band-BH-_-vYT.png                              96.33 kB
 dist/assets/index-EAA_UKYu.css                                  95.34 kB │ gzip:  15.69 kB
-dist/assets/index-DkPQSXij.css                                 672.49 kB │ gzip:  94.47 kB
-dist/assets/index-CcppUOeJ.js                                  525.38 kB │ gzip: 170.86 kB
-dist/assets/index-DX7J7eSx.js                                1,567.97 kB │ gzip: 451.19 kB
+dist/assets/index-ZlDDjpnP.css                                 672.54 kB │ gzip:  94.48 kB
+dist/assets/index-Ce86jMI0.js                                  525.38 kB │ gzip: 170.86 kB
+dist/assets/index-B4SVqoAN.js                                1,568.24 kB │ gzip: 451.22 kB
 npm :
 At line:2 char:404
 + ... "; Write-Output "FULL_EXIT=$LASTEXITCODE"; npm run build 2>&1 | Out-F ...
@@ -29,4 +29,4 @@ At line:2 char:404
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-m
 anualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 6.51s
+✓ built in 20.34s

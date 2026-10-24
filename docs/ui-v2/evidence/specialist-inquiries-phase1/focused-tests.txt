@@ -4,10 +4,11 @@
 
  RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_specialist_inquiries_v2
 
- ✓ src/views/SpecialistInquiriesView.spec.ts (16 tests) 588ms
- ✓ src/styles/inquiriesV2.spec.ts (2 tests) 9ms
+ ✓ src/views/SpecialistInquiriesView.spec.ts (18 tests) 1666ms
+   ✓ SpecialistInquiriesView v2 and reliability > groups real states, uses existing preview, and does not expose prototype-only contracts 437ms
+ ✓ src/styles/inquiriesV2.spec.ts (2 tests) 31ms
 
  Test Files  2 passed (2)
-      Tests  18 passed (18)
-   Start at  18:21:09
-   Duration  3.02s (transform 311ms, setup 198ms, collect 609ms, tests 596ms, environment 1.15s, prepare 175ms)
+      Tests  20 passed (20)
+   Start at  18:41:02
+   Duration  7.42s (transform 700ms, setup 556ms, collect 1.37s, tests 1.70s, environment 2.43s, prepare 445ms)

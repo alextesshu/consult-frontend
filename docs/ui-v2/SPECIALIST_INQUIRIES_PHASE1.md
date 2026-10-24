@@ -37,17 +37,19 @@ Only existing GET /inquiries/threads/, GET /inquiries/messages/?thread_id=…&li
 - Successful message loading reconciles unread to zero; failed reads preserve unread. Late responses from a previously selected thread cannot replace the visible conversation.
 - Inquiry reason_code mapping remains authoritative; guest API code is not used as an inquiry status or client-resolution instruction.
 - When send succeeds but state refresh fails, the affected thread requires refresh before another submit; no duplicate POST is automatically retried. Real list/message errors have retry controls.
+- Compact mode returns to the list when the selected thread disappears, and exposes list permission errors instead of leaving an empty detail pane. Repeated row-removal timers are replaced safely.
+- The reduced-motion toast override uses the same selector specificity as its animation rule; browser evidence confirms animation is disabled immediately.
 - No message/contact text is sent to analytics or placed in URL/storage. The existing thread_id query is the only navigation identifier added.
 
 Backend ownership/permission checks remain unchanged. This does not add server-side cross-tab exactly-once guarantees or inquiry-to-guest conversion. KAN-143 remains in the separate guest workflow.
 
 ## Validation
 
-- Focused Vitest: **18/18 PASS**, including all six original view cases, ten new view/reliability cases and two CSS contract cases.
-- Full local frontend Vitest: **1953/1953 PASS**, 129 files, after final runtime changes. Existing unrelated jsdom navigation/router warnings are retained in the log.
+- Focused Vitest: **20/20 PASS**, including all six original view cases, twelve new view/reliability cases and two CSS contract cases.
+- Full local frontend Vitest: **1955/1955 PASS**, 129 files, after final runtime changes. Existing unrelated jsdom navigation/router warnings are retained in the log.
 - Production build: PASS, existing large-chunk warning remains.
 - Forced typecheck: **9 unchanged baseline diagnostics, 0 new**; advisory command is nonzero. Baseline was captured before editing at exact task base.
-- Chromium: **375,390,640,768,1023,1024,1280,1440px**, all without document overflow. List/detail breakpoint, filters/keyboard, heading/Back focus, history, unread, sending/double-submit, retained B/A drafts, privacy and retained shell tabbar verified. Additional empty/list loading/list error/message error/send error/stale switching/CLOSED cases passed. No page JavaScript errors.
+- Chromium: **375,390,640,768,1023,1024,1280,1440px**, all without document overflow. List/detail breakpoint, filters/keyboard, heading/Back focus, history, unread, sending/double-submit, retained B/A drafts, privacy and retained shell tabbar verified. Additional empty/list loading/list error/message error/send error/stale switching/CLOSED/removed selection/403 refresh cases passed. No page JavaScript errors.
 - Motion: actual CSS row transitions report 400/350 and 300/300 duration/delay, toast 350ms; reduced mode reports no row/toast animations. [Normal-motion recording](evidence/specialist-inquiries-phase1/motion-1280.webm).
 - V1 template (apart from v-else) and scoped stylesheet are unchanged. **All eight baseline/candidate screenshot pairs have 0 changed pixels.** Separate incoming-branding overlay comparison also has **0 changed pixels on all eight widths**.
 - git diff --check, UTF-8, local links, strict changed-file scope and checksum inventory verified before commit.

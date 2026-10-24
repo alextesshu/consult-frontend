@@ -59,21 +59,21 @@
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/browser-results.json",
-      "bytes": 12321,
+      "bytes": 13127,
       "mode": "utf8-lf",
-      "sha256": "728d2dd3db1c91dffe196b478df7c208cb5d2c7caa0f47750abf6dcd1563cbe4"
+      "sha256": "8b98cfdf8b5d373173e4f103785b60b985cb600517d06a589a4accebb2431563"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/browser.cjs",
-      "bytes": 13087,
+      "bytes": 13891,
       "mode": "utf8-lf",
-      "sha256": "75808db402b6bff1d1d0b48ee31bf30da8edb4e7407ba0af2943d17ecc9243e9"
+      "sha256": "b239a794391c0155f8d337ff15028a33c749e28121f9c8c4236e50f5a3383ecf"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/build.txt",
-      "bytes": 1756,
+      "bytes": 1757,
       "mode": "utf8-lf",
-      "sha256": "479b593b6898a8b00310c1e0db3b1799773605e206beb19bb56133fe2239386a"
+      "sha256": "2a2869239902bfcf49ad8ea1a242bef4f8c4cc8d55aa7eba4b84ecefee128881"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/candidate-v1-1023.png",
@@ -155,9 +155,9 @@
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/closed-final.png",
-      "bytes": 56340,
+      "bytes": 56338,
       "mode": "binary",
-      "sha256": "8a913ceec4724181950f76a56e0231dd97b55312e8e04d706a250b6205147849"
+      "sha256": "f6200908e45d3513512e8ee400cb7a93b03fd57b160aec2c626dd16349ca057a"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/empty-final.png",
@@ -167,15 +167,21 @@
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/focused-tests.txt",
-      "bytes": 523,
+      "bytes": 671,
       "mode": "utf8-lf",
-      "sha256": "0ff7eb1ca0a8b6781baa67feaba57112c4e6cbfe9065699f51332974b3f35990"
+      "sha256": "58459cac725e01a1bd545d419f56c6674ed2c770ed3937a373e51e9f6c56469c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/forbidden-final.png",
+      "bytes": 46112,
+      "mode": "binary",
+      "sha256": "0722bfaec7ab6964ccd7637d235efd8c4f28da86dc27d6e710347ca1599d125d"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/full-tests.txt",
-      "bytes": 112452,
+      "bytes": 112346,
       "mode": "utf8-lf",
-      "sha256": "67233e4e80bd44f7ccb2a96df9e63fbd1c7bdbacf7586cb634c5ec5159a956f3"
+      "sha256": "aa865dd84a0a1a9650edcf6280c5443fc743171d379000aa7f3557a2b47d1f04"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/incoming-baseline-v1-1023.png",
@@ -311,9 +317,9 @@
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/list-error-final.png",
-      "bytes": 56564,
+      "bytes": 56554,
       "mode": "binary",
-      "sha256": "e3e47c34540e4224f7b697a879bc6d6c01438f0480496367c6f47424f069c695"
+      "sha256": "f21eae6b4e9bda4d4cda7c0d5b4b923f70e8e18e08f0724064215e9fae61e79c"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/list-error.png",
@@ -347,15 +353,15 @@
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/motion-1280.webm",
-      "bytes": 234485,
+      "bytes": 325430,
       "mode": "binary",
-      "sha256": "e6b9f6a375faa63558ad4007ff3b18ef3ccab58ae14d436d93a8c6e01f1297c9"
+      "sha256": "1b4098f9fd0d3be560603b7d5b4371e5a884fd7a739b149617b3cd113bce1aea"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/motion-no-preference.png",
-      "bytes": 107180,
+      "bytes": 108074,
       "mode": "binary",
-      "sha256": "1df6fc4791f91d57666e88a31a48a596a5f5184951aad5ab89deb805e6a9b9ab"
+      "sha256": "378a52cdb49a61f822f50156b6e6a7816becc6c389a56aae5567d63c78041d0d"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/motion-reduce.png",
@@ -368,6 +374,12 @@
       "bytes": 2904,
       "mode": "utf8-lf",
       "sha256": "309b24fc1618311fa9f38361ccf1300fb23d1bd5f06da32d6224eeb3c6a453e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/removed-final.png",
+      "bytes": 49004,
+      "mode": "binary",
+      "sha256": "045f4d35eaf718b0d53a848f14edd6a32d46bc4dfff8a718be43ab9580d0f961"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/send-error-final.png",
@@ -539,9 +551,9 @@
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-640-sending.png",
-      "bytes": 58086,
+      "bytes": 58102,
       "mode": "binary",
-      "sha256": "4de924686ccef1c2ee417863434b4cb12f69b457472405ae4f0f087a9ce713e7"
+      "sha256": "0953e4c6e1140836946b155bd610a8548ca3eaaab9eafa224e211d9799a9e26b"
     },
     {
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/v2-640-thread.png",
@@ -571,37 +583,37 @@
       "path": "docs/ui-v2/evidence/specialist-inquiries-phase1/verify.py",
       "bytes": 4682,
       "mode": "utf8-lf",
-      "sha256": "dc52b43c7b9cb4ec11e9f270f67ce7acee331ebf04bcf938e602fea810609f75"
+      "sha256": "f0c5b412d2c7a76b0ce6af255195f4748b1d40f818bcf45e12d9ef99b5d6184e"
     },
     {
       "path": "docs/ui-v2/SPECIALIST_INQUIRIES_PHASE1.md",
-      "bytes": 10079,
+      "bytes": 10464,
       "mode": "utf8-lf",
-      "sha256": "eef8b3520f55ea9e96a80e86ed52c14896363c40fb18faf174c3a6e2cafc64c6"
+      "sha256": "9d9171be3d74ff951431c516eb098d7a8d6298f75db26db1aa519d36855b84bd"
     },
     {
       "path": "src/styles/inquiriesV2.css",
-      "bytes": 14005,
+      "bytes": 14062,
       "mode": "utf8-lf",
-      "sha256": "e8ed1f5b00cde4dac2f07c99cfd3ca1cb29c9dab054561ffcf2f843073aa0a30"
+      "sha256": "ffce411de16eacee9dbbe0ffd20be2eca9bb88e878d9ccb36718c3cc0b712f70"
     },
     {
       "path": "src/styles/inquiriesV2.spec.ts",
-      "bytes": 1105,
+      "bytes": 1585,
       "mode": "utf8-lf",
-      "sha256": "c5c308cab6c5a9ea1712d3c387eaac0bcd058f7735843f8a92cb62ecd560b96a"
+      "sha256": "2fe7d665e485c9c88e0a9ece8a9739edbcf1f687ca5082e989095ae3f256babb"
     },
     {
       "path": "src/views/SpecialistInquiriesView.spec.ts",
-      "bytes": 22659,
+      "bytes": 24072,
       "mode": "utf8-lf",
-      "sha256": "4d42db4de269f2b611c49b6d6bd14cfdb6b91eff52455967f99080f04292fd54"
+      "sha256": "756c0df8f662a310dc206306f1eba473f0db2a54e1e079dc79dc093e8369b84c"
     },
     {
       "path": "src/views/SpecialistInquiriesView.vue",
-      "bytes": 28068,
+      "bytes": 28521,
       "mode": "utf8-lf",
-      "sha256": "099234663bdd5975fe385363a57e6dd71ae0d89907442b90a45582ceb6d3ca0d"
+      "sha256": "9df63ee32a27a03de33324292eda551c1d96b6ff531eb94be0c857c125562a7e"
     }
   ]
 }

@@ -478,6 +478,46 @@
         "body": "visible"
       },
       "pageErrors": []
+    },
+    {
+      "scenario": "removed",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
+    },
+    {
+      "scenario": "forbidden",
+      "passed": true,
+      "bounds": {
+        "innerWidth": 375,
+        "scrollWidth": 375,
+        "root": {
+          "x": 40,
+          "y": 56,
+          "width": 295,
+          "height": 720,
+          "top": 56,
+          "right": 335,
+          "bottom": 776,
+          "left": 40
+        },
+        "body": "visible"
+      },
+      "pageErrors": []
     }
   ],
   "parity": [

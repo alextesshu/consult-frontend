@@ -881,16 +881,6 @@ stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > updates
   at <TherapistClientsView ref="VTU_COMPONENT" >
   at <VTUROOT>
 
- ✓ src/views/TherapistClientsView.spec.ts (152 tests) 10133ms
-   ✓ TherapistClientsView > shows regular time empty state and creates a modal regular time 530ms
-   ✓ TherapistClientsView > creates regular time for registered client using client_record_id 311ms
-   ✓ TherapistClientsView > uses specialist standard session duration as new regular time default 401ms
-   ✓ TherapistClientsView > creates regular time without timezone field 516ms
-   ✓ TherapistClientsView > creates offline regular time with empty meeting URL string 385ms
-   ✓ TherapistClientsView > rejects mismatched regular time weekday and start date before create request 394ms
-   ✓ TherapistClientsView > rejects missing regular time start time before request 407ms
-   ✓ TherapistClientsView > shows duplicate regular time backend error copy 415ms
-   ✓ TherapistClientsView > shows archived client regular time backend error copy 360ms
 stderr | src/views/TherapistClientsView.spec.ts > TherapistClientsView > does not submit regular time update when user
 cancels future-session move confirm
 [Vue warn]: injection "Symbol(router)" not found.
@@ -925,31 +915,29 @@ or copy
   at <TherapistClientsView ref="VTU_COMPONENT" >
   at <VTUROOT>
 
- ✓ src/views/PublicProfileView.spec.ts (144 tests) 21829ms
-   ✓ PublicProfileView > renders the main public profile sections from loaded data 440ms
-   ✓ PublicProfileView > opens guest booking request flow from slot click without auth 328ms
-   ✓ PublicProfileView > shows consultation offer selector and submits standard offer_type by default 325ms
-   ✓ PublicProfileView > keeps the chosen request option visible and editable without clearing the request draft 442ms
-   ✓ PublicProfileView > keeps the selected request option on dialog reopen and resets it after success 491ms
-   ✓ PublicProfileView > submits couple offer_type only when couple offer is public 336ms
-   ✓ PublicProfileView > allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal 377ms
-   ✓ PublicProfileView > filters available times by selected offer duration 364ms
-   ✓ PublicProfileView > shows calm Ukrainian copy for backend offer duration mismatch 417ms
-   ✓ PublicProfileView > renders simplified request topic and message copy while keeping topic selection stable 645ms
-   ✓ PublicProfileView > keeps the request input simple when the Other topic is selected 631ms
-   ✓ PublicProfileView > submits a valid guest booking request and renders success state copy 355ms
-   ✓ PublicProfileView > submits guest booking request with canonical telegram contact channel value 327ms
-   ✓ PublicProfileView > submits guest booking request with canonical phone contact channel value 358ms
-   ✓ PublicProfileView > shows specific validation message for unsupported contact channel choice 405ms
-   ✓ PublicProfileView > shows friendly unavailable slot error for guest booking request 337ms
-   ✓ PublicProfileView > shows friendly guest-flow restriction error for entitlement limits 318ms
-   ✓ PublicProfileView > does not re-prompt booking rules after successful acceptance for repeated booking actions 335ms
-   ✓ PublicProfileView > requires guest booking rules checkbox when active rules are present 333ms
-   ✓ PublicProfileView > shows inquiry CTA instead of full-chat CTA for a non-active client 307ms
-   ✓ PublicProfileView > UI v2 profile isolation and requests > resets only the desktop panel when opening, closing and reopening the form 395ms
-   ✓ PublicProfileView > UI v2 profile isolation and requests > reuses the guest request form inline and sends the existing request contract only after submission 340ms
-   ✓ PublicProfileView > UI v2 profile isolation and requests > restores the original calendar and preserves entered values through v2/v1 switches 356ms
- ✓ src/views/SlotsView.spec.ts (91 tests) 4188ms
+ ✓ src/views/TherapistClientsView.spec.ts (152 tests) 8403ms
+   ✓ TherapistClientsView > shows regular time empty state and creates a modal regular time 453ms
+   ✓ TherapistClientsView > creates regular time for registered client using client_record_id 354ms
+   ✓ TherapistClientsView > creates regular time without timezone field 359ms
+   ✓ TherapistClientsView > creates offline regular time with empty meeting URL string 370ms
+   ✓ TherapistClientsView > rejects missing regular time start time before request 322ms
+   ✓ TherapistClientsView > shows duplicate regular time backend error copy 315ms
+   ✓ TherapistClientsView > shows archived client regular time backend error copy 427ms
+ ✓ src/views/PublicProfileView.spec.ts (144 tests) 21287ms
+   ✓ PublicProfileView > renders the main public profile sections from loaded data 776ms
+   ✓ PublicProfileView > keeps documents before journal and moves contact block to sticky sidebar 307ms
+   ✓ PublicProfileView > shows consultation offer selector and submits standard offer_type by default 426ms
+   ✓ PublicProfileView > submits intro offer_type when intro offer is selected 331ms
+   ✓ PublicProfileView > allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal 427ms
+   ✓ PublicProfileView > filters available times by selected offer duration 335ms
+   ✓ PublicProfileView > renders simplified request topic and message copy while keeping topic selection stable 668ms
+   ✓ PublicProfileView > keeps the request input simple when the Other topic is selected 478ms
+   ✓ PublicProfileView > shows specific validation message for unsupported contact channel choice 612ms
+   ✓ PublicProfileView > shows friendly unavailable slot error for guest booking request 315ms
+   ✓ PublicProfileView > hides format chooser for online-only specialist and sends online session_format 311ms
+   ✓ PublicProfileView > renders the post-follow-up inquiry state as open while waiting for the final specialist reply 359ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > retains authenticated client confirmation and does not submit on slot selection 303ms
+ ✓ src/views/SlotsView.spec.ts (91 tests) 5598ms
 stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > validates profile document files before upload
 Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
 Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
@@ -981,36 +969,39 @@ stderr | src/views/TherapistProfileView.spec.ts > TherapistProfileView > closes 
 sible after successful photo save
 Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
 
- ✓ src/views/TherapistProfileView.spec.ts (106 tests) 22036ms
-   ✓ TherapistProfileView > uploads a valid pending document and clears the local preview after success 358ms
-   ✓ TherapistProfileView > keeps the selected document available for retry when upload fails 315ms
-   ✓ TherapistProfileView > confirms disabling an active public profile and keeps the change in the save flow 506ms
-   ✓ TherapistProfileView > keeps unpublish and search disable available for a published incomplete profile 416ms
-   ✓ TherapistProfileView > shows missing readiness items when backend rejects activation 385ms
-   ✓ TherapistProfileView > supports adding and saving an optional secondary phone 413ms
-   ✓ TherapistProfileView > removes the optional secondary phone and clears visibility 370ms
-   ✓ TherapistProfileView > shows local secondary phone validation errors before saving 351ms
-   ✓ TherapistProfileView > shows duplicate secondary phone validation before saving 382ms
-   ✓ TherapistProfileView > renders backend secondary phone field errors near the field 391ms
-   ✓ TherapistProfileView > shows pending search visibility helpers before save 405ms
-   ✓ TherapistProfileView > updates canonical profile slug via secondary edit flow 417ms
-   ✓ TherapistProfileView > maps SLUG_INVALID slug update code to inline user-friendly feedback 404ms
-   ✓ TherapistProfileView > maps SLUG_RESERVED slug update code to inline user-friendly feedback 390ms
-   ✓ TherapistProfileView > maps SLUG_TAKEN slug update code to inline user-friendly feedback 403ms
-   ✓ TherapistProfileView > updates specialization presets when professional_focus changes 384ms
-   ✓ TherapistProfileView > preserves selected specialization tags when professional_focus changes 355ms
-   ✓ TherapistProfileView > saves a normalized payload via sticky save action and hides sticky bar after success 806ms
-   ✓ TherapistProfileView > shows a clear profile save error when saving fails 358ms
-   ✓ TherapistProfileView > warns before leaving with unsaved profile changes and stops warning after save 363ms
-   ✓ TherapistProfileView > renders couple consultation settings and saves configured couple offer fields 431ms
-   ✓ TherapistProfileView > renders and saves public booking slot policy settings 997ms
-   ✓ TherapistProfileView > hides public availability visibility control in request-only mode and restores it with preserved true state 1012ms
-   ✓ TherapistProfileView > hides public availability visibility control in request-only mode and restores it with preserved false state 1056ms
-   ✓ TherapistProfileView > allows saving disabled couple offer without price 376ms
-   ✓ TherapistProfileView > keeps existing validation flow when both online and offline options are disabled 481ms
-   ✓ TherapistProfileView > hides and shows offline location field based on offline availability 616ms
- ✓ src/views/TherapistSessionDetailView.spec.ts (77 tests) 2080ms
- ✓ src/views/ExternalSessionsView.spec.ts (66 tests) 4422ms
+ ✓ src/views/TherapistProfileView.spec.ts (106 tests) 20766ms
+   ✓ TherapistProfileView > renders the loaded public profile data and final public profile check action 370ms
+   ✓ TherapistProfileView > uploads a valid pending document and clears the local preview after success 397ms
+   ✓ TherapistProfileView > keeps the selected document available for retry when upload fails 620ms
+   ✓ TherapistProfileView > does not offer profile sharing for an unpublished profile 384ms
+   ✓ TherapistProfileView > confirms disabling an active public profile and keeps the change in the save flow 532ms
+   ✓ TherapistProfileView > keeps unpublish and search disable available for a published incomplete profile 867ms
+   ✓ TherapistProfileView > blocks search enable but keeps unpublish available for a published incomplete profile 393ms
+   ✓ TherapistProfileView > lets a ready inactive profile be activated from the status control 404ms
+   ✓ TherapistProfileView > keeps pending publication state when saving publication fails 306ms
+   ✓ TherapistProfileView > emits search visibility only after the backend confirms the saved transition 500ms
+   ✓ TherapistProfileView > shows missing readiness items when backend rejects activation 364ms
+   ✓ TherapistProfileView > shows local secondary phone validation errors before saving 467ms
+   ✓ TherapistProfileView > shows pending search visibility helpers before save 315ms
+   ✓ TherapistProfileView > updates canonical profile slug via secondary edit flow 301ms
+   ✓ TherapistProfileView > preserves selected specialization tags when professional_focus changes 427ms
+   ✓ TherapistProfileView > saves a normalized payload via sticky save action and hides sticky bar after success 845ms
+   ✓ TherapistProfileView > renders and saves public booking slot policy settings 761ms
+   ✓ TherapistProfileView > hides public availability visibility control in request-only mode and restores it with preserved true state 591ms
+   ✓ TherapistProfileView > hides public availability visibility control in request-only mode and restores it with preserved false state 841ms
+   ✓ TherapistProfileView > keeps existing validation flow when both online and offline options are disabled 451ms
+   ✓ TherapistProfileView > hides and shows offline location field based on offline availability 421ms
+ ✓ src/views/TherapistSessionDetailView.spec.ts (77 tests) 5677ms
+   ✓ TherapistSessionDetailView > renders the session detail happy path with related context 387ms
+   ✓ TherapistSessionDetailView > toggles the reschedule panel only for actionable sessions 661ms
+   ✓ TherapistSessionDetailView > blocks reschedule submit when visible date format is invalid 301ms
+ ✓ src/views/ExternalSessionsView.spec.ts (66 tests) 12380ms
+   ✓ ExternalSessionsView > renders external sessions list and empty guest requests state 405ms
+   ✓ ExternalSessionsView > creates manual session from slot-less guest request and refreshes data 554ms
+   ✓ ExternalSessionsView > preserves separate SESSION_OVERLAP error handling in the picker 331ms
+   ✓ ExternalSessionsView > prevents duplicate resolution submissions while the conversion is pending 339ms
+   ✓ ExternalSessionsView > does not let an old discovery response overwrite a reopened dialog token 306ms
+   ✓ ExternalSessionsView > shows truthful contact ambiguity fallback when candidate discovery fails for create-session 316ms
 stderr | src/__tests__/app.spec.ts > App shell > allows guests to open /specialists without redirect to signup-client
 Error: Not implemented: window.scrollTo
     at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
@@ -1021,8 +1012,9 @@ N81iOl.mjs:434:65)
     at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
     at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
 
- ✓ src/__tests__/app.spec.ts (86 tests) 2285ms
- ✓ src/views/CabinetView.spec.ts (73 tests) 1252ms
+ ✓ src/__tests__/app.spec.ts (86 tests) 5006ms
+ ✓ src/views/CabinetView.spec.ts (73 tests) 2368ms
+   ✓ CabinetView > keeps compact dashboard header copy and readiness hierarchy 300ms
 stderr | src/views/TherapistSessionsView.spec.ts > TherapistSessionsView > shows empty states when there are no session
 s or transfer requests
 Error: Not implemented: navigation (except hash changes)
@@ -1037,19 +1029,22 @@ HyperlinkElementUtils-impl.js:81:7)
     at listOnTimeout (node:internal/timers:573:17)
     at processTimers (node:internal/timers:514:7) undefined
 
- ✓ src/views/TherapistSessionsView.spec.ts (28 tests) 1148ms
- ✓ src/views/AdminSpecialistDetailView.spec.ts (27 tests) 1216ms
- ✓ src/views/AdminWorkQueueView.spec.ts (35 tests) 764ms
- ✓ src/views/BillingView.spec.ts (39 tests) 781ms
- ✓ src/views/HomeView.spec.ts (21 tests) 1141ms
- ✓ src/views/PublicTherapistsView.spec.ts (36 tests) 1731ms
-   ✓ Discovery v5 interactions > keeps typing presentation separate from real submit and supports chip toggling without submitting draft text 747ms
- ✓ src/views/ExternalSessionDetailView.spec.ts (19 tests) 612ms
+ ✓ src/views/TherapistSessionsView.spec.ts (28 tests) 2213ms
+   ✓ TherapistSessionsView > renders the list-level session surface with filters and pending request context 620ms
+ ✓ src/views/AdminSpecialistDetailView.spec.ts (27 tests) 1980ms
+ ✓ src/views/AdminWorkQueueView.spec.ts (35 tests) 1487ms
+ ✓ src/views/BillingView.spec.ts (39 tests) 1475ms
+ ✓ src/views/HomeView.spec.ts (21 tests) 2015ms
+   ✓ HomeView > captures the client discovery CTA once without properties 301ms
+   ✓ HomeView > renders the polished homepage with the rich hero composition 366ms
+ ✓ src/views/PublicTherapistsView.spec.ts (36 tests) 3005ms
+   ✓ Discovery v5 interactions > keeps typing presentation separate from real submit and supports chip toggling without submitting draft text 787ms
+ ✓ src/views/ExternalSessionDetailView.spec.ts (19 tests) 1034ms
 stderr | src/views/ClientSessionDetailView.spec.ts > ClientSessionDetailView > uploads payment proof from client block
 and refreshes payment-proof state
 Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
 
- ✓ src/views/ClientSessionDetailView.spec.ts (17 tests) 457ms
+ ✓ src/views/ClientSessionDetailView.spec.ts (17 tests) 961ms
 stderr | src/views/SpecialistSessionsFlow.spec.ts > specialist sessions flow > keeps list and detail aligned after conf
 irming from list and cancelling from detail
 [Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
@@ -1089,8 +1084,10 @@ leting a session from detail and navigating back
 [Vue Router warn]: No match found for location with path "/cabinet/clients?client=77&autoOpen=1"
 [Vue Router warn]: No match found for location with path "/cabinet/external-sessions"
 
- ✓ src/views/SpecialistSessionsFlow.spec.ts (7 tests) 851ms
- ✓ src/views/SettingsHubView.spec.ts (20 tests) 498ms
+ ✓ src/views/SpecialistSessionsFlow.spec.ts (7 tests) 1900ms
+   ✓ specialist sessions flow > keeps list and detail aligned after confirming from list and cancelling from detail 551ms
+   ✓ specialist sessions flow > keeps list and detail aligned after rescheduling from detail suggestions 328ms
+ ✓ src/views/SettingsHubView.spec.ts (20 tests) 998ms
 stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView create validation > does not expose raw server validat
 ion after selecting a cover and clearing the form
 Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
@@ -1121,10 +1118,10 @@ stderr | src/views/AuthorJournalView.spec.ts > AuthorJournalView cover editing >
 low intact before an article is edited
 Using "fireEvent.change" may lead to unexpected results. Please use fireEvent.update() instead.
 
- ✓ src/views/AuthorJournalView.spec.ts (23 tests) 856ms
- ✓ src/views/SpecialistInquiriesView.spec.ts (16 tests) 474ms
- ✓ src/views/SignupView.spec.ts (24 tests) 409ms
- ✓ src/views/NotificationSettingsView.spec.ts (18 tests) 525ms
+ ✓ src/views/AuthorJournalView.spec.ts (23 tests) 1726ms
+ ✓ src/views/SpecialistInquiriesView.spec.ts (18 tests) 708ms
+ ✓ src/views/SignupView.spec.ts (24 tests) 1125ms
+ ✓ src/views/NotificationSettingsView.spec.ts (18 tests) 958ms
 stderr | src/router/index.spec.ts > router specialist session routes > matches the specialist session detail route for
 numeric ids
 Error: Not implemented: window.scrollTo
@@ -1709,6 +1706,7 @@ ed.js:9:17)
 N81iOl.mjs:434:65)
     at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
     at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+ ✓ src/router/index.spec.ts (51 tests) 837ms
 
 stderr | src/router/index.spec.ts > router specialist session routes > redirects specialist to public profile when prof
 ile is published
@@ -1748,32 +1746,31 @@ N81iOl.mjs:434:65)
     at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
     at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
 
- ✓ src/router/index.spec.ts (51 tests) 732ms
- ✓ src/components/ClientPaymentsOverview.spec.ts (28 tests) 290ms
- ✓ src/lib/productAnalytics.spec.ts (24 tests) 16ms
- ✓ src/components/SessionPaymentProofBlock.spec.ts (13 tests) 210ms
- ✓ src/composables/useSpecialistDiscovery.spec.ts (23 tests) 614ms
- ✓ src/components/reviews/ReviewShareCardModal.spec.ts (22 tests) 310ms
- ✓ src/views/SpecialistPracticeBoardView.spec.ts (13 tests) 352ms
- ✓ src/stores/auth.spec.ts (13 tests) 48ms
- ✓ src/views/CabinetView.v2.spec.ts (10 tests) 405ms
+ ✓ src/components/ClientPaymentsOverview.spec.ts (28 tests) 413ms
+ ✓ src/lib/productAnalytics.spec.ts (24 tests) 18ms
+ ✓ src/components/SessionPaymentProofBlock.spec.ts (13 tests) 241ms
+ ✓ src/composables/useSpecialistDiscovery.spec.ts (23 tests) 633ms
+ ✓ src/components/reviews/ReviewShareCardModal.spec.ts (22 tests) 386ms
+ ✓ src/views/SpecialistPracticeBoardView.spec.ts (13 tests) 364ms
+ ✓ src/stores/auth.spec.ts (13 tests) 55ms
+ ✓ src/views/CabinetView.v2.spec.ts (10 tests) 509ms
  ✓ src/lib/specialistOnboarding.spec.ts (10 tests) 9ms
- ✓ src/components/public-profile/PublicProfileAboutSection.spec.ts (20 tests) 160ms
- ✓ src/views/ClientDashboardView.spec.ts (11 tests) 431ms
- ✓ src/views/TherapistReviewsView.spec.ts (12 tests) 328ms
- ✓ src/lib/specialistSessions.spec.ts (12 tests) 11ms
- ✓ src/views/ClientProfileView.spec.ts (8 tests) 223ms
- ✓ src/views/ClientMaterialsView.spec.ts (8 tests) 167ms
- ✓ src/styles/uiV2.spec.ts (13 tests) 136ms
- ✓ src/composables/useForClientsMotion.spec.ts (26 tests) 78ms
- ✓ src/views/ClientSignupView.spec.ts (12 tests) 278ms
- ✓ src/views/PublicGuestBookingTimeProposalView.spec.ts (11 tests) 159ms
- ✓ src/views/AnalyticsView.spec.ts (7 tests) 190ms
- ✓ src/views/AdminSpecialistsSearchView.spec.ts (8 tests) 432ms
- ✓ src/views/ChatView.spec.ts (7 tests) 313ms
- ✓ src/views/TherapistClientWorkbookView.spec.ts (10 tests) 293ms
- ✓ src/views/ClientSessionRecoveryIntentFlow.spec.ts (2 tests) 285ms
- ✓ src/views/ClientRecordAccountInviteView.spec.ts (7 tests) 175ms
+ ✓ src/components/public-profile/PublicProfileAboutSection.spec.ts (20 tests) 162ms
+ ✓ src/views/ClientDashboardView.spec.ts (11 tests) 379ms
+ ✓ src/views/TherapistReviewsView.spec.ts (12 tests) 361ms
+ ✓ src/lib/specialistSessions.spec.ts (12 tests) 18ms
+ ✓ src/views/ClientProfileView.spec.ts (8 tests) 372ms
+ ✓ src/views/ClientMaterialsView.spec.ts (8 tests) 420ms
+ ✓ src/styles/uiV2.spec.ts (13 tests) 112ms
+ ✓ src/composables/useForClientsMotion.spec.ts (26 tests) 91ms
+ ✓ src/views/ClientSignupView.spec.ts (12 tests) 331ms
+ ✓ src/views/PublicGuestBookingTimeProposalView.spec.ts (11 tests) 163ms
+ ✓ src/views/AnalyticsView.spec.ts (7 tests) 204ms
+ ✓ src/views/AdminSpecialistsSearchView.spec.ts (8 tests) 461ms
+ ✓ src/views/ChatView.spec.ts (7 tests) 405ms
+ ✓ src/views/TherapistClientWorkbookView.spec.ts (10 tests) 445ms
+ ✓ src/views/ClientSessionRecoveryIntentFlow.spec.ts (2 tests) 300ms
+ ✓ src/views/ClientRecordAccountInviteView.spec.ts (7 tests) 220ms
 stderr | src/views/AdminBillingAccessRequestDetailView.spec.ts > AdminBillingAccessRequestDetailView > approves pending
  request and refreshes detail state
 [Vue Router warn]: No match found for location with path "/admin/specialists/13"
@@ -1783,10 +1780,10 @@ stderr | src/views/AdminBillingAccessRequestDetailView.spec.ts > AdminBillingAcc
 een stable when canonical labels are absent
 [Vue Router warn]: No match found for location with path "/admin/specialists/55"
 
- ✓ src/views/AdminBillingAccessRequestDetailView.spec.ts (4 tests) 165ms
- ✓ src/views/AdminInboxView.spec.ts (4 tests) 184ms
- ✓ src/lib/registrationAttribution.spec.ts (13 tests) 255ms
- ✓ src/views/ForClientsView.spec.ts (14 tests) 478ms
+ ✓ src/views/AdminBillingAccessRequestDetailView.spec.ts (4 tests) 170ms
+ ✓ src/views/AdminInboxView.spec.ts (4 tests) 183ms
+ ✓ src/lib/registrationAttribution.spec.ts (13 tests) 259ms
+ ✓ src/views/ForClientsView.spec.ts (14 tests) 497ms
 stderr | src/views/AdminBillingAccessRequestsView.spec.ts > AdminBillingAccessRequestsView > renders canonical list pay
 load and deep-link to detail route
 [Vue Router warn]: No match found for location with path "/admin/specialists/13"
@@ -1802,16 +1799,17 @@ uery when filters change
 [Vue Router warn]: No match found for location with path "/admin/specialists/13"
 [Vue Router warn]: No match found for location with path "/admin/specialists/13"
 
- ✓ src/views/AdminBillingAccessRequestsView.spec.ts (4 tests) 156ms
- ✓ src/composables/useDiscoveryMotion.spec.ts (14 tests) 52ms
- ✓ src/views/PublicJournalPostView.spec.ts (8 tests) 269ms
- ✓ src/components/ShareDialog.spec.ts (11 tests) 191ms
- ✓ src/components/PublicSpecialistCard.spec.ts (10 tests) 136ms
- ✓ src/components/public-profile/PublicProfileTrustSection.spec.ts (7 tests) 149ms
- ✓ src/views/PublicTherapistsView.mobile.spec.ts (7 tests) 429ms
- ✓ src/lib/api.clientMaterials.spec.ts (11 tests) 7ms
- ✓ src/composables/useHomeMotion.spec.ts (19 tests) 68ms
- ✓ src/styles/signupV2.spec.ts (7 tests) 40ms
+ ✓ src/views/AdminBillingAccessRequestsView.spec.ts (4 tests) 246ms
+ ✓ src/composables/useDiscoveryMotion.spec.ts (14 tests) 66ms
+ ✓ src/views/PublicJournalPostView.spec.ts (8 tests) 530ms
+   ✓ PublicJournalPostView routes and owner preview > loads a published article by canonical slug and uses it for profile and blog links 341ms
+ ✓ src/components/ShareDialog.spec.ts (11 tests) 293ms
+ ✓ src/components/PublicSpecialistCard.spec.ts (10 tests) 285ms
+ ✓ src/components/public-profile/PublicProfileTrustSection.spec.ts (7 tests) 239ms
+ ✓ src/views/PublicTherapistsView.mobile.spec.ts (7 tests) 667ms
+ ✓ src/lib/api.clientMaterials.spec.ts (11 tests) 8ms
+ ✓ src/composables/useHomeMotion.spec.ts (19 tests) 72ms
+ ✓ src/styles/signupV2.spec.ts (7 tests) 61ms
 stderr | src/views/ExternalGuestSessionInviteView.spec.ts > ExternalGuestSessionInviteView > renders online resolve sta
 te without offline helper text
 [Vue warn]: Failed to resolve component: RouterLink
@@ -1920,80 +1918,81 @@ nt.
   at <ExternalGuestSessionInviteView ref="VTU_COMPONENT" >
   at <VTUROOT>
 
- ✓ src/views/ExternalGuestSessionInviteView.spec.ts (6 tests) 112ms
- ✓ src/styles/publicMobileV2.spec.ts (9 tests) 48ms
- ✓ src/lib/specialistPracticeBoard.spec.ts (12 tests) 8ms
- ✓ src/views/LoginView.v2.spec.ts (6 tests) 278ms
- ✓ src/components/cabinet-v2/SpecialistCabinetShellV2.spec.ts (4 tests) 367ms
- ✓ src/views/PublicJournalView.spec.ts (4 tests) 186ms
- ✓ src/views/LegalPages.spec.ts (4 tests) 138ms
- ✓ src/main.spec.ts (5 tests) 2369ms
-   ✓ application bootstrap > sanitizes the real import-time URL before the router module is created 584ms
-   ✓ application bootstrap > creates the router normally for a direct cabinet URL 410ms
-   ✓ application bootstrap > applies UI selection before createApp and survives verification URL sanitization 440ms
-   ✓ application bootstrap > keeps successful query navigation and browser history synchronized 512ms
-   ✓ application bootstrap > boots when the storage accessor is unavailable 422ms
- ✓ src/lib/uiVersion.spec.ts (21 tests) 119ms
- ✓ src/views/ClientFeedbackView.spec.ts (7 tests) 146ms
- ✓ src/views/LoginView.spec.ts (7 tests) 198ms
- ✓ src/components/public-profile/PublicProfileOverlay.spec.ts (6 tests) 136ms
- ✓ src/components/PublicMobileMenuV2.spec.ts (4 tests) 226ms
- ✓ src/views/VerifyEmailView.spec.ts (10 tests) 117ms
- ✓ src/views/ResetPasswordView.spec.ts (5 tests) 145ms
- ✓ src/lib/api.clientRegularTimes.spec.ts (7 tests) 5ms
- ✓ src/views/AccountEmailChangeConfirmView.spec.ts (7 tests) 101ms
+ ✓ src/views/ExternalGuestSessionInviteView.spec.ts (6 tests) 201ms
+ ✓ src/styles/publicMobileV2.spec.ts (9 tests) 58ms
+ ✓ src/lib/specialistPracticeBoard.spec.ts (12 tests) 9ms
+ ✓ src/views/LoginView.v2.spec.ts (6 tests) 301ms
+ ✓ src/components/cabinet-v2/SpecialistCabinetShellV2.spec.ts (4 tests) 302ms
+ ✓ src/views/PublicJournalView.spec.ts (4 tests) 215ms
+ ✓ src/views/LegalPages.spec.ts (4 tests) 185ms
+ ✓ src/main.spec.ts (5 tests) 3149ms
+   ✓ application bootstrap > sanitizes the real import-time URL before the router module is created 957ms
+   ✓ application bootstrap > creates the router normally for a direct cabinet URL 470ms
+   ✓ application bootstrap > applies UI selection before createApp and survives verification URL sanitization 581ms
+   ✓ application bootstrap > keeps successful query navigation and browser history synchronized 633ms
+   ✓ application bootstrap > boots when the storage accessor is unavailable 507ms
+ ✓ src/lib/uiVersion.spec.ts (21 tests) 131ms
+ ✓ src/views/ClientFeedbackView.spec.ts (7 tests) 200ms
+ ✓ src/views/LoginView.spec.ts (7 tests) 282ms
+ ✓ src/components/public-profile/PublicProfileOverlay.spec.ts (6 tests) 199ms
+ ✓ src/components/PublicMobileMenuV2.spec.ts (4 tests) 298ms
+ ✓ src/views/VerifyEmailView.spec.ts (10 tests) 110ms
+ ✓ src/views/ResetPasswordView.spec.ts (5 tests) 130ms
+ ✓ src/lib/api.clientRegularTimes.spec.ts (7 tests) 6ms
+ ✓ src/views/AccountEmailChangeConfirmView.spec.ts (7 tests) 118ms
  ✓ src/lib/api.reviews.spec.ts (7 tests) 6ms
- ✓ src/lib/publicMetadata.spec.ts (5 tests) 36ms
- ✓ src/styles/cabinetShellV2.spec.ts (4 tests) 18ms
- ✓ src/components/public-profile/PublicProfileIdentityRail.spec.ts (5 tests) 106ms
- ✓ src/components/ProfileVisibilityControl.spec.ts (4 tests) 102ms
+ ✓ src/lib/publicMetadata.spec.ts (5 tests) 76ms
+ ✓ src/styles/cabinetShellV2.spec.ts (4 tests) 17ms
+ ✓ src/components/public-profile/PublicProfileIdentityRail.spec.ts (5 tests) 134ms
+ ✓ src/components/ProfileVisibilityControl.spec.ts (4 tests) 233ms
  ✓ src/styles/specialistDashboardV2.spec.ts (5 tests) 22ms
- ✓ src/styles/discoveryV2.spec.ts (6 tests) 14ms
- ✓ src/components/EmailVerificationNotice.spec.ts (5 tests) 105ms
- ✓ src/styles/publicProfileV2.spec.ts (6 tests) 25ms
- ✓ src/test/bookingCopy.test.ts (7 tests) 3ms
- ✓ src/composables/useProfileMotion.spec.ts (5 tests) 20ms
- ✓ src/components/public-profile/PublicProfileHeroSection.spec.ts (3 tests) 86ms
- ✓ src/lib/specialistCabinetNav.spec.ts (5 tests) 6ms
- ✓ src/styles/forClientsV2.spec.ts (5 tests) 18ms
- ✓ src/lib/profilePanelScroll.spec.ts (4 tests) 20ms
- ✓ src/views/ClientInquiryRedirectView.spec.ts (2 tests) 62ms
- ✓ src/components/DatePickerField.spec.ts (5 tests) 201ms
- ✓ src/lib/emailVerificationToken.spec.ts (3 tests) 22ms
+ ✓ src/styles/discoveryV2.spec.ts (6 tests) 24ms
+ ✓ src/components/EmailVerificationNotice.spec.ts (5 tests) 227ms
+ ✓ src/styles/publicProfileV2.spec.ts (6 tests) 22ms
+ ✓ src/test/bookingCopy.test.ts (7 tests) 4ms
+ ✓ src/composables/useProfileMotion.spec.ts (5 tests) 17ms
+ ✓ src/components/public-profile/PublicProfileHeroSection.spec.ts (3 tests) 84ms
+ ✓ src/lib/specialistCabinetNav.spec.ts (5 tests) 7ms
+ ✓ src/styles/forClientsV2.spec.ts (5 tests) 22ms
+ ✓ src/lib/profilePanelScroll.spec.ts (4 tests) 19ms
+ ✓ src/views/ClientInquiryRedirectView.spec.ts (2 tests) 87ms
+ ✓ src/components/DatePickerField.spec.ts (5 tests) 288ms
+ ✓ src/lib/emailVerificationToken.spec.ts (3 tests) 23ms
  ✓ src/lib/http.spec.ts (4 tests) 9ms
- ✓ src/composables/useMobileOverlay.spec.ts (3 tests) 35ms
- ✓ src/lib/dateFormat.spec.ts (7 tests) 17ms
+ ✓ src/composables/useMobileOverlay.spec.ts (3 tests) 40ms
+ ✓ src/lib/dateFormat.spec.ts (7 tests) 16ms
  ✓ src/lib/api.dataDeletionRequests.spec.ts (4 tests) 4ms
- ✓ src/styles/homeV2.spec.ts (4 tests) 13ms
- ✓ src/views/SupportAndDataRequestsView.spec.ts (2 tests) 109ms
- ✓ src/views/ClientTherapistsView.spec.ts (2 tests) 98ms
- ✓ src/composables/useDashboardMotion.spec.ts (3 tests) 21ms
- ✓ src/composables/useSnapStrip.spec.ts (2 tests) 22ms
- ✓ src/views/ForgotPasswordView.spec.ts (2 tests) 86ms
- ✓ src/components/AnalyticsConsentBanner.spec.ts (3 tests) 174ms
- ✓ src/lib/entitlementReconcile.spec.ts (6 tests) 3ms
- ✓ src/lib/clientAcquisitionAttribution.spec.ts (3 tests) 10ms
- ✓ src/views/SlotsView.layout.spec.ts (5 tests) 21ms
- ✓ src/lib/sessionExecution.spec.ts (4 tests) 14ms
- ✓ src/lib/analyticsConsent.spec.ts (4 tests) 5ms
- ✓ src/lib/publicBookingRecovery.spec.ts (8 tests) 3ms
- ✓ src/lib/api.specialistDiscovery.spec.ts (3 tests) 4ms
- ✓ src/lib/specialistDashboardV2.spec.ts (4 tests) 14ms
- ✓ src/lib/dateTime.spec.ts (4 tests) 15ms
- ✓ src/lib/telegramApi.spec.ts (2 tests) 4ms
- ✓ src/components/TimeSelectField.spec.ts (3 tests) 143ms
- ✓ src/views/FaqView.spec.ts (1 test) 72ms
- ✓ src/lib/completedSessionsBadge.spec.ts (5 tests) 3ms
- ✓ src/lib/analytics.spec.ts (5 tests) 3ms
- ✓ src/styles/inquiriesV2.spec.ts (2 tests) 9ms
- ✓ src/test/dates.test.ts (2 tests) 3ms
+ ✓ src/styles/homeV2.spec.ts (4 tests) 16ms
+ ✓ src/views/SupportAndDataRequestsView.spec.ts (2 tests) 116ms
+ ✓ src/views/ClientTherapistsView.spec.ts (2 tests) 251ms
+ ✓ src/composables/useDashboardMotion.spec.ts (3 tests) 26ms
+ ✓ src/composables/useSnapStrip.spec.ts (2 tests) 20ms
+ ✓ src/views/ForgotPasswordView.spec.ts (2 tests) 141ms
+ ✓ src/components/AnalyticsConsentBanner.spec.ts (3 tests) 219ms
+ ✓ src/lib/entitlementReconcile.spec.ts (6 tests) 8ms
+ ✓ src/lib/clientAcquisitionAttribution.spec.ts (3 tests) 8ms
+ ✓ src/views/SlotsView.layout.spec.ts (5 tests) 34ms
+ ✓ src/lib/sessionExecution.spec.ts (4 tests) 19ms
+ ✓ src/lib/analyticsConsent.spec.ts (4 tests) 6ms
+ ✓ src/lib/publicBookingRecovery.spec.ts (8 tests) 6ms
+ ✓ src/lib/api.specialistDiscovery.spec.ts (3 tests) 5ms
+ ✓ src/lib/specialistDashboardV2.spec.ts (4 tests) 22ms
+ ✓ src/lib/dateTime.spec.ts (4 tests) 23ms
+ ✓ src/lib/telegramApi.spec.ts (2 tests) 6ms
+ ✓ src/components/TimeSelectField.spec.ts (3 tests) 346ms
+   ✓ TimeSelectField > renders a 24-hour select and no native time input 304ms
+ ✓ src/views/FaqView.spec.ts (1 test) 166ms
+ ✓ src/lib/completedSessionsBadge.spec.ts (5 tests) 4ms
+ ✓ src/lib/analytics.spec.ts (5 tests) 4ms
+ ✓ src/styles/inquiriesV2.spec.ts (2 tests) 13ms
+ ✓ src/test/dates.test.ts (2 tests) 4ms
  ✓ src/lib/specialistDiscoveryApi.spec.ts (1 test) 3ms
- ✓ src/lib/frontendBuildConfig.spec.ts (1 test) 2ms
- ✓ src/lib/timeOptions.spec.ts (3 tests) 3ms
+ ✓ src/lib/frontendBuildConfig.spec.ts (1 test) 4ms
+ ✓ src/lib/timeOptions.spec.ts (3 tests) 4ms
  ✓ src/lib/emailVerification.spec.ts (1 test) 2ms
- ✓ src/lib/specialistDiscoveryRotation.spec.ts (1 test) 2ms
+ ✓ src/lib/specialistDiscoveryRotation.spec.ts (1 test) 5ms
 
  Test Files  129 passed (129)
-      Tests  1953 passed (1953)
-   Start at  18:21:14
-   Duration  213.21s (transform 9.24s, setup 7.98s, collect 31.61s, tests 95.41s, environment 55.24s, prepare 8.29s)
+      Tests  1955 passed (1955)
+   Start at  18:36:05
+   Duration  292.94s (transform 11.56s, setup 12.07s, collect 44.05s, tests 123.31s, environment 80.67s, prepare 12.43s)

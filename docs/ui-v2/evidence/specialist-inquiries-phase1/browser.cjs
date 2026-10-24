@@ -19,6 +19,8 @@ async function open(browser,width,{version='v2',base=origin,scenario='normal',mo
     const u=new URL(route.request().url());
     if(u.pathname.endsWith('/threads/')) {
       data.listCalls++;
+      if(scenario==='forbidden'&&data.posts.length)return route.fulfill({status:403,json:{reason_code:'ACCESS_DENIED'}});
+      if(scenario==='removed'&&data.posts.length)return route.fulfill({json:data.threads.filter(item=>item.id!==91)});
       if(scenario==='list-error'&&data.listCalls===1)return route.fulfill({status:503,json:{detail:'Fixture list unavailable'}});
       if(scenario==='list-loading'&&data.listCalls===1)return new Promise(resolve=>data.held.set('list',()=>route.fulfill({json:data.threads}).then(resolve)));
       return route.fulfill({json:scenario==='empty'?[]:data.threads});
@@ -51,6 +53,9 @@ async function waitSend(data) {for(let i=0;i<50&&!data.releaseSend;i++)await new
 (async()=>{
  const browser=await chromium.launch({args:['--disable-gpu','--disable-lcd-text','--force-color-profile=srgb']});const matrix=[],states=[],parity=[];
  try {
+  // Warm Chromium's font raster cache before comparing independent V1 contexts.
+  const warm = await open(browser,375,{version:'v1',base:baseline});
+  await warm.p.screenshot({fullPage:true,animations:'disabled'});await warm.c.close();
   for(const width of widths) {
     const {c,p,errors,data}=await open(browser,width);
     const initial=await bounds(p);assert.equal(await p.getByRole('tab',{name:'Чекають відповіді 2'}).getAttribute('aria-selected'),'true');
@@ -76,16 +81,17 @@ async function waitSend(data) {for(let i=0;i<50&&!data.releaseSend;i++)await new
     for(const [label,base] of [['baseline',baseline],['candidate',origin]]){const {c,p,errors}=await open(browser,width,{version:'v1',base});await shot(p,`${label}-v1-${width}`);assert.equal(errors.length,0);await c.close()}
     parity.push({width,baseline:`baseline-v1-${width}.png`,candidate:`candidate-v1-${width}.png`});
   }
-  for(const scenario of ['empty','list-error','list-loading','message-error','send-error','switch','closed']) {
+  for(const scenario of ['empty','list-error','list-loading','message-error','send-error','switch','closed','removed','forbidden']) {
     const {c,p,data,errors}=await open(browser,375,{scenario});
     if(scenario==='empty')await p.getByText('Немає запитів, що чекають вашої відповіді.').waitFor();
     if(scenario==='list-error'){await p.getByRole('alert').waitFor();await shot(p,scenario);await p.getByRole('button',{name:'Спробувати ще раз'}).click();await p.locator('#inquiry-thread-91').waitFor()}
     if(scenario==='list-loading'){await p.getByText('Завантажуємо запити…').waitFor();await shot(p,scenario);await data.held.get('list')();await p.locator('#inquiry-thread-91').waitFor()}
     if(scenario==='message-error'){await p.locator('#inquiry-thread-91').click();await p.getByRole('alert').waitFor();assert.equal(await p.locator('#inquiry-thread-91 .pc2-inquiries__unread').count(),1)}
     if(scenario==='switch'){await p.locator('#inquiry-thread-91').click();await p.getByText('Завантажуємо повідомлення…').waitFor();await shot(p,'message-loading');await p.getByRole('button',{name:'Назад до запитів'}).click();await choose(p,92);await data.held.get(91)();assert.equal(await p.getByText('Тестовий текст треду 91',{exact:true}).count(),0)}
-    if(scenario==='send-error'||scenario==='closed'){await choose(p,91);await p.locator('#inquiry-v2-reply').fill('Fixture retained or completed');await p.locator('.pc2-inquiries__composer').dispatchEvent('submit');await waitSend(data);await data.releaseSend();
+    if(['send-error','closed','removed','forbidden'].includes(scenario)){await choose(p,91);await p.locator('#inquiry-v2-reply').fill('Fixture retained or completed');await p.locator('.pc2-inquiries__composer').dispatchEvent('submit');await waitSend(data);await data.releaseSend();
       if(scenario==='send-error'){await p.getByRole('alert').waitFor();assert.equal(await p.locator('#inquiry-v2-reply').inputValue(),'Fixture retained or completed');assert(!(await p.locator('.pc2-inquiries').innerText()).includes('CLIENT_RECORD_SELECTION_STALE'))}
-      else{await p.getByRole('tab',{name:'Завершені 5',includeHidden:true}).waitFor({state:'attached'});assert.equal(await p.locator('#inquiry-v2-reply').count(),0)}
+      else if(scenario==='closed'){await p.getByRole('tab',{name:'Завершені 5',includeHidden:true}).waitFor({state:'attached'});assert.equal(await p.locator('#inquiry-v2-reply').count(),0)}
+      else{await p.locator('.pc2-inquiries:not(.is-thread-open)').waitFor();assert.equal(await p.locator('.pc2-inquiries__message').count(),0);if(scenario==='forbidden')await p.getByRole('alert').waitFor();else await p.locator('#inquiry-thread-92').waitFor()}
     }
     await shot(p,scenario+'-final');assert.equal(errors.length,0);states.push({scenario,passed:true,bounds:await bounds(p),pageErrors:errors});await c.close();console.log('state',scenario);
   }

@@ -325,9 +325,18 @@ async function loadThreads(select = true): Promise<boolean> {
       if (uiV2.value) filter.value = group(preferred)
       await selectThread(preferred.id, true)
     } else if (!current) {
+      const previousId = activeThreadId.value
       messageGeneration++
       messages.value = []
       activeThreadId.value = null
+      if (uiV2.value && compact.value) {
+        detailOpen.value = false
+        if (previousId !== null) {
+          syncQuery(null)
+          await nextTick()
+          if (!disposed) listPane.value?.querySelector<HTMLElement>(`[data-filter="${filter.value}"]`)?.focus({ preventScroll: true })
+        }
+      }
       if (select && (!uiV2.value || !compact.value) && result.length) {
         const first = uiV2.value ? visibleThreads.value[0] : result[0]
         if (first) await selectThread(first.id, false)
@@ -339,7 +348,7 @@ async function loadThreads(select = true): Promise<boolean> {
     listError.value = getInquiryActionErrorMessage(error, 'specialist', 'Не вдалося завантажити запити перед сесією.')
     if (!uiV2.value) { threads.value = []; detailError.value = listError.value }
     const status = (error as { response?: { status?: number } })?.response?.status
-    if (status === 401 || status === 403) { threads.value = []; activeThreadId.value = null; messages.value = []; messageGeneration++ }
+    if (status === 401 || status === 403) { threads.value = []; activeThreadId.value = null; messages.value = []; messageGeneration++; detailOpen.value = false }
     return false
   } finally { if (!disposed && generation === threadGeneration) threadsLoading.value = false }
 }
@@ -383,6 +392,7 @@ async function submitReply() {
     if (disposed) return
     if ((drafts.value[id] || '').trim() === text) drafts.value[id] = ''
     refreshRequired.value = new Set([...refreshRequired.value, id])
+    clearTimeout(removalTimers.get(id)); removalTimers.delete(id)
     if (uiV2.value && !reduced.value) leaving.value[id] = from
     const refreshed = await loadThreads(false)
     if (disposed) return

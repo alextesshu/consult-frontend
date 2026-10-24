@@ -13,5 +13,13 @@ describe('inquiry v2 isolation and source motion', () => {
   })
   it('preserves source breakpoints, internal scrolling, timing and reduced-motion support', () => {
     for (const value of ['max-width: 1023px', 'max-width: 767px', 'minmax(280px,360px) minmax(0,1fr)', 'overflow: auto', 'max-height .4s ease .35s,opacity .3s ease .3s', '.35s cubic-bezier(.2,.8,.2,1)', 'prefers-reduced-motion: reduce', 'transition: none; animation: none']) expect(css).toContain(value)
+    const toastSelector = 'html[data-ui="v2"] .pc2-inquiries .pc2-inquiries__toast'
+    let reducedToastAnimation: string | undefined
+    postcss.parse(css).walkRules(rule => {
+      if (rule.parent?.type === 'atrule' && rule.parent.params.includes('prefers-reduced-motion') && rule.selectors.includes(toastSelector)) {
+        rule.walkDecls('animation', declaration => { reducedToastAnimation = declaration.value })
+      }
+    })
+    expect(reducedToastAnimation).toBe('none')
   })
 })

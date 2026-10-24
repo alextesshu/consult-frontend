@@ -270,6 +270,22 @@ describe('SpecialistInquiriesView v2 and reliability', () => {
     expect(mockedFetchInquiryThreads).toHaveBeenCalledTimes(1)
     expect(remove).toHaveBeenCalledTimes(2)
   })
+
+  it.each(['removed', 'forbidden'])('returns compact mode to the list when refreshed selection is %s', async outcome => {
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query.includes('1023px'), addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+    mockedSendInquiryMessage.mockResolvedValue(message(91, 'Accepted reply'))
+    const { container } = renderView()
+    await waitFor(() => expect(container.querySelector('#inquiry-thread-91')).not.toBeNull())
+    await fireEvent.click(container.querySelector('#inquiry-thread-91')!)
+    await fireEvent.update(await screen.findByLabelText('Коротка відповідь'), 'Accepted reply')
+    if (outcome === 'removed') mockedFetchInquiryThreads.mockResolvedValue([buildThread({ id: 92, other_user: { display_name: 'Інший клієнт' } })])
+    else mockedFetchInquiryThreads.mockRejectedValue({ response: { status: 403, data: { reason_code: 'ACCESS_DENIED' } } })
+    await fireEvent.submit(container.querySelector('form')!)
+    await waitFor(() => expect(container.querySelector('.pc2-inquiries')).not.toHaveClass('is-thread-open'))
+    expect(container.querySelector('.pc2-inquiries__message')).toBeNull()
+    if (outcome === 'removed') expect(container.querySelector('#inquiry-thread-92')).not.toBeNull()
+    else expect(screen.getByRole('alert')).toHaveTextContent('Цей запит недоступний')
+  })
 })
 
 describe('SpecialistInquiriesView', () => {

@@ -97,5 +97,5 @@ html[data-ui="v2"] .pc2-inquiries .pc2-inquiries__toast { position: absolute; le
  html[data-ui="v2"] .pc2-inquiries .pc2-inquiries__composer textarea { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
- html[data-ui="v2"] .pc2-inquiries *, html[data-ui="v2"] .pc2-inquiries *::before { transition: none; animation: none; scroll-behavior: auto; }
+ html[data-ui="v2"] .pc2-inquiries *, html[data-ui="v2"] .pc2-inquiries *::before, html[data-ui="v2"] .pc2-inquiries .pc2-inquiries__toast { transition: none; animation: none; scroll-behavior: auto; }
 }
