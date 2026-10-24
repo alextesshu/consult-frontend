@@ -1,0 +1,450 @@
+[
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-375-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-375-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-375-home.png"
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-375-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-375-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-375-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-375-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-375-faq.png"
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/login",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-375-login.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-375-login.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-375-login.png"
+  },
+  {
+    "width": 375,
+    "who": "guest",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-375-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-375-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-375-s-olena.png"
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-375-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-375-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-375-home.png"
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-375-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-375-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-375-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-375-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-375-faq.png"
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-375-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-375-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-375-s-olena.png"
+  },
+  {
+    "width": 375,
+    "who": "specialist",
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-375-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-375-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-375-cabinet.png"
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-375-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-375-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-375-home.png"
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-375-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-375-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-375-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-375-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-375-faq.png"
+  },
+  {
+    "width": 375,
+    "who": "client",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-375-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-375-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-375-s-olena.png"
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-768-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-768-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-768-home.png"
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-768-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-768-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-768-specialists.png"
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-768-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-768-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-768-faq.png"
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/login",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-768-login.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-768-login.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-768-login.png"
+  },
+  {
+    "width": 768,
+    "who": "guest",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-768-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-768-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-768-s-olena.png"
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-768-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-768-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-768-home.png"
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-768-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-768-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-768-specialists.png"
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-768-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-768-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-768-faq.png"
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-768-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-768-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-768-s-olena.png"
+  },
+  {
+    "width": 768,
+    "who": "specialist",
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-768-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-768-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-768-cabinet.png"
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-768-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-768-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-768-home.png"
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-768-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-768-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-768-specialists.png"
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-768-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-768-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-768-faq.png"
+  },
+  {
+    "width": 768,
+    "who": "client",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-768-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-768-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-768-s-olena.png"
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1280-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1280-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1280-home.png"
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1280-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1280-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1280-specialists.png"
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1280-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1280-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1280-faq.png"
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/login",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1280-login.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1280-login.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1280-login.png"
+  },
+  {
+    "width": 1280,
+    "who": "guest",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1280-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1280-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1280-s-olena.png"
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1280-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1280-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1280-home.png"
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1280-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1280-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1280-specialists.png"
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1280-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1280-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1280-faq.png"
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1280-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1280-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1280-s-olena.png"
+  },
+  {
+    "width": 1280,
+    "who": "specialist",
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1280-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1280-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1280-cabinet.png"
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1280-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1280-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1280-home.png"
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1280-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1280-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1280-specialists.png"
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1280-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1280-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1280-faq.png"
+  },
+  {
+    "width": 1280,
+    "who": "client",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1280-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1280-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1280-s-olena.png"
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1440-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1440-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1440-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1440-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1440-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1440-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1440-faq.png"
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/login",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1440-login.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1440-login.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1440-login.png"
+  },
+  {
+    "width": 1440,
+    "who": "guest",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-guest-1440-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-guest-1440-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-guest-1440-s-olena.png"
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1440-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1440-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1440-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1440-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1440-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1440-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1440-faq.png"
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1440-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1440-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1440-s-olena.png"
+  },
+  {
+    "width": 1440,
+    "who": "specialist",
+    "route": "/cabinet",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-specialist-1440-cabinet.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-specialist-1440-cabinet.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-specialist-1440-cabinet.png"
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1440-home.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1440-home.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/specialists",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1440-specialists.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1440-specialists.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/faq",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1440-faq.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1440-faq.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1440-faq.png"
+  },
+  {
+    "width": 1440,
+    "who": "client",
+    "route": "/s/olena",
+    "baseline": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\baseline-client-1440-s-olena.png",
+    "control": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\control-client-1440-s-olena.png",
+    "candidate": "C:\\Users\\admin\\dev\\portfolio\\consult\\_ui_v2_auth_branding\\docs\\ui-v2\\evidence\\auth-branding\\parity\\candidate-client-1440-s-olena.png"
+  }
+]

@@ -223,6 +223,12 @@ html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup {
   display: block; height: var(--pc-space-8);
   width: auto; max-width: none; flex-shrink: 0;
 }
+/* Signed-in UI v2 public pages keep their existing header layout and actions; only the logo becomes the
+   approved fennec lockup at the same 32px height. The cabinet shell header sizes its own lockup. */
+html[data-ui="v2"] .topbar:not(.topbar--guest):not(.pc2-cabinet-header) .brand .pc2-brand-lockup {
+  display: block; height: var(--pc-space-8);
+  width: auto; max-width: none; flex-shrink: 0;
+}
 html[data-ui="v2"] .pc2-header.topbar--guest .nav a.pc2-header__cta {
   background: var(--pc-bg-main); color: var(--pc-navy-900); border-color: var(--pc-navy-900);
 }
