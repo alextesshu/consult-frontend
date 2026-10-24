@@ -8,6 +8,7 @@
         'shell--authenticated': isAuthenticatedLayout,
         'shell--public-profile': isPublicProfilePage,
         'shell--public-header-v2': usePublicHeaderV2,
+        'shell--public-auth-header-v2': useSignedInPublicHeaderV2,
         'shell--cabinet-v2': useCabinetShellV2,
       },
     ]"
@@ -222,7 +223,7 @@
           </div>
         </div>
         <button
-          v-if="usePublicHeaderV2"
+          v-if="usePublicHeaderV2 && !isSpecialistOwnedSurface"
           ref="publicMenuButtonRef"
           class="pc2-header__menu-toggle"
           type="button"
@@ -329,18 +330,16 @@
         </div>
         </nav>
         <nav
-          v-if="usePublicHeaderV2 && showPublicMenu && !usePublicMobileMenu"
+          v-if="usePublicHeaderV2 && !isSpecialistOwnedSurface && showPublicMenu && !usePublicMobileMenu"
           id="public-navigation-v2"
           ref="publicMenuPanelRef"
           class="pc2-header__mobile-nav"
           aria-label="Мобільна навігація сайту"
         >
-          <template v-if="!isSpecialistOwnedSurface">
-            <RouterLink to="/" @click="showPublicMenu = false">Для спеціалістів</RouterLink>
-            <RouterLink to="/for-clients" :aria-current="isClientEntry ? 'page' : undefined" @click="showPublicMenu = false">Для клієнтів</RouterLink>
-            <RouterLink to="/specialists" @click="showPublicMenu = false">Знайти спеціаліста</RouterLink>
-            <RouterLink to="/pricing" @click="showPublicMenu = false">Тарифи</RouterLink>
-          </template>
+          <RouterLink to="/" @click="showPublicMenu = false">Для спеціалістів</RouterLink>
+          <RouterLink to="/for-clients" :aria-current="isClientEntry ? 'page' : undefined" @click="showPublicMenu = false">Для клієнтів</RouterLink>
+          <RouterLink to="/specialists" @click="showPublicMenu = false">Знайти спеціаліста</RouterLink>
+          <RouterLink to="/pricing" @click="showPublicMenu = false">Тарифи</RouterLink>
           <RouterLink to="/login" @click="showPublicMenu = false">Вхід</RouterLink>
         </nav>
         <PublicMobileMenuV2
@@ -490,15 +489,16 @@
           <RouterLink to="/" aria-label="Pro Consult — головна"><img :src="fennecLockup" alt="Pro Consult" /></RouterLink>
           <span>© {{ new Date().getFullYear() }}</span>
         </div>
+        <!-- Specialist-owned pages keep their legal-only link set: no product, catalog or registration promotion. -->
         <nav class="pc2-footer__links" aria-label="Правова інформація та підтримка">
-          <RouterLink to="/faq">Питання та відповіді</RouterLink>
+          <RouterLink v-if="!isSpecialistOwnedSurface" to="/faq">Питання та відповіді</RouterLink>
           <RouterLink to="/privacy">Політика конфіденційності</RouterLink>
           <RouterLink to="/terms">Умови користування</RouterLink>
-          <RouterLink to="/disclaimer">Дисклеймер</RouterLink>
+          <RouterLink v-if="!isSpecialistOwnedSurface" to="/disclaimer">Дисклеймер</RouterLink>
           <RouterLink to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
           <button type="button" @click="openAnalyticsConsent">Налаштування конфіденційності</button>
         </nav>
-        <nav class="pc2-footer__secondary" aria-label="Продукт Pro Consult">
+        <nav v-if="!isSpecialistOwnedSurface" class="pc2-footer__secondary" aria-label="Продукт Pro Consult">
           <RouterLink to="/#features">Можливості</RouterLink>
           <RouterLink to="/specialists">Знайти спеціаліста</RouterLink>
           <RouterLink to="/pricing">Тарифи</RouterLink>
@@ -506,7 +506,8 @@
           <RouterLink to="/signup">Створити простір</RouterLink>
         </nav>
         <div class="pc2-footer__bottom">
-          <span>Без комісій. Без посередників. З повагою до практики.</span>
+          <span v-if="isSpecialistOwnedSurface">Інформацію на сторінці надає спеціаліст. Pro Consult не перевіряє кваліфікацію і не бере комісію з консультацій.</span>
+          <span v-else>Без комісій. Без посередників. З повагою до практики.</span>
           <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
             <span class="footer__deploy-env">Staging</span>
             <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
@@ -538,7 +539,7 @@
       <template v-else-if="isSpecialistOwnedSurface">
         <div class="footer__specialist-brand">
           <span class="footer__brand-lockup">
-            <img class="footer__logo footer__logo--cabinet" :class="{ 'pc2-footer__compact-logo': useV2Brand }" :src="useV2Brand ? fennecLockup : '/brand/proconsult-logo-dark.png'" alt="Pro Consult" />
+            <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <span class="footer__name footer__text-fallback">Pro Consult</span>
           </span>
         </div>
@@ -668,7 +669,10 @@ const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const usePublicHeaderV2 = computed(() => isUiV2() && !isAuthenticated.value && !useMinimalShell.value)
 // Approved fennec branding follows the UI version, not the auth state; v1 keeps the legacy logos.
 const useV2Brand = computed(() => isUiV2() && !useMinimalShell.value)
-const usePublicFooterV2 = computed(() => useV2Brand.value && !isCabinetRoute.value && !isSpecialistOwnedSurface.value)
+const usePublicFooterV2 = computed(() => useV2Brand.value && !isCabinetRoute.value)
+// Specialist-owned public pages in v2: signed-in visitors get the same cream public header frame
+// with their existing account actions; guests already use the v2 public header.
+const useSignedInPublicHeaderV2 = computed(() => useV2Brand.value && isAuthenticated.value && isSpecialistOwnedSurface.value)
 const showPublicMenu = ref(false)
 const publicMenuButtonRef = ref<HTMLButtonElement | null>(null)
 const publicMenuPanelRef = ref<HTMLElement | null>(null)
@@ -871,6 +875,7 @@ const topbarClass = computed(() => [
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
     'pc2-header': usePublicHeaderV2.value,
+    'pc2-public-auth-header': useSignedInPublicHeaderV2.value,
     'pc2-cabinet-header': useCabinetShellV2.value,
   },
 ])

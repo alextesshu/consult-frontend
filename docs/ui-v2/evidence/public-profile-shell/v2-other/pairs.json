@@ -1,0 +1,130 @@
+[
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/",
+    "baseline": "v2-other\\baseline-guest-375-home.png",
+    "control": "v2-other\\control-guest-375-home.png",
+    "candidate": "v2-other\\candidate-guest-375-home.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/for-clients",
+    "baseline": "v2-other\\baseline-guest-375-for-clients.png",
+    "control": "v2-other\\control-guest-375-for-clients.png",
+    "candidate": "v2-other\\candidate-guest-375-for-clients.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/specialists",
+    "baseline": "v2-other\\baseline-guest-375-specialists.png",
+    "control": "v2-other\\control-guest-375-specialists.png",
+    "candidate": "v2-other\\candidate-guest-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/faq",
+    "baseline": "v2-other\\baseline-guest-375-faq.png",
+    "control": "v2-other\\control-guest-375-faq.png",
+    "candidate": "v2-other\\candidate-guest-375-faq.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/",
+    "baseline": "v2-other\\baseline-client-375-home.png",
+    "control": "v2-other\\control-client-375-home.png",
+    "candidate": "v2-other\\candidate-client-375-home.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/for-clients",
+    "baseline": "v2-other\\baseline-client-375-for-clients.png",
+    "control": "v2-other\\control-client-375-for-clients.png",
+    "candidate": "v2-other\\candidate-client-375-for-clients.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/specialists",
+    "baseline": "v2-other\\baseline-client-375-specialists.png",
+    "control": "v2-other\\control-client-375-specialists.png",
+    "candidate": "v2-other\\candidate-client-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/faq",
+    "baseline": "v2-other\\baseline-client-375-faq.png",
+    "control": "v2-other\\control-client-375-faq.png",
+    "candidate": "v2-other\\candidate-client-375-faq.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/",
+    "baseline": "v2-other\\baseline-guest-1440-home.png",
+    "control": "v2-other\\control-guest-1440-home.png",
+    "candidate": "v2-other\\candidate-guest-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/for-clients",
+    "baseline": "v2-other\\baseline-guest-1440-for-clients.png",
+    "control": "v2-other\\control-guest-1440-for-clients.png",
+    "candidate": "v2-other\\candidate-guest-1440-for-clients.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/specialists",
+    "baseline": "v2-other\\baseline-guest-1440-specialists.png",
+    "control": "v2-other\\control-guest-1440-specialists.png",
+    "candidate": "v2-other\\candidate-guest-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/faq",
+    "baseline": "v2-other\\baseline-guest-1440-faq.png",
+    "control": "v2-other\\control-guest-1440-faq.png",
+    "candidate": "v2-other\\candidate-guest-1440-faq.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/",
+    "baseline": "v2-other\\baseline-client-1440-home.png",
+    "control": "v2-other\\control-client-1440-home.png",
+    "candidate": "v2-other\\candidate-client-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/for-clients",
+    "baseline": "v2-other\\baseline-client-1440-for-clients.png",
+    "control": "v2-other\\control-client-1440-for-clients.png",
+    "candidate": "v2-other\\candidate-client-1440-for-clients.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/specialists",
+    "baseline": "v2-other\\baseline-client-1440-specialists.png",
+    "control": "v2-other\\control-client-1440-specialists.png",
+    "candidate": "v2-other\\candidate-client-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/faq",
+    "baseline": "v2-other\\baseline-client-1440-faq.png",
+    "control": "v2-other\\control-client-1440-faq.png",
+    "candidate": "v2-other\\candidate-client-1440-faq.png"
+  }
+]

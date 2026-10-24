@@ -224,7 +224,8 @@ html[data-ui="v2"] .pc2-header.topbar--guest .pc2-brand-lockup {
   width: auto; max-width: none; flex-shrink: 0;
 }
 /* Signed-in UI v2 public pages keep their existing header layout and actions; only the logo becomes the
-   approved fennec lockup at the same 32px height. The cabinet shell header sizes its own lockup. */
+   approved fennec lockup at the same 32px height. The cabinet shell header sizes its own lockup.
+   Specialist-owned pages additionally use the public header frame below (.pc2-public-auth-header). */
 html[data-ui="v2"] .topbar:not(.topbar--guest):not(.pc2-cabinet-header) .brand .pc2-brand-lockup {
   display: block; height: var(--pc-space-8);
   width: auto; max-width: none; flex-shrink: 0;
@@ -278,6 +279,90 @@ html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg.pc2-he
   }
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg.pc2-header__menu-icon { display: none; }
   html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg.pc2-header__menu-icon--mobile { display: block; width: 20px; height: 9px; }
+}
+/* Signed-in visitors on specialist-owned public pages (/s/:slug, journal, feedback, /public):
+   the same cream 76px / 60px public header frame and container as guests (Specialist-Profile.dc.html),
+   carrying the existing account actions. Which actions render, and at which width, is unchanged. */
+@media (max-width: 767px) {
+  html[data-ui="v2"] .shell.shell--public-auth-header-v2 { --pc-header-h: 60px; }
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header {
+  position: sticky; top: 0; z-index: 20; min-height: var(--pc-header-h);
+  background: var(--pc-bg-main); color: var(--pc-text-main);
+  border: 0; border-bottom: 1px solid var(--pc-border-hair);
+  box-shadow: none; backdrop-filter: none; font-family: var(--pc-font);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header::after { display: none; }
+html[data-ui="v2"] .shell.shell--public-auth-header-v2 .topbar.pc2-public-auth-header .topbar__inner {
+  width: 100%; max-width: var(--pc-container); min-height: calc(var(--pc-header-h) - 1px);
+  margin-inline: auto; padding: 0 var(--pc-gutter);
+  display: flex; flex-wrap: nowrap; align-items: center; gap: var(--pc-space-6);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .brand { flex: 0 0 auto; }
+html[data-ui="v2"] .topbar.pc2-public-auth-header .brand__tagline { display: none; }
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav {
+  margin-left: auto; flex-wrap: nowrap; align-items: center; gap: var(--pc-space-1);
+  font: var(--pc-fw-regular) var(--pc-fs-small)/1 var(--pc-font);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a:not(.icon-btn) {
+  min-height: 40px; padding: 0 var(--pc-space-3); display: inline-flex; align-items: center;
+  border: 0; border-radius: var(--pc-radius-pill); background: transparent; box-shadow: none;
+  color: var(--pc-text-body); font: inherit; white-space: nowrap;
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a:not(.icon-btn):hover,
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a.nav-link--active {
+  background: var(--pc-bg-soft); color: var(--pc-text-main); box-shadow: none;
+}
+/* Cabinet entry: the guest header CTA treatment (outlined navy pill, filled on hover). */
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a.nav__primary-action {
+  min-height: var(--pc-header-row-h); margin-right: var(--pc-space-2); padding: 0 var(--pc-space-4);
+  border: 1px solid var(--pc-navy-900); background: var(--pc-bg-main); color: var(--pc-navy-900);
+  font-weight: var(--pc-fw-medium);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a.nav__primary-action:hover,
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a.nav__primary-action:active {
+  background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .icon-btn {
+  width: 40px; height: 40px; min-height: 40px; padding: 0;
+  border: 0; border-radius: var(--pc-radius-pill); background: transparent; box-shadow: none;
+  color: var(--pc-text-body);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .icon-btn svg { width: 18px; height: 18px; }
+html[data-ui="v2"] .topbar.pc2-public-auth-header .icon-btn:hover { background: var(--pc-bg-soft); color: var(--pc-text-main); }
+html[data-ui="v2"] .topbar.pc2-public-auth-header .icon-btn__badge { background: var(--pc-peach-500); color: var(--pc-text-main); }
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > button.btn--ghost {
+  min-height: 40px; margin-left: var(--pc-space-2); padding: 0 var(--pc-space-4);
+  border: 1px solid var(--pc-border-strong); border-radius: var(--pc-radius-pill);
+  background: transparent; box-shadow: none; color: var(--pc-text-body);
+  font: inherit; font-weight: var(--pc-fw-regular);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > button.btn--ghost:hover { background: var(--pc-bg-soft); color: var(--pc-text-main); }
+html[data-ui="v2"] .topbar.pc2-public-auth-header :focus-visible {
+  outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header .notif-panel,
+html[data-ui="v2"] .topbar.pc2-public-auth-header .settings-menu,
+html[data-ui="v2"] .topbar.pc2-public-auth-header .mobile-menu {
+  border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md);
+  background: var(--pc-bg-card); color: var(--pc-text-main); box-shadow: var(--pc-shadow-md);
+  font-family: var(--pc-font);
+}
+html[data-ui="v2"] .topbar.pc2-public-auth-header a,
+html[data-ui="v2"] .topbar.pc2-public-auth-header button {
+  transition-property: color, background-color, border-color;
+  transition-duration: var(--pc-dur-fast);
+}
+@media (max-width: 767px) {
+  html[data-ui="v2"] .shell.shell--public-auth-header-v2 .topbar.pc2-public-auth-header .topbar__inner {
+    flex-wrap: nowrap; gap: var(--pc-space-1); padding: 0 var(--pc-space-2) 0 var(--pc-space-4);
+  }
+  html[data-ui="v2"] .topbar.pc2-public-auth-header .brand { margin-left: calc(var(--pc-space-1) * -1); }
+  html[data-ui="v2"] .shell.shell--public-auth-header-v2 .topbar.pc2-public-auth-header .brand .pc2-brand-lockup { height: 30px; }
+  html[data-ui="v2"] .topbar.pc2-public-auth-header .nav > a.nav__primary-action {
+    min-height: 40px; margin-right: var(--pc-space-1); padding: 0 14px;
+  }
+  html[data-ui="v2"] .topbar.pc2-public-auth-header .icon-btn { width: 44px; height: 44px; min-height: 44px; }
 }
 html[data-ui="v2"] .shell .footer.pc2-footer {
   position: relative; isolation: isolate; overflow: hidden;
