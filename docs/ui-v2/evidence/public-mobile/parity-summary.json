@@ -1,0 +1,627 @@
+[
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 107064,
+    "perRun": [
+      [
+        107064,
+        0,
+        107064
+      ],
+      [
+        52764,
+        0,
+        52764
+      ],
+      [
+        52183,
+        0,
+        52183
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 19,
+    "perRun": [
+      [
+        19,
+        19,
+        0
+      ],
+      [
+        19,
+        0,
+        19
+      ],
+      [
+        0,
+        19,
+        19
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "login",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 156446,
+    "perRun": [
+      [
+        58176,
+        153282,
+        156196
+      ],
+      [
+        156446,
+        0,
+        156446
+      ],
+      [
+        168893,
+        168893,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 21,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        21,
+        0,
+        21
+      ],
+      [
+        21,
+        21,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "login",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 190879,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        190879,
+        0,
+        190879
+      ],
+      [
+        190879,
+        190879,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 50,
+    "perRun": [
+      [
+        50,
+        0,
+        50
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        50,
+        50,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "login",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 235236,
+    "perRun": [
+      [
+        235236,
+        235236,
+        0
+      ],
+      [
+        0,
+        235236,
+        235236
+      ],
+      [
+        237283,
+        70274,
+        235236
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 50,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        50,
+        50,
+        0
+      ],
+      [
+        0,
+        50,
+        50
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "login",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        6398,
+        6398,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "home",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "for-clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "discovery",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  }
+]

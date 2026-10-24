@@ -243,6 +243,36 @@ html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle:hover { ba
 html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle:focus-visible {
   outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset);
 }
+/* Public-Mobile.dc.html P1/P2/P3 header (< 768px): 60px, 30px logo, one context action, 44px two-line burger.
+   768–1100px keeps the existing compact header and inline disclosure menu. */
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__mobile-action,
+html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg.pc2-header__menu-icon--mobile { display: none; }
+@media (max-width: 767px) {
+  html[data-ui="v2"] .shell.shell--public-header-v2 { --pc-header-h: 60px; }
+  html[data-ui="v2"] .shell.shell--public-header-v2 .pc2-header.topbar--guest .topbar__inner {
+    flex-wrap: nowrap; gap: var(--pc-space-1); padding: 0 var(--pc-space-2) 0 var(--pc-space-4);
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .brand { margin-left: calc(var(--pc-space-1) * -1); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .brand .pc2-brand-lockup { height: 30px; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav { gap: var(--pc-space-1); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav > a:not(.pc2-header__mobile-action) { display: none; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .pc2-header__mobile-action {
+    display: inline-flex; align-items: center; height: 40px; padding: 0 14px;
+    border-radius: var(--pc-radius-pill); white-space: nowrap; text-decoration: none;
+    font: var(--pc-fw-medium) var(--pc-fs-small)/1 var(--pc-font);
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .pc2-header__mobile-action.is-primary { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .pc2-header__mobile-action.is-primary:hover { background: var(--pc-navy-950); color: var(--pc-bg-card); }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .pc2-header__mobile-action.is-link {
+    padding: 0 var(--pc-space-3); background: transparent; color: var(--pc-navy-900); font-weight: var(--pc-fw-regular);
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .nav .pc2-header__menu-toggle {
+    width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0;
+    border: 0; border-radius: var(--pc-radius-pill); background: transparent; color: var(--pc-text-main);
+  }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg.pc2-header__menu-icon { display: none; }
+  html[data-ui="v2"] .pc2-header.topbar--guest .pc2-header__menu-toggle svg.pc2-header__menu-icon--mobile { display: block; width: 20px; height: 9px; }
+}
 html[data-ui="v2"] .shell .footer.pc2-footer {
   position: relative; isolation: isolate; overflow: hidden;
   width: 100%; max-width: var(--pc-container); margin: 0 auto;

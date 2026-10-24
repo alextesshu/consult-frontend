@@ -1,0 +1,202 @@
+[
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "for-clients",
+    "candidateVsBaseline": 52183,
+    "controlVsBaseline": 52183,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 19,
+    "candidateVsControl": 19
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "for-clients",
+    "candidateVsBaseline": 168893,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 168893
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "discovery",
+    "candidateVsBaseline": 21,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 21
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "for-clients",
+    "candidateVsBaseline": 190879,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 190879
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "discovery",
+    "candidateVsBaseline": 50,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 50
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "for-clients",
+    "candidateVsBaseline": 237283,
+    "controlVsBaseline": 235236,
+    "candidateVsControl": 70274
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 50,
+    "candidateVsControl": 50
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  }
+]

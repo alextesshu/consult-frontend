@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, type Component } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.vue'
 import { applyUiVersion } from '../lib/uiVersion'
 import appRouter from '../router'
@@ -351,6 +351,110 @@ describe('App shell', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Меню сайту' })).toBeNull())
     applyUiVersion('v2')
     await waitFor(() => expect(screen.getByRole('button', { name: 'Меню сайту' })).toHaveAttribute('aria-expanded', 'false'))
+  })
+
+  describe('Public-Mobile P2 header and menu (< 768px)', () => {
+    function stubViewport(mobile: boolean) {
+      const listeners = new Set<() => void>()
+      const media = {
+        matches: mobile,
+        addEventListener: vi.fn((_: string, fn: () => void) => listeners.add(fn)),
+        removeEventListener: vi.fn((_: string, fn: () => void) => listeners.delete(fn)),
+      }
+      vi.stubGlobal('matchMedia', vi.fn(() => media))
+      return { change(next: boolean) { media.matches = next; listeners.forEach((fn) => fn()) } }
+    }
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    })
+
+    it('opens the full-screen menu from the burger and closes it with Escape, backdrop and navigation', async () => {
+      stubViewport(true)
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders()
+      const header = document.querySelector('header.pc2-header') as HTMLElement
+      expect(within(header).getByRole('link', { name: 'Створити' })).toHaveAttribute('href', '/signup')
+      const button = screen.getByRole('button', { name: 'Меню сайту' })
+      expect(button).toHaveAttribute('aria-controls', 'public-mobile-menu-v2')
+      expect(button).toHaveAttribute('aria-haspopup', 'dialog')
+      await fireEvent.click(button)
+      const dialog = await screen.findByRole('dialog', { name: 'Меню сайту' })
+      expect(button).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.queryByRole('navigation', { name: 'Мобільна навігація сайту' })).toBeNull()
+      expect(document.body.style.overflow).toBe('hidden')
+      await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Закрити меню' })).toHaveFocus())
+      expect(within(dialog).getByRole('link', { name: 'Створити простір' })).toHaveAttribute('href', '/signup')
+      await fireEvent.keyDown(document, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      expect(button).toHaveAttribute('aria-expanded', 'false')
+      expect(button).toHaveFocus()
+      expect(document.body.style.overflow).toBe('')
+      await fireEvent.click(button)
+      await fireEvent.click(document.querySelector('.pc2-mobile-menu__backdrop')!)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      await fireEvent.click(button)
+      await fireEvent.click(within(await screen.findByRole('dialog')).getByRole('link', { name: /Часті питання/ }))
+      await waitFor(() => expect(router.currentRoute.value.path).toBe('/faq'))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      expect(document.body.style.overflow).toBe('')
+    })
+
+    it('matches the header action and menu audience to the client context', async () => {
+      stubViewport(true)
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders({ initialPath: '/for-clients' })
+      const header = document.querySelector('header.pc2-header') as HTMLElement
+      expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
+      expect(within(header).queryByRole('link', { name: 'Створити' })).toBeNull()
+      await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+      const dialog = await screen.findByRole('dialog')
+      expect(within(dialog).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
+      expect(within(dialog).getByRole('link', { name: 'Створити кабінет клієнта' })).toHaveAttribute('href', '/signup-client')
+      await fireEvent.keyDown(document, { key: 'Escape' })
+      await router.push('/login')
+      await waitFor(() => expect(within(header).queryByRole('link', { name: 'Увійти' })).toBeNull())
+      expect(within(header).getByRole('link', { name: 'Створити' })).toHaveAttribute('href', '/signup')
+      await router.push('/specialists')
+      await waitFor(() => expect(within(header).getByRole('link', { name: 'Увійти' })).toBeInTheDocument())
+    })
+
+    it('keeps specialist-owned pages free of product promotion on mobile', async () => {
+      stubViewport(true)
+      applyUiVersion('v2')
+      await renderWithProviders({ initialPath: '/s/olena' })
+      const header = document.querySelector('header.pc2-header') as HTMLElement
+      expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
+      await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      const nav = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+      expect(within(nav).queryByRole('link', { name: 'Тарифи' })).toBeNull()
+      expect(within(nav).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
+    })
+
+    it('falls back to the existing inline menu at 768px and closes the dialog when the viewport widens', async () => {
+      const viewport = stubViewport(true)
+      applyUiVersion('v2')
+      await renderWithProviders()
+      const button = screen.getByRole('button', { name: 'Меню сайту' })
+      await fireEvent.click(button)
+      await screen.findByRole('dialog')
+      viewport.change(false)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      expect(document.body.style.overflow).toBe('')
+      expect(button).toHaveAttribute('aria-controls', 'public-navigation-v2')
+      await fireEvent.click(button)
+      expect(screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })).toBeInTheDocument()
+    })
+
+    it('leaves v1 guest chrome without the mobile action or dialog', async () => {
+      stubViewport(true)
+      await renderWithProviders()
+      expect(document.querySelector('.pc2-header__mobile-action')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Меню сайту' })).toBeNull()
+      expect(document.querySelector('.pc2-mobile-menu')).toBeNull()
+    })
   })
 
   it('reactively switches header versions and tracks the client landing and legacy hash', async () => {

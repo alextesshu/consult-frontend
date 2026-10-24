@@ -83,6 +83,18 @@ describe('Public Mobile P1–P6 source contract', () => {
     expect(menu.global).toContain('margin-top: auto')
   })
 
+  it('P2 shell header is 60px with a 30px logo, one context action and a 44px burger below 768px only', () => {
+    const shell = mobileRules(readFileSync('src/styles/components-v2.css', 'utf8'))
+    expect(shell).toContain('.shell.shell--public-header-v2 { --pc-header-h: 60px; }')
+    expect(shell).toContain('.pc2-brand-lockup { height: 30px; }')
+    expect(shell).toContain('.nav > a:not(.pc2-header__mobile-action) { display: none; }')
+    expect(shell).toContain('height: 40px; padding: 0 14px;')
+    expect(shell).toContain('width: 44px; height: 44px;')
+    const app = readFileSync('src/App.vue', 'utf8')
+    expect(app).toContain('<PublicMobileMenuV2')
+    expect(app).toContain("PUBLIC_MOBILE_QUERY = '(max-width: 767px)'")
+  })
+
   it('isolates every new global selector under html[data-ui="v2"] and keeps v1 scoped styles', () => {
     for (const [css, root] of [[login.global, '.pc2-login'], [menu.global, '.pc2-mobile-menu'], [discovery.global, '.pc2-discovery'], [card.global, '.pc2-specialist-card']] as const) {
       postcss.parse(css).walkRules((rule) => {

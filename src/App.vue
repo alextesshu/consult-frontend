@@ -72,6 +72,14 @@
           <span class="nav__guest-cta-short">{{ isClientLandingV2 ? 'Кабінет клієнта' : 'Спробувати' }}</span>
         </RouterLink>
         <RouterLink
+          v-if="usePublicHeaderV2 && publicMobileAction"
+          class="pc2-header__mobile-action"
+          :class="publicMobileAction.primary ? 'is-primary' : 'is-link'"
+          :to="publicMobileAction.to"
+        >
+          {{ publicMobileAction.label }}
+        </RouterLink>
+        <RouterLink
           v-if="isAuthenticated && isChatCapable"
           class="icon-btn nav__desktop-only"
           :to="chatRoute"
@@ -218,11 +226,13 @@
           class="pc2-header__menu-toggle"
           type="button"
           aria-label="Меню сайту"
-          aria-controls="public-navigation-v2"
+          :aria-controls="usePublicMobileMenu ? 'public-mobile-menu-v2' : 'public-navigation-v2'"
+          :aria-haspopup="usePublicMobileMenu ? 'dialog' : undefined"
           :aria-expanded="showPublicMenu ? 'true' : 'false'"
           @click="showPublicMenu = !showPublicMenu"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <svg class="pc2-header__menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <svg class="pc2-header__menu-icon--mobile" viewBox="0 0 20 9" aria-hidden="true"><path d="M1 1h18M1 8h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
         </button>
         <button
           v-if="isAuthenticated"
@@ -306,7 +316,7 @@
         </div>
         </nav>
         <nav
-          v-if="usePublicHeaderV2 && showPublicMenu"
+          v-if="usePublicHeaderV2 && showPublicMenu && !usePublicMobileMenu"
           id="public-navigation-v2"
           ref="publicMenuPanelRef"
           class="pc2-header__mobile-nav"
@@ -320,6 +330,12 @@
           </template>
           <RouterLink to="/login" @click="showPublicMenu = false">Вхід</RouterLink>
         </nav>
+        <PublicMobileMenuV2
+          v-if="usePublicMobileMenu"
+          v-model:open="showPublicMenu"
+          :audience="publicMenuAudience"
+          :trigger="publicMenuButtonRef"
+        />
       </div>
     </header>
 
@@ -590,6 +606,8 @@ import { useAuthStore } from './stores/auth'
 import { isUiV2 } from './lib/uiVersion'
 import fennecLockup from './assets/brand-v2/proconsult-fennec-lockup.svg'
 import fennecHeader from './assets/brand-v2/proconsult-fennec-header.svg'
+import PublicMobileMenuV2 from './components/PublicMobileMenuV2.vue'
+import type { PublicMenuAudience } from './lib/publicMobileMenu'
 import fennecSymbol from './assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
@@ -628,6 +646,24 @@ watch(() => [route.fullPath, usePublicHeaderV2.value], () => { showPublicMenu.va
 const isClientEntry = computed(() => route.name === 'for-clients' || (isHome.value && route.hash === '#client-entry-title'))
 const isClientLandingV2 = computed(() => usePublicHeaderV2.value && route.name === 'for-clients')
 const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
+// Public-Mobile.dc.html P2 (< 768px): 60px header with one context action and a full-screen menu.
+// Specialist-owned pages keep the restricted inline menu without product promotion.
+const PUBLIC_MOBILE_QUERY = '(max-width: 767px)'
+const publicMobileMedia = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(PUBLIC_MOBILE_QUERY) : null
+const isPublicMobile = ref(Boolean(publicMobileMedia?.matches))
+function syncPublicMobile() { isPublicMobile.value = Boolean(publicMobileMedia?.matches) }
+onMounted(() => publicMobileMedia?.addEventListener('change', syncPublicMobile))
+onBeforeUnmount(() => publicMobileMedia?.removeEventListener('change', syncPublicMobile))
+const usePublicMobileMenu = computed(() => usePublicHeaderV2.value && isPublicMobile.value && !isSpecialistOwnedSurface.value)
+const isClientContext = computed(() => isClientEntry.value || route.path.startsWith('/specialists'))
+const publicMenuAudience = computed<PublicMenuAudience>(() => (isClientContext.value ? 'clients' : 'specialists'))
+const publicMobileAction = computed(() => {
+  // Specialists: «Створити» is the same action as the hero «Створити простір безкоштовно».
+  const action = isClientContext.value || isSpecialistOwnedSurface.value
+    ? { label: 'Увійти', to: '/login', primary: false }
+    : { label: 'Створити', to: '/signup', primary: true }
+  return route.path === action.to ? null : action
+})
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
 )
@@ -1273,7 +1309,9 @@ function handleVisibilityChange() {
 
 function handleGlobalClick(event: MouseEvent) {
   const target = event.target as Node
-  if (showPublicMenu.value && !publicMenuButtonRef.value?.contains(target) && !publicMenuPanelRef.value?.contains(target)) {
+  // The teleported P2 menu handles its own backdrop and links.
+  const insideMobileMenu = target instanceof Element && Boolean(target.closest('.pc2-mobile-menu'))
+  if (showPublicMenu.value && !insideMobileMenu && !publicMenuButtonRef.value?.contains(target) && !publicMenuPanelRef.value?.contains(target)) {
     showPublicMenu.value = false
   }
   if (showNotifications.value) {

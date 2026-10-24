@@ -1,6 +1,7 @@
 <template>
   <Teleport to="body">
     <div v-if="open" class="pc2-mobile-menu" :class="{ 'is-clients': audience === 'clients' }">
+      <div class="pc2-mobile-menu__backdrop" aria-hidden="true" @click="close"></div>
       <div id="public-mobile-menu-v2" ref="panel" class="pc2-mobile-menu__panel" role="dialog" aria-modal="true" aria-label="Меню сайту" tabindex="-1">
         <div class="pc2-mobile-menu__bar">
           <RouterLink class="pc2-mobile-menu__brand" to="/" @click="close"><img :src="fennecHeader" alt="Pro Consult"></RouterLink>
@@ -55,8 +56,10 @@ watch(() => route.fullPath, () => { if (props.open) close() })
 
 <style>
 /* Public-Mobile.dc.html P2: full-screen menu, audience switch, 56px rows, actions at the bottom. */
-html[data-ui="v2"] .pc2-mobile-menu { position: fixed; inset: 0; z-index: 70; display: flex; background: var(--pc-bg-main); color: var(--pc-text-main); font-family: var(--pc-font); }
-html[data-ui="v2"] .pc2-mobile-menu__panel { display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-y: auto; outline: none; }
+html[data-ui="v2"] .pc2-mobile-menu { position: fixed; inset: 0; z-index: 70; color: var(--pc-text-main); font-family: var(--pc-font); }
+/* Full screen on phones (as in the 375px source frame); wider small screens keep the backdrop visible. */
+html[data-ui="v2"] .pc2-mobile-menu__backdrop { position: absolute; inset: 0; background: rgb(18 35 58 / 42%); }
+html[data-ui="v2"] .pc2-mobile-menu__panel { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; width: min(100%, 420px); overflow-y: auto; overscroll-behavior: contain; background: var(--pc-bg-main); outline: none; }
 html[data-ui="v2"] .pc2-mobile-menu__bar { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; height: 60px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--pc-border-hair); }
 html[data-ui="v2"] .pc2-mobile-menu__brand { display: inline-flex; margin-left: -4px; }
 html[data-ui="v2"] .pc2-mobile-menu__brand img { display: block; height: 30px; width: auto; }

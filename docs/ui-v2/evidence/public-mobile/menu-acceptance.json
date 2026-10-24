@@ -1,197 +1,633 @@
 [
   {
     "width": 375,
-    "audience": "specialists",
-    "rows": [
-      {
-        "text": "Як це працює→",
-        "height": 56,
-        "href": "/#how-it-works"
+    "pages": {
+      "/": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Створити → /signup",
+          "visibleLinks": [
+            "Створити → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        }
       },
-      {
-        "text": "Можливості→",
-        "height": 56,
-        "href": "/#features"
+      "/for-clients": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Увійти → /login",
+          "visibleLinks": [
+            "Увійти → /login"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        }
       },
-      {
-        "text": "Тарифи→",
-        "height": 56,
-        "href": "/#pricing"
-      },
-      {
-        "text": "Часті питання→",
-        "height": 56,
-        "href": "/faq"
+      "/specialists": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Увійти → /login",
+          "visibleLinks": [
+            "Увійти → /login"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 375,
+          "innerWidth": 375,
+          "ok": true
+        }
       }
-    ],
-    "scrollLocked": "hidden",
-    "closedOnEscape": true,
-    "focusAfterClose": "BODY",
-    "overflow": {
-      "scrollWidth": 375,
-      "innerWidth": 375,
-      "ok": true
     },
-    "errors": []
-  },
-  {
-    "width": 375,
-    "audience": "clients",
-    "rows": [
-      {
-        "text": "Знайти спеціаліста→",
-        "height": 56,
-        "href": "/specialists"
-      },
-      {
-        "text": "Як це працює→",
-        "height": 56,
-        "href": "/for-clients#clients-journey-title"
-      },
-      {
-        "text": "Часті питання→",
-        "height": 56,
-        "href": "/for-clients#clients-faq-title"
-      }
-    ],
-    "scrollLocked": "hidden",
-    "closedOnEscape": true,
-    "focusAfterClose": "BODY",
-    "overflow": {
-      "scrollWidth": 375,
-      "innerWidth": 375,
-      "ok": true
+    "errors": [],
+    "opened": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 375,
+      "transition": "all",
+      "rows": [
+        [
+          "Як це працює",
+          "/#how-it-works",
+          56
+        ],
+        [
+          "Можливості",
+          "/#features",
+          56
+        ],
+        [
+          "Тарифи",
+          "/#pricing",
+          56
+        ],
+        [
+          "Часті питання",
+          "/faq",
+          56
+        ]
+      ]
     },
-    "errors": []
+    "tabTrapped": true,
+    "afterEscape": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterClose": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterBackdrop": "panel covers the viewport (source P2 full-screen); backdrop not exposed",
+    "afterNavigate": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": [],
+      "url": "/#pricing"
+    },
+    "clients": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 375,
+      "transition": "all",
+      "rows": [
+        [
+          "Знайти спеціаліста",
+          "/specialists",
+          56
+        ],
+        [
+          "Як це працює",
+          "/for-clients#clients-journey-title",
+          56
+        ],
+        [
+          "Часті питання",
+          "/for-clients#clients-faq-title",
+          56
+        ]
+      ]
+    }
   },
   {
     "width": 390,
-    "audience": "specialists",
-    "rows": [
-      {
-        "text": "Як це працює→",
-        "height": 56,
-        "href": "/#how-it-works"
+    "pages": {
+      "/": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Створити → /signup",
+          "visibleLinks": [
+            "Створити → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        }
       },
-      {
-        "text": "Можливості→",
-        "height": 56,
-        "href": "/#features"
+      "/for-clients": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Увійти → /login",
+          "visibleLinks": [
+            "Увійти → /login"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        }
       },
-      {
-        "text": "Тарифи→",
-        "height": 56,
-        "href": "/#pricing"
-      },
-      {
-        "text": "Часті питання→",
-        "height": 56,
-        "href": "/faq"
+      "/specialists": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Увійти → /login",
+          "visibleLinks": [
+            "Увійти → /login"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "ok": true
+        }
       }
-    ],
-    "scrollLocked": "hidden",
-    "closedOnEscape": true,
-    "focusAfterClose": "BODY",
-    "overflow": {
-      "scrollWidth": 390,
-      "innerWidth": 390,
-      "ok": true
     },
-    "errors": []
-  },
-  {
-    "width": 390,
-    "audience": "clients",
-    "rows": [
-      {
-        "text": "Знайти спеціаліста→",
-        "height": 56,
-        "href": "/specialists"
-      },
-      {
-        "text": "Як це працює→",
-        "height": 56,
-        "href": "/for-clients#clients-journey-title"
-      },
-      {
-        "text": "Часті питання→",
-        "height": 56,
-        "href": "/for-clients#clients-faq-title"
-      }
-    ],
-    "scrollLocked": "hidden",
-    "closedOnEscape": true,
-    "focusAfterClose": "BODY",
-    "overflow": {
-      "scrollWidth": 390,
-      "innerWidth": 390,
-      "ok": true
+    "errors": [],
+    "opened": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 390,
+      "transition": "all",
+      "rows": [
+        [
+          "Як це працює",
+          "/#how-it-works",
+          56
+        ],
+        [
+          "Можливості",
+          "/#features",
+          56
+        ],
+        [
+          "Тарифи",
+          "/#pricing",
+          56
+        ],
+        [
+          "Часті питання",
+          "/faq",
+          56
+        ]
+      ]
     },
-    "errors": []
+    "tabTrapped": true,
+    "afterEscape": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterClose": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterBackdrop": "panel covers the viewport (source P2 full-screen); backdrop not exposed",
+    "afterNavigate": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": [],
+      "url": "/#pricing"
+    },
+    "clients": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 390,
+      "transition": "all",
+      "rows": [
+        [
+          "Знайти спеціаліста",
+          "/specialists",
+          56
+        ],
+        [
+          "Як це працює",
+          "/for-clients#clients-journey-title",
+          56
+        ],
+        [
+          "Часті питання",
+          "/for-clients#clients-faq-title",
+          56
+        ]
+      ]
+    }
   },
   {
     "width": 640,
-    "audience": "specialists",
-    "rows": [
-      {
-        "text": "Як це працює→",
-        "height": 56,
-        "href": "/#how-it-works"
+    "pages": {
+      "/": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Створити → /signup",
+          "visibleLinks": [
+            "Створити → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        }
       },
-      {
-        "text": "Можливості→",
-        "height": 56,
-        "href": "/#features"
+      "/for-clients": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Увійти → /login",
+          "visibleLinks": [
+            "Увійти → /login"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        }
       },
-      {
-        "text": "Тарифи→",
-        "height": 56,
-        "href": "/#pricing"
-      },
-      {
-        "text": "Часті питання→",
-        "height": 56,
-        "href": "/faq"
+      "/specialists": {
+        "header": {
+          "height": 60,
+          "logoHeight": 30,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": "Увійти → /login",
+          "visibleLinks": [
+            "Увійти → /login"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 640,
+          "innerWidth": 640,
+          "ok": true
+        }
       }
-    ],
-    "scrollLocked": "hidden",
-    "closedOnEscape": true,
-    "focusAfterClose": "BODY",
-    "overflow": {
-      "scrollWidth": 640,
-      "innerWidth": 640,
-      "ok": true
+    },
+    "errors": [],
+    "opened": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 420,
+      "transition": "all",
+      "rows": [
+        [
+          "Як це працює",
+          "/#how-it-works",
+          56
+        ],
+        [
+          "Можливості",
+          "/#features",
+          56
+        ],
+        [
+          "Тарифи",
+          "/#pricing",
+          56
+        ],
+        [
+          "Часті питання",
+          "/faq",
+          56
+        ]
+      ]
+    },
+    "tabTrapped": true,
+    "afterEscape": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterClose": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterBackdrop": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": []
+    },
+    "afterNavigate": {
+      "open": false,
+      "expanded": "false",
+      "bodyOverflow": "",
+      "htmlOverflow": "",
+      "focus": "Меню сайту",
+      "panelWidth": null,
+      "transition": null,
+      "rows": [],
+      "url": "/#pricing"
+    },
+    "clients": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 420,
+      "transition": "all",
+      "rows": [
+        [
+          "Знайти спеціаліста",
+          "/specialists",
+          56
+        ],
+        [
+          "Як це працює",
+          "/for-clients#clients-journey-title",
+          56
+        ],
+        [
+          "Часті питання",
+          "/for-clients#clients-faq-title",
+          56
+        ]
+      ]
+    }
+  },
+  {
+    "width": 768,
+    "pages": {
+      "/": {
+        "header": {
+          "height": 76,
+          "logoHeight": 32,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": null,
+          "visibleLinks": [
+            "Вхід → /login",
+            "Спробувати безкоштовноСпробувати → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        }
+      },
+      "/for-clients": {
+        "header": {
+          "height": 76,
+          "logoHeight": 32,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": null,
+          "visibleLinks": [
+            "Вхід → /login",
+            "Створити кабінетКабінет клієнта → /signup-client?ui=v2"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        }
+      },
+      "/specialists": {
+        "header": {
+          "height": 76,
+          "logoHeight": 32,
+          "toggle": [
+            44,
+            44
+          ],
+          "action": null,
+          "visibleLinks": [
+            "Вхід → /login",
+            "Спробувати безкоштовноСпробувати → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 768,
+          "innerWidth": 768,
+          "ok": true
+        }
+      }
+    },
+    "errors": [],
+    "inlineMenu": true,
+    "dialog": 0
+  },
+  {
+    "width": 1280,
+    "pages": {
+      "/": {
+        "header": {
+          "height": 76,
+          "logoHeight": 32,
+          "toggle": null,
+          "action": null,
+          "visibleLinks": [
+            "Знайти спеціаліста → /specialists",
+            "Тарифи → /pricing",
+            "Вхід → /login",
+            "Спробувати безкоштовноСпробувати → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        }
+      },
+      "/for-clients": {
+        "header": {
+          "height": 76,
+          "logoHeight": 32,
+          "toggle": null,
+          "action": null,
+          "visibleLinks": [
+            "Знайти спеціаліста → /specialists",
+            "Вхід → /login",
+            "Створити кабінетКабінет клієнта → /signup-client?ui=v2"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        }
+      },
+      "/specialists": {
+        "header": {
+          "height": 76,
+          "logoHeight": 32,
+          "toggle": null,
+          "action": null,
+          "visibleLinks": [
+            "Знайти спеціаліста → /specialists",
+            "Тарифи → /pricing",
+            "Вхід → /login",
+            "Спробувати безкоштовноСпробувати → /signup"
+          ]
+        },
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "ok": true
+        }
+      }
     },
     "errors": []
   },
   {
-    "width": 640,
-    "audience": "clients",
-    "rows": [
-      {
-        "text": "Знайти спеціаліста→",
-        "height": 56,
-        "href": "/specialists"
-      },
-      {
-        "text": "Як це працює→",
-        "height": 56,
-        "href": "/for-clients#clients-journey-title"
-      },
-      {
-        "text": "Часті питання→",
-        "height": 56,
-        "href": "/for-clients#clients-faq-title"
-      }
-    ],
-    "scrollLocked": "hidden",
-    "closedOnEscape": true,
-    "focusAfterClose": "BODY",
-    "overflow": {
-      "scrollWidth": 640,
-      "innerWidth": 640,
-      "ok": true
-    },
-    "errors": []
+    "reducedMotion": {
+      "open": true,
+      "expanded": "true",
+      "bodyOverflow": "hidden",
+      "htmlOverflow": "hidden",
+      "focus": "Закрити меню",
+      "panelWidth": 375,
+      "transition": "0.001s",
+      "rows": [
+        [
+          "Як це працює",
+          "/#how-it-works",
+          56
+        ],
+        [
+          "Можливості",
+          "/#features",
+          56
+        ],
+        [
+          "Тарифи",
+          "/#pricing",
+          56
+        ],
+        [
+          "Часті питання",
+          "/faq",
+          56
+        ]
+      ]
+    }
   }
 ]

@@ -11,8 +11,8 @@
     "ui": "v1",
     "width": 375,
     "page": "for-clients",
-    "candidateVsBaseline": 0,
-    "controlVsBaseline": 0,
+    "candidateVsBaseline": 107064,
+    "controlVsBaseline": 107064,
     "candidateVsControl": 0
   },
   {
@@ -43,9 +43,9 @@
     "ui": "v1",
     "width": 768,
     "page": "for-clients",
-    "candidateVsBaseline": 0,
-    "controlVsBaseline": 58176,
-    "candidateVsControl": 58176
+    "candidateVsBaseline": 58176,
+    "controlVsBaseline": 156196,
+    "candidateVsControl": 153282
   },
   {
     "ui": "v1",
@@ -76,48 +76,48 @@
     "width": 1280,
     "page": "for-clients",
     "candidateVsBaseline": 0,
-    "controlVsBaseline": 190879,
-    "candidateVsControl": 190879
-  },
-  {
-    "ui": "v1",
-    "width": 1280,
-    "page": "discovery",
-    "candidateVsBaseline": 0,
     "controlVsBaseline": 0,
     "candidateVsControl": 0
   },
   {
     "ui": "v1",
     "width": 1280,
-    "page": "login",
-    "candidateVsBaseline": 0,
-    "controlVsBaseline": 0,
-    "candidateVsControl": 0
-  },
-  {
-    "ui": "v1",
-    "width": 1440,
-    "page": "home",
-    "candidateVsBaseline": 0,
-    "controlVsBaseline": 0,
-    "candidateVsControl": 0
-  },
-  {
-    "ui": "v1",
-    "width": 1440,
-    "page": "for-clients",
-    "candidateVsBaseline": 0,
-    "controlVsBaseline": 0,
-    "candidateVsControl": 0
-  },
-  {
-    "ui": "v1",
-    "width": 1440,
     "page": "discovery",
-    "candidateVsBaseline": 0,
+    "candidateVsBaseline": 50,
     "controlVsBaseline": 50,
-    "candidateVsControl": 50
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "for-clients",
+    "candidateVsBaseline": 235236,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 235236
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
   },
   {
     "ui": "v1",
@@ -131,9 +131,9 @@
     "ui": "v2",
     "width": 768,
     "page": "home",
-    "candidateVsBaseline": 0,
+    "candidateVsBaseline": 6398,
     "controlVsBaseline": 0,
-    "candidateVsControl": 0
+    "candidateVsControl": 6398
   },
   {
     "ui": "v2",
@@ -188,8 +188,8 @@
     "width": 1440,
     "page": "for-clients",
     "candidateVsBaseline": 0,
-    "controlVsBaseline": 5212,
-    "candidateVsControl": 5212
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
   },
   {
     "ui": "v2",

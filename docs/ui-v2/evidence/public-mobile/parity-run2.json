@@ -1,0 +1,202 @@
+[
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "for-clients",
+    "candidateVsBaseline": 52764,
+    "controlVsBaseline": 52764,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "discovery",
+    "candidateVsBaseline": 19,
+    "controlVsBaseline": 19,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "for-clients",
+    "candidateVsBaseline": 156446,
+    "controlVsBaseline": 156446,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "discovery",
+    "candidateVsBaseline": 21,
+    "controlVsBaseline": 21,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "for-clients",
+    "candidateVsBaseline": 190879,
+    "controlVsBaseline": 190879,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 235236,
+    "candidateVsControl": 235236
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "discovery",
+    "candidateVsBaseline": 50,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 50
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "login",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "home",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "for-clients",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  }
+]
