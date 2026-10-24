@@ -15,7 +15,7 @@
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
-          <img v-if="usePublicHeaderV2 || useCabinetShellV2" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
+          <img v-if="useV2Brand" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
           <span v-else class="brand__logo-frame">
             <img class="brand__logo brand__logo--full" :class="{ 'pc2-header__logo': usePublicHeaderV2 }" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
@@ -538,7 +538,7 @@
       <template v-else-if="isSpecialistOwnedSurface">
         <div class="footer__specialist-brand">
           <span class="footer__brand-lockup">
-            <img class="footer__logo footer__logo--cabinet" :class="{ 'pc2-footer__compact-logo': usePublicHeaderV2 }" :src="usePublicHeaderV2 ? fennecLockup : '/brand/proconsult-logo-dark.png'" alt="Pro Consult" />
+            <img class="footer__logo footer__logo--cabinet" :class="{ 'pc2-footer__compact-logo': useV2Brand }" :src="useV2Brand ? fennecLockup : '/brand/proconsult-logo-dark.png'" alt="Pro Consult" />
             <span class="footer__name footer__text-fallback">Pro Consult</span>
           </span>
         </div>
@@ -666,7 +666,9 @@ const isAuthenticatedCabinetRoute = computed(
 )
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const usePublicHeaderV2 = computed(() => isUiV2() && !isAuthenticated.value && !useMinimalShell.value)
-const usePublicFooterV2 = computed(() => usePublicHeaderV2.value && !isCabinetRoute.value && !isSpecialistOwnedSurface.value)
+// Approved fennec branding follows the UI version, not the auth state; v1 keeps the legacy logos.
+const useV2Brand = computed(() => isUiV2() && !useMinimalShell.value)
+const usePublicFooterV2 = computed(() => useV2Brand.value && !isCabinetRoute.value && !isSpecialistOwnedSurface.value)
 const showPublicMenu = ref(false)
 const publicMenuButtonRef = ref<HTMLButtonElement | null>(null)
 const publicMenuPanelRef = ref<HTMLElement | null>(null)

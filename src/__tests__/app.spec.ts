@@ -485,8 +485,10 @@ describe('App shell', () => {
       await renderWithProviders({ roles })
       const header = document.querySelector('header.topbar') as HTMLElement
       expect(header).not.toHaveClass('pc2-header')
-      expect(header.querySelector('.pc2-brand-lockup')).toBeNull()
-      expect(document.querySelector('footer.pc2-footer')).toBeNull()
+      // Branding follows the UI version: signed-in v2 shows the approved fennec, controls stay authenticated.
+      expect(header.querySelector('.pc2-brand-lockup')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
+      expect(header.querySelector('img[src="/brand/proconsult-logo-dark.png"]')).toBeNull()
+      expect(document.querySelector('footer.pc2-footer img[src*="proconsult-fennec-lockup.svg"]')).toBeInTheDocument()
       expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
       await fireEvent.click(within(header).getByRole('button', { name: 'Меню' }))
       expect(header.querySelector('.mobile-menu')).toBeInTheDocument()
@@ -494,6 +496,47 @@ describe('App shell', () => {
       expect(header.querySelector('.mobile-menu')).toBeNull()
     }
   )
+
+  describe('UI v2 branding follows the UI version for every role', () => {
+    const headerLogo = () => document.querySelector('header.topbar .brand img')?.getAttribute('src') || ''
+    const footerLogos = () => Array.from(document.querySelectorAll('footer.footer img:not(.pc2-footer__watermark)'), (img) => img.getAttribute('src') || '')
+
+    it.each([[[] as string[]], [['SPECIALIST']], [['CLIENT']]])('keeps legacy logos in v1 for roles %j', async (roles) => {
+      for (const path of ['/', '/for-clients', '/specialists', '/faq']) {
+        document.body.innerHTML = ''
+        applyUiVersion('v1')
+        await renderWithProviders({ roles, initialPath: path })
+        expect(headerLogo()).toBe('/brand/proconsult-logo-dark.png')
+        expect(footerLogos().every((src) => src.startsWith('/brand/proconsult-logo-'))).toBe(true)
+        expect(document.querySelector('.pc2-brand-lockup, footer.pc2-footer')).toBeNull()
+      }
+    })
+
+    it.each([[[] as string[]], [['SPECIALIST']], [['CLIENT']]])('shows the approved fennec in v2 header and footer for roles %j', async (roles) => {
+      for (const path of ['/', '/for-clients', '/specialists', '/faq', '/login', '/signup']) {
+        document.body.innerHTML = ''
+        applyUiVersion('v2')
+        await renderWithProviders({ roles, initialPath: path })
+        expect(headerLogo(), path).toContain('proconsult-fennec-header.svg')
+        expect(footerLogos(), path).toEqual([expect.stringContaining('proconsult-fennec-lockup.svg')])
+      }
+    })
+
+    it('uses the fennec lockup on signed-in specialist-owned pages and leaves the v2 cabinet shell unchanged', async () => {
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders({ roles: ['CLIENT'], initialPath: '/s/olena' })
+      expect(headerLogo()).toContain('proconsult-fennec-header.svg')
+      expect(footerLogos()).toEqual([expect.stringContaining('proconsult-fennec-lockup.svg')])
+      expect(document.querySelector('footer.footer')).toHaveClass('footer--specialist-owned')
+      document.body.innerHTML = ''
+      await renderWithProviders({ roles: ['SPECIALIST'], initialPath: '/cabinet' })
+      expect(document.querySelector('header.topbar')).toHaveClass('pc2-cabinet-header')
+      expect(headerLogo()).toContain('proconsult-fennec-header.svg')
+      expect(document.querySelector('footer.footer')).toHaveClass('footer--cabinet')
+      expect(document.querySelector('footer.pc2-footer')).toBeNull()
+      void router
+    })
+  })
 
   it('retains v2 specialist-owned promotion restrictions and minimal-shell boundaries', async () => {
     applyUiVersion('v2')
