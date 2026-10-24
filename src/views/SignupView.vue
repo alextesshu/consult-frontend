@@ -1,6 +1,22 @@
 <template>
   <section class="auth" :class="{ 'pc2-signup': uiV2 }" @focusin="ensureVisibleFocus">
-    <div class="auth__card">
+    <RegistrationWizardV2 v-if="uiV2 && !isClientOnly" role="specialist" :step="step" :busy="loading || signupInFlight" :field-errors="fieldErrors" :error="error"
+      v-model:first-name="firstName" v-model:email="email" v-model:password="password" v-model:professional-focus="professionalFocus" v-model:show-password="showPassword"
+      @next="onSubmit" @back="moveStep(step - 1)">
+      <template #account-types>
+      <nav v-if="uiV2" class="pc2-account-types" aria-label="Тип акаунта">
+        <RouterLink :to="accountTypeLink('/signup')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="uiV2 ? 'page' : undefined">
+          <span class="pc2-account-types__label">Я спеціаліст</span>
+          <span class="pc2-account-types__description">Для ведення консультацій і власної практики.</span>
+        </RouterLink>
+        <RouterLink :to="accountTypeLink('/signup-client')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="undefined">
+          <span class="pc2-account-types__label">Я клієнт</span>
+          <span class="pc2-account-types__description">Для звернень до спеціалістів і керування запитами.</span>
+        </RouterLink>
+      </nav>
+      </template>
+    </RegistrationWizardV2>
+    <div v-else class="auth__card">
       <nav v-if="uiV2" class="pc2-account-types" aria-label="Тип акаунта">
         <RouterLink :to="accountTypeLink('/signup')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="uiV2 ? 'page' : undefined">
           <span class="pc2-account-types__label">Я спеціаліст</span>
@@ -178,6 +194,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
+import RegistrationWizardV2 from '../components/RegistrationWizardV2.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
@@ -265,7 +282,6 @@ async function onEnableSpecialist() {
 async function moveStep(value: number) {
   step.value = value
   await nextTick()
-  document.querySelector<HTMLElement>('.pc2-signup form input')?.focus()
 }
 
 async function onSubmit() {
@@ -288,6 +304,10 @@ async function onSubmit() {
     if (step.value === 1) { await moveStep(2); return }
   }
   if (!email.value || !password.value || (!uiV2.value && !passwordConfirm.value)) {
+    if (uiV2.value) fieldErrors.value = {
+      ...!email.value ? { email: 'Вкажіть ел. пошту.' } : {},
+      ...!password.value ? { password: 'Вкажіть пароль.' } : {},
+    }
     error.value = 'Заповніть усі поля.'
     return
   }

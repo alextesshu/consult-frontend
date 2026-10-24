@@ -1,0 +1,61 @@
+/* KAN-159: registration-owned P6/Auth composition; shared shell is an integration gate. */
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard.auth__card { width: 100%; max-width: 440px; padding: 0; margin-inline: auto; border: 0; box-shadow: none; background: transparent; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-form { display: flex; flex-direction: column; gap: 0; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-progress { display: block; order: 1; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-progress p { margin: 12px 0 28px; color: var(--pc-text-body); font-size: 13px; text-align: left; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-back { display: none; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-bars { order: 0; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; padding: 0; margin: 0; list-style: none; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-bars li { height: 4px; overflow: hidden; border-radius: 999px; background: var(--pc-border); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-bar { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--pc-navy-900); transition: width .6s cubic-bezier(.4,0,.2,1); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-bar.is-complete { width: 100%; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-sr { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-stage { order: 2; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard .auth__title { margin: 0; font-size: clamp(32px,3.4vw,42px); line-height: 1.08; letter-spacing: -.035em; font-weight: 500; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-subtitle { margin: -6px 0 6px; color: var(--pc-text-body); font-size: 16px; line-height: 1.55; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 13px; color: var(--pc-text-body); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-field input { width: 100%; min-width: 0; height: 54px; padding: 0 16px; border-radius: 14px; border: 1.5px solid var(--pc-border); background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; font-size: 16px; transition: border-color .2s,box-shadow .2s; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-field input:focus { border-color: var(--pc-navy-900); box-shadow: var(--pc-ring); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-field input[aria-invalid="true"] { border-color: var(--pc-danger); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-field small { font-size: 13px; line-height: 1.5; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-practices { min-width: 0; margin: 0; padding: 0; border: 0; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-practices legend { margin-bottom: 12px; font-size: 13px; color: var(--pc-text-body); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chips { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip { position: relative; display: flex; align-items: center; min-height: 54px; padding: 14px 16px; border: 1.5px solid var(--pc-border); border-radius: 14px; background: var(--pc-bg-card); color: var(--pc-text-main); font-size: 15px; cursor: pointer; transition: border-color .2s,background .2s,color .2s; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip:has(:checked) { border-color: var(--pc-navy-900); background: var(--pc-bg-soft); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip:focus-within { outline: 2px solid var(--pc-navy-900); outline-offset: 3px; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip:has(:disabled) { cursor: not-allowed; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-password { position: relative; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-password input { padding-right: 100px; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-password button { position: absolute; right: 5px; top: 5px; min-width: 88px; height: 44px; border: 0; border-radius: 999px; background: transparent; color: var(--pc-navy-900); font: inherit; cursor: pointer; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-error { color: var(--pc-danger); font-size: 13px; line-height: 1.5; margin: 0; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) :is(.pc2-registration-legal,.pc2-registration-login) { margin: 0; color: var(--pc-text-body); font-size: 13px; line-height: 1.5; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-actions { order: 3; display: flex; gap: 8px; margin-top: 24px; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-actions button { min-height: 54px; padding: 12px 20px; border: 1px solid var(--pc-navy-900); border-radius: 999px; font: inherit; font-size: 16px; cursor: pointer; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-desktop-back { background: var(--pc-bg-card); color: var(--pc-navy-900); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-next { flex: 1; background: var(--pc-navy-900); color: var(--pc-bg-card); font-weight: 500; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-next:hover:not(:disabled) { background: var(--pc-navy-950); }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-next:disabled { background: var(--pc-text-muted); cursor: wait; }
+html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard :focus-visible { outline: 2px solid var(--pc-navy-900); outline-offset: 3px; }
+@media (max-width: 767px) {
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup).auth:has(.pc2-registration-wizard) { display: block; width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); padding: 0; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard.auth__card { max-width: none; padding: 0; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup).auth:has(.pc2-registration-wizard) :is(.pc2-account-types,.auth__aside,.pc2-client-preview) { display: none; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-progress { order: 0; height: 56px; display: grid; grid-template-columns: 44px minmax(0,1fr) 44px; align-items: center; padding: 0 8px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-progress p { margin: 0; text-align: center; font-size: 13px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-back { display: block; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--pc-navy-900); font: inherit; font-size: 28px; cursor: pointer; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-back:disabled { opacity: 0; cursor: default; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-bars { order: 1; margin-inline: 20px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-stage { order: 2; padding: 24px 20px 120px; min-height: 360px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard .auth__title { font-size: 32px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-subtitle { margin: 0; font-size: 15px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-practices legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip { min-height: 44px; padding: 0 16px; border-width: 1px; border-radius: 999px; }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-chip:has(:checked) { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-actions { position: fixed; z-index: 15; left: 0; right: 0; bottom: 0; margin: 0; padding: 12px 20px max(28px,env(safe-area-inset-bottom)); border-top: 1px solid var(--pc-border-hair); background: var(--pc-bg-main); }
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-desktop-back { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+ html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard *, html[data-ui="v2"] :is(.pc2-signup,.pc2-client-signup) .pc2-registration-wizard *::before { animation: none; transition: none; }
+}

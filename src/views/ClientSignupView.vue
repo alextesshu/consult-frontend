@@ -1,6 +1,23 @@
 <template>
   <section class="auth" :class="{ 'pc2-client-signup': uiV2 }" @focusin="ensureVisibleFocus">
-    <div class="auth__card">
+    <RegistrationWizardV2 v-if="mobileWizard" role="client" :step="mobileStep" :busy="loading || signupInFlight" :field-errors="fieldErrors" :error="error"
+      v-model:first-name="firstName" v-model:email="email" v-model:password="password" v-model:show-password="showPassword"
+      @next="onSubmit" @back="mobileStep = Math.max(0, mobileStep - 1)">
+      <template #account-types>
+      <nav v-if="uiV2" class="pc2-account-types" aria-label="Тип акаунта">
+        <RouterLink :to="accountTypeLink('/signup')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="undefined">
+          <span class="pc2-account-types__label">Я спеціаліст</span>
+          <span class="pc2-account-types__description">Для ведення консультацій і власної практики.</span>
+        </RouterLink>
+        <RouterLink :to="accountTypeLink('/signup-client')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="uiV2 ? 'page' : undefined">
+          <span class="pc2-account-types__label">Я клієнт</span>
+          <span class="pc2-account-types__description">Для звернень до спеціалістів і керування запитами.</span>
+        </RouterLink>
+      </nav>
+      </template>
+      <template #notice><p v-if="isClientInviteRedirect" class="auth__invite-note">Ви створюєте акаунт клієнта за запрошенням спеціаліста. Після реєстрації ви зможете підтвердити підключення до клієнтської картки.</p></template>
+    </RegistrationWizardV2>
+    <div v-else class="auth__card">
       <nav v-if="uiV2" class="pc2-account-types" aria-label="Тип акаунта">
         <RouterLink :to="accountTypeLink('/signup')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="undefined">
           <span class="pc2-account-types__label">Я спеціаліст</span>
@@ -154,6 +171,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import RegistrationWizardV2 from '../components/RegistrationWizardV2.vue'
+import { useRegistrationViewport } from '../composables/useRegistrationViewport'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
@@ -161,6 +180,9 @@ import { isUiV2 } from '../lib/uiVersion'
 import { normalizeRegistrationName, registrationNameError, RegistrationError, type RegistrationField } from '../lib/api'
 
 const uiV2 = computed(isUiV2)
+const compactRegistration = useRegistrationViewport()
+const mobileWizard = computed(() => uiV2.value && compactRegistration.value)
+const mobileStep = ref(0)
 const firstName = ref('')
 const signupInFlight = ref(false)
 const fieldErrors = ref<Partial<Record<RegistrationField, string>>>({})
@@ -221,9 +243,18 @@ async function onSubmit() {
   fieldErrors.value = {}
   if (uiV2.value) {
     const nameError = registrationNameError(firstName.value)
-    if (nameError) { fieldErrors.value.first_name = nameError; return }
+    if (nameError) { fieldErrors.value.first_name = nameError; if (mobileWizard.value) mobileStep.value = 0; return }
+    if (mobileWizard.value && mobileStep.value === 0) { mobileStep.value = 1; return }
+    if (mobileWizard.value && mobileStep.value === 1) {
+      if (!email.value.trim()) { fieldErrors.value.email = 'Вкажіть ел. пошту.'; return }
+      mobileStep.value = 2; return
+    }
   }
   if (!email.value || !password.value || (!uiV2.value && !passwordConfirm.value)) {
+    if (uiV2.value) fieldErrors.value = {
+      ...!email.value ? { email: 'Вкажіть ел. пошту.' } : {},
+      ...!password.value ? { password: 'Вкажіть пароль.' } : {},
+    }
     error.value = 'Заповніть усі поля.'
     return
   }
@@ -237,7 +268,14 @@ async function onSubmit() {
       ...uiV2.value ? [{ registration_contract_version: 2 as const, first_name: normalizeRegistrationName(firstName.value) }] as const : [])
     router.push(safeRedirectPath())
   } catch (err) {
-    if (uiV2.value && err instanceof RegistrationError) fieldErrors.value = err.fields
+    if (uiV2.value && err instanceof RegistrationError) {
+      fieldErrors.value = err.fields
+      if (mobileWizard.value) {
+        if (err.fields.first_name) mobileStep.value = 0
+        else if (err.fields.email) mobileStep.value = 1
+        else if (err.fields.password) mobileStep.value = 2
+      }
+    }
     error.value = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
   } finally {
     signupInFlight.value = false

@@ -1,0 +1,44 @@
+
+> frontend@0.0.0 test:run
+> vitest run src/views/SignupView.spec.ts src/views/ClientSignupView.spec.ts src/components/RegistrationWizardV2.spec.ts src/styles/signupV2.spec.ts src/styles/registrationP6.spec.ts src/lib/api.registration.spec.ts src/stores/auth.spec.ts src/views/LoginView.spec.ts src/lib/registrationAttribution.spec.ts src/lib/clientAcquisitionAttribution.spec.ts src/lib/uiVersion.spec.ts src/__tests__/app.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_ui_v2_stage1_3b_frontend
+
+npm : stderr | src/__tests__/app.spec.ts > App shell > allows guests to open /specialists without redirect to signup-cl
+ient
+At line:2 char:1
++ npm run test:run -- src/views/SignupView.spec.ts src/views/ClientSign ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/__...o signup-client:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+ ✓ src/__tests__/app.spec.ts (76 tests) 4887ms
+ ✓ src/views/SignupView.spec.ts (27 tests) 2800ms
+   ✓ SignupView v2 > retains values through back and UI switching and sends only v2 at final submission 350ms
+ ✓ src/stores/auth.spec.ts (15 tests) 83ms
+ ✓ src/views/ClientSignupView.spec.ts (18 tests) 1022ms
+   ✓ ClientSignupView > maps mobile P6 to name, email and password without an early account or new payload fields 364ms
+ ✓ src/lib/registrationAttribution.spec.ts (13 tests) 410ms
+ ✓ src/styles/signupV2.spec.ts (8 tests) 90ms
+ ✓ src/lib/uiVersion.spec.ts (21 tests) 251ms
+ ✓ src/views/LoginView.spec.ts (7 tests) 554ms
+ ✓ src/components/RegistrationWizardV2.spec.ts (4 tests) 596ms
+   ✓ registration P6 presentation > uses three real specialist steps and keeps required focus errors accessible 415ms
+ ✓ src/lib/api.registration.spec.ts (68 tests) 24ms
+ ✓ src/lib/clientAcquisitionAttribution.spec.ts (3 tests) 13ms
+ ✓ src/styles/registrationP6.spec.ts (1 test) 17ms
+
+ Test Files  12 passed (12)
+      Tests  261 passed (261)
+   Start at  12:48:22
+   Duration  44.37s (transform 7.78s, setup 2.36s, collect 12.64s, tests 10.75s, environment 13.66s, prepare 2.00s)

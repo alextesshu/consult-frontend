@@ -64,6 +64,28 @@ async function submitSignup(container: Element) {
 }
 
 describe('ClientSignupView', () => {
+  it('maps mobile P6 to name, email and password without an early account or new payload fields', async () => {
+    applyUiVersion('v2')
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query.includes('767px'), addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+    try {
+      const { container, auth, unmount } = renderView()
+      await fireEvent.update(container.querySelector('[name=first_name]')!, 'Олена')
+      await fireEvent.submit(container.querySelector('form')!)
+      expect(container.querySelector('[name=password]')).toBeNull()
+      expect(auth.signupClient).not.toHaveBeenCalled()
+      await fireEvent.update(container.querySelector('[name=email]')!, 'client@example.test')
+      await fireEvent.submit(container.querySelector('form')!)
+      await fireEvent.update(container.querySelector('[name=password]')!, 'in-memory-password')
+      expect(container.querySelector('[name=password_confirm]')).toBeNull()
+      await fireEvent.click(screen.getByRole('button', { name: 'Назад' }))
+      expect((container.querySelector('[name=email]') as HTMLInputElement).value).toBe('client@example.test')
+      await fireEvent.submit(container.querySelector('form')!)
+      expect((container.querySelector('[name=password]') as HTMLInputElement).value).toBe('in-memory-password')
+      await fireEvent.submit(container.querySelector('form')!)
+      await waitFor(() => expect(auth.signupClient).toHaveBeenCalledWith('client@example.test', 'in-memory-password', undefined, { registration_contract_version: 2, first_name: 'Олена' }))
+      unmount()
+    } finally { vi.unstubAllGlobals() }
+  })
   beforeEach(() => {
     cleanup()
     applyUiVersion('v1')
@@ -203,7 +225,7 @@ describe('ClientSignupView', () => {
     await fireEvent.update(screen.getByRole('textbox', { name: /^Ім’я/ }), 'Олена')
     await fireEvent.update(screen.getByLabelText('Ел. пошта'), 'client@example.com')
     await fireEvent.submit(container.querySelector('form')!)
-    expect(screen.getByRole('alert')).toHaveTextContent('Заповніть усі поля.')
+    expect(screen.getByText('Заповніть усі поля.')).toHaveAttribute('role', 'alert')
     expect(auth.signupClient).not.toHaveBeenCalled()
     applyUiVersion('v1')
     await waitFor(() => expect(container.querySelector('.pc2-client-preview')).toBeNull())
@@ -211,7 +233,7 @@ describe('ClientSignupView', () => {
     expect(screen.getByText('Заповніть усі поля.')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
     applyUiVersion('v2')
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Заповніть усі поля.'))
+    await waitFor(() => expect(screen.getByText('Заповніть усі поля.')).toHaveAttribute('role', 'alert'))
     expect(screen.getByLabelText('Ел. пошта')).toHaveValue('client@example.com')
   })
 
