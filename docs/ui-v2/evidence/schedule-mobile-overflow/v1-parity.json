@@ -1,0 +1,38 @@
+[
+  {
+    "width": 768,
+    "tab": "calendar",
+    "baseline": "baseline-v1-calendar-768.png",
+    "candidate": "candidate-v1-calendar-768.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+  },
+  {
+    "width": 768,
+    "tab": "availability",
+    "baseline": "baseline-v1-availability-768.png",
+    "candidate": "candidate-v1-availability-768.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+  },
+  {
+    "width": 1280,
+    "tab": "calendar",
+    "baseline": "baseline-v1-calendar-1280.png",
+    "candidate": "candidate-v1-calendar-1280.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+  },
+  {
+    "width": 1280,
+    "tab": "availability",
+    "baseline": "baseline-v1-availability-1280.png",
+    "candidate": "candidate-v1-availability-1280.png",
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+  }
+]

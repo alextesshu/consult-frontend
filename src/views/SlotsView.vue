@@ -6876,7 +6876,6 @@ onBeforeUnmount(() => {
   }
 
   .day-list {
-    display: flex;
     gap: 2px;
   }
 
