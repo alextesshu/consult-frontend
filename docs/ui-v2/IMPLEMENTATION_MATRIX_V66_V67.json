@@ -427,7 +427,7 @@
         "NEW FEATURE",
         "CONTRACT GATE"
       ],
-      "delta_and_next_action": "Separate OG render/storage/invalidation and non-JS metadata decision; 1200x630 and 1080x1080.",
+      "delta_and_next_action": "Frontend profile sharing uses persisted public identity only; server OG render/storage/non-JS metadata/cache decision remains separate and unimplemented. See KAN_158_PUBLIC_PROFILE.md.",
       "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Share-Card.dc.html"
     },
     {
@@ -449,14 +449,14 @@
       "design_status": "DESIGN READY",
       "jira": "KAN-158",
       "views": "PublicProfileView; public-profile/*",
-      "implementation": "Open Draft #55",
+      "implementation": "Draft #55 updated for v6.6/v6.7; visual acceptance pending",
       "classifications": [
         "VISUAL UPDATE",
         "MOTION UPDATE",
         "NEW FEATURE",
         "CONTRACT GATE"
       ],
-      "delta_and_next_action": "Updated desktop profile, contacts, consent, inquiry/sharing/About/preview/hidden; reuse existing inquiry, preserve eligibility.",
+      "delta_and_next_action": "Desktop composition, single request form, real channels/rules/inquiry, About/share/navigation/motion implemented within existing contracts. See KAN_158_PUBLIC_PROFILE.md. No private owner preview, anonymous inquiry API or OG renderer invented.",
       "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile.dc.html"
     },
     {
@@ -464,13 +464,13 @@
       "design_status": "DESIGN READY",
       "jira": "KAN-158",
       "views": "PublicProfileView",
-      "implementation": "New reference; coordinate with Draft #55",
+      "implementation": "Draft #55 updated; four-width Chromium/keyboard acceptance, fixtures only",
       "classifications": [
         "VISUAL UPDATE",
         "MOTION UPDATE",
         "CONTRACT GATE"
       ],
-      "delta_and_next_action": "Below 860px: fixed bottom bar, 86% sheet, About/share; real offers/availability, safe-area, focus and scroll lock.",
+      "delta_and_next_action": "86dvh native request sheet, full-screen About, native-share/fallback, scroll/focus/lifecycle and authenticated confirmation top-layer mapping. Keep contract gates and review visuals; see KAN_158_PUBLIC_PROFILE.md.",
       "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile-Mobile.dc.html"
     },
     {

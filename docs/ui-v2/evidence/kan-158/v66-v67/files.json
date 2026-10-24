@@ -1,0 +1,655 @@
+{
+  "base_sha": "7d437689a648923d319a26d604b7b31eb81b4473",
+  "starting_pr_head": "bc1a2225ce91732d1e723a7ef8491e5ce5313c35",
+  "paths": [
+    "docs/ui-v2/IMPLEMENTATION_MATRIX_V66_V67.json",
+    "docs/ui-v2/IMPLEMENTATION_MATRIX_V66_V67.md",
+    "docs/ui-v2/KAN_158_PUBLIC_PROFILE.md",
+    "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-1280.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-1440.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-375.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-768.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/browser-acceptance.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/build.txt",
+    "docs/ui-v2/evidence/kan-158/v66-v67/business-handler-parity.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-1280.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-1440.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-375.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-768.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-about-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-request-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-request.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-share-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-about-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-request-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-request.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-share-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-about-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-request-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-request.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-share-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-about-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-request-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-request.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-share-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/client-confirmation.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/compare_v1_pixels.py",
+    "docs/ui-v2/evidence/kan-158/v66-v67/files.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/final-targeted-tests.txt",
+    "docs/ui-v2/evidence/kan-158/v66-v67/fixture.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/focused-tests.txt",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-business-parity.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-full-pages.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-browser.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-client.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-common.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-lifecycle.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-parity.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-source.cjs",
+    "docs/ui-v2/evidence/kan-158/v66-v67/lifecycle-acceptance.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/recordings/claude-1440.webm",
+    "docs/ui-v2/evidence/kan-158/v66-v67/recordings/claude-375.webm",
+    "docs/ui-v2/evidence/kan-158/v66-v67/recordings/vue-1440.webm",
+    "docs/ui-v2/evidence/kan-158/v66-v67/recordings/vue-375.webm",
+    "docs/ui-v2/evidence/kan-158/v66-v67/source-captures.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/typecheck-baseline.txt",
+    "docs/ui-v2/evidence/kan-158/v66-v67/typecheck-comparison.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/typecheck.txt",
+    "docs/ui-v2/evidence/kan-158/v66-v67/v1-parity.json",
+    "docs/ui-v2/evidence/kan-158/v66-v67/validate_delivery.py",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-about-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-contact.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-documents-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-faq-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-full-page.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-pending.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-share-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-about-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-contact.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-documents-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-faq-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-full-page.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-pending.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-share-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-404.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-about-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-client-confirmation.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-contact.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-documents-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-empty.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-faq-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-full-page.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-pending.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-request-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-request-only.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-request.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-share-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-share.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-about-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-about.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-contact.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-documents-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-faq-transition.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-full-page.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-pending.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-profile.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-request-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-request.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-share-enter.png",
+    "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-share.png",
+    "src/components/public-profile/PublicProfileAboutSection.vue",
+    "src/components/public-profile/PublicProfileFaqSection.vue",
+    "src/components/public-profile/PublicProfileHeroSection.vue",
+    "src/components/public-profile/PublicProfileIdentityRail.vue",
+    "src/components/public-profile/PublicProfileOverlay.spec.ts",
+    "src/components/public-profile/PublicProfileOverlay.vue",
+    "src/components/public-profile/PublicProfileShare.vue",
+    "src/components/public-profile/PublicProfileTrustSection.vue",
+    "src/composables/useProfileMotion.spec.ts",
+    "src/composables/useProfileMotion.ts",
+    "src/styles/publicProfileV2.css",
+    "src/styles/publicProfileV2.spec.ts",
+    "src/styles/uiV2.spec.ts",
+    "src/views/PublicProfileView.spec.ts",
+    "src/views/PublicProfileView.vue"
+  ],
+  "count": 130,
+  "hashes": [
+    {
+      "path": "docs/ui-v2/IMPLEMENTATION_MATRIX_V66_V67.json",
+      "sha256": "422896e6a9387fe0a7f2696ccd8d730dcdb2290cddf0e260c6a7a9417adfe0cc"
+    },
+    {
+      "path": "docs/ui-v2/IMPLEMENTATION_MATRIX_V66_V67.md",
+      "sha256": "84a14b78c08daf798d38aa2ab5b041e258805d64ab734968a30bd536901b0109"
+    },
+    {
+      "path": "docs/ui-v2/KAN_158_PUBLIC_PROFILE.md",
+      "sha256": "20f0d17dc16222491fd9ed60ecfeeb32119d03591046ba3e04c7e62ead52e587"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-1280.png",
+      "sha256": "70491f528c8ad3f21013ff1fc8f81dc37bc3fcb85470682e069305ace8692604"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-1440.png",
+      "sha256": "fcf9c0cec5b4b6fae6b34758e1a94fc772f35f0082d1cea7c64d3b51b7960e72"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-375.png",
+      "sha256": "76b07b04896c5d85d78659d66f3997447c2012516b1c0a884170cc52eccb6a21"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/baseline-v1-768.png",
+      "sha256": "f0e16625ce26c9d9f2300df387da6e351f66c0b5e1219193fcebd8f06bc07479"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/browser-acceptance.json",
+      "sha256": "aeea715a53e8cc7e7d393cd982564389a217a85c0248241bc362b40188a2a939"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/build.txt",
+      "sha256": "6cb0dbede055307f89fa350241dd5fdcb9b2657864bdbabde0acc2e852394fad"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/business-handler-parity.json",
+      "sha256": "ac9133045a28fee4799380dde793e6ae41cd4d8e81b73975f4a51d630f4e2169"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-1280.png",
+      "sha256": "70491f528c8ad3f21013ff1fc8f81dc37bc3fcb85470682e069305ace8692604"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-1440.png",
+      "sha256": "fcf9c0cec5b4b6fae6b34758e1a94fc772f35f0082d1cea7c64d3b51b7960e72"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-375.png",
+      "sha256": "76b07b04896c5d85d78659d66f3997447c2012516b1c0a884170cc52eccb6a21"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/candidate-v1-768.png",
+      "sha256": "f0e16625ce26c9d9f2300df387da6e351f66c0b5e1219193fcebd8f06bc07479"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-about-transition.png",
+      "sha256": "dbe5ba2b3ea2797634bc9edec9333683b87498832a884ad358b4add3dc57712d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-about.png",
+      "sha256": "dbe5ba2b3ea2797634bc9edec9333683b87498832a884ad358b4add3dc57712d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-profile.png",
+      "sha256": "d9dd36e558b89365d28bf5e6a4296281dc0d1801ab8bf7ef7549aad462e3bbe9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-request-transition.png",
+      "sha256": "15c6a0b377a9e012e8769949d30462ed6d9f50a53ea0136822690d3f1d700e3a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-request.png",
+      "sha256": "15c6a0b377a9e012e8769949d30462ed6d9f50a53ea0136822690d3f1d700e3a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-share-transition.png",
+      "sha256": "a890ca65139518cd98bc5462272d53593f21ecacd7d8ffc31318a987c55f1d3f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1280-share.png",
+      "sha256": "a890ca65139518cd98bc5462272d53593f21ecacd7d8ffc31318a987c55f1d3f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-about-transition.png",
+      "sha256": "41275947cb4015dab9d40ab9197489dec096c0c1e55acacb3ee8958a21ea3a3b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-about.png",
+      "sha256": "41275947cb4015dab9d40ab9197489dec096c0c1e55acacb3ee8958a21ea3a3b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-profile.png",
+      "sha256": "b540185ababf1e8ed8774775d1f32caf1085d7a9ac5d1ad744cd2846649553fe"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-request-transition.png",
+      "sha256": "d19c84749fb486294681aab325386f78f136bb0bdb2750470b9f21de08c326a6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-request.png",
+      "sha256": "d19c84749fb486294681aab325386f78f136bb0bdb2750470b9f21de08c326a6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-share-transition.png",
+      "sha256": "09da4a46b23543e91b0d84b467a11eb5e13e99c52233702c3655adecd76a640c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-1440-share.png",
+      "sha256": "09da4a46b23543e91b0d84b467a11eb5e13e99c52233702c3655adecd76a640c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-about-transition.png",
+      "sha256": "5f74bf5cf40e0766d52f15f05e00c11b39ecc93bdf770d362d420685e9f51e16"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-about.png",
+      "sha256": "1495e3e169de0e51c2c22036194acb26a34e36c5dbce5b1fdd10336a7e358e97"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-profile.png",
+      "sha256": "96ec585feee0efa1a5ba38d0d6f65b61ad6da5869548033c9172ee1225101de4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-request-transition.png",
+      "sha256": "6f450327004ef502c43f25015f9b6f269e4762dfa5b4983f1ab9cd993b021e95"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-request.png",
+      "sha256": "8c6dd25c57cfef833083dabc679c7d348d5d69779416fbbfe4ba3e0b685ad4f8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-share-transition.png",
+      "sha256": "b2cba1775b3efb7c11242dcc54f3bb0045ec505045df242dfe954c7ddf7dfe44"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-375-share.png",
+      "sha256": "654aa9a2658e10d61f15eef68e657b1fa9ae819435ac6101c5ce3dff4f4583b2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-about-transition.png",
+      "sha256": "01c927d983474e828cdd5d90b94a1b163aa6d85f0c842cdb90192d1d9f1e237a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-about.png",
+      "sha256": "2a8a75e86dd922b1a15cbda12a65dc54d84a9b4b3b7c7009d2dc2054ddf1f58f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-profile.png",
+      "sha256": "3782b3e51846c1fae84176994bfd0bfa3941227d444357587996769829e30bd4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-request-transition.png",
+      "sha256": "bffac1de6c618fce0eace8a848ffc5d32c7aba3c76aa456a61e1eeb8384aa530"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-request.png",
+      "sha256": "4a540ac46831b1ffa470b6345b64ed53777eaeaba4b0a92ba9df8fd4ce0bce9a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-share-transition.png",
+      "sha256": "4ef34f8a3e3cdec48430cd42027be4a379124dec9fed2b46b8d6e699a8b5e312"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/claude-768-share.png",
+      "sha256": "3ba0f9ae387808ac6fd4408abe5b872175df6b8c53092ed3baf97f4b95a8d712"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/client-confirmation.json",
+      "sha256": "96ec4c39e7c9117e979fa95581b1ca4815c9cebb81bda9e5ed25fff9a08100d0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/compare_v1_pixels.py",
+      "sha256": "43933edd7126a8b4dbbf001506b1b05ca966e6ebf8728d47909fda28ebb7f5f0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/final-targeted-tests.txt",
+      "sha256": "638a734cfc563d4b78ca83e66701f1a378819cacd17a346f5a0a16ad210e8a46"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/fixture.json",
+      "sha256": "6f136d7dcd1a59827dacb4e4039c1e1949a9ac8fc0975581310e212954ae9f20"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/focused-tests.txt",
+      "sha256": "056bc39e64a12bd276574c5925d4a747cba5f179c021b7361c4fbc636337879a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-business-parity.cjs",
+      "sha256": "24009c622fc8f099c441eff7bc39f58066eacd9b18de924e12f5fcdd5dfb9a9f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-full-pages.cjs",
+      "sha256": "f6054a1ea0eab831ed23483e7c7062e1b661ebd29c9eaf716fff8767deeb4be7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-browser.cjs",
+      "sha256": "f4072cdd51628a009ab7520c5de0b1d1cae7be17764e9122fe14a8ecc47ba58b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-client.cjs",
+      "sha256": "16d8e5b7cac7cd9fd9a9c56e2773c91e5fcde9a54fafb3ae441c00617ed6a9cf"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-common.cjs",
+      "sha256": "89e7635764f6df1c7feb4c6494c665afa45e3e86c15819188e10133ab5f39995"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-lifecycle.cjs",
+      "sha256": "c80395950180a0f3950a2f8cd557ad591458adbea9de275e725bea60cc73e406"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-parity.cjs",
+      "sha256": "1bafcc8c73261d4349f2936c934dea2939f804b272cef708b55ca3936c76436c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/kan158-v67-source.cjs",
+      "sha256": "ebbb17ceb8b09da0314cdb8f341a668cfa77c48cfd330b6d12f4d3a6189dc7bb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/lifecycle-acceptance.json",
+      "sha256": "f56ad3cb2448b6816772f4d6051a8cb6a32e4250432d825f0ca46006af32d8a3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/recordings/claude-1440.webm",
+      "sha256": "d9257149f062a61990beae7a0c25e1ba4e17b48afc3254807373b6720566a641"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/recordings/claude-375.webm",
+      "sha256": "5a5ead63be0c2a3608a3a788a99e90a5b041282ac9c4993ad7f57a0fc2cbb7d2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/recordings/vue-1440.webm",
+      "sha256": "b1b6285c184ae9aadb3fcc2a84ea3cc7e7db2fa8379b8fa3c2badb707cde66b7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/recordings/vue-375.webm",
+      "sha256": "5a7fda76f61e29536b595ec80bf51d3b7f23ae7eb8e71163bd082fd9a4926c49"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/source-captures.json",
+      "sha256": "6163a9e667d36be12844726dff3e8754c74289bdae7c1fde7971b8210a782bfd"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/typecheck-baseline.txt",
+      "sha256": "b00cd8701b6e25b78aaa5e37d74348cbf00bc15dc5740738438c17e6cdce9e06"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/typecheck-comparison.json",
+      "sha256": "540f8f3174ee37445680b8fb3d247bbec5337088940e2b45dc00ac47d4c767c7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/typecheck.txt",
+      "sha256": "b00cd8701b6e25b78aaa5e37d74348cbf00bc15dc5740738438c17e6cdce9e06"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/v1-parity.json",
+      "sha256": "efb06e5413391eca718b58eeec0f8ea3d3ce57915573fd3234d32ffa44462e64"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/validate_delivery.py",
+      "sha256": "37d553a2007263f5d6ef84f12f5753605ca47dfb00bb7aa58d258e224215bb9f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-about-enter.png",
+      "sha256": "61cf9246ca1fd27990a93cfe51ef47680979d7bd946dd4c461ef4b03d24427d2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-about.png",
+      "sha256": "61cf9246ca1fd27990a93cfe51ef47680979d7bd946dd4c461ef4b03d24427d2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-contact.png",
+      "sha256": "eaee58f5ac9f1e77964dbfca9df923cc2ca0dbf4f13a26a1abfc21e9b10ed492"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-documents-transition.png",
+      "sha256": "47ffa5e3db229841cb098682a37c93364278cd5f1f7bb40e5fb261cd703a4bf0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-faq-transition.png",
+      "sha256": "a6a420e989ee97b59cca27753deb8c06cfec71a4d63262283a60e88a53dbfc30"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-full-page.png",
+      "sha256": "e469978708355aa5ffd9b4660d626b39ba847e11ffb70ba9fee8ef7c9c081c2c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-pending.png",
+      "sha256": "5798b06f6321e2a68fb75bf83d65daf3be931e4ebac0f0370867d3d75b48c1a7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-profile.png",
+      "sha256": "3306d73d2efd8e3b8d14fdfda58eb7878f6ea9ce082d488030923000b079124e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-share-enter.png",
+      "sha256": "3f38c218048f8aa2c7bf720802a2843b8189ab71e5c453ab8acbb4be2d530d09"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1280-share.png",
+      "sha256": "9e954f1c11f96d2ee0ff3fc9d21a31ef1a43772a4fa8bd2a3745c927b8f00d3d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-about-enter.png",
+      "sha256": "5285f77b8f2f52d8a7f72496bf8e42fad4e1d3e54fc52cb0ea748e4835135598"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-about.png",
+      "sha256": "392b3723a2e71db9c53f2830bffae9573225eb6177c6552b998b54341f1f5b28"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-contact.png",
+      "sha256": "f9054b69e358e772adf87166765a23e88c20b85be62b3bd08ac11648720f1faa"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-documents-transition.png",
+      "sha256": "33405e3a7b4742d450dc783ff6a248d4994ae10a96721e1939ac76d672c379ac"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-faq-transition.png",
+      "sha256": "de58fa61de3b248982b1aa055cd2320bf2c7c8f39db69c2f9986ec32702be30d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-full-page.png",
+      "sha256": "b959f718606cffdd3e5d0c3a9422440264cf7c91a7bdac649bce0c187122e9ce"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-pending.png",
+      "sha256": "db3f93abe1468f85f73df0426d110443d0c9832106a4d8e58d672c4b5f0d3f0a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-profile.png",
+      "sha256": "21e8199bf8cdc9e9e173e4cbb45d9b3164eb566db095791273b62e5bd1b7d4a4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-share-enter.png",
+      "sha256": "3ce621ff4e8002e14cac3dd96c35bcad9d09b56a4be739198fb9dd2b112fb619"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-1440-share.png",
+      "sha256": "3ce621ff4e8002e14cac3dd96c35bcad9d09b56a4be739198fb9dd2b112fb619"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-404.png",
+      "sha256": "ad64c9c816e4e47bc8cbeab72e54edaeb2ea5a325bf7c46d9f75ea13e9507254"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-about-enter.png",
+      "sha256": "2452047fd58cd84f08047a01e6bbb9cb940a1afa43d3c89f8fa1c55c3794e8b2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-about.png",
+      "sha256": "2452047fd58cd84f08047a01e6bbb9cb940a1afa43d3c89f8fa1c55c3794e8b2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-client-confirmation.png",
+      "sha256": "1dbbb9701192885b3c8790933138033f88f209a46b2c865195255e5f0e96895e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-contact.png",
+      "sha256": "05d49be4880edcf8adb3a172121c7849d1af978ba88eeb78bab048b06cf66ace"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-documents-transition.png",
+      "sha256": "2946a6cb1b888670c9bb52c75c325a8927c99f7cc065289c69cb39726cf6bfda"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-empty.png",
+      "sha256": "ca70fa3b06eb67683882325c455c22b43ea89e9380575077bf32a3ef1d2b2b1f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-faq-transition.png",
+      "sha256": "a9b2606335c5d1875b976a8f4fc4c82cc9fe15c3637b2b006e3515ee6be8cddb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-full-page.png",
+      "sha256": "953d8d2ea44ca35c1a86a2abeb175aedab1463b39da77afd20f75196a4a187a7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-pending.png",
+      "sha256": "9e6615e2b9e3fd7ac0f795d90092afcb78dcf6490e58cab7df9763b9f8d9f515"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-profile.png",
+      "sha256": "b7adfd1980ff1a701d7c842d37415c10672f5f77076fde2a249bca31762990ec"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-request-enter.png",
+      "sha256": "7d78a49cd2d4513dbbf1bf2d76edc9f031f1a0293aad0cfc8a92a39355826c13"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-request-only.png",
+      "sha256": "3e7c79a1e188f9e4163be63c36dafdf80b96dc0ac6ab7106096fa66fd9925b20"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-request.png",
+      "sha256": "272dca3c2bcb8bfed641f3bf37dabd00e4002a9c1bc58db7f197615ba4dc4874"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-share-enter.png",
+      "sha256": "e2c330fc08e56e6ca950fc3e513eab50b902dd2bb808e877837948f56230ff31"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-375-share.png",
+      "sha256": "d62a3f3c4ff13618e6e37ace53fa7930d46ed2b9348ca4a8f0129799fe6d413d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-about-enter.png",
+      "sha256": "5b1fe5d5f5bf3dee88929019e0ca142f6baad598b7bba24bb748defe7224b95f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-about.png",
+      "sha256": "0e55042e6b802da49cfad1e1f802c776b01285f71130b5ea0d2843630b51fb1a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-contact.png",
+      "sha256": "e3e7a8fd93218527b2bdc669627a88d26d4463bc0935c7f353ac741f6f7c5991"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-documents-transition.png",
+      "sha256": "6b2bd02c52e404da398a47a8b530aa2d8b05ee4971f371bc9a8320413ffe136e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-faq-transition.png",
+      "sha256": "9a67b3efd63ca13a3f94bab840d3da7c22a17dc5bc89be278c4c911f29dafcb5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-full-page.png",
+      "sha256": "543b098dc5b59b20b3deca61780f1bbaa4c46760f8382007eaa910eecb7a5695"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-pending.png",
+      "sha256": "7868a63a7463014b9c0285733a8652456546a69f39197e5a8f4aa6de126bf7af"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-profile.png",
+      "sha256": "54fd807f73b4e37f42867df8d3852f9b1adfbd705aa29f5cd42a49dc76d92457"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-request-enter.png",
+      "sha256": "4078f41ddd66a3f4d16ac2296ec775259f411f41f034139cd1de219756499b32"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-request.png",
+      "sha256": "b9414510c7cd4645aa5674a4a54add462f408b902ab736320f9111cf78019ae1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-share-enter.png",
+      "sha256": "5f48e4a3e4ea36ebbda600da09116144f6e8425bb6fffdbd4bb6d0fbd7176d2f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/v66-v67/vue-768-share.png",
+      "sha256": "36d794b825a75c7482a4fdd4b4860825f2298c2ebceeb9fe59439cbb305553c8"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileAboutSection.vue",
+      "sha256": "d356efdf536873b0bb5b86063f7c4857be20543f22f9a51b5ecbae8b4c8f3ac8"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileFaqSection.vue",
+      "sha256": "215a125eebee515b86757ff2c448805357d5ab0337f839af867a06ea0d09f3c3"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileHeroSection.vue",
+      "sha256": "e3c13d8022e28fd33ccf401415aca708b0041a1d2f331f0edd7b11f3ca078b9f"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileIdentityRail.vue",
+      "sha256": "93dee904e372871f5ecb09ec0294f7eac0c42cd2550a1c743c16959573fba896"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileOverlay.spec.ts",
+      "sha256": "50162421334cc5adf50de7b25ad2106112d2e6afb0d1058a2cb4818bbf1df1a6"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileOverlay.vue",
+      "sha256": "8dbd690df28c8027a306721839fec51f225c38d0d24bf0a81d12e375b4a0ff5a"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileShare.vue",
+      "sha256": "94c7db1b118effbee890ed78e3bb4a3106d71d3274d2bf9f0bc6ec2ff03e04ad"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileTrustSection.vue",
+      "sha256": "ee41389ba5a21d6e001245ead518a362aa663a65d873dc5fbb7047c21d2feecf"
+    },
+    {
+      "path": "src/composables/useProfileMotion.spec.ts",
+      "sha256": "b5449548e1c15f4ed41efab333ba5bf7ef8ab8963340167944028804f78410d9"
+    },
+    {
+      "path": "src/composables/useProfileMotion.ts",
+      "sha256": "ec6a2eabbc72c6fefdf5a9f6cb4e60de67d98f45d809112b6116180f708b011c"
+    },
+    {
+      "path": "src/styles/publicProfileV2.css",
+      "sha256": "f851259059055c78071810215a2accbd1a3d7d090a742215e493e3a8239f7a49"
+    },
+    {
+      "path": "src/styles/publicProfileV2.spec.ts",
+      "sha256": "4942daa2576e6f6dce61dac7eacd6cc4cd5707e5bb333c3bf45e545f25391e5d"
+    },
+    {
+      "path": "src/styles/uiV2.spec.ts",
+      "sha256": "01bffa624510ac9d19f0665a61145bfccc2a2c57e9a039b40a0ba52279dcce8f"
+    },
+    {
+      "path": "src/views/PublicProfileView.spec.ts",
+      "sha256": "c21a08c0886cf955071d53031fc93144d3bd3bfcdc2e333589ea7456f916b7a2"
+    },
+    {
+      "path": "src/views/PublicProfileView.vue",
+      "sha256": "8a223d9203b002622f2cf56a76116fd993aa5504a204809a2fd6707ff83bebc4"
+    }
+  ]
+}

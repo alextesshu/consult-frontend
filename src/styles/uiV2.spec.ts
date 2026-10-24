@@ -134,7 +134,8 @@ describe('UI v2 CSS contract', () => {
     try {
       for (const root of [tokens, components]) {
         root.walkRules((rule) => {
-          for (const selector of rule.selectors) expect(document.querySelector(selector)).toBeNull()
+          // Pseudo-elements have no DOM node; jsdom does not parse native dialog ::backdrop.
+          for (const selector of rule.selectors) expect(document.querySelector(selector.replace(/::backdrop\b/g, ''))).toBeNull()
         })
       }
     } finally {

@@ -1,0 +1,2038 @@
+{
+  "baseline": "7a535bd6577dc4321c05f1d65cb65ba669a7b415",
+  "source": "direct local Django profile; baseline/V1 reuse public DTOs; disabled states are DOM-only presentation probes, not eligibility changes",
+  "before": {
+    "label": "Консультація",
+    "pressed": "true",
+    "disabled": false,
+    "background": "rgb(18, 52, 90)",
+    "opacity": 1,
+    "borderStyle": "solid",
+    "outline": "none",
+    "outlineWidth": "0px",
+    "text": [
+      {
+        "class": "guest-offer-option__label",
+        "color": "rgb(18, 35, 58)",
+        "text": "Консультація",
+        "contrast": 1.2541558546457552
+      },
+      {
+        "class": "guest-offer-option__meta",
+        "color": "rgb(101, 114, 135)",
+        "text": "50 хв · €20",
+        "contrast": 2.5893552025838873
+      }
+    ]
+  },
+  "rows": [
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "selected",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "unselected",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "unselected-hover",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "unselected-focus",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "hover",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "focus",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "selected-disabled",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "unselected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "selected",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "unselected",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "unselected-hover",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "unselected-focus",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "hover",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "focus",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "state": "selected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "standard",
+      "state": "unselected-disabled",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "selected",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "unselected",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "unselected-hover",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "unselected-focus",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "hover",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "focus",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "selected-disabled",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "unselected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "selected",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "unselected",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "unselected-hover",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "unselected-focus",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "hover",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "focus",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "state": "selected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "state": "unselected-disabled",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "selected",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "unselected",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "unselected-hover",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "unselected-focus",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "hover",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "focus",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "selected-disabled",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "unselected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "selected",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "unselected",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "unselected-hover",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "unselected-focus",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "hover",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "focus",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "state": "selected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "state": "unselected-disabled",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "selected",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "unselected",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "unselected-hover",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "unselected-focus",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "hover",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "focus",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "selected-disabled",
+      "label": "Консультація",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Консультація",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "50 хв · €20",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "unselected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Ознайомча сесія",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "30 хв · 0 грн",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "selected",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "unselected",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "unselected-hover",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "unselected-focus",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": false,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "hover",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "focus",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": false,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "solid",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "state": "selected-disabled",
+      "label": "Ознайомча сесія",
+      "pressed": "true",
+      "disabled": true,
+      "background": "rgb(18, 52, 90)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(255, 255, 255)",
+          "text": "Ознайомча сесія",
+          "contrast": 12.615997358287789
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(255, 255, 255)",
+          "text": "30 хв · 0 грн",
+          "contrast": 12.615997358287789
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "state": "unselected-disabled",
+      "label": "Консультація",
+      "pressed": "false",
+      "disabled": true,
+      "background": "rgb(255, 255, 255)",
+      "opacity": 1,
+      "borderStyle": "dashed",
+      "outline": "none",
+      "outlineWidth": "0px",
+      "text": [
+        {
+          "class": "guest-offer-option__label",
+          "color": "rgb(18, 35, 58)",
+          "text": "Консультація",
+          "contrast": 15.82242694909201
+        },
+        {
+          "class": "guest-offer-option__meta",
+          "color": "rgb(101, 114, 135)",
+          "text": "50 хв · €20",
+          "contrast": 4.872254430639115
+        }
+      ]
+    }
+  ],
+  "summaries": [
+    {
+      "width": 375,
+      "offer": "standard",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Консультація",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "50 хв · €20",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "offer": "intro",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Ознайомча сесія",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "30 хв · 0 грн",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "standard",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Консультація",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "50 хв · €20",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "offer": "intro",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Ознайомча сесія",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "30 хв · 0 грн",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "standard",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Консультація",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "50 хв · €20",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "offer": "intro",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Ознайомча сесія",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "30 хв · 0 грн",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "standard",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Консультація",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "50 хв · €20",
+          "contrast": 7.854367065426159
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "offer": "intro",
+      "background": "rgb(246, 241, 234)",
+      "text": [
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Обраний варіант",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "Ознайомча сесія",
+          "contrast": 7.854367065426159
+        },
+        {
+          "color": "rgb(63, 75, 94)",
+          "text": "30 хв · 0 грн",
+          "contrast": 7.854367065426159
+        }
+      ]
+    }
+  ],
+  "smoke": [
+    {
+      "width": 375,
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "scrollOwner": ".pc2-profile-overlay--request",
+      "documentY": 500,
+      "wheel": true
+    },
+    {
+      "width": 768,
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "scrollOwner": ".pc2-profile-overlay--request",
+      "documentY": 500,
+      "wheel": true
+    },
+    {
+      "width": 1280,
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "scrollOwner": ".pc2-request-panel",
+      "documentY": 500,
+      "wheel": true
+    },
+    {
+      "width": 1440,
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "scrollOwner": ".pc2-request-panel",
+      "documentY": 500,
+      "wheel": true
+    }
+  ]
+}

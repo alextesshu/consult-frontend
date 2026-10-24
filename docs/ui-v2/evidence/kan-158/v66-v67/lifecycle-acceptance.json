@@ -1,0 +1,39 @@
+[
+  {
+    "motion": "no-preference",
+    "keyboard": true,
+    "aboutToRequestOneDialog": true,
+    "resizeUnlock": true,
+    "versionSwitchCleanup": true,
+    "errors": []
+  },
+  {
+    "motion": "reduce",
+    "keyboard": true,
+    "aboutToRequestOneDialog": true,
+    "resizeUnlock": true,
+    "versionSwitchCleanup": true,
+    "errors": []
+  },
+  {
+    "nativeShareMock": true,
+    "cancelNoFallback": true,
+    "errorFallback": true,
+    "backdrop": true
+  },
+  {
+    "mode": "request-only",
+    "noInventedAvailability": true,
+    "errors": []
+  },
+  {
+    "mode": "empty",
+    "noInventedAvailability": true,
+    "errors": []
+  },
+  {
+    "mode": "404",
+    "noInventedAvailability": true,
+    "errors": []
+  }
+]

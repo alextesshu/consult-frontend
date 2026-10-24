@@ -1,11 +1,12 @@
-﻿<template>
-  <section class="panel profile-content-section" v-if="resolvedWorkProcessTexts.length">
+<template>
+  <section class="panel profile-content-section" :id="uiV2 ? 'pc2-profile-work' : undefined" :class="{ 'pc2-profile-work': uiV2 }" v-if="resolvedWorkProcessTexts.length">
     <div class="panel__header">
       <div>
         <h2 class="panel__title">Як проходить робота</h2>
       </div>
     </div>
-    <div v-for="(text, textIndex) in resolvedWorkProcessTexts" :key="`work-process-${textIndex}`" class="scope-blocks">
+    <div v-if="uiV2" class="pc2-profile-work-grid"><article v-for="(block, index) in resolvedWorkProcessTexts.flatMap(parseAuthoredTextBlocks)" :key="index"><ul v-if="block.kind === 'list'"><li v-for="item in block.items" :key="item">{{ item }}</li></ul><p v-else>{{ block.text }}</p></article></div>
+    <template v-else><div v-for="(text, textIndex) in resolvedWorkProcessTexts" :key="`work-process-${textIndex}`" class="scope-blocks" :class="{ 'pc2-profile-work-flow': uiV2 }">
       <template v-for="(block, index) in parseAuthoredTextBlocks(text)" :key="`work-style-${textIndex}-${index}`">
         <ul v-if="block.kind === 'list'" class="scope-list">
           <li v-for="(item, itemIndex) in block.items" :key="`work-style-${textIndex}-${index}-${itemIndex}`">{{ item }}</li>
@@ -13,9 +14,10 @@
         <p v-else class="scope-text">{{ block.text }}</p>
       </template>
     </div>
+    </template>
   </section>
 
-  <section class="panel profile-content-section" v-if="workWithText || workWithChips.length">
+  <section class="panel profile-content-section profile-content-section--with" v-if="workWithText || workWithChips.length">
     <div class="panel__header">
       <div>
         <h2 class="panel__title">З чим я працюю</h2>
@@ -40,7 +42,7 @@
     </div>
   </section>
 
-  <section class="panel profile-content-section" v-if="whoIsNotSuitableText">
+  <section class="panel profile-content-section profile-content-section--without" v-if="whoIsNotSuitableText">
     <div class="panel__header">
       <div>
         <h2 class="panel__title">З чим я не працюю</h2>
@@ -63,6 +65,7 @@
 import { computed } from 'vue'
 
 type Props = {
+  uiV2?: boolean
   workStyleText?: string
   workProcessTexts?: string[]
   workWithText: string

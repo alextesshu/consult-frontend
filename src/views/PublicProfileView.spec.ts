@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { readFileSync } from 'node:fs'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { reactive } from 'vue'
+import { nextTick, reactive } from 'vue'
+import { applyUiVersion } from '../lib/uiVersion'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
 import {
@@ -368,6 +369,7 @@ beforeAll(() => {
 
 describe('PublicProfileView', () => {
   beforeEach(() => {
+    applyUiVersion('v1')
     mockRoute.params.slug = 'olena'
     mockRoute.query = {}
     mockRoute.path = '/s/olena'
@@ -3967,7 +3969,8 @@ describe('PublicProfileView', () => {
     expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
   })
 
-  it('shows no-slots helper and request CTA when no public slots are available', async () => {
+  it.each(['v1', 'v2'] as const)('shows a coherent no-slots request action in %s', async (version) => {
+    applyUiVersion(version)
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
@@ -3978,7 +3981,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Оберіть час для запиту' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: version === 'v2' ? 'Вільні вікна' : 'Оберіть час для запиту' })).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.queryByText('Завантажуємо вільні вікна')).not.toBeInTheDocument()
     })
@@ -3989,6 +3992,10 @@ describe('PublicProfileView', () => {
     expect(bookingCard.getByText('Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.')).toBeInTheDocument()
     expect(screen.getByText(/У цьому місяці немає доступних вікон/)).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Обрати час' })).not.toBeInTheDocument()
+    await fireEvent.click(bookingCard.getByRole('button', { name: 'Залишити запит' }))
+    expect(await screen.findByLabelText('Ім’я')).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalled()
   })
 
   it('keeps the availability error distinct from an empty direct-booking horizon', async () => {
@@ -4989,4 +4996,175 @@ describe('PublicProfileView', () => {
       screen.getByText('Для заблокованої взаємодії короткий запит перед сесією недоступний.')
     ).toBeInTheDocument()
   })
+
+  describe('UI v2 profile isolation and requests', () => {
+    beforeEach(() => { applyUiVersion('v2'); mockCommonPublicData(); mockBookingPageDataWithSingleSlot() })
+
+    it('moves the existing calendar into a single request panel and preserves configured offers', async () => {
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      const panel = view.container.querySelector('.pc2-request-panel')!
+      await waitFor(() => expect(panel.querySelector('#slots')).toBeInTheDocument())
+      expect(view.container.querySelectorAll('#slots')).toHaveLength(1)
+      await fireEvent.focusIn(panel.querySelector('.pc2-profile-calendar-toggle')!)
+      expect(panel.querySelector('[aria-current="step"]')).toHaveTextContent('2. Час')
+      await fireEvent.focusIn(within(panel as HTMLElement).getByRole('button', { name: /Консультація: / }))
+      expect(panel.querySelector('[aria-current="step"]')).toHaveTextContent('1. Послуга')
+      expect(within(panel as HTMLElement).queryByRole('button', { name: /Парна консультація/ })).toBeNull()
+      expect(within(panel as HTMLElement).getByRole('button', { name: /Консультація: / })).toHaveTextContent('1500')
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('resets only the desktop panel when opening, closing and reopening the form', async () => {
+      const documentScroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      const view = renderView()
+      const slotAction = await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+      const panel = view.container.querySelector<HTMLElement>('.pc2-request-panel')!
+      try {
+        for (let cycle = 0; cycle < 2; cycle++) {
+          panel.scrollTop = 300
+          await fireEvent.click(slotAction)
+          await waitFor(() => {
+            expect(panel.scrollTop).toBe(0)
+            expect(document.activeElement).toBe(panel.querySelector('.pc2-profile-inline'))
+          })
+          panel.scrollTop = 500
+          await fireEvent.click(within(panel.querySelector<HTMLElement>('.pc2-profile-inline')!).getByRole('button', { name: 'Закрити' }))
+          await waitFor(() => expect(panel.querySelector('.guest-booking-form')).toBeNull())
+          expect(panel.scrollTop).toBe(0)
+        }
+        expect(documentScroll).not.toHaveBeenCalled()
+        expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+        expect(mockedApiPost).not.toHaveBeenCalled()
+      } finally {
+        view.unmount()
+        documentScroll.mockRestore()
+      }
+    })
+
+    it('reuses the guest request form inline and sends the existing request contract only after submission', async () => {
+      mockedApiPost.mockResolvedValue({ request: { id: 900, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
+      const view = renderView()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      const form = view.container.querySelector('#pc2-profile-contact form')!
+      expect(form).toBeInTheDocument()
+      expect(view.container.querySelector('.pc2-profile-inline')).toHaveAttribute('role', 'region')
+      expect(view.container.querySelector('.pc2-profile-inline')).not.toHaveAttribute('aria-modal')
+      expect(document.body.style.overflow).not.toBe('hidden')
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+      await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.test')
+      await fireEvent.submit(form)
+      await waitFor(() => expect(mockedApiPost).toHaveBeenCalledWith('/public/specialists/olena/guest-booking-requests/', expect.objectContaining({ slot_id: 100, guest_name: 'Ірина', offer_type: 'standard' })))
+      expect(screen.getByText('Це ще не підтверджена сесія.', { exact: false })).toBeInTheDocument()
+      view.unmount()
+    })
+
+    it('renders actual versioned booking rules in a v2 accordion without inventing consent', async () => {
+      mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ booking_rules: { show_prompt: true, items: [
+        { scope: 'PLATFORM', version: 'platform-v1', text: 'Правила з API', accepted: false },
+        { scope: 'SPECIALIST', version: 'specialist-v2', text: 'Умови з API', accepted: false, specialist_id: 12 },
+      ] } }))
+      const view = renderView()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      const toggle = screen.getByRole('button', { name: /Умови перед запитом/ })
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      expect(view.container.querySelector('#pc2-profile-rules-content')).toHaveAttribute('inert')
+      await fireEvent.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByText('Умови з API')).toBeInTheDocument()
+      expect(screen.getByRole('checkbox')).not.toBeChecked()
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('preserves request-only visibility and does not invent availability or couple offers', async () => {
+      mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ public_booking_mode: 'request_only', show_public_availability: false, public_direct_booking_enabled: false, intro_price: null }))
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      expect(view.container.querySelector('#slots')).toBeNull()
+      const card = within(screen.getByTestId('public-profile-booking-card'))
+      expect(card.queryByRole('button', { name: /Ознайомча сесія|Парна консультація/ })).toBeNull()
+      await fireEvent.click(card.getByRole('button', { name: 'Залишити запит' }))
+      expect(view.container.querySelector('#pc2-profile-contact form')).toBeInTheDocument()
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('restores the original calendar and preserves entered values through v2/v1 switches', async () => {
+      const view = renderView()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+      applyUiVersion('v1'); await nextTick()
+      expect(view.container.querySelector('.pc2-public-profile')).toBeNull()
+      expect(view.container.querySelector('.public__grid #slots')).toBeInTheDocument()
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      expect(screen.getByLabelText('Ім’я')).toHaveValue('Ірина')
+      applyUiVersion('v2'); await nextTick()
+      expect(view.container.querySelector('#pc2-profile-contact form')).toBeInTheDocument()
+      expect(screen.getByLabelText('Ім’я')).toHaveValue('Ірина')
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('retains authenticated client confirmation and does not submit on slot selection', async () => {
+      mockedFetchChatThreads.mockResolvedValue([])
+      mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+      mockAuth.accessToken = 'local-test-token'
+      mockAuth.user = { id: 77, roles: ['CLIENT'] }
+      mockAuth.me = { user: { id: 77, roles: ['CLIENT'] } }
+      const view = renderView()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await findClientBookingConfirmModal()
+      expect(view.container.querySelector('.guest-booking-form')).toBeNull()
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('retains loading and public error states with no panel target or request action', async () => {
+      const pending = deferred<PublicSpecialistProfile>()
+      mockedFetchPublicSpecialistProfile.mockReturnValueOnce(pending.promise)
+      const view = renderView()
+      expect(screen.getByRole('status')).toHaveTextContent('Завантаження профілю')
+      pending.resolve(buildProfile())
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      view.unmount()
+      mockedFetchPublicSpecialistProfile.mockRejectedValueOnce(new Error('Public profile unavailable'))
+      const errorView = renderView()
+      await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+      expect(errorView.container.querySelector('.pc2-request-panel')).toBeNull()
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      errorView.unmount()
+    })
+
+    it('uses a native mobile dialog and restores scroll lock on close and unmount', async () => {
+      const original = window.matchMedia
+      window.matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })
+      const show = vi.fn(function (this: HTMLDialogElement) { this.open = true })
+      const originalShow = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
+      const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
+      Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: show })
+      Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function (this: HTMLDialogElement) { this.open = false; this.dispatchEvent(new Event('close')) } })
+      const previous = document.body.style.overflow
+      const view = renderView()
+      try {
+        await waitFor(() => expect(view.container.querySelector('.pc2-profile-mobile-cta')).toBeInTheDocument()); await fireEvent.click(view.container.querySelector('.pc2-profile-mobile-cta')!)
+        expect(show).toHaveBeenCalledTimes(1)
+        expect(document.body.style.overflow).toBe('hidden')
+        expect(view.container.querySelector('#pc2-profile-mobile-content .pc2-request-panel')).toBeInTheDocument()
+        await fireEvent.click(screen.getByRole('button', { name: 'Закрити' }))
+        expect(document.body.style.overflow).toBe(previous)
+        await fireEvent.click(view.container.querySelector('.pc2-profile-mobile-cta')!)
+      } finally {
+        view.unmount(); window.matchMedia = original
+        if (originalShow) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShow)
+        else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+        if (originalClose) Object.defineProperty(HTMLDialogElement.prototype, 'close', originalClose)
+        else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
+      }
+      expect(document.body.style.overflow).toBe(previous)
+    })
+  })
+
 })
