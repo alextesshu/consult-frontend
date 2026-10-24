@@ -1,0 +1,153 @@
+{
+  "observed_date": "2026-10-24",
+  "base_sha": "e63b1ca1a941f56c6578c32a7b964a133404bbb6",
+  "frontend": [
+    {
+      "headRefOid": "02ed9d644cd892ae3d6b68448096bff47793c884",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "7a101daede5c0f69fe806d2814e7175273c2bb7a"
+      },
+      "mergedAt": "2026-10-21T19:11:31Z",
+      "number": 49,
+      "state": "MERGED",
+      "title": "docs(ui-v2): import design system and reference mockups",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/49"
+    },
+    {
+      "headRefOid": "762ac856339df9badb8220884f688ab310bf91f0",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "b7f1119edbe8c9926202038df47a3bba47aab9a5"
+      },
+      "mergedAt": "2026-10-21T20:24:00Z",
+      "number": 50,
+      "state": "MERGED",
+      "title": "feat(ui-v2): activate versioned design foundation",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/50"
+    },
+    {
+      "headRefOid": "60106c9ddf4641fbc38904461ffb3f34511f6a54",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "b8fc5a4935889d4cc7eb6711c87cc8251fb42a30"
+      },
+      "mergedAt": "2026-10-22T09:28:38Z",
+      "number": 51,
+      "state": "MERGED",
+      "title": "feat(ui-v2): redesign public header",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/51"
+    },
+    {
+      "headRefOid": "4e00cc2a6cea17ff1e637e3396c813554aad15ea",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "7bbb89fd517ba5df507b1c624206617f959177de"
+      },
+      "mergedAt": "2026-10-22T10:43:14Z",
+      "number": 52,
+      "state": "MERGED",
+      "title": "feat(ui-v2): redesign home page",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/52"
+    },
+    {
+      "headRefOid": "ed413cf091fd9fdb573ab4e25bb4c12d3d0afb51",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "e4b903e523836f44c2ac79c0403621382cf92d55"
+      },
+      "mergedAt": "2026-10-22T14:47:47Z",
+      "number": 53,
+      "state": "MERGED",
+      "title": "feat(ui-v2): redesign specialist and client signup",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/53"
+    },
+    {
+      "headRefOid": "eeafc58381858771ab4bf1ec12e85dfb873e4c15",
+      "isDraft": true,
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 54,
+      "state": "OPEN",
+      "title": "feat(ui-v2): complete registration flow v2",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/54"
+    },
+    {
+      "headRefOid": "bc1a2225ce91732d1e723a7ef8491e5ce5313c35",
+      "isDraft": true,
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 55,
+      "state": "OPEN",
+      "title": "feat(ui-v2): redesign public specialist profile",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/55"
+    },
+    {
+      "headRefOid": "bbbc02991204ad92db29d95b211078bcb44a53a9",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "e63b1ca1a941f56c6578c32a7b964a133404bbb6"
+      },
+      "mergedAt": "2026-10-23T19:47:51Z",
+      "number": 56,
+      "state": "MERGED",
+      "title": "feat(ui-v2): match discovery Claude v5 visuals and motion (KAN-157)",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/56"
+    },
+    {
+      "headRefOid": "b9305a60a4ff33cc85022ee081cb9144e9502547",
+      "isDraft": true,
+      "mergeCommit": null,
+      "mergedAt": null,
+      "number": 57,
+      "state": "OPEN",
+      "title": "feat(ui-v2): redesign client dashboard",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/57"
+    },
+    {
+      "headRefOid": "b7d4529e4a38a27f2a7722e1a54ee4b2f4d14e3b",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "d666a6cfec4417517ef4f472ea27300cdf81b033"
+      },
+      "mergedAt": "2026-10-23T18:35:52Z",
+      "number": 59,
+      "state": "MERGED",
+      "title": "feat(ui-v2): match homepage v5 visuals and motion (KAN-155)",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/59"
+    },
+    {
+      "headRefOid": "e8e58a8c3c038647f3bc7e54daf37e727458aec3",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "d47bae52562f13a80cb5118bd68823b3bf1a5abf"
+      },
+      "mergedAt": "2026-10-23T11:25:17Z",
+      "number": 61,
+      "state": "MERGED",
+      "title": "feat(ui-v2): apply approved fennec public branding (KAN-158)",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/61"
+    },
+    {
+      "headRefOid": "2c6a78f75b5a7aca0e506697df13ab9024636664",
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "019501924cc3f17e23fdfb73450004be72fb7a28"
+      },
+      "mergedAt": "2026-10-23T14:17:28Z",
+      "number": 62,
+      "state": "MERGED",
+      "title": "feat(ui-v2): add For Clients landing (KAN-156)",
+      "url": "https://github.com/alextesshu/consult-frontend/pull/62"
+    }
+  ],
+  "backend_registration_only": {
+    "headRefOid": "812bba14ab553df447574df5d91d34aa0824a75c",
+    "isDraft": true,
+    "number": 63,
+    "state": "OPEN",
+    "url": "https://github.com/alextesshu/consult-backend/pull/63"
+  },
+  "environment_acceptance": "NOT CHECKED: merge is not deployment",
+  "jira_state": "NOT FETCHED OR MODIFIED; task ownership is planning alignment"
+}

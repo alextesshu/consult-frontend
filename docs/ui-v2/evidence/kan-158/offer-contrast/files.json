@@ -1,0 +1,464 @@
+{
+  "baseline_sha": "7a535bd6577dc4321c05f1d65cb65ba669a7b415",
+  "paths": [
+    "docs/ui-v2/KAN_158_OFFER_CONTRAST.md",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-selected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-selected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-summary.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected-disabled.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected-focus.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected-hover.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-1280.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-1440.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-375.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-768.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/baseline.config.mjs",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/before-1440.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/browser.cjs",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/build.txt",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-1280.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-1440.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-375.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-768.png",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/contrast-results.json",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/files.json",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/focused-tests.txt",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/v1-parity.json",
+    "docs/ui-v2/evidence/kan-158/offer-contrast/validate_delivery.py",
+    "src/styles/publicProfileV2.css",
+    "src/styles/publicProfileV2.spec.ts"
+  ],
+  "count": 92,
+  "hashes": [
+    {
+      "path": "docs/ui-v2/KAN_158_OFFER_CONTRAST.md",
+      "sha256": "f9568987b1f1ffbd07115cd48a6dfaa3e3887fa674068fff4dce1e49e835b1aa"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-focus.png",
+      "sha256": "a896d46fdeed2011eb8a01616ff27779ff79589e92074c71417b8f0f899fd11f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-hover.png",
+      "sha256": "de678b307eacd94063c5a4c5220e46bc594e33f9d82dc54992fe891218dbae7f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-selected-disabled.png",
+      "sha256": "e59aaef5ed237e3dd477f6d22f9d6fc588dc88eaffc8b2c5e4d92d1c9ae32164"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-selected.png",
+      "sha256": "2f0dc5664466cf731ebe54963764ee6da84474cc81cf2f4cdd41129b739a7e52"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-summary.png",
+      "sha256": "573990ea34ade707a60a8ccd240e02c715fbe25057907b50f07db534f1372bea"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected-disabled.png",
+      "sha256": "d52f9296566ee9e9c5bfa9ff3f57c93efe5a929a19d7748a4d85a3b1aecf1ba8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected-focus.png",
+      "sha256": "c344cea5dfb6da5f3d579ec089274c846125020c49421c44dfdeb04f04e976bd"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected-hover.png",
+      "sha256": "1780be31498f5f1e056c3288193614e59090401eab328f9e3a701acd09eef4cb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-intro-unselected.png",
+      "sha256": "1780be31498f5f1e056c3288193614e59090401eab328f9e3a701acd09eef4cb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-focus.png",
+      "sha256": "bcdc0312cede77fbdf57cdbc9b544d2683874a44a6554434ff386cca1cb815b1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-hover.png",
+      "sha256": "c344cea5dfb6da5f3d579ec089274c846125020c49421c44dfdeb04f04e976bd"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-selected-disabled.png",
+      "sha256": "d52f9296566ee9e9c5bfa9ff3f57c93efe5a929a19d7748a4d85a3b1aecf1ba8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-selected.png",
+      "sha256": "1780be31498f5f1e056c3288193614e59090401eab328f9e3a701acd09eef4cb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-summary.png",
+      "sha256": "6ca2dc21f3188ea902a3c7334dafd7625e6f44cb016bd1c95294701f23113745"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected-disabled.png",
+      "sha256": "e59aaef5ed237e3dd477f6d22f9d6fc588dc88eaffc8b2c5e4d92d1c9ae32164"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected-focus.png",
+      "sha256": "de678b307eacd94063c5a4c5220e46bc594e33f9d82dc54992fe891218dbae7f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected-hover.png",
+      "sha256": "2f0dc5664466cf731ebe54963764ee6da84474cc81cf2f4cdd41129b739a7e52"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1280-standard-unselected.png",
+      "sha256": "2f0dc5664466cf731ebe54963764ee6da84474cc81cf2f4cdd41129b739a7e52"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-focus.png",
+      "sha256": "ed459f5d3484802e03895165c308aaf24c3d9e801da5fcbd0da76080c0ed0869"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-hover.png",
+      "sha256": "f975f9b4058216bd5e42da38fa5629bc86e4cf3107815365d2c1d9aafcf14bf1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-selected-disabled.png",
+      "sha256": "985a5310c515babc3fa7b7c949b4d248d8a2141bf7268a0156efa7586d40189c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-selected.png",
+      "sha256": "8fec1c1095235644c2f9a5057835832d82b23854b79a2db3cd4d1ccba6e87a98"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-summary.png",
+      "sha256": "16f3e24d8050de73fd1129e4527057fa509f44de6239dcbb4c300e84338dea2d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected-disabled.png",
+      "sha256": "570baec271d4a1e5c1f7d2bac38b05a10b656925a03880d165b2f4a3afbcc69a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected-focus.png",
+      "sha256": "5afcbb1a035d3cc716e0826f5411f0c648fea5cdbe4458eabb1a0d64818e0fb5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected-hover.png",
+      "sha256": "6bbab466e10771cf2811729b39631c35ce6db73aaeb4b71ec2959c715345c320"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-intro-unselected.png",
+      "sha256": "6bbab466e10771cf2811729b39631c35ce6db73aaeb4b71ec2959c715345c320"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-focus.png",
+      "sha256": "86dcb4de3da9a9cf6926b18ab2c2f1ac47a5fbbe8068c639267f4e38e87afa69"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-hover.png",
+      "sha256": "5afcbb1a035d3cc716e0826f5411f0c648fea5cdbe4458eabb1a0d64818e0fb5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-selected-disabled.png",
+      "sha256": "570baec271d4a1e5c1f7d2bac38b05a10b656925a03880d165b2f4a3afbcc69a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-selected.png",
+      "sha256": "6bbab466e10771cf2811729b39631c35ce6db73aaeb4b71ec2959c715345c320"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-summary.png",
+      "sha256": "d09edb2de77ad74dea703f9139f297125d9dd846eb2d8c6159f34043387596c4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected-disabled.png",
+      "sha256": "985a5310c515babc3fa7b7c949b4d248d8a2141bf7268a0156efa7586d40189c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected-focus.png",
+      "sha256": "f975f9b4058216bd5e42da38fa5629bc86e4cf3107815365d2c1d9aafcf14bf1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected-hover.png",
+      "sha256": "8fec1c1095235644c2f9a5057835832d82b23854b79a2db3cd4d1ccba6e87a98"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/1440-standard-unselected.png",
+      "sha256": "8fec1c1095235644c2f9a5057835832d82b23854b79a2db3cd4d1ccba6e87a98"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-focus.png",
+      "sha256": "acda6ea01b57a9e0c48840a214ece103e7ab2d48bcfc6b6d5e65b7c79ef0937e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-hover.png",
+      "sha256": "ceb2c581fad21fc6d7440fdd5363871874cecbdd8f222b8584ffafc6c20cacdc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-selected-disabled.png",
+      "sha256": "d57f21fe463c69f0a485591beb8267f54d01505b0dfb9b726ce264a462d0e305"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-selected.png",
+      "sha256": "71646ed1a92464549279769b070e1bb609d22218630b8487f17780195f3ccd1d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-summary.png",
+      "sha256": "707f131b66e242a781497b1ddd75fb0d42b7303b786f37b93b78802189bc892a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected-disabled.png",
+      "sha256": "0fb8c9bd487e343f70cd0468bcd91e7ea3e6adb2124f9cbf664e7c1c57b27e00"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected-focus.png",
+      "sha256": "e4398c2a6deee88ff325cacd2ecbd376d71a092b2ebc44784f1263802964a4a5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected-hover.png",
+      "sha256": "f938e89ec75a75ef373c611c6517a9f6558c2a316f8d8dcf7245a020db812bfc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-intro-unselected.png",
+      "sha256": "f938e89ec75a75ef373c611c6517a9f6558c2a316f8d8dcf7245a020db812bfc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-focus.png",
+      "sha256": "2082287a6777415c32dff7aa3a66b70433b8ce5aa14f507ca02467918965f05d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-hover.png",
+      "sha256": "e4398c2a6deee88ff325cacd2ecbd376d71a092b2ebc44784f1263802964a4a5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-selected-disabled.png",
+      "sha256": "4e742ae6fa240c0504a143ec4415db4e930ef6d3a0be13140d91a32b56ab83bf"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-selected.png",
+      "sha256": "f938e89ec75a75ef373c611c6517a9f6558c2a316f8d8dcf7245a020db812bfc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-summary.png",
+      "sha256": "b685e717444021e84a474d40ae135d89b6e098afa0d5bf4ff8986ad6cc1bd873"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected-disabled.png",
+      "sha256": "d57f21fe463c69f0a485591beb8267f54d01505b0dfb9b726ce264a462d0e305"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected-focus.png",
+      "sha256": "ceb2c581fad21fc6d7440fdd5363871874cecbdd8f222b8584ffafc6c20cacdc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected-hover.png",
+      "sha256": "71646ed1a92464549279769b070e1bb609d22218630b8487f17780195f3ccd1d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/375-standard-unselected.png",
+      "sha256": "71646ed1a92464549279769b070e1bb609d22218630b8487f17780195f3ccd1d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-focus.png",
+      "sha256": "46f5b7f406f33fe62e109e3218ac91308b99ef41ed915898ab11a4897d141b55"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-hover.png",
+      "sha256": "7c59c32b941f74b5979bac6d3ff29164f9ae73b3d740fe7fe8b2580d90f8a0ea"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-selected-disabled.png",
+      "sha256": "48b5c1e89cc2b1cdc9cd9850068bb813aa1b4b79d8cead4f7cfcc64dd5ea382a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-selected.png",
+      "sha256": "635a47bf2d9bf5025b33cd579ad49fbe07a177dc59e6fade271b1149878ae806"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-summary.png",
+      "sha256": "9ba278a9fac55ecfe06268fe31624eb2e41515c51cbdd13df157c21f0041ce33"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected-disabled.png",
+      "sha256": "a6c3c894831e824ebbc8779b5b6b0b21daa21d0b249cd7c2ad021b393a574a5c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected-focus.png",
+      "sha256": "471fc934b7463b24f3fbf94c9561ce68eb828aabc33e35c2057582f718490c62"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected-hover.png",
+      "sha256": "7a1ecdc3f17ab8bbe618b00ff73063182407c077659e924a96a321735904a06f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-intro-unselected.png",
+      "sha256": "7a1ecdc3f17ab8bbe618b00ff73063182407c077659e924a96a321735904a06f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-focus.png",
+      "sha256": "64b6ba161beb89c669266dd736456e27fad483d7811afae686d81e00d27a9f8a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-hover.png",
+      "sha256": "471fc934b7463b24f3fbf94c9561ce68eb828aabc33e35c2057582f718490c62"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-selected-disabled.png",
+      "sha256": "a6c3c894831e824ebbc8779b5b6b0b21daa21d0b249cd7c2ad021b393a574a5c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-selected.png",
+      "sha256": "7a1ecdc3f17ab8bbe618b00ff73063182407c077659e924a96a321735904a06f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-summary.png",
+      "sha256": "905adf6229cc578c9177fa8b18908607e2332366cdd6d755e427897137a5f982"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected-disabled.png",
+      "sha256": "48b5c1e89cc2b1cdc9cd9850068bb813aa1b4b79d8cead4f7cfcc64dd5ea382a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected-focus.png",
+      "sha256": "7c59c32b941f74b5979bac6d3ff29164f9ae73b3d740fe7fe8b2580d90f8a0ea"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected-hover.png",
+      "sha256": "635a47bf2d9bf5025b33cd579ad49fbe07a177dc59e6fade271b1149878ae806"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/768-standard-unselected.png",
+      "sha256": "635a47bf2d9bf5025b33cd579ad49fbe07a177dc59e6fade271b1149878ae806"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-1280.png",
+      "sha256": "697047196eb3459a4161a0d8fa6007582a4112f264a9b59e8b5f1222584e9db1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-1440.png",
+      "sha256": "19a9d26d26a77d647b9892199a2c2fb71e6962730a9eefc6c0c167c5ea742379"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-375.png",
+      "sha256": "93b1d364434eca2c667b2ad4e71577234e291e080e8c63322cb574fa55c215a7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/baseline-v1-768.png",
+      "sha256": "bce6c8845aff986d20faecb3cc2ed45169b9b5b9a107a21410584ff7da5554f0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/baseline.config.mjs",
+      "sha256": "63ff0871bc49edc310df39343dac514d0d4cd1abf4535196da9986432e186ec1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/before-1440.png",
+      "sha256": "030dbc7e5d0365810a284cfe78111621814d14d685c61899dfbe8e60450618d8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/browser.cjs",
+      "sha256": "733c6cebc62a4f66716b1d9ae8dd8dba1a4ea8fb5c2b40c7ddf88e00b511a6cf"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/build.txt",
+      "sha256": "0e9d5b4b978b9ffd5ba3bd990ceb842efaff8ac9c049e85bcf2950a0336a7c8a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-1280.png",
+      "sha256": "697047196eb3459a4161a0d8fa6007582a4112f264a9b59e8b5f1222584e9db1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-1440.png",
+      "sha256": "19a9d26d26a77d647b9892199a2c2fb71e6962730a9eefc6c0c167c5ea742379"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-375.png",
+      "sha256": "93b1d364434eca2c667b2ad4e71577234e291e080e8c63322cb574fa55c215a7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/candidate-v1-768.png",
+      "sha256": "bce6c8845aff986d20faecb3cc2ed45169b9b5b9a107a21410584ff7da5554f0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/contrast-results.json",
+      "sha256": "812a2d3de6627f13f338940315db9ebc1a262da500fce3437295e2808bf197be"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/focused-tests.txt",
+      "sha256": "2412e9ccdf962840597f31a0564cf0f71693cf46064f06600a38b2c6aaf2d42e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/v1-parity.json",
+      "sha256": "c7229cd5513382ab47a22272e2c53aadf2878686c5dfb5d6eb134a70c31035d1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/offer-contrast/validate_delivery.py",
+      "sha256": "555264fdb6df065021b3cc00da676486b8f3856c3759139bd2e4291d5857b4bc"
+    },
+    {
+      "path": "src/styles/publicProfileV2.css",
+      "sha256": "ccac31d8bfbe65e30a0aa0b68aa6fa04f1afb95a1e005a0c3c89fb3fc65d4cf9"
+    },
+    {
+      "path": "src/styles/publicProfileV2.spec.ts",
+      "sha256": "de9a06845f0abc06b40ba73696dee2521b11c685f2fbf115d24e8bdf90967927"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+.....                                                                    [100%]
+============================== warnings summary ===============================
+AppData/Local/Temp/kan159-backend-acceptance/test_contract.py::test_actual_registration_login_me[True]
+  C:\Users\admin\dev\portfolio\consult\backend\.venv\Lib\site-packages\google\api_core\_python_version_support.py:275: FutureWarning: You are using a Python version (3.11.7) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+    warnings.warn(message, FutureWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+5 passed, 1 warning in 3.87s

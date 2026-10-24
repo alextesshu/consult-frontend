@@ -1,0 +1,1227 @@
+{
+  "devBaseline": "c864fcb629a372170c79b8ae33e409c4c9091f78",
+  "startingRegistrationHEAD": "8f81967a2e5aecdd4e7024edaebc203c5c0b4f4d",
+  "conflicts": [],
+  "runtimeEditsDuringIntegration": [],
+  "hashPolicy": "UTF-8 LF without BOM for text; exact binary bytes. Inventory is full PR delta versus dev; excludes this manifest.",
+  "files": [
+    {
+      "path": "docs/ui-v2/KAN_159_FINAL_INTEGRATION.md",
+      "bytes": 9849,
+      "mode": "utf8-lf",
+      "sha256": "9b790707bc1b0f77d4ebd2dbad0606d3323a4f8096172c59d74cbd432489ab88"
+    },
+    {
+      "path": "docs/ui-v2/KAN_159_REGISTRATION_P6.md",
+      "bytes": 11540,
+      "mode": "utf8-lf",
+      "sha256": "e6e2577b49e9e76af7a03629804c63fac87261725d6537a3e595e64f1e25fc12"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/README.md",
+      "bytes": 3132,
+      "mode": "utf8-lf",
+      "sha256": "2d99a19fae47e4bb6efe4e8084289a6880db8d306d78767c682229ef17694045"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/backend-integration.txt",
+      "bytes": 832,
+      "mode": "utf8-lf",
+      "sha256": "1ad89262c16d77ac624abe662c1b9d00338bb2ac33af6f740f8bc5be56b40155"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-client-v1-1280.png",
+      "bytes": 390961,
+      "mode": "binary",
+      "sha256": "bbdded18c1610d778b68ee1278382d7ed25c6a6341d908915bc15507b2c4919a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-client-v1-375.png",
+      "bytes": 287111,
+      "mode": "binary",
+      "sha256": "d1a74c60516d735c94b6598ff3d4345b71ce2986bc21da5b7bed3408eb46d2ab"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-client-v1-390.png",
+      "bytes": 282037,
+      "mode": "binary",
+      "sha256": "f4101407f6e606b018be5d815248d3a7f101fbc6749fc21337905ea0266854a4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-client-v1-640.png",
+      "bytes": 296820,
+      "mode": "binary",
+      "sha256": "3cb68b37d1e236910d0123b1a623b7b1571d42964c8b37659b24b241ee00b52f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-client-v1-768.png",
+      "bytes": 296545,
+      "mode": "binary",
+      "sha256": "1fb9a7dde0df6cde86bf4cbeaa16ceebbde9f1809c741032c83346ce87f7fb29"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-v1-1280.png",
+      "bytes": 446591,
+      "mode": "binary",
+      "sha256": "ba869f9e7d97965e85fc903cb3b7e024ac615ff7841e87263c0131ca47bc1839"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-v1-375.png",
+      "bytes": 362008,
+      "mode": "binary",
+      "sha256": "00853f7ed387d5adaffd20bdae7a65887ab6452854fdef27cc54e4dd0e88c8af"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-v1-390.png",
+      "bytes": 364325,
+      "mode": "binary",
+      "sha256": "44b4d4e7f545b37c9de5fa64d6dd51bda15873891be96f59d87c5999a067dc21"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-v1-640.png",
+      "bytes": 398802,
+      "mode": "binary",
+      "sha256": "8143ab4f3176e290eeffe0cdecdf5f98690195658cd425535e53793f68d7f7c5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline-signup-v1-768.png",
+      "bytes": 405336,
+      "mode": "binary",
+      "sha256": "c640f8cddefc5821fe96f5c7822ca1a89c4d214380d69529af59f53a9c3914e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/baseline.config.mjs",
+      "bytes": 365,
+      "mode": "utf8-lf",
+      "sha256": "ec3638f979dc8624d412c788eaca10b0b5527f20ce6fc43774be235c535a0108"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/browser-results.json",
+      "bytes": 5314,
+      "mode": "utf8-lf",
+      "sha256": "12b9aa98b553a98e02d79d34c891be531bc4253a99c7ed7296c0f559a778ca0f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/browser.cjs",
+      "bytes": 9502,
+      "mode": "utf8-lf",
+      "sha256": "70ee2014013c4c740cdcd084767051af9877864a88c375239ec6b87a900cacf4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/build.txt",
+      "bytes": 1757,
+      "mode": "utf8-lf",
+      "sha256": "b9a31d2bac3ae7ca234aadd2d03d89796593daa655a69f8eaeddea31d33c0fd8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-client-v1-1280.png",
+      "bytes": 390967,
+      "mode": "binary",
+      "sha256": "cc4ebc78a08cdd2cfab52b072c6227c956f999430b75b7afd203b647a6110c7b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-client-v1-375.png",
+      "bytes": 287144,
+      "mode": "binary",
+      "sha256": "11401a03dc6f9ae5f3c84c9ab25dbd8ccf8aa0317cf627178ee5a484243e4efc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-client-v1-390.png",
+      "bytes": 282061,
+      "mode": "binary",
+      "sha256": "937cbf428770f7776f1745c317d016277cbd990181bd912b152732f9ca81405c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-client-v1-640.png",
+      "bytes": 296837,
+      "mode": "binary",
+      "sha256": "288415c070e92685d8e14e49abc46abdf64d3ea032b4c732cf1b273552ad8dc7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-client-v1-768.png",
+      "bytes": 296569,
+      "mode": "binary",
+      "sha256": "807f40a15550cc081d2df71eda72f7c0bea09386c2a3cc3b218d1de863f2f8e6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-v1-1280.png",
+      "bytes": 446595,
+      "mode": "binary",
+      "sha256": "4c57a5af3e258bc75ddabcc773126df7947a7fe0d27e16cc48c5b6f67c030e5d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-v1-375.png",
+      "bytes": 362036,
+      "mode": "binary",
+      "sha256": "1af4b66bd60386d545e1107f817d8f6ba385299e0f505e6651f81bd4b30d270a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-v1-390.png",
+      "bytes": 364347,
+      "mode": "binary",
+      "sha256": "0f1cc53073b00e13fcf33066d8d860dda8684db9e9a2870001fabf19891be3e4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-v1-640.png",
+      "bytes": 398814,
+      "mode": "binary",
+      "sha256": "f0b598c4cd1379b3861e0e1acd36cc0076711fda94e1fb85f107f460329409b3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/candidate-signup-v1-768.png",
+      "bytes": 405364,
+      "mode": "binary",
+      "sha256": "df4ea1d8a61c2acda71c5b65b4f37d4d38bceed034e7b7b8bb70d69a9b738fa5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/focused-vitest.txt",
+      "bytes": 2338,
+      "mode": "utf8-lf",
+      "sha256": "bb1734eb1cb619d29c4b2c00945c0217033805aeb33b00d75ccf4e2b79082b87"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/keyboard-visibility.json",
+      "bytes": 2655,
+      "mode": "utf8-lf",
+      "sha256": "ea1435cafcf039169484a5e534c7ebf98ae5bffc9e543727862736a63ce756a2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/keyboard.cjs",
+      "bytes": 1555,
+      "mode": "utf8-lf",
+      "sha256": "9fa4940b36e3522db31c03856b198575eba9cb937df3a96139f97903617f9612"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation-1280.png",
+      "bytes": 121444,
+      "mode": "binary",
+      "sha256": "107a0e6319715e9a0eeb8c7e246d2d7ada22617718850542ed2164c8c804b1e5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation-375.png",
+      "bytes": 50545,
+      "mode": "binary",
+      "sha256": "e3b34baa26d9c82fa09ee62ea0c019e348545ce214d9391fac4a41f86d7c99ee"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation-390.png",
+      "bytes": 50474,
+      "mode": "binary",
+      "sha256": "03dc4f9d108fa29fef99e55fb309f30cae425207e42e482dbfcc71078222dbb0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation-640.png",
+      "bytes": 49112,
+      "mode": "binary",
+      "sha256": "81289b81ebb842d1f477297f670bbfebb22942b65977882fa37fcafa1b4c0472"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation-768.png",
+      "bytes": 118022,
+      "mode": "binary",
+      "sha256": "4024fa1dce9fe1c19babcb697d1854b081a8aa8270b2bdf5d4c0a05051327210"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation.cjs",
+      "bytes": 4026,
+      "mode": "utf8-lf",
+      "sha256": "a6158f56646a6ff52ecfbadcc844b8445e272e2cc0c7537673f67b41fd466801"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/navigation.json",
+      "bytes": 1987,
+      "mode": "utf8-lf",
+      "sha256": "4ab3cff973de1b86db4254acea95f58a2a221eeb31ce9e01ace14b0830b32821"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/parity.cjs",
+      "bytes": 2116,
+      "mode": "utf8-lf",
+      "sha256": "db709537b37b60edd32674f537724df3d9d4a5b3d6bd89c4ca27360775beb3eb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-1280-account.png",
+      "bytes": 138904,
+      "mode": "binary",
+      "sha256": "4102b626afae816bc8b09949090b2af39342a7b95bb4ffe37eac0f0ed6c1c8b5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-1280-loading.png",
+      "bytes": 139618,
+      "mode": "binary",
+      "sha256": "605170f77ea656a1063b02e4e5d1ca31648febdbf2bc948e23910899479ea8df"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-1280-name.png",
+      "bytes": 129164,
+      "mode": "binary",
+      "sha256": "15b8a1d8b0cb25927f3474f19057b23f63402166f483e7b9652ccb32496f96c2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-1280-server-error.png",
+      "bytes": 151943,
+      "mode": "binary",
+      "sha256": "c1288bc42f16e6f7ff201e015dd4a59ccd7bbf3fdd3f3e1f6a7a6fbffc0a8170"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-1280-step2.png",
+      "bytes": 138291,
+      "mode": "binary",
+      "sha256": "903be9dc98860bb7dd68f0592182c5b8d53bd37869eacc89a9003a7c90451b1d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-375-account.png",
+      "bytes": 70349,
+      "mode": "binary",
+      "sha256": "3d6a66b66288332db65038e839f48aa41200c2f0d458dc5a5f34e19c4522159b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-375-loading.png",
+      "bytes": 70805,
+      "mode": "binary",
+      "sha256": "e96d5f2f41784943f55c4f1fb458a35747bfddd257df525ef956ffa75ed5efa4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-375-motion.webm",
+      "bytes": 476333,
+      "mode": "binary",
+      "sha256": "7b341045c67ead02ea4aa1e68d56d16549f372168a2675a407cc8c0505c669cc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-375-name.png",
+      "bytes": 55164,
+      "mode": "binary",
+      "sha256": "193695a0c0e38bdd671763b93971b3cb93d07940384b92f2cc7111e60e891cf5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-375-server-error.png",
+      "bytes": 73057,
+      "mode": "binary",
+      "sha256": "9f15f6e6d2f670dc7a99096783c91483a36ae1e7d962a4abe730e6c8db7bdbed"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-375-step2.png",
+      "bytes": 70495,
+      "mode": "binary",
+      "sha256": "aec13b2d3345f6528c1ab077b59bfdaeac20bfec6104b8518489de7b43772771"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-390-account.png",
+      "bytes": 70042,
+      "mode": "binary",
+      "sha256": "6ffbadf683ffe5f9172c833e19358cf23bbb9b06f2a50f0a2ccabc76b12e056d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-390-loading.png",
+      "bytes": 70529,
+      "mode": "binary",
+      "sha256": "c353ac496246383fefeb6765594c581ba95d91eb861b34dd84442be7cc0a1fd0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-390-name.png",
+      "bytes": 55059,
+      "mode": "binary",
+      "sha256": "b89c94308b981e473d38936c388a937b694252129147b5db67515142d6507c25"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-390-server-error.png",
+      "bytes": 75534,
+      "mode": "binary",
+      "sha256": "dc1bd9a3b345e667596646258d287d1cdc7b750ef5106d5473a35c64dc6b91dc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-390-step2.png",
+      "bytes": 71610,
+      "mode": "binary",
+      "sha256": "09ab68b5892e0813d1f4e6bbbf3bfe11579556df9d3cd3362e6c8a14eb0c2d33"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-640-account.png",
+      "bytes": 60608,
+      "mode": "binary",
+      "sha256": "832a7e93279e906ffc3384bd5ac7c9d9274f0e66ee23bfab433c36ddb4cb18d2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-640-loading.png",
+      "bytes": 61098,
+      "mode": "binary",
+      "sha256": "b36f2df8f8c543f766b15ffa62473368b0b267188c1642a640979cd2f4f4add5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-640-name.png",
+      "bytes": 50778,
+      "mode": "binary",
+      "sha256": "9417656af4a78a81f9405c24d0031574ec7483e49a5bddcbbdf1ed854d02d3f8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-640-server-error.png",
+      "bytes": 69942,
+      "mode": "binary",
+      "sha256": "eb10854ff857dfb079c40cbe2294912a0153577e4dca13fbdb0eb1e1c0eeaab1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-640-step2.png",
+      "bytes": 59137,
+      "mode": "binary",
+      "sha256": "c73207adceb854fd37a3b074a3bef24aa3bf9d99e00b273ca09915c221510e68"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-768-account.png",
+      "bytes": 134426,
+      "mode": "binary",
+      "sha256": "b32f7f6f76839558033d3309ff0af135e99dea2871f401191f7f71fecb4e036e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-768-loading.png",
+      "bytes": 135133,
+      "mode": "binary",
+      "sha256": "845b77a8fbfcd0231967492ccabaedf2179ffaffefbe99726d6224ed77e72847"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-768-name.png",
+      "bytes": 125135,
+      "mode": "binary",
+      "sha256": "74b448f0857f8fc935e737a0793eddd2f8edb1c0e01753eaac85c773e69b838d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-768-server-error.png",
+      "bytes": 146565,
+      "mode": "binary",
+      "sha256": "5c5f8cd189367c6b09983f368a73e5070dddf70f5190881f9faa0bdf4973d918"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-768-step2.png",
+      "bytes": 133535,
+      "mode": "binary",
+      "sha256": "44ce6956964bf21d0d0e2244a54dfd2ed9e91c9a17337e045cbaea28e22757f8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-1280-account.png",
+      "bytes": 156503,
+      "mode": "binary",
+      "sha256": "09e1d7838108dfe8291ff80625f912f695c5ff76a896bea078adef930be55beb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-1280-loading.png",
+      "bytes": 141770,
+      "mode": "binary",
+      "sha256": "85c43ae2062557abd8144e6b7fb5c1066e209661096486d0160215a7acd67d4f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-1280-name.png",
+      "bytes": 154952,
+      "mode": "binary",
+      "sha256": "64311a27fb2b0046b1d7ff165495bc6fb9210d703bb78fe7d23052e6c0bb091b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-1280-server-error.png",
+      "bytes": 147824,
+      "mode": "binary",
+      "sha256": "a9f3b7d69557cfc51b0992de5a3a9f24d80a5f5e5cca0114241e83b46b3fd9a1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-375-account.png",
+      "bytes": 63568,
+      "mode": "binary",
+      "sha256": "3bf633d7ce0cff882273096f2758326f776ffdb89cdc15f27f4dd57602682557"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-375-loading.png",
+      "bytes": 64034,
+      "mode": "binary",
+      "sha256": "b8824ab02095b98035054864999e1ca46897c0d1a3cb4e41db8de60c3eb90157"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-375-motion.webm",
+      "bytes": 431937,
+      "mode": "binary",
+      "sha256": "d4f937c7d0d03b4d556ea13653101448deabab36fb760d76c8e1265c1f0c446a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-375-name.png",
+      "bytes": 56991,
+      "mode": "binary",
+      "sha256": "0174793c9cffe895d0793a1389a9db8c62004fa6af85fed490f3e2dc88deb856"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-375-server-error.png",
+      "bytes": 66432,
+      "mode": "binary",
+      "sha256": "29b668c6cde4e18672facea486f902184c269f8a5a2ef92c124bc40644d3e7d1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-375-step2.png",
+      "bytes": 55953,
+      "mode": "binary",
+      "sha256": "99a854f189cbc87186b2c42c76c2b456fa25cfeae5e0b81de13e21d3df1dc844"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-390-account.png",
+      "bytes": 63421,
+      "mode": "binary",
+      "sha256": "01693068b391f89a8fb31b4b03fe8e335d08abe1cfc500423a9f51520f1e1cb7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-390-loading.png",
+      "bytes": 63908,
+      "mode": "binary",
+      "sha256": "eaf6ae02bf280f305ad53f316477593345930c3532ab52daaed67178281829eb"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-390-name.png",
+      "bytes": 56891,
+      "mode": "binary",
+      "sha256": "f26eff06d66f85b5c8d75c38ebfcc99be8d169fe678aaa3d46760315d9ba0208"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-390-server-error.png",
+      "bytes": 66434,
+      "mode": "binary",
+      "sha256": "5aa78a4af0cc4debf1636734088c3ed80688d280e223fa809bc99719a0d2f63d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-390-step2.png",
+      "bytes": 55975,
+      "mode": "binary",
+      "sha256": "b03d7aeda6fea5a73febfbcd286d090386972827881f204ddc80340b313de064"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-640-account.png",
+      "bytes": 59029,
+      "mode": "binary",
+      "sha256": "423d12a6c7e054d30378f3f4c4758b75397a52f30240734a380df2559a0764c3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-640-loading.png",
+      "bytes": 59517,
+      "mode": "binary",
+      "sha256": "bfff15471508b9ed112520b724bcb7feb8af188dcb4c2ac4654b027ee1ca809f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-640-name.png",
+      "bytes": 52538,
+      "mode": "binary",
+      "sha256": "54bb6ef08289b41b6de39d4e1fbbaba70e74ea7a448877ffc924aeb78ad0ce2f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-640-server-error.png",
+      "bytes": 57290,
+      "mode": "binary",
+      "sha256": "e96920809ee90b9aba0cba9b77a51b4dfd0e75f2151c8de8eb396a2c34821f6d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-640-step2.png",
+      "bytes": 49256,
+      "mode": "binary",
+      "sha256": "c2774c9f798c894f8fbd5b03a149e7eb26c6e7f7521f91aa526cbfb7906d138f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-768-account.png",
+      "bytes": 150634,
+      "mode": "binary",
+      "sha256": "e9077a38c1b8c45d7db0c31ed0aa1a9570ebf9451004cdd6312e97e90b722ad1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-768-loading.png",
+      "bytes": 140042,
+      "mode": "binary",
+      "sha256": "3cc837c42463c91245386f74bfcc4ce2c74743dc34f033e67a1eac7effc88f2e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-768-name.png",
+      "bytes": 149061,
+      "mode": "binary",
+      "sha256": "eef57f2390ca8127d60ab573968cb885174e578d9ae191cf0e68286ed7d0a3b6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/signup-client-768-server-error.png",
+      "bytes": 147698,
+      "mode": "binary",
+      "sha256": "2e830d1f5411a9c9c96d63cc820a169f21eb6d758b9394b6357cfb42818a38c2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/typecheck-candidate.txt",
+      "bytes": 1522,
+      "mode": "utf8-lf",
+      "sha256": "de96ab9980d27eceb57a4247f1a4197ce85b6020e1385bbb53dc092d813628d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/typecheck-comparison.json",
+      "bytes": 2806,
+      "mode": "utf8-lf",
+      "sha256": "014df594bb9f8ecb3a2524aa28cf5f3161e344b20952abf777abd4fbaf579478"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/typecheck-dev.txt",
+      "bytes": 1522,
+      "mode": "utf8-lf",
+      "sha256": "de96ab9980d27eceb57a4247f1a4197ce85b6020e1385bbb53dc092d813628d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/v1-dom-styles.json",
+      "bytes": 4107,
+      "mode": "utf8-lf",
+      "sha256": "45da210145ece1d0e6e5a9250637e96dd2d110256a9134f8c9f40db5d1a26bb5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/v1-pixel-parity.json",
+      "bytes": 2039,
+      "mode": "utf8-lf",
+      "sha256": "7fe5340aeb735516513a43f4c5393a9a618158c5b7952b47284bce221d2257a0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/integration/verify.py",
+      "bytes": 4588,
+      "mode": "utf8-lf",
+      "sha256": "a35857b1e7caf4a9f9c1740de5e50c4969eafad32eddceb506f3d1698e0ba2d6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/README.md",
+      "bytes": 5082,
+      "mode": "utf8-lf",
+      "sha256": "aa4b3e956d977a6636440cf455d5e0e2fc143361f2b09297d47b80e384c4cbe3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/backend-integration.txt",
+      "bytes": 832,
+      "mode": "utf8-lf",
+      "sha256": "8bf3e665a5bdb8777f8578b3c777c764df44775a12a8a9e5e144721cd5d4f9e5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-client-v1-1280.png",
+      "bytes": 390961,
+      "mode": "binary",
+      "sha256": "bbdded18c1610d778b68ee1278382d7ed25c6a6341d908915bc15507b2c4919a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-client-v1-375.png",
+      "bytes": 287111,
+      "mode": "binary",
+      "sha256": "d1a74c60516d735c94b6598ff3d4345b71ce2986bc21da5b7bed3408eb46d2ab"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-client-v1-390.png",
+      "bytes": 282037,
+      "mode": "binary",
+      "sha256": "f4101407f6e606b018be5d815248d3a7f101fbc6749fc21337905ea0266854a4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-client-v1-640.png",
+      "bytes": 296820,
+      "mode": "binary",
+      "sha256": "3cb68b37d1e236910d0123b1a623b7b1571d42964c8b37659b24b241ee00b52f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-client-v1-768.png",
+      "bytes": 296545,
+      "mode": "binary",
+      "sha256": "1fb9a7dde0df6cde86bf4cbeaa16ceebbde9f1809c741032c83346ce87f7fb29"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-v1-1280.png",
+      "bytes": 446591,
+      "mode": "binary",
+      "sha256": "ba869f9e7d97965e85fc903cb3b7e024ac615ff7841e87263c0131ca47bc1839"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-v1-375.png",
+      "bytes": 362008,
+      "mode": "binary",
+      "sha256": "00853f7ed387d5adaffd20bdae7a65887ab6452854fdef27cc54e4dd0e88c8af"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-v1-390.png",
+      "bytes": 364325,
+      "mode": "binary",
+      "sha256": "44b4d4e7f545b37c9de5fa64d6dd51bda15873891be96f59d87c5999a067dc21"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-v1-640.png",
+      "bytes": 398801,
+      "mode": "binary",
+      "sha256": "e407df6042cb7aeea6367e8480e83e6e3c0961cb782bf875a440f2d7d765cb95"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline-signup-v1-768.png",
+      "bytes": 405336,
+      "mode": "binary",
+      "sha256": "c640f8cddefc5821fe96f5c7822ca1a89c4d214380d69529af59f53a9c3914e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/baseline.config.mjs",
+      "bytes": 689,
+      "mode": "utf8-lf",
+      "sha256": "280ab93cef492f22fdee81e1bfbeac684a20b58d5b4a2d27a741cc7022d9298c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/browser-results.json",
+      "bytes": 5314,
+      "mode": "utf8-lf",
+      "sha256": "12b9aa98b553a98e02d79d34c891be531bc4253a99c7ed7296c0f559a778ca0f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/browser.cjs",
+      "bytes": 9493,
+      "mode": "utf8-lf",
+      "sha256": "1fc8ed45594702d2c627a42d7e60d56803b29b3b6ba6449fe562a2624da37637"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/build.txt",
+      "bytes": 1425,
+      "mode": "utf8-lf",
+      "sha256": "418f78e7653b8765e55d5721bafebecd6f98547c412ecd1f12a8d79de1ffb2a2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-client-v1-1280.png",
+      "bytes": 390967,
+      "mode": "binary",
+      "sha256": "cc4ebc78a08cdd2cfab52b072c6227c956f999430b75b7afd203b647a6110c7b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-client-v1-375.png",
+      "bytes": 287144,
+      "mode": "binary",
+      "sha256": "11401a03dc6f9ae5f3c84c9ab25dbd8ccf8aa0317cf627178ee5a484243e4efc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-client-v1-390.png",
+      "bytes": 282061,
+      "mode": "binary",
+      "sha256": "937cbf428770f7776f1745c317d016277cbd990181bd912b152732f9ca81405c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-client-v1-640.png",
+      "bytes": 296837,
+      "mode": "binary",
+      "sha256": "288415c070e92685d8e14e49abc46abdf64d3ea032b4c732cf1b273552ad8dc7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-client-v1-768.png",
+      "bytes": 296569,
+      "mode": "binary",
+      "sha256": "807f40a15550cc081d2df71eda72f7c0bea09386c2a3cc3b218d1de863f2f8e6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-v1-1280.png",
+      "bytes": 446595,
+      "mode": "binary",
+      "sha256": "4c57a5af3e258bc75ddabcc773126df7947a7fe0d27e16cc48c5b6f67c030e5d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-v1-375.png",
+      "bytes": 362036,
+      "mode": "binary",
+      "sha256": "1af4b66bd60386d545e1107f817d8f6ba385299e0f505e6651f81bd4b30d270a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-v1-390.png",
+      "bytes": 364325,
+      "mode": "binary",
+      "sha256": "44b4d4e7f545b37c9de5fa64d6dd51bda15873891be96f59d87c5999a067dc21"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-v1-640.png",
+      "bytes": 398814,
+      "mode": "binary",
+      "sha256": "f0b598c4cd1379b3861e0e1acd36cc0076711fda94e1fb85f107f460329409b3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate-signup-v1-768.png",
+      "bytes": 405364,
+      "mode": "binary",
+      "sha256": "df4ea1d8a61c2acda71c5b65b4f37d4d38bceed034e7b7b8bb70d69a9b738fa5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/candidate.config.mjs",
+      "bytes": 334,
+      "mode": "utf8-lf",
+      "sha256": "98457e3870886297469362d80462eb77521158d5e0760e0c36b828374cb1b407"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/claude-desktop-signup.png",
+      "bytes": 64796,
+      "mode": "binary",
+      "sha256": "77320578f56a11e2cf41da3e1c4303757b13e9df842417488a89f4fdf8fafab4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/claude-p6-original.png",
+      "bytes": 34063,
+      "mode": "binary",
+      "sha256": "52e5051c8542a052e1717585c517dae8ea3c193659589a082c731116adbb5432"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/focused-vitest.txt",
+      "bytes": 2803,
+      "mode": "utf8-lf",
+      "sha256": "8c8f24a210fc69036f694f1ed3715bcc1027b566f0cc7210e1b6a01093653159"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/kan159_test_settings.py",
+      "bytes": 962,
+      "mode": "utf8-lf",
+      "sha256": "40245a771a8f963d59b2e8eb4cd8639b0ca995dad94ff30c6a519bb2b7e0b896"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/keyboard-visibility.json",
+      "bytes": 2655,
+      "mode": "utf8-lf",
+      "sha256": "ddf5325c418096d61f6563722109b3a4b9b2f2ef3e860eaa5b90fdea56203a30"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/keyboard.cjs",
+      "bytes": 1546,
+      "mode": "utf8-lf",
+      "sha256": "8d72192e054e1a7d8a0d514c652dcb04daeb8b3c109a3176c7ec9a2e92145add"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/manifest.json",
+      "bytes": 22211,
+      "mode": "utf8-lf",
+      "sha256": "28a12ef7c621a3905bc602cdb9ca877c1d838ec69dc39120f7cadf7065b7fd4e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/parity.cjs",
+      "bytes": 2098,
+      "mode": "utf8-lf",
+      "sha256": "7c22a4cdc50b44e2288331f3f44b4404e08ffbad5955c5b61411287b3b51bb5f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-1280-account.png",
+      "bytes": 151555,
+      "mode": "binary",
+      "sha256": "cba4796e427744e9a74e6f2edf4b099b2de2700824b91923505c97824084e76d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-1280-loading.png",
+      "bytes": 152276,
+      "mode": "binary",
+      "sha256": "f9d5602478c6607cc0d91db100a7c8a8acea32b50605bbb1af12c83df7b1b9a9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-1280-name.png",
+      "bytes": 147059,
+      "mode": "binary",
+      "sha256": "aead8a137392934f18f63d3bcb29fbf59cb4083ad9f69813c28544e5e1ca898e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-1280-server-error.png",
+      "bytes": 169789,
+      "mode": "binary",
+      "sha256": "427499328ad73ac7ca6045d0c0723173616eff2b212ef8670e83140f6e22480e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-1280-step2.png",
+      "bytes": 150942,
+      "mode": "binary",
+      "sha256": "5b7d15bf16902f71d8c4c217e47436fb4c013f793544dba9363af2b30e250939"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-375-account.png",
+      "bytes": 83149,
+      "mode": "binary",
+      "sha256": "3fd92f7a9a088165efc9e3d1868517c305e72910b892190033115fff27b182d4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-375-loading.png",
+      "bytes": 83612,
+      "mode": "binary",
+      "sha256": "1aeec09a8f0483f701edf05731fb854431c98d4994d00f854dc8b3eeb570788c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-375-motion.webm",
+      "bytes": 421054,
+      "mode": "binary",
+      "sha256": "be98986d04d14a7811cbe35eb1ca52d525817bc5e59df24f333bde472ab637fa"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-375-name.png",
+      "bytes": 79581,
+      "mode": "binary",
+      "sha256": "76457d1f67e3103d3234104c3e5ee07174f31280808d4f4ae440cbd4cf74d29a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-375-server-error.png",
+      "bytes": 86482,
+      "mode": "binary",
+      "sha256": "892b616295b1c277b12e8a5b7d7dbf73452cd1987f72a5ef0c88cafe7604dc3d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-375-step2.png",
+      "bytes": 83715,
+      "mode": "binary",
+      "sha256": "f7ba02379b8669e5a044f154bafdd5386cfe3a2a113725190932a60962c6243c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-390-account.png",
+      "bytes": 83141,
+      "mode": "binary",
+      "sha256": "8ac2fcd1e11f2c76b9e1c82f611f2ca5abd6f278fef8de01ed836dd80b205402"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-390-loading.png",
+      "bytes": 83633,
+      "mode": "binary",
+      "sha256": "9b378f508e8db28aaec79fcf0e9bdf9626ab886c79e9bbca31dcdc2fe7e71459"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-390-name.png",
+      "bytes": 79810,
+      "mode": "binary",
+      "sha256": "93dbc6902654209c045cd231736deed39c8757d8d425f06d0f47a1d535644a8b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-390-server-error.png",
+      "bytes": 90050,
+      "mode": "binary",
+      "sha256": "07b742730fbadc4fcc2865094d7646ccff1e203f8cbb3cae4e480385672ae712"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-390-step2.png",
+      "bytes": 84488,
+      "mode": "binary",
+      "sha256": "e27f6bdcf13c9bc4df83b0b1b375b8ca74b0f567e1f66b761939087f3dc37d11"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-640-account.png",
+      "bytes": 78721,
+      "mode": "binary",
+      "sha256": "856948ab6d86e6e48e23e708111e55d07d8f767677c268335905050891beb2de"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-640-loading.png",
+      "bytes": 79226,
+      "mode": "binary",
+      "sha256": "4076e53fd487f625b750691ab96bcfc19d9955a793f7b32f47fd82726f98b6e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-640-name.png",
+      "bytes": 77483,
+      "mode": "binary",
+      "sha256": "eab54407b14f4bf68804b993493df87fc6bd66660ff00fa37597d9a22e4acb67"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-640-server-error.png",
+      "bytes": 94785,
+      "mode": "binary",
+      "sha256": "2af11143a6f7b2b186657c1274fd7b2a96a8097de3d54bb8bba6ff80270648e7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-640-step2.png",
+      "bytes": 82105,
+      "mode": "binary",
+      "sha256": "1c8a5a2d4199f2c8ac7da38c3783cc6b3f01509b104fdbff69bb89509c896a18"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-768-account.png",
+      "bytes": 152001,
+      "mode": "binary",
+      "sha256": "6ba3282df74ace0ae6fee0da2e7174c4ed489c6bd9ebd76c99a2281bf74b008d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-768-loading.png",
+      "bytes": 152790,
+      "mode": "binary",
+      "sha256": "0565e8c419efbe100c6fe74a87c3d84bc61dcc679521048cbee0fbd7ac57bd73"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-768-name.png",
+      "bytes": 148002,
+      "mode": "binary",
+      "sha256": "545db66c54f6a8ab6fc23019339794badc00564c88a2365ad82d4c859e72f8f6"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-768-server-error.png",
+      "bytes": 169441,
+      "mode": "binary",
+      "sha256": "a0bd81dab948a906be40659320243714566d2438a2fb4e6809e07f98f676bb24"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-768-step2.png",
+      "bytes": 151014,
+      "mode": "binary",
+      "sha256": "456ae35ce09a892f568871ce3580056d5bd2ab59f0740282347f0788602ccb1b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-1280-account.png",
+      "bytes": 169211,
+      "mode": "binary",
+      "sha256": "ca740a6ce0c50f2dc6fcda6d4c5215092a050283215b0368e3305fb72c0ed2a8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-1280-loading.png",
+      "bytes": 154498,
+      "mode": "binary",
+      "sha256": "a1b4d8540fc72326ec3a86d1bb0a67c7fdef021db52059ee8396a432b446e0e9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-1280-name.png",
+      "bytes": 167665,
+      "mode": "binary",
+      "sha256": "51a9bc1fdba3fa770e07c04124748d813ce431850b3166beea3be5a9e9711239"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-1280-server-error.png",
+      "bytes": 160507,
+      "mode": "binary",
+      "sha256": "8bd8e47e3e858172ba054ad5465247ef928e43f19a5c72c3760b10fce419e3fc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-375-account.png",
+      "bytes": 80785,
+      "mode": "binary",
+      "sha256": "870aa0728b6a9fe339daf87a3efb784c0426f699d4449ff57f69168d62430a0e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-375-loading.png",
+      "bytes": 81249,
+      "mode": "binary",
+      "sha256": "c9426fdb7a3d64913e2d89b7897acf03d95c99c6ce9483e28816c93da4ef6c9a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-375-motion.webm",
+      "bytes": 449193,
+      "mode": "binary",
+      "sha256": "babea1902398cb0f15e584b9e5c0f12724b14d648839751f1700ea230e673c94"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-375-name.png",
+      "bytes": 79581,
+      "mode": "binary",
+      "sha256": "76457d1f67e3103d3234104c3e5ee07174f31280808d4f4ae440cbd4cf74d29a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-375-server-error.png",
+      "bytes": 85508,
+      "mode": "binary",
+      "sha256": "dba53a2d59533bc7071fee34788c08766bee5ef1ede851f6eae7848cd10d34b2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-375-step2.png",
+      "bytes": 77008,
+      "mode": "binary",
+      "sha256": "94a86dfee811941ad92d884645a1e540abd82b04b44a9f2e6466620f20a9cf08"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-390-account.png",
+      "bytes": 80931,
+      "mode": "binary",
+      "sha256": "59baff9959145f3c4c60e21c6eca75b2bfc5c876cfd0583a00765f1f580924f5"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-390-loading.png",
+      "bytes": 81416,
+      "mode": "binary",
+      "sha256": "0e2e44969ff2cda88741c017250fbb2ccf31983cedc5aa45a0b68a9eb74ba455"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-390-name.png",
+      "bytes": 79810,
+      "mode": "binary",
+      "sha256": "93dbc6902654209c045cd231736deed39c8757d8d425f06d0f47a1d535644a8b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-390-server-error.png",
+      "bytes": 85749,
+      "mode": "binary",
+      "sha256": "4d07f05381159a4b0a77ab5e5789529205b776c5f6c66598159fe5c994a87b26"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-390-step2.png",
+      "bytes": 77293,
+      "mode": "binary",
+      "sha256": "8b53a8acf657d63a562f93bb6768e2024d7aa5a62bb8ecbcbaa45e90ec27e36c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-640-account.png",
+      "bytes": 79816,
+      "mode": "binary",
+      "sha256": "75be452489595a379fe5d1aeaeed4cab971a92f6169c91ebc5ef8f068b15c3cc"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-640-loading.png",
+      "bytes": 80377,
+      "mode": "binary",
+      "sha256": "8dde0ce9e2edf4ac6677daab549a92b5ce21724c3decf9666a4cea38715e7998"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-640-name.png",
+      "bytes": 77483,
+      "mode": "binary",
+      "sha256": "eab54407b14f4bf68804b993493df87fc6bd66660ff00fa37597d9a22e4acb67"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-640-server-error.png",
+      "bytes": 83559,
+      "mode": "binary",
+      "sha256": "cf86f76182ad4c78074f44b5ed646fbaf36495bfa365921687d144692eb29c21"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-640-step2.png",
+      "bytes": 77423,
+      "mode": "binary",
+      "sha256": "802d93d01bb7e0a040ec63f485f0e2c1082b04336a32b300e77e98035c370806"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-768-account.png",
+      "bytes": 168032,
+      "mode": "binary",
+      "sha256": "96be68160f0fe526f93f901af573f6979cb5545c903e8f05578d0a7ba264c864"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-768-loading.png",
+      "bytes": 156907,
+      "mode": "binary",
+      "sha256": "cac6282406090d1eb63bf4d6bc97f79b16cdcf6aeabe6e22c6e5316822f5d875"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-768-name.png",
+      "bytes": 166525,
+      "mode": "binary",
+      "sha256": "8eb879b5f2765b2a9a6f765f8cec15735a46eefc5e0cb23427bcc4358904d4ee"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/signup-client-768-server-error.png",
+      "bytes": 164286,
+      "mode": "binary",
+      "sha256": "810c8da2cd29ddf548d3457c77d0ef595aa52680a6b1443552a8a3dbc9cbc859"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/source-capture.json",
+      "bytes": 808,
+      "mode": "utf8-lf",
+      "sha256": "3348a8f5a1be04078538351481144ca255209419d804b6f52f5ae745b96290c7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/source.cjs",
+      "bytes": 1668,
+      "mode": "utf8-lf",
+      "sha256": "e6e7eb3f27bb078be4840c2bd0e60d62419959d5012c21833306b7bb2a72118a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/test_contract.py",
+      "bytes": 2407,
+      "mode": "utf8-lf",
+      "sha256": "73bc1e86b73be7e88180322398c0445715a68b6cdfb2ca4e77ee50411f8b6ae7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/typecheck-baseline.txt",
+      "bytes": 1523,
+      "mode": "utf8-lf",
+      "sha256": "b00cd8701b6e25b78aaa5e37d74348cbf00bc15dc5740738438c17e6cdce9e06"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/typecheck-candidate.txt",
+      "bytes": 1515,
+      "mode": "utf8-lf",
+      "sha256": "be05bdea5915a0b34a8852364a6fb9ce3c25d095502ecfa503971b2469a50793"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/typecheck-comparison.json",
+      "bytes": 2863,
+      "mode": "utf8-lf",
+      "sha256": "810e6b9ed7464ab45ee8df9b06b2e28c12c922b40bbd3907c64ec3130cc4efb4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/v1-dom-styles.json",
+      "bytes": 4107,
+      "mode": "utf8-lf",
+      "sha256": "3eb8fbf631b3870318f44e175ef61af2c371454e1442ceeccea510eea3f5ee14"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/v1-pixel-parity.json",
+      "bytes": 2628,
+      "mode": "utf8-lf",
+      "sha256": "343c6e63066ee67e21bea6788c89c107d27ab5d641bd34714391eb7aa3d41b59"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-159/p6/verify.py",
+      "bytes": 4801,
+      "mode": "utf8-lf",
+      "sha256": "cda60fdbd2212e6799c7bceb9e83b1872d98e1feedae5f6d2c361d3cfe02d018"
+    },
+    {
+      "path": "src/components/RegistrationWizardV2.spec.ts",
+      "bytes": 4545,
+      "mode": "utf8-lf",
+      "sha256": "bcfd171315848105e97df6958beb4d3a230c972bc2381b1925c6a24f32c0e0c5"
+    },
+    {
+      "path": "src/components/RegistrationWizardV2.vue",
+      "bytes": 10100,
+      "mode": "utf8-lf",
+      "sha256": "a769cb10fb58270bda830b9a7a319c64102e379201ec2012a46b547105c9432a"
+    },
+    {
+      "path": "src/composables/useRegistrationViewport.ts",
+      "bytes": 454,
+      "mode": "utf8-lf",
+      "sha256": "58089461fb7a6bacd177a9062dc88e1ebd142e807e9e91431032e408851737f3"
+    },
+    {
+      "path": "src/lib/api.registration.spec.ts",
+      "bytes": 4410,
+      "mode": "utf8-lf",
+      "sha256": "f0f98e05bae984a0b514bb13d61161e64c0be35c2e7adfd18efe8488436447d0"
+    },
+    {
+      "path": "src/lib/api.ts",
+      "bytes": 126380,
+      "mode": "utf8-lf",
+      "sha256": "3adbe8274bee7279e320f69a37e57eab17cfdceeecf51a1c7bb83fcc922bddf2"
+    },
+    {
+      "path": "src/stores/auth.spec.ts",
+      "bytes": 15988,
+      "mode": "utf8-lf",
+      "sha256": "354c89706dd79b6f1347e924e7424933edce2fa6f6b0b8f93278d3d9671466da"
+    },
+    {
+      "path": "src/stores/auth.ts",
+      "bytes": 10619,
+      "mode": "utf8-lf",
+      "sha256": "3cae5907caa378f3931e8e2da077e2ceffdf4461d0fe3bd7fd19fda7dca0d8c6"
+    },
+    {
+      "path": "src/styles/registrationP6.css",
+      "bytes": 9613,
+      "mode": "utf8-lf",
+      "sha256": "e00585b09201cab8a814e49b2cf98f5eca59f2b5fab6ebf26f89d2109b6c5470"
+    },
+    {
+      "path": "src/styles/registrationP6.spec.ts",
+      "bytes": 782,
+      "mode": "utf8-lf",
+      "sha256": "a74faaaf05aa3967d4223136fb199d54b46d5a2c5e516169583a23fb8410e544"
+    },
+    {
+      "path": "src/styles/signupV2.spec.ts",
+      "bytes": 7639,
+      "mode": "utf8-lf",
+      "sha256": "ca0749dbdfd54367b30f59d04a7a480d6567f004dfec0fe23e6a40860cbe9c15"
+    },
+    {
+      "path": "src/views/ClientSignupView.spec.ts",
+      "bytes": 14013,
+      "mode": "utf8-lf",
+      "sha256": "678c237bf289803805b9741d8b53e7463f6a2f901f481e9550bbf593754e734b"
+    },
+    {
+      "path": "src/views/ClientSignupView.vue",
+      "bytes": 26765,
+      "mode": "utf8-lf",
+      "sha256": "2e77d5c07b02c56834e62662841c8b1ca75fb84e7caab7144cdcd6a9cef3bc62"
+    },
+    {
+      "path": "src/views/SignupView.spec.ts",
+      "bytes": 19306,
+      "mode": "utf8-lf",
+      "sha256": "4d6bb0b15256791cac23e5aaab9009f659844e705d027c6c9412cc379c8c50d1"
+    },
+    {
+      "path": "src/views/SignupView.vue",
+      "bytes": 31249,
+      "mode": "utf8-lf",
+      "sha256": "20da235221732f49630bcb03109a480771e0356b2044f66febcc12fab0733244"
+    }
+  ]
+}

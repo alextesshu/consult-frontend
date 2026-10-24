@@ -1,75 +1,110 @@
 <template>
-  <section v-if="isUiV2()" class="pc2-home">
+  <section v-if="isUiV2()" ref="homeRoot" class="pc2-home" :class="{ 'is-paused': homeHidden, 'is-reduced': homeReduced }" :data-step="activeJourneyStep">
     <div class="pc2-home__container">
       <section class="pc2-home__hero" aria-labelledby="home-hero-title">
-        <p class="pc2-home__eyebrow">Pro Consult · простір для вашої практики</p>
+        <span class="pc2-home__listen" aria-hidden="true">
+          <span v-for="ring in 3" :key="ring" class="pc2-home__ring" :style="{ animationDelay: `${(ring - 1) * 3.2 / 3}s` }"></span>
+          <img class="pc2-home__hero-mark" :src="homeFennec" alt="" width="112" height="112" aria-hidden="true">
+        </span>
+        <p class="pc2-home__eyebrow">Для психологів, терапевтів і консультантів</p>
         <h1 id="home-hero-title">Менше адміністрування.<br>Більше уваги до клієнта.</h1>
-        <p class="pc2-home__lead">Професійна сторінка, звернення від клієнтів, сесії та щоденна робота — в одному спокійному просторі.</p>
+        <p class="pc2-home__lead">Публічна сторінка, запити, сесії й нотатки — один зрозумілий шлях від першого звернення до регулярної роботи.</p>
         <div class="pc2-home__actions">
           <button v-if="isAuthenticated" class="pc2-btn pc2-btn--primary" type="button" @click="goToCabinet">Перейти до кабінету</button>
-          <RouterLink v-else class="pc2-btn pc2-btn--primary" to="/signup">Створити свій простір</RouterLink>
-          <RouterLink class="pc2-btn pc2-btn--secondary" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+          <RouterLink v-else class="pc2-btn pc2-btn--primary" to="/signup"><span class="pc2-home__label-wide">Створити свій простір</span><span class="pc2-home__label-narrow">Створити простір безкоштовно</span></RouterLink>
+          <RouterLink class="pc2-btn pc2-btn--secondary pc2-home__wide-only" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+          <RouterLink class="pc2-btn pc2-btn--secondary pc2-home__narrow-only" :to="{ hash: '#how-it-works' }">Як це працює</RouterLink>
         </div>
         <p class="pc2-home__meta">Start — 0 грн · 30 днів Pro безкоштовно · 0% комісії з консультацій</p>
       </section>
 
-      <section class="pc2-home__journey" aria-labelledby="workflow-title">
+      <section id="how-it-works" class="pc2-home__journey" aria-labelledby="workflow-title">
         <h2 id="workflow-title" class="pc2-home__sr-only">Від знайомства до регулярної роботи</h2>
+        <div class="pc2-home__strip">
+          <ol ref="stripTrack" class="pc2-home__strip-track" tabindex="0" aria-label="Етапи роботи, гортайте вбік" @scroll.passive="onStripScroll">
+            <li v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__strip-card">
+              <span>Крок {{ index + 1 }} з 4</span><h3>{{ step.title }}</h3><p>{{ step.copy }}</p>
+            </li>
+          </ol>
+          <div class="pc2-home__dots" role="group" aria-label="Перейти до кроку">
+            <button v-for="(step, index) in journeySteps" :key="step.label" type="button" :aria-label="`Крок ${index + 1} з 4: ${step.title}`" :aria-current="stripIndex === index ? 'step' : undefined" @click="scrollStripTo(index)"><span></span></button>
+          </div>
+        </div>
         <div class="pc2-home__steps" role="group" aria-label="Етапи роботи">
-          <button v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__step" type="button" :aria-pressed="activeJourneyStep === index" aria-controls="home-journey-panel" @click="activeJourneyStep = index">
+          <span class="pc2-home__track" aria-hidden="true"><span :style="{ width: `${activeJourneyStep / 3 * 100}%` }"></span></span>
+          <button v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__step" :class="{ 'is-complete': index <= activeJourneyStep }" type="button" :aria-pressed="activeJourneyStep === index" aria-controls="home-journey-panel" @click="pickJourneyStep(index)">
             <span class="pc2-home__step-number" aria-hidden="true">{{ index + 1 }}</span>{{ step.label }}
           </button>
         </div>
-        <div id="home-journey-panel" class="pc2-home__journey-panel" role="region" aria-label="Опис обраного етапу" aria-live="polite" aria-atomic="true">
-          <div class="pc2-home__journey-copy">
-            <p class="pc2-home__eyebrow">Крок {{ activeJourneyStep + 1 }} з 4</p>
-            <h2>{{ journeySteps[activeJourneyStep]!.title }}</h2>
-            <p>{{ journeySteps[activeJourneyStep]!.copy }}</p>
-          </div>
-          <div class="pc2-home__illustration">
-            <p class="pc2-home__meta">Ілюстрація роботи сервісу</p>
-            <div class="pc2-home__preview" :class="`pc2-home__preview--${activeJourneyStep}`">
-              <span class="pc2-home__preview-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path v-for="path in iconPaths[journeySteps[activeJourneyStep]!.icon]" :key="path" :d="path" /></svg>
-              </span>
-              <h3>{{ journeySteps[activeJourneyStep]!.preview }}</h3>
-              <p>{{ journeySteps[activeJourneyStep]!.detail }}</p>
-              <div class="pc2-home__preview-lines" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="pc2-home__status">{{ journeySteps[activeJourneyStep]!.status }}</span>
+        <div id="home-journey-panel" class="pc2-home__journey-panel" role="region" aria-label="Опис обраного етапу">
+          <div class="pc2-home__journey-copy" :aria-live="homeAutomatic ? 'off' : 'polite'">
+            <div v-for="(step, index) in journeySteps" :key="step.label" class="pc2-home__copy" :class="{ 'is-active': activeJourneyStep === index }" :aria-hidden="activeJourneyStep !== index" :inert="activeJourneyStep !== index">
+              <p class="pc2-home__eyebrow">Крок {{ index + 1 }} з 4</p>
+              <h2>{{ step.title }}</h2><p>{{ step.copy }}</p>
             </div>
           </div>
+          <div class="pc2-home__illustration">
+            <p class="pc2-home__demo-label">Ілюстрація роботи сервісу</p>
+            <div class="pc2-home__demo-profile pc2-home__demo-card" :style="journeyLayer(0)" :aria-hidden="activeJourneyStep !== 0">
+              <div class="pc2-home__identity"><img class="pc2-home__avatar" :src="homeDemoPortrait" alt="" width="64" height="64"><div><strong>Марія Коваль · приклад</strong><span>Психологиня · КПТ</span></div></div>
+              <div class="pc2-home__topics"><span>тривожність</span><span>вигорання</span><span>стосунки</span></div>
+              <div class="pc2-home__profile-footer"><span>Формат і вартість</span><span class="pc2-home__preview-action">Залишити запит</span></div>
+            </div>
+            <div class="pc2-home__demo-request pc2-home__demo-card" :style="journeyLayer(1, activeJourneyStep === 1 || activeJourneyStep === 2)" :aria-hidden="activeJourneyStep !== 1 && activeJourneyStep !== 2">
+              <div class="pc2-home__request-heading"><span>Приклад запиту</span><span class="pc2-home__status" :class="{ 'is-agreed': activeJourneyStep === 2 }">{{ activeJourneyStep === 2 ? 'Час узгоджено' : 'Новий' }}</span></div>
+              <div class="pc2-home__identity"><span class="pc2-home__avatar pc2-home__avatar--small" aria-hidden="true">К</span><div><strong>Клієнт</strong><span>Без реєстрації · онлайн</span></div></div>
+              <div class="pc2-home__request-detail" :class="{ 'is-collapsed': activeJourneyStep === 2 }" :aria-hidden="activeJourneyStep === 2"><div>
+                <p>«Хочу навчитися спокійніше реагувати на зміни на роботі. Зручно ввечері.»</p>
+                <ol class="pc2-home__request-preview" aria-label="Шлях звернення"><li v-for="(label, index) in ['Запит', 'Узгодження', 'Сесія']" :key="label"><span><i :style="{ width: activeJourneyStep >= 2 ? '100%' : index === 0 ? '60%' : '0%' }"></i></span>{{ label }}</li></ol>
+              </div></div>
+            </div>
+            <div class="pc2-home__session-preview" :style="journeyLayer(2)" :aria-hidden="activeJourneyStep !== 2"><div><span>Сесія в календарі · приклад</span><strong>Узгоджений час · 50 хв</strong></div><span>За домовленістю</span></div>
+            <div class="pc2-home__work-layer" :style="journeyLayer(3)" :aria-hidden="activeJourneyStep !== 3"><p>Контекст роботи · приклад</p><ul class="pc2-home__work-preview"><li>Нотатка після сесії <span>Приватно</span></li><li>Матеріали для клієнта <span>Лише опубліковані</span></li><li>Оплати <span>Ручне підтвердження</span></li></ul></div>
+          </div>
         </div>
+        <button v-if="!homeReduced" class="pc2-home__autoplay" type="button" :aria-pressed="!homeAutomatic" @click="toggleJourney">{{ homeAutomatic ? 'Зупинити демонстрацію' : 'Продовжити демонстрацію' }}</button>
       </section>
 
-      <section class="pc2-home__truth" aria-labelledby="truth-title">
+      <section data-home-reveal="band" :class="{ 'is-seen': homeSeen.band }" class="pc2-home__truth pc2-home__reveal" aria-labelledby="truth-title">
+        <span class="pc2-home__peek" aria-hidden="true"><img :src="homeMarkBand" alt="" width="128" height="127" loading="lazy"></span>
         <h2 id="truth-title">Чесні умови для вашої практики</h2>
         <div><h3>0% комісії</h3><p>Клієнт оплачує консультацію напряму вам.</p></div>
         <div><h3>30 днів Pro</h3><p>Спробуйте розширені можливості безкоштовно.</p></div>
         <div><h3>Без рейтингів</h3><p>Клієнт обирає за своїм запитом і вашим підходом.</p></div>
       </section>
 
-      <section id="features" class="pc2-home__section" aria-labelledby="value-title">
+      <section id="features" data-home-reveal="value" :class="{ 'is-seen': homeSeen.value }" class="pc2-home__section pc2-home__reveal" aria-labelledby="value-title">
         <h2 id="value-title">Усе для практики — без зайвого</h2>
-        <section v-for="group in capabilityGroups" :key="group.id" class="pc2-home__capabilities" :aria-labelledby="group.id">
-          <h3 :id="group.id">{{ group.title }}</h3>
-          <div class="pc2-home__bento">
-            <article v-for="item in group.items" :key="item.title" class="pc2-home__feature pc2-card">
-              <svg class="pc2-home__feature-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path v-for="path in iconPaths[item.icon]" :key="path" :d="path" /></svg>
-              <h3>{{ item.title }}</h3><p>{{ item.copy }}</p>
-            </article>
-          </div>
-        </section>
+        <div class="pc2-home__bento">
+          <article v-for="feature in homeV2Features" :key="feature.key" class="pc2-home__feature pc2-card" :class="`pc2-home__feature--${feature.key}`">
+            <div class="pc2-home__feature-copy">
+              <p class="pc2-home__eyebrow">{{ feature.scope }}</p>
+              <div><h3>{{ feature.title }}</h3><p>{{ feature.copy }}</p></div>
+            </div>
+            <div v-if="feature.key === 'profile'" class="pc2-home__mini-profile" aria-label="Ілюстрація професійної сторінки">
+              <div class="pc2-home__mini-identity"><img :src="homeDemoPortrait" alt="" width="44" height="44"><span>Марія Коваль<small>Приклад сторінки</small></span></div><div class="pc2-home__topics"><span>тривожність</span><span>вигорання</span></div>
+              <span class="pc2-home__preview-action">Залишити запит</span>
+            </div>
+            <div v-if="feature.key === 'sessions'" class="pc2-home__mini-calendar" aria-label="Ілюстрація організації сесій">
+              <small>Приклад розкладу</small><span v-for="(row, index) in [['10:00', 'Ірина К.'], ['14:30', 'Андрій П.'], ['18:00', 'Олена М.']]" :key="row[0]" :class="{ 'is-highlighted': index === activeJourneyStep % 3 }"><time>{{ row[0] }}</time>{{ row[1] }}</span>
+            </div>
+          </article>
+        </div>
       </section>
 
-      <section class="pc2-home__blog" aria-labelledby="blog-title">
-        <div><p class="pc2-home__eyebrow">Власний блог</p><h2 id="blog-title">Дайте клієнту можливість познайомитись з вами до консультації</h2></div>
-        <div><p>Не кожен готовий звернутись одразу.</p><p>Професійна сторінка і власний блог допомагають клієнту зрозуміти, з чим ви працюєте, як мислите і чи відгукується йому ваш підхід.</p><p>Публікуйте статті, відповіді на часті запитання та матеріали, які ви хочете зробити доступними клієнтам.</p></div>
+      <section data-home-reveal="blog" :class="{ 'is-seen': homeSeen.blog }" class="pc2-home__blog pc2-home__reveal" aria-labelledby="blog-title">
+        <div><h2 id="blog-title">Дайте клієнту можливість познайомитись з вами до консультації</h2><p>Не кожен готовий звернутись одразу. Професійна сторінка і власний блог допомагають зрозуміти ваш підхід.</p></div>
+        <ul class="pc2-home__blog-formats" aria-label="Можливості власного блогу">
+          <li v-for="format in homeV2BlogFormats" :key="format.title" class="pc2-card"><div><span>{{ format.label }}</span><h3>{{ format.title }}</h3><p v-if="format.copy">{{ format.copy }}</p></div><span aria-hidden="true">→</span></li>
+        </ul>
       </section>
       <section class="pc2-home__client" aria-labelledby="client-entry-title">
-        <div><h2 id="client-entry-title">Шукаєте спеціаліста?</h2><p>Опишіть свій запит або оберіть напрям, перегляньте професійні сторінки й зверніться напряму до спеціаліста, який вам підходить.</p><p>Без обов'язкової реєстрації для першого звернення.</p></div>
-        <RouterLink class="pc2-btn pc2-btn--primary" to="/specialists" @click="trackClientEntryCta">Знайти спеціаліста</RouterLink>
+        <img :src="homeMarkNavy" alt="" width="56" height="55" loading="lazy" aria-hidden="true">
+        <div><h2 id="client-entry-title">Шукаєте спеціаліста для себе?</h2><p>Опишіть запит і зверніться напряму. Без обов'язкової реєстрації для першого звернення.</p></div>
+        <RouterLink class="pc2-btn pc2-btn--primary" to="/for-clients" @click="trackClientEntryCta">Для клієнтів →</RouterLink>
       </section>
       <section id="pricing" class="pc2-home__pricing" aria-labelledby="pricing-title">
+        <div class="pc2-home__pricing-header">
         <div class="pc2-home__heading">
           <h2 id="pricing-title" class="pc2-home__title">Тарифи</h2>
           <p class="pc2-home__lead">
@@ -96,6 +131,7 @@
           </button>
         </div>
 
+        </div>
         <div class="pc2-home__plans">
           <article v-for="plan in pricingPlans" :key="plan.name" class="pc2-home__plan" :class="{ 'pc2-home__plan--pro': plan.name === 'Pro' }">
             <p v-if="plan.badge" class="pc2-home__plan-badge">{{ plan.badge }}</p>
@@ -522,6 +558,12 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { productAnalytics } from '../lib/productAnalytics'
+import homeMarkNavy from '../assets/home-v2/mark-navy.png'
+import homeMarkBand from '../assets/home-v2/mark-band.png'
+import homeDemoPortrait from '../assets/home-v2/maria-koval.webp'
+import homeFennec from '../assets/brand-v2/proconsult-fennec-symbol-blue.svg'
+import { useHomeMotion } from '../composables/useHomeMotion'
+import { useSnapStrip } from '../composables/useSnapStrip'
 import { isUiV2 } from '../lib/uiVersion'
 import heroSpecialistDemo from '../assets/home/hero-specialist-demo.webp'
 
@@ -545,12 +587,35 @@ const billingCycle = ref<'monthly' | 'yearly'>('monthly')
 let clientEntryCtaTracked = false
 
 // Presentation only: all navigation, pricing and attribution remain shared with v1.
-const activeJourneyStep = ref(0)
+const homeRoot = ref<HTMLElement | null>(null)
+const { index: activeJourneyStep, automatic: homeAutomatic, reduced: homeReduced, hidden: homeHidden,
+  seen: homeSeen, pick: pickJourneyStep, toggle: toggleJourney } = useHomeMotion(isUiV2, homeRoot)
+const stripTrack = ref<HTMLElement | null>(null)
+const { index: stripIndex, onScroll: onStripScroll, scrollTo: scrollStripTo } = useSnapStrip(stripTrack)
+function journeyLayer(step: number, visible = activeJourneyStep.value === step) {
+  return { opacity: visible ? 1 : 0, transform: `translateY(${visible ? 0 : step < activeJourneyStep.value ? -14 : step === 2 ? 16 : 14}px)` }
+}
 const journeySteps: Array<{ label: string; title: string; copy: string; icon: IconKey; preview: string; detail: string; status: string }> = [
-  { label: 'Профіль', title: 'Покажіть свою практику', copy: 'Створіть професійну сторінку: розкажіть про свій підхід, теми роботи, формат консультацій і вартість. Ви самі вирішуєте, коли її публікувати.', icon: 'profile', preview: 'Професійна сторінка', detail: 'Ваш підхід · теми роботи · формат консультацій', status: 'Публікація під вашим контролем' },
-  { label: 'Запит', title: 'Знайомство починається із запиту', copy: 'Клієнт переглядає вашу сторінку й залишає звернення без обов’язкової реєстрації. Запит не є підтвердженим записом: деталі та час ви погоджуєте разом.', icon: 'booking', preview: 'Звернення від клієнта', detail: 'Запит → обговорення деталей → погодження часу', status: 'Потребує погодження' },
-  { label: 'Сесія', title: 'Проведіть консультацію', copy: 'Погоджуйте час, плануйте сесії та тримайте робочий календар в одному місці. Клієнт оплачує консультацію безпосередньо вам.', icon: 'session', preview: 'Планування сесії', detail: 'Формат і час — за домовленістю зі спеціалістом', status: 'Час погоджується окремо' },
-  { label: 'Подальша робота', title: 'Продовжуйте роботу з клієнтом', copy: 'Регулярні сесії, приватні нотатки, матеріали й задачі залишаються в контексті вашої роботи. Клієнту відкривається лише те, чим ви свідомо ділитеся.', icon: 'materials', preview: 'Контекст роботи', detail: 'Сесії · приватні нотатки · матеріали · задачі', status: 'Приватність під вашим контролем' },
+  { label: 'Сторінка', title: 'Покажіть, хто ви', copy: 'Підхід, теми, формат і вартість — на одній сторінці, якою зручно ділитися у своїх каналах.', icon: 'profile', preview: 'Професійна сторінка', detail: 'Ваш підхід · теми роботи · формат консультацій', status: 'Публікація під вашим контролем' },
+  { label: 'Запит', title: 'Клієнт звертається напряму', copy: 'Без обов’язкової реєстрації. Запит не є підтвердженим записом: рішення завжди за вами.', icon: 'booking', preview: 'Звернення від клієнта', detail: 'Запит → обговорення деталей → погодження часу', status: 'Потребує погодження' },
+  { label: 'Сесія', title: 'Час — в одному календарі', copy: 'Узгоджуйте час, плануйте сесії та зберігайте посилання на зустріч в одному робочому просторі.', icon: 'session', preview: 'Планування сесії', detail: 'Формат і час — за домовленістю зі спеціалістом', status: 'Час погоджується окремо' },
+  { label: 'Робота', title: 'Контекст кожного клієнта', copy: 'Приватні нотатки, окремо опубліковані матеріали й історія сесій — поруч, коли вони потрібні.', icon: 'materials', preview: 'Контекст роботи', detail: 'Сесії · приватні нотатки · матеріали · задачі', status: 'Приватність під вашим контролем' },
+]
+
+
+// Claude snapshot 2026-10-23-7570f1ad: presentation only, no simulated account data.
+const homeV2Features = [
+  { key: 'profile', scope: 'Публічне', title: 'Професійна сторінка', copy: 'Підхід, теми, формат і вартість' },
+  { key: 'requests', scope: 'Публічне', title: 'Запит без реєстрації', copy: 'Клієнту не обов’язково мати кабінет' },
+  { key: 'discovery', scope: 'Публічне', title: 'Блог і пошук', copy: 'Пошук спеціалістів без рейтингів' },
+  { key: 'notes', scope: 'Приватне', title: 'Нотатки', copy: 'Приватні записи спеціаліста. Матеріали для клієнта публікуються окремо.' },
+  { key: 'sessions', scope: 'Приватне', title: 'Сесії та календар', copy: 'Час, посилання, підтвердження' },
+  { key: 'payments', scope: 'Приватне', title: 'Оплати', copy: 'Напряму вам; тут ви фіксуєте й підтверджуєте статуси оплат.' },
+]
+const homeV2BlogFormats = [
+  { label: 'Приклад · Стаття', title: 'Як зрозуміти, що терапія вам підходить', copy: '' },
+  { label: 'Приклад · Часті питання', title: 'Що відбувається на першій сесії', copy: '' },
+  { label: 'Приклад · Матеріал', title: 'Вправа: помічати автоматичні думки', copy: '' },
 ]
 
 
@@ -3940,109 +4005,217 @@ onBeforeUnmount(() => {
 </style>
 
 <style>
-/* Home v2 is opt-in. Legacy scoped styles above remain unchanged. */
-html[data-ui="v2"] .pc2-home { background: var(--pc-bg-main); color: var(--pc-text-body); font-family: var(--pc-font); padding-bottom: var(--pc-space-20); }
+/* Homepage-specific Claude v5 presentation; shared shell and tokens stay unchanged. */
+html[data-ui="v2"] .pc2-home .pc2-btn { transition: background .2s, border-color .2s, color .2s; }
+html[data-ui="v2"] .pc2-home { background: var(--pc-bg-main); color: var(--pc-text-body); font-family: var(--pc-font); }
 html[data-ui="v2"] .pc2-home__container { max-width: var(--pc-container); margin-inline: auto; padding-inline: var(--pc-gutter); }
-html[data-ui="v2"] .pc2-home h1,
-html[data-ui="v2"] .pc2-home h2,
-html[data-ui="v2"] .pc2-home h3 { color: var(--pc-text-main); font-weight: var(--pc-fw-medium); }
-html[data-ui="v2"] .pc2-home h2 { font-size: var(--pc-fs-h1); }
-html[data-ui="v2"] .pc2-home h3 { font-size: var(--pc-fs-h3); }
-html[data-ui="v2"] .pc2-home p { margin-block: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__hero { text-align: center; padding-block: var(--pc-space-20) var(--pc-space-12); }
-html[data-ui="v2"] .pc2-home__hero h1 { font-size: var(--pc-fs-display); line-height: var(--pc-lh-tight); letter-spacing: var(--pc-ls-display); margin: var(--pc-space-6) auto; max-width: 18ch; }
-html[data-ui="v2"] .pc2-home__lead { max-width: 65ch; margin-inline: auto; font-size: var(--pc-fs-lead); }
-html[data-ui="v2"] .pc2-home__eyebrow { color: var(--pc-text-muted); font-size: var(--pc-fs-small); font-weight: var(--pc-fw-medium); }
-html[data-ui="v2"] .pc2-home__meta { color: var(--pc-text-muted); font-size: var(--pc-fs-small); }
-html[data-ui="v2"] .pc2-home__actions { display: flex; justify-content: center; gap: var(--pc-space-3); flex-wrap: wrap; margin-block: var(--pc-space-8) var(--pc-space-5); }
-html[data-ui="v2"] .pc2-home__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pc-space-2); padding-bottom: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__step { display: flex; align-items: center; justify-content: center; gap: var(--pc-space-3); min-height: var(--pc-control-h); padding: var(--pc-space-3); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); background: var(--pc-bg-main); color: var(--pc-text-body); font: inherit; cursor: pointer; }
-html[data-ui="v2"] .pc2-home__step-number { display: grid; place-items: center; width: var(--pc-space-8); height: var(--pc-space-8); flex-shrink: 0; border-radius: var(--pc-radius-pill); background: var(--pc-bg-sunk); }
-html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] { background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card); }
-html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] .pc2-home__step-number { background: var(--pc-bg-card); color: var(--pc-navy-900); }
-html[data-ui="v2"] .pc2-home__step:hover:not([aria-pressed="true"]) { background: var(--pc-teal-100); border-color: var(--pc-teal-ink); }
-html[data-ui="v2"] .pc2-home__journey-panel { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); overflow: hidden; }
-html[data-ui="v2"] .pc2-home__journey-copy { padding: var(--pc-space-12); align-self: center; }
-html[data-ui="v2"] .pc2-home__journey-copy h2 { margin-block: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__illustration { background: var(--pc-teal-100); padding: var(--pc-space-8); display: grid; align-content: center; }
-html[data-ui="v2"] .pc2-home__preview { padding: var(--pc-space-8); background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); box-shadow: var(--pc-shadow-sm); }
-html[data-ui="v2"] .pc2-home__preview-icon { display: grid; place-items: center; width: var(--pc-space-12); height: var(--pc-space-12); background: var(--pc-teal-200); color: var(--pc-teal-ink); border-radius: var(--pc-radius-sm); }
-html[data-ui="v2"] .pc2-home__preview-icon svg,
-html[data-ui="v2"] .pc2-home__feature-icon { width: var(--pc-space-6); height: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__preview-lines { display: grid; gap: var(--pc-space-3); margin-block: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__preview-lines span { height: var(--pc-space-2); background: var(--pc-bg-sunk); border-radius: var(--pc-radius-pill); }
-html[data-ui="v2"] .pc2-home__preview-lines span:last-child { width: 65%; }
-html[data-ui="v2"] .pc2-home__status { display: inline-block; padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-peach-100); color: var(--pc-peach-ink); border-radius: var(--pc-radius-xs); font-size: var(--pc-fs-small); }
-html[data-ui="v2"] .pc2-home__truth { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-6); background: var(--pc-navy-900); color: var(--pc-bg-card); border-radius: var(--pc-radius-lg); padding: var(--pc-space-12); margin-top: var(--pc-space-12); }
-html[data-ui="v2"] .pc2-home__truth h2 { grid-column: 1 / -1; margin: 0; color: inherit; }
-html[data-ui="v2"] .pc2-home__truth h3 { color: inherit; }
-html[data-ui="v2"] .pc2-home__section,
-html[data-ui="v2"] .pc2-home__blog,
-html[data-ui="v2"] .pc2-home__pricing { margin-block: var(--pc-section-y); }
-html[data-ui="v2"] .pc2-home__capabilities { margin-top: var(--pc-space-10); }
-html[data-ui="v2"] .pc2-home__bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__feature { padding: var(--pc-space-8); min-width: 0; }
-html[data-ui="v2"] .pc2-home__feature:first-child { grid-column: span 2; background: var(--pc-teal-100); }
-html[data-ui="v2"] .pc2-home__feature-icon { color: var(--pc-teal-ink); }
-html[data-ui="v2"] .pc2-home__blog { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-12); padding: var(--pc-space-12); background: var(--pc-peach-100); border-radius: var(--pc-radius-lg); }
-html[data-ui="v2"] .pc2-home__client { display: flex; align-items: center; gap: var(--pc-space-10); padding: var(--pc-space-10); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-lg); }
-html[data-ui="v2"] .pc2-home__client > div { flex: 1; }
-html[data-ui="v2"] .pc2-home__client > a { flex-shrink: 0; }
-html[data-ui="v2"] .pc2-home__heading { text-align: center; }
-html[data-ui="v2"] .pc2-home__cycles { display: flex; justify-content: center; gap: var(--pc-space-2); margin-block: var(--pc-space-8); }
-html[data-ui="v2"] .pc2-home__cycle { min-height: var(--pc-control-h); padding-inline: var(--pc-space-6); border: 1px solid var(--pc-border); border-radius: var(--pc-radius-pill); background: var(--pc-bg-card); color: var(--pc-text-main); font: inherit; cursor: pointer; }
-html[data-ui="v2"] .pc2-home__cycle[aria-pressed="true"] { background: var(--pc-navy-900); color: var(--pc-bg-card); }
-html[data-ui="v2"] .pc2-home__cycle:hover { border-color: var(--pc-navy-900); }
-html[data-ui="v2"] .pc2-home__plans { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pc-space-6); }
-html[data-ui="v2"] .pc2-home__plan { display: flex; flex-direction: column; align-items: flex-start; padding: var(--pc-space-10); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-lg); background: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home h1, html[data-ui="v2"] .pc2-home h2, html[data-ui="v2"] .pc2-home h3 { color: var(--pc-text-main); font-weight: 500; text-wrap: balance; }
+html[data-ui="v2"] .pc2-home p { margin: 0; text-wrap: pretty; }
+html[data-ui="v2"] .pc2-home__hero { max-width: 900px; margin: auto; text-align: center; padding: clamp(56px,9vw,104px) 0 clamp(40px,6vw,64px); }
+html[data-ui="v2"] .pc2-home__hero h1 { font-size: clamp(42px,6.4vw,78px); line-height: 1.02; letter-spacing: -.045em; margin: 0 0 28px; }
+html[data-ui="v2"] .pc2-home__lead { font-size: var(--pc-fs-lead); line-height: 1.6; }
+html[data-ui="v2"] .pc2-home__hero .pc2-home__lead { max-width: 620px; margin: 0 auto 40px; }
+html[data-ui="v2"] .pc2-home__eyebrow { font-size: 13px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__hero .pc2-home__eyebrow { font-size: 14px; letter-spacing: .04em; color: var(--pc-teal-ink); margin: 0 0 24px; }
+html[data-ui="v2"] .pc2-home__actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+html[data-ui="v2"] .pc2-home__actions .pc2-btn { padding: 16px 28px; font-size: 16px; }
+html[data-ui="v2"] .pc2-home .pc2-home__meta { font-size: 13px; color: var(--pc-text-muted); margin-top: 16px; }
+html[data-ui="v2"] .pc2-home__listen { position: relative; display: block; width: 112px; height: 112px; margin: 0 auto 36px; }
+html[data-ui="v2"] .pc2-home__hero-mark { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; animation: pc2HomeBreath 3.2s ease-in-out infinite; }
+html[data-ui="v2"] .pc2-home__ring { position: absolute; inset: 0; border: 1.5px solid var(--pc-peach-500); border-radius: 50%; mask: conic-gradient(black 0 156deg, transparent 156deg 198deg, black 198deg); animation: pc2HomeRing 3.2s cubic-bezier(.2,.6,.3,1) infinite; }
+@keyframes pc2HomeRing { from { transform: scale(1.04); opacity: .55; } to { transform: scale(1.9); opacity: 0; } }
+@keyframes pc2HomeBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+html[data-ui="v2"] .pc2-home.is-paused * { animation-play-state: paused; }
+html[data-ui="v2"] .pc2-home__journey { padding: 8px 0 clamp(72px,9vw,112px); }
+html[data-ui="v2"] .pc2-home__steps { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+html[data-ui="v2"] .pc2-home__track { position: absolute; left: 12.5%; right: 12.5%; top: 19px; height: 2px; background: var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-home__track > span { display: block; height: 100%; background: var(--pc-navy-900); transition: width 1s cubic-bezier(.4,0,.2,1); }
+html[data-ui="v2"] .pc2-home__step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0; border: 0; background: none; color: var(--pc-text-muted); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; transition: color .5s; }
+html[data-ui="v2"] .pc2-home__step-number { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--pc-border); background: var(--pc-bg-main); font-size: 14px; font-weight: 600; transition: all .5s ease; }
+html[data-ui="v2"] .pc2-home__step.is-complete .pc2-home__step-number { background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] { color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-home__step[aria-pressed="true"] .pc2-home__step-number { transform: scale(1.12); }
+html[data-ui="v2"] .pc2-home__journey-panel { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,340px),1fr)); gap: clamp(24px,4vw,56px); align-items: center; background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: 28px; padding: clamp(24px,4vw,48px); }
+html[data-ui="v2"] .pc2-home__journey-copy { position: relative; display: grid; min-height: 190px; min-width: 0; }
+html[data-ui="v2"] .pc2-home__copy { grid-area: 1 / 1; align-self: center; opacity: 0; transform: translateY(10px); transition: opacity .5s ease, transform .5s ease, visibility 0s .5s; pointer-events: none; visibility: hidden; }
+html[data-ui="v2"] .pc2-home__copy.is-active { opacity: 1; transform: translateY(0); pointer-events: auto; visibility: visible; transition-delay: 0s; }
+html[data-ui="v2"] .pc2-home__copy .pc2-home__eyebrow { margin-bottom: 12px; }
+html[data-ui="v2"] .pc2-home__copy h2 { font-size: clamp(28px,3vw,36px); line-height: 1.1; letter-spacing: -.03em; margin: 0 0 16px; }
+html[data-ui="v2"] .pc2-home__copy > p:last-child { font-size: 17px; line-height: 1.6; }
+html[data-ui="v2"] .pc2-home__illustration { position: relative; height: 330px; min-width: 0; border-radius: 22px; background: var(--pc-bg-soft); overflow: hidden; }
+html[data-ui="v2"] .pc2-home__illustration::before { content: ''; position: absolute; right: -50px; top: -50px; width: 180px; height: 180px; border-radius: 50%; background: var(--pc-peach-200); opacity: .6; }
+html[data-ui="v2"] .pc2-home__demo-label { position: absolute; top: 7px; left: 28px; font-size: 11px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__demo-card { position: absolute; left: 28px; right: 28px; top: 28px; background: var(--pc-bg-card); border-radius: 18px; padding: 22px; box-shadow: 0 16px 40px rgb(18 35 58 / 8%); transition: all .6s cubic-bezier(.2,.7,.2,1); }
+html[data-ui="v2"] .pc2-home__identity { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; }
+html[data-ui="v2"] .pc2-home__identity strong { display: block; font-size: 18px; font-weight: 500; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-home__identity div > span { display: block; font-size: 14px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__avatar { width: 64px; height: 64px; border-radius: 16px; background: var(--pc-teal-200); color: var(--pc-teal-ink); display: grid; place-items: center; flex-shrink: 0; }
+html[data-ui="v2"] .pc2-home__avatar:is(img) { object-fit: cover; object-position: 50% 20%; }
+html[data-ui="v2"] .pc2-home__avatar svg { width: 32px; height: 32px; }
+html[data-ui="v2"] .pc2-home__avatar--small { width: 40px; height: 40px; border-radius: 50%; }
+html[data-ui="v2"] .pc2-home__topics { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+html[data-ui="v2"] .pc2-home__topics > span { font-size: 13px; padding: 6px 12px; border-radius: 999px; background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__profile-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 16px; border-top: 1px solid var(--pc-bg-sunk); font-size: 14px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__preview-action { display: block; font-size: 13px; padding: 8px 14px; border-radius: 999px; background: var(--pc-navy-900); color: var(--pc-bg-card); text-align: center; }
+html[data-ui="v2"] .pc2-home__request-heading { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 13px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__status { font-size: 12px; padding: 5px 10px; border-radius: 999px; background: var(--pc-peach-100); color: var(--pc-peach-ink); transition: all .6s ease; }
+html[data-ui="v2"] .pc2-home__status.is-agreed { background: var(--pc-success-soft); color: var(--pc-success); }
+html[data-ui="v2"] .pc2-home__request-detail { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .6s ease; }
+html[data-ui="v2"] .pc2-home__request-detail.is-collapsed { grid-template-rows: 0fr; }
+html[data-ui="v2"] .pc2-home__request-detail > div { overflow: hidden; }
+html[data-ui="v2"] .pc2-home__request-detail p { font-size: 15px; line-height: 1.55; margin: 0 0 18px; }
+html[data-ui="v2"] .pc2-home__request-preview { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 12px; }
+html[data-ui="v2"] .pc2-home__request-preview li > span { display: block; height: 3px; border-radius: 3px; overflow: hidden; background: var(--pc-bg-sunk); margin-bottom: 6px; }
+html[data-ui="v2"] .pc2-home__request-preview i { display: block; height: 100%; background: var(--pc-navy-900); transition: width .9s ease; }
+html[data-ui="v2"] .pc2-home__session-preview { position: absolute; left: 28px; right: 28px; bottom: 28px; background: var(--pc-navy-900); color: var(--pc-bg-card); border-radius: 16px; padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; transition: all .8s cubic-bezier(.2,.7,.2,1); }
+html[data-ui="v2"] .pc2-home__session-preview span { font-size: 12px; }
+html[data-ui="v2"] .pc2-home__session-preview strong { display: block; font-size: 16px; font-weight: 500; }
+html[data-ui="v2"] .pc2-home__session-preview > span { background: rgb(255 255 255 / 14%); padding: 6px 12px; border-radius: 999px; }
+html[data-ui="v2"] .pc2-home__work-layer { position: absolute; left: 28px; right: 28px; top: 28px; transition: all .6s cubic-bezier(.2,.7,.2,1); }
+html[data-ui="v2"] .pc2-home__work-layer > p { font-size: 13px; color: var(--pc-text-muted); padding: 0 4px; }
+html[data-ui="v2"] .pc2-home__work-preview { display: flex; flex-direction: column; gap: 10px; list-style: none; padding: 0; margin: 10px 0 0; }
+html[data-ui="v2"] .pc2-home__work-preview li { background: var(--pc-bg-card); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 8px 24px rgb(18 35 58 / 6%); font-size: 15px; }
+html[data-ui="v2"] .pc2-home__work-preview span { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__autoplay { display: block; margin: 12px 0 0 auto; border: 1px solid var(--pc-border); border-radius: 999px; padding: 8px 12px; background: var(--pc-bg-card); color: var(--pc-text-muted); font: inherit; font-size: 12px; cursor: pointer; }
+html[data-ui="v2"] .pc2-home__reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+html[data-ui="v2"] .pc2-home__reveal.is-seen { opacity: 1; transform: translateY(0); }
+html[data-ui="v2"] .pc2-home__truth { position: relative; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: clamp(24px,4vw,40px); align-items: start; border-radius: 32px; background: var(--pc-navy-900); color: var(--pc-bg-card); padding: clamp(32px,5vw,56px); }
+html[data-ui="v2"] .pc2-home__truth h2 { grid-column: 1 / -1; color: inherit; font-size: clamp(28px,3vw,36px); font-weight: 400; line-height: 1.1; letter-spacing: -.03em; margin: 0 0 8px; }
+html[data-ui="v2"] .pc2-home__truth > div { border-top: 1px solid rgb(255 255 255 / 20%); padding-top: 18px; }
+html[data-ui="v2"] .pc2-home__truth h3 { color: inherit; font-size: 40px; font-weight: 400; letter-spacing: -.03em; margin: 0 0 6px; }
+html[data-ui="v2"] .pc2-home__truth p { color: var(--pc-bg-sunk); font-size: 15px; line-height: 1.5; }
+html[data-ui="v2"] .pc2-home__peek { position: absolute; right: clamp(40px,8vw,120px); top: -62px; width: 128px; height: 62px; overflow: hidden; pointer-events: none; }
+html[data-ui="v2"] .pc2-home__peek img { width: 128px; height: auto; display: block; }
+html[data-ui="v2"] .pc2-home__section { padding: clamp(72px,9vw,112px) 0; }
+html[data-ui="v2"] .pc2-home__section > h2, html[data-ui="v2"] .pc2-home__title { font-size: clamp(32px,3.6vw,44px); letter-spacing: -.035em; line-height: 1.08; margin: 0 0 40px; max-width: 640px; }
+html[data-ui="v2"] .pc2-home__bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(220px,auto); gap: 16px; }
+html[data-ui="v2"] .pc2-home__feature { display: flex; justify-content: space-between; gap: 24px; padding: 28px; border-radius: 24px; min-width: 0; transition: transform .35s ease, box-shadow .35s; }
+html[data-ui="v2"] .pc2-home__feature:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgb(18 35 58 / 8%); }
+html[data-ui="v2"] .pc2-home__feature--profile, html[data-ui="v2"] .pc2-home__feature--sessions { grid-column: span 2; }
+html[data-ui="v2"] .pc2-home__feature--sessions:hover { box-shadow: none; }
+html[data-ui="v2"] .pc2-home__feature-copy { display: flex; flex-direction: column; justify-content: space-between; gap: 16px; min-width: 0; }
+html[data-ui="v2"] .pc2-home__feature h3 { font-size: 20px; letter-spacing: -.02em; margin: 0 0 6px; }
+html[data-ui="v2"] .pc2-home__feature p { font-size: 14px; line-height: 1.5; }
+html[data-ui="v2"] .pc2-home__feature--requests { background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__feature--requests h3,
+html[data-ui="v2"] .pc2-home__feature--requests .pc2-home__eyebrow { color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__feature--payments { background: var(--pc-peach-100); color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-home__feature--payments h3,
+html[data-ui="v2"] .pc2-home__feature--payments .pc2-home__eyebrow { color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-home__feature--sessions { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__feature--sessions h3, html[data-ui="v2"] .pc2-home__feature--sessions .pc2-home__eyebrow { color: inherit; }
+html[data-ui="v2"] .pc2-home__mini-profile, html[data-ui="v2"] .pc2-home__mini-calendar { width: 220px; flex-shrink: 0; font-size: 13px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+html[data-ui="v2"] .pc2-home__mini-profile { padding: 14px; border-radius: 16px; background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-home__mini-identity { display: flex; gap: 10px; align-items: center; }
+html[data-ui="v2"] .pc2-home__mini-identity img { width: 44px; height: 44px; object-fit: cover; object-position: 50% 20%; border-radius: 12px; }
+html[data-ui="v2"] .pc2-home__mini-identity small { display: block; font-size: 12px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__mini-profile svg { width: 44px; height: 44px; color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-home__mini-calendar > span { padding: 9px 12px; border-radius: 12px; background: rgb(255 255 255 / 6%); transition: background .6s; }
+html[data-ui="v2"] .pc2-home__mini-calendar > span.is-highlighted { background: rgb(255 255 255 / 16%); }
+html[data-ui="v2"] .pc2-home__blog { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,380px),1fr)); gap: clamp(32px,5vw,72px); align-items: center; padding-bottom: clamp(72px,9vw,112px); }
+html[data-ui="v2"] .pc2-home__blog h2 { font-size: clamp(30px,3.2vw,40px); line-height: 1.1; letter-spacing: -.035em; margin: 0 0 20px; }
+html[data-ui="v2"] .pc2-home__blog > div > p { font-size: 17px; line-height: 1.6; max-width: 480px; }
+html[data-ui="v2"] .pc2-home__blog-formats { display: flex; flex-direction: column; gap: 12px; list-style: none; padding: 0; margin: 0; }
+html[data-ui="v2"] .pc2-home__blog-formats li { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-radius: 20px; padding: 20px 24px; transition: transform .3s ease, border-color .3s; }
+html[data-ui="v2"] .pc2-home__blog-formats li:hover { transform: translateX(6px); border-color: var(--pc-border-strong); }
+html[data-ui="v2"] .pc2-home__blog-formats span { font-size: 12px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-home__blog-formats h3 { font-size: 17px; margin: 6px 0 0; }
+html[data-ui="v2"] .pc2-home__blog-formats p { font-size: 13px; margin-top: 6px; }
+html[data-ui="v2"] .pc2-home__client { display: flex; flex-wrap: wrap; gap: 20px 32px; align-items: center; justify-content: space-between; border-radius: 28px; background: var(--pc-teal-100); color: var(--pc-teal-ink); padding: clamp(24px,4vw,40px); margin-bottom: clamp(72px,9vw,112px); }
+html[data-ui="v2"] .pc2-home__client > img { width: 56px; height: auto; flex-shrink: 0; }
+html[data-ui="v2"] .pc2-home__client > div { flex: 1 1 50%; }
+html[data-ui="v2"] .pc2-home__client h2 { font-size: clamp(22px,2.4vw,28px); letter-spacing: -.03em; margin: 0 0 6px; }
+html[data-ui="v2"] .pc2-home__client p { font-size: 15px; line-height: 1.55; }
+html[data-ui="v2"] .pc2-home__pricing { padding-bottom: clamp(72px,9vw,112px); }
+html[data-ui="v2"] .pc2-home__pricing-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 32px; }
+html[data-ui="v2"] .pc2-home__heading { max-width: 620px; }
+html[data-ui="v2"] .pc2-home__title { margin-bottom: 10px; }
+html[data-ui="v2"] .pc2-home__cycles { display: flex; padding: 4px; border-radius: 999px; background: var(--pc-bg-sunk); gap: 2px; }
+html[data-ui="v2"] .pc2-home__cycle { padding: 8px 18px; min-height: 40px; border: 0; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; color: var(--pc-text-main); background: none; transition: all .25s; }
+html[data-ui="v2"] .pc2-home__cycle[aria-pressed="true"] { background: var(--pc-bg-card); box-shadow: var(--pc-shadow-sm); }
+html[data-ui="v2"] .pc2-home__plans { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,340px),1fr)); gap: 16px; }
+html[data-ui="v2"] .pc2-home__plan { position: relative; background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: 28px; padding: 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+html[data-ui="v2"] .pc2-home__plan h3 { font-size: 15px; color: var(--pc-text-muted); margin: 0; }
+html[data-ui="v2"] .pc2-home__plan-price { font-size: 40px; font-weight: 500; letter-spacing: -.03em; }
+html[data-ui="v2"] .pc2-home__plan-scenario, html[data-ui="v2"] .pc2-home__plan-helper, html[data-ui="v2"] .pc2-home__plan-note { font-size: 15px; line-height: 1.5; }
+html[data-ui="v2"] .pc2-home__plan ul { padding: 0; margin: 8px 0; list-style: none; display: grid; gap: 10px; font-size: 15px; }
+html[data-ui="v2"] .pc2-home__plan > a { margin-top: auto; width: 100%; }
+html[data-ui="v2"] .pc2-home__plan-badge { position: absolute; top: 32px; right: 32px; background: var(--pc-peach-200); color: var(--pc-peach-ink); font-size: 12px; padding: 5px 10px; border-radius: 999px; }
 html[data-ui="v2"] .pc2-home__plan--pro { background: var(--pc-navy-900); color: var(--pc-bg-card); }
 html[data-ui="v2"] .pc2-home__plan--pro h3 { color: inherit; }
-html[data-ui="v2"] .pc2-home__plan-price { font-size: var(--pc-fs-h1); font-weight: var(--pc-fw-strong); line-height: var(--pc-lh-head); }
-html[data-ui="v2"] .pc2-home__plan-badge { font-size: var(--pc-fs-small); padding: var(--pc-space-2) var(--pc-space-3); background: var(--pc-teal-200); color: var(--pc-teal-ink); border-radius: var(--pc-radius-pill); }
-html[data-ui="v2"] .pc2-home__plan ul { padding-left: var(--pc-space-5); margin-bottom: var(--pc-space-8); }
-html[data-ui="v2"] .pc2-home__plan li { padding-block: var(--pc-space-2); }
-html[data-ui="v2"] .pc2-home__plan > a { margin-top: auto; }
 html[data-ui="v2"] .pc2-home__plan--pro > a { background: var(--pc-bg-card); color: var(--pc-navy-900); border-color: var(--pc-bg-card); }
-html[data-ui="v2"] .pc2-home__plan--pro > a:hover { background: var(--pc-teal-200); border-color: var(--pc-teal-200); }
-html[data-ui="v2"] .pc2-home__conditions,
-html[data-ui="v2"] .pc2-home__limits { margin-top: var(--pc-space-6); padding: var(--pc-space-8); background: var(--pc-bg-soft); border-radius: var(--pc-radius-md); }
-html[data-ui="v2"] .pc2-home__conditions > a { margin-top: var(--pc-space-4); }
-html[data-ui="v2"] .pc2-home__final { text-align: center; padding-block: var(--pc-space-12); }
-html[data-ui="v2"] .pc2-home__final h2 { max-width: 24ch; margin: 0 auto var(--pc-space-8); }
+html[data-ui="v2"] .pc2-home__plan--pro > a:hover { background: var(--pc-peach-100); }
+html[data-ui="v2"] .pc2-home__conditions, html[data-ui="v2"] .pc2-home__limits { padding: 20px 8px; border-bottom: 1px solid var(--pc-border-hair); font-size: 15px; line-height: 1.6; }
+html[data-ui="v2"] .pc2-home__conditions h3, html[data-ui="v2"] .pc2-home__limits h3 { font-size: 17px; margin: 0 0 8px; }
+html[data-ui="v2"] .pc2-home__conditions > a { margin-top: 12px; }
+html[data-ui="v2"] .pc2-home__final { text-align: center; padding: clamp(56px,8vw,96px) 0; border-top: 1px solid var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-home__final h2 { font-size: clamp(34px,4.4vw,56px); letter-spacing: -.04em; line-height: 1.05; margin: 0 auto 28px; max-width: 720px; }
+html[data-ui="v2"] .pc2-home #pricing, html[data-ui="v2"] .pc2-home #client-entry-title, html[data-ui="v2"] .pc2-home #how-it-works { scroll-margin-top: var(--pc-header-anchor-offset); }
 html[data-ui="v2"] .pc2-home :focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
-html[data-ui="v2"] .pc2-home__plan--pro :focus-visible,
-html[data-ui="v2"] .pc2-home__step[aria-pressed="true"]:focus-visible { outline-color: var(--pc-navy-900); box-shadow: 0 0 0 var(--pc-space-1) var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-home__plan--pro :focus-visible { outline-color: var(--pc-bg-card); }
 html[data-ui="v2"] .pc2-home__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (max-width: 900px) {
-  html[data-ui="v2"] .pc2-home__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html[data-ui="v2"] .pc2-home__journey-copy,
-  html[data-ui="v2"] .pc2-home__illustration { padding: var(--pc-space-6); }
-  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html[data-ui="v2"] .pc2-home__blog { padding: var(--pc-space-8); gap: var(--pc-space-6); }
-  html[data-ui="v2"] .pc2-home__client { flex-direction: column; align-items: flex-start; }
+html[data-ui="v2"] .pc2-home__feature--profile h3, html[data-ui="v2"] .pc2-home__feature--sessions h3 { font-size: 22px; }
+html[data-ui="v2"] .pc2-home__mini-profile .pc2-home__topics { margin: 0; gap: 4px; }
+html[data-ui="v2"] .pc2-home__mini-profile .pc2-home__topics > span { font-size: 11px; padding: 3px 8px; }
+html[data-ui="v2"] .pc2-home__mini-calendar small { font-size: 11px; color: var(--pc-bg-sunk); }
+html[data-ui="v2"] .pc2-home__mini-calendar > span { display: flex; align-items: center; gap: 10px; }
+html[data-ui="v2"] .pc2-home__mini-calendar time { font-size: 12px; opacity: .8; width: 38px; }
+@media (max-width: 1100px) {
+  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-flow: dense; }
 }
-@media (max-width: 600px) {
-  html[data-ui="v2"] .pc2-home__hero { padding-top: var(--pc-space-12); }
-  html[data-ui="v2"] .pc2-home__actions { flex-direction: column; }
-  html[data-ui="v2"] .pc2-home__step { flex-direction: column; gap: var(--pc-space-2); border-radius: var(--pc-radius-md); }
-  html[data-ui="v2"] .pc2-home__journey-panel,
-  html[data-ui="v2"] .pc2-home__truth,
-  html[data-ui="v2"] .pc2-home__bento,
-  html[data-ui="v2"] .pc2-home__blog,
+@media (max-width: 639px) {
+  html[data-ui="v2"] .pc2-home__listen { width: 88px; height: 88px; }
+  html[data-ui="v2"] .pc2-home__step { font-size: 13px; }
+  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: 1fr; }
+  html[data-ui="v2"] .pc2-home__feature--profile, html[data-ui="v2"] .pc2-home__feature--sessions { grid-column: auto; flex-direction: column; }
+  html[data-ui="v2"] .pc2-home__mini-profile, html[data-ui="v2"] .pc2-home__mini-calendar { width: 100%; }
+  html[data-ui="v2"] .pc2-home__demo-card, html[data-ui="v2"] .pc2-home__work-layer { left: 16px; right: 16px; padding: 16px; }
+  html[data-ui="v2"] .pc2-home__session-preview { left: 16px; right: 16px; }
+  html[data-ui="v2"] .pc2-home__identity strong { font-size: 16px; }
+  html[data-ui="v2"] .pc2-home__avatar { width: 44px; height: 44px; }
+  html[data-ui="v2"] .pc2-home__topics > span { font-size: 12px; padding: 5px 8px; }
+  html[data-ui="v2"] .pc2-home__profile-footer { flex-wrap: wrap; }
+  html[data-ui="v2"] .pc2-home__work-layer { padding: 0; }
+  html[data-ui="v2"] .pc2-home__work-preview li { flex-wrap: wrap; padding: 10px 12px; gap: 4px; font-size: 14px; }
+}
+/* Public-Mobile.dc.html P1 (< 768px): centered hero, 72px mark, full-width actions, snap step strip. */
+html[data-ui="v2"] .pc2-home__strip, html[data-ui="v2"] .pc2-home__label-narrow, html[data-ui="v2"] .pc2-home__narrow-only { display: none; }
+@media (max-width: 767px) {
+  html[data-ui="v2"] .pc2-home__label-wide, html[data-ui="v2"] .pc2-home__wide-only { display: none; }
+  html[data-ui="v2"] .pc2-home__label-narrow { display: inline; }
+  html[data-ui="v2"] .pc2-home .pc2-home__narrow-only { display: inline-flex; }
+  html[data-ui="v2"] .pc2-home__hero { display: flex; flex-direction: column; gap: 18px; padding: 28px 0 0; }
+  html[data-ui="v2"] .pc2-home__listen { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; background: var(--pc-info-soft); }
+  html[data-ui="v2"] .pc2-home__hero-mark { inset: 14px; width: 44px; height: 44px; }
+  html[data-ui="v2"] .pc2-home__hero .pc2-home__eyebrow { margin: 0; font-size: 13px; color: var(--pc-teal-ink); }
+  html[data-ui="v2"] .pc2-home__hero h1 { margin: 0; font-size: 36px; line-height: 1.05; letter-spacing: -.045em; }
+  html[data-ui="v2"] .pc2-home__hero .pc2-home__lead { margin: 0; font-size: 16px; line-height: 1.55; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-home__actions { flex-direction: column; flex-wrap: nowrap; gap: 8px; }
+  html[data-ui="v2"] .pc2-home__actions .pc2-btn { width: 100%; justify-content: center; padding: 0 20px; }
+  html[data-ui="v2"] .pc2-home__actions .pc2-btn--primary { min-height: 52px; font-size: 16px; font-weight: 500; }
+  html[data-ui="v2"] .pc2-home__actions .pc2-btn--secondary { min-height: 48px; font-size: 15px; font-weight: 400; border-color: var(--pc-border); }
+  html[data-ui="v2"] .pc2-home .pc2-home__meta { margin: 0; }
+  html[data-ui="v2"] .pc2-home__journey { padding: 26px 0 56px; }
+  html[data-ui="v2"] .pc2-home__steps, html[data-ui="v2"] .pc2-home__journey-panel, html[data-ui="v2"] .pc2-home__autoplay { display: none; }
+  html[data-ui="v2"] .pc2-home__strip { display: flex; flex-direction: column; gap: 18px; }
+  html[data-ui="v2"] .pc2-home__strip-track { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--pc-gutter); overscroll-behavior-x: contain; margin: 0 calc(var(--pc-gutter) * -1); padding: 0 var(--pc-gutter); list-style: none; scrollbar-width: none; }
+  html[data-ui="v2"] .pc2-home__strip-track::-webkit-scrollbar { display: none; }
+  html[data-ui="v2"] .pc2-home__strip-track:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: -2px; }
+  html[data-ui="v2"] .pc2-home__strip-card { flex: 0 0 82%; scroll-snap-align: start; display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 20px; background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); }
+  html[data-ui="v2"] .pc2-home__strip-card > span { font-size: 12px; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-home__strip-card h3 { margin: 0; font-size: 19px; letter-spacing: -.02em; line-height: 1.2; }
+  html[data-ui="v2"] .pc2-home__strip-card p { font-size: 14px; line-height: 1.5; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-home__dots { display: flex; justify-content: center; gap: 6px; }
+  html[data-ui="v2"] .pc2-home__dots button { display: grid; place-items: center; min-width: 6px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; }
+  html[data-ui="v2"] .pc2-home__dots button > span { display: block; width: 6px; height: 6px; border-radius: 999px; background: var(--pc-border-strong); transition: width .3s ease, background .3s ease; }
+  html[data-ui="v2"] .pc2-home__dots button[aria-current="step"] > span { width: 18px; background: var(--pc-navy-900); }
+  html[data-ui="v2"] .pc2-home__bento { grid-template-columns: 1fr; }
+  html[data-ui="v2"] .pc2-home__feature--profile, html[data-ui="v2"] .pc2-home__feature--sessions { grid-column: auto; flex-direction: column; }
+  html[data-ui="v2"] .pc2-home__mini-profile, html[data-ui="v2"] .pc2-home__mini-calendar { width: 100%; }
   html[data-ui="v2"] .pc2-home__plans { grid-template-columns: 1fr; }
-  html[data-ui="v2"] .pc2-home__feature:first-child { grid-column: auto; }
-  html[data-ui="v2"] .pc2-home__truth,
-  html[data-ui="v2"] .pc2-home__feature,
-  html[data-ui="v2"] .pc2-home__blog,
-  html[data-ui="v2"] .pc2-home__client,
-  html[data-ui="v2"] .pc2-home__plan,
-  html[data-ui="v2"] .pc2-home__conditions,
-  html[data-ui="v2"] .pc2-home__limits { padding: var(--pc-space-6); }
-  html[data-ui="v2"] .pc2-home__preview { padding: var(--pc-space-5); }
 }
+html[data-ui="v2"] .pc2-home.is-reduced *, html[data-ui="v2"] .pc2-home.is-reduced *::before { animation: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {
-  html[data-ui="v2"] .pc2-home *,
-  html[data-ui="v2"] .pc2-home *::before,
-  html[data-ui="v2"] .pc2-home *::after { animation: none; transition: none; scroll-behavior: auto; }
+  html[data-ui="v2"] .pc2-home *, html[data-ui="v2"] .pc2-home *::before, html[data-ui="v2"] .pc2-home *::after { animation: none; transition: none; scroll-behavior: auto; }
 }
 </style>

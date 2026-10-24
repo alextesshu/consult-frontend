@@ -1,0 +1,319 @@
+{
+  "baseline_sha": "f84a3297e118559af1444d0bf06160e53c7353c5",
+  "paths": [
+    "docs/ui-v2/KAN_158_LOCAL_POLISH.md",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-about-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-about-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-about-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-about-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-contact-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-contact-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-contact-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-contact-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-panel-bottom-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-panel-bottom-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-request-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-request-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-share-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-share-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-share-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-share-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-v2-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-v2-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-v2-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/after-v2-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/baseline.config.mjs",
+    "docs/ui-v2/evidence/kan-158/local-polish/before-v2-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/before-v2-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/before-v2-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/before-v2-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/browser-results.json",
+    "docs/ui-v2/evidence/kan-158/local-polish/build.txt",
+    "docs/ui-v2/evidence/kan-158/local-polish/business-handler-parity.json",
+    "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-1280.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-1440.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-375.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-768.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/compare_v1_pixels.py",
+    "docs/ui-v2/evidence/kan-158/local-polish/files.json",
+    "docs/ui-v2/evidence/kan-158/local-polish/focused-tests.txt",
+    "docs/ui-v2/evidence/kan-158/local-polish/kan158-polish-browser.cjs",
+    "docs/ui-v2/evidence/kan-158/local-polish/kan158-polish-business.cjs",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-1280-7.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-1280-8.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-1280-9.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-1440-10.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-1440-11.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-1440-12.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-375-1.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-375-2.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-375-3.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-768-4.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-768-5.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/name-768-6.png",
+    "docs/ui-v2/evidence/kan-158/local-polish/typecheck-comparison.json",
+    "docs/ui-v2/evidence/kan-158/local-polish/typecheck.txt",
+    "docs/ui-v2/evidence/kan-158/local-polish/v1-parity.json",
+    "docs/ui-v2/evidence/kan-158/local-polish/validate_delivery.py",
+    "src/components/public-profile/PublicProfileHeroSection.spec.ts",
+    "src/components/public-profile/PublicProfileHeroSection.vue",
+    "src/styles/publicProfileV2.css",
+    "src/views/PublicProfileView.spec.ts",
+    "src/views/PublicProfileView.vue"
+  ],
+  "count": 63,
+  "hashes": [
+    {
+      "path": "docs/ui-v2/KAN_158_LOCAL_POLISH.md",
+      "sha256": "46ba3053db5269649bed487199833ef93f97c92a2537234602ce6bf7774319b3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-about-1280.png",
+      "sha256": "3c13df44fd48bab57f8e7e2309bb4d965e25356e8ead0be9fa0e3c0183d95007"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-about-1440.png",
+      "sha256": "4e25134b5a7aab03c19601c92db4a65bcfc584cbdfb1b7a637236eaef0ee4d69"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-about-375.png",
+      "sha256": "538884b50419e7f7ed58feecd1cd758944808b9e5762bac3a0e5541377c9e966"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-about-768.png",
+      "sha256": "b4dafd2d1d392fa2e06b93dc5969388c0fcf7ea64291fb16a2a30277ba5b586e"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-contact-1280.png",
+      "sha256": "0a99ca169f66d301390fa8691e8c35369d0b72bb59edace7bbe5b573960aadff"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-contact-1440.png",
+      "sha256": "1a7c02410a9370a7f1d76da1f2f8dd921b2157e15fc0b420d49086ee3b8d56de"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-contact-375.png",
+      "sha256": "cca2504201d785182baa8eab3a7a22673f0bc1705bf6840d9a8513c72d103523"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-contact-768.png",
+      "sha256": "b3bbf82043747b8f2b2b0489446f3a8086ecbf942a57df6eb6b7f3eb6b6b6682"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-panel-bottom-1280.png",
+      "sha256": "e2aca2f80eae5521107b2d4bd3f58a6d9bc6b3950ee31956832a7c96b3f17a71"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-panel-bottom-1440.png",
+      "sha256": "b6b0a2a5d4ffc3b357207beac457ad1b794d3e78b3e73227b194960bfee7aadd"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-request-375.png",
+      "sha256": "b935e8bfe09899faddb41fb9b833b0963276d170137e2ef21f5c6e840f17aa31"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-request-768.png",
+      "sha256": "12420462656a9465b6af921717b6c80c90b4b4a6fecdc241163735cf0beec625"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-share-1280.png",
+      "sha256": "eaff8d8bc2437ea09c03b254bccf7025e3ed69d0a5a720557451f7b3f9379b78"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-share-1440.png",
+      "sha256": "962bab9008261ce2545da816c019d71c456647a59d3ef9e8389576a26e05e5e3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-share-375.png",
+      "sha256": "accffa8c14afa8fefebf3c408e6d2b3c71c4bea0eaf5985cae9532f52baa387a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-share-768.png",
+      "sha256": "99369d678ef2169d568fc53da1c0de9fb88ab2ecb10a92ba011dd103fd5d7f0a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-v2-1280.png",
+      "sha256": "69277a53b1ce163b50c474ba9d25a88508f8e5d9e85fd748dff5ba4ea1596bf0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-v2-1440.png",
+      "sha256": "e99d6f7a0e1db74876bfb5475a5fd965e69d86ed48d85db3d7d321718185a477"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-v2-375.png",
+      "sha256": "6c42ff995a3e2e590f24a89737c38aeb297ea5e29a37c3ddd37ffb84651b901a"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/after-v2-768.png",
+      "sha256": "f6a76878176e77942686e4edc4cdeb2b3acbbbd780fbc049d3fda6b2b8a7941b"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-1280.png",
+      "sha256": "697047196eb3459a4161a0d8fa6007582a4112f264a9b59e8b5f1222584e9db1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-1440.png",
+      "sha256": "19a9d26d26a77d647b9892199a2c2fb71e6962730a9eefc6c0c167c5ea742379"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-375.png",
+      "sha256": "93b1d364434eca2c667b2ad4e71577234e291e080e8c63322cb574fa55c215a7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/baseline-v1-768.png",
+      "sha256": "bce6c8845aff986d20faecb3cc2ed45169b9b5b9a107a21410584ff7da5554f0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/baseline.config.mjs",
+      "sha256": "523ee74d8c390b058107c1b8090b853ce2bbda1e62bfc9947fc84ca0f36ef702"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/before-v2-1280.png",
+      "sha256": "2a0219b2239c9abf1067429f45c2bfe4f3c523ca0c85f3c2980fa034c7d1878d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/before-v2-1440.png",
+      "sha256": "5bd8921233ef103c048bfc70b934c3f86fe485f2d5a68687801fa1cdde7fbd7f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/before-v2-375.png",
+      "sha256": "b3d4adfc9b8874a49734228709e955fef34796c2af5c7e362b59e54f9b1f847c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/before-v2-768.png",
+      "sha256": "a20ff73f0baffff05b94d834af3c48f9e454a18d80b021d5215040678cb5e931"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/browser-results.json",
+      "sha256": "d3249004c83a1626cebf7fcea81f930ba701aee1c3a5f0eb102f47fe1f25b95c"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/build.txt",
+      "sha256": "8c2988403c3f372a071e97102e6549cbd27263517023b5a899e09b7ee7ed1a22"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/business-handler-parity.json",
+      "sha256": "ac9133045a28fee4799380dde793e6ae41cd4d8e81b73975f4a51d630f4e2169"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-1280.png",
+      "sha256": "697047196eb3459a4161a0d8fa6007582a4112f264a9b59e8b5f1222584e9db1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-1440.png",
+      "sha256": "19a9d26d26a77d647b9892199a2c2fb71e6962730a9eefc6c0c167c5ea742379"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-375.png",
+      "sha256": "93b1d364434eca2c667b2ad4e71577234e291e080e8c63322cb574fa55c215a7"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/candidate-v1-768.png",
+      "sha256": "bce6c8845aff986d20faecb3cc2ed45169b9b5b9a107a21410584ff7da5554f0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/compare_v1_pixels.py",
+      "sha256": "43933edd7126a8b4dbbf001506b1b05ca966e6ebf8728d47909fda28ebb7f5f0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/focused-tests.txt",
+      "sha256": "f479e2be5215475517254aa30ba61f67700c7a7bb6ee0dedff3d2005723fa0b9"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/kan158-polish-browser.cjs",
+      "sha256": "3f8c668529076597680af5f5afbac9cab706c19c8b341c69637f6a842b271e94"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/kan158-polish-business.cjs",
+      "sha256": "5f9896981e7cb3adda91315229cfffb81e89f608f09240c921ccccc7d2f26c05"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-1280-7.png",
+      "sha256": "90fddddf4d20a944571b78c2dfd1e7c092d96fa25eace22624634437dd5e1cb2"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-1280-8.png",
+      "sha256": "9ed19c9d6e798819f545770dcd1101bc1d98fec7de0dfc6dbb060e004cc40ad0"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-1280-9.png",
+      "sha256": "d1a48834d3b56b5d1fe78441edbc892db4376032912312286f090dc0942013b3"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-1440-10.png",
+      "sha256": "f24324b32f0333fa8f6d6e253ce593564bc27a0f2bc38df172e12534f776f9e8"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-1440-11.png",
+      "sha256": "ab5af08f17667eb2ef1e38755c5f65e8a29ebe53b95c23dee7936f67ae9d3ee4"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-1440-12.png",
+      "sha256": "09760d73e35ca5d5526211d02e142edcd949892ced39ee3b7341a113bdabbb67"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-375-1.png",
+      "sha256": "0b728b8e97e370bbf9b7726dc8fc9e22d256ab8e0502fdbdcc842501ff237dde"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-375-2.png",
+      "sha256": "49d33fcb51f4a2818f5f855e9c692f8b81c5f5a30018310c343b021e98d58375"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-375-3.png",
+      "sha256": "7ff5a95dde516b0768274c092d8709b5e9b1e5316bc3136473afd45878facb0d"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-768-4.png",
+      "sha256": "c05510898aa61620d192aa5736d9fcbbd117a18efd9b62e6b6dc1afbb06f938f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-768-5.png",
+      "sha256": "c05510898aa61620d192aa5736d9fcbbd117a18efd9b62e6b6dc1afbb06f938f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/name-768-6.png",
+      "sha256": "c05510898aa61620d192aa5736d9fcbbd117a18efd9b62e6b6dc1afbb06f938f"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/typecheck-comparison.json",
+      "sha256": "79f9b1a8200c01a87e1e1bc797376ab7fa36ff74b207f2ac0aa00b01dc582e71"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/typecheck.txt",
+      "sha256": "b00cd8701b6e25b78aaa5e37d74348cbf00bc15dc5740738438c17e6cdce9e06"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/v1-parity.json",
+      "sha256": "c7229cd5513382ab47a22272e2c53aadf2878686c5dfb5d6eb134a70c31035d1"
+    },
+    {
+      "path": "docs/ui-v2/evidence/kan-158/local-polish/validate_delivery.py",
+      "sha256": "39fa64090cd8c6a4fe0d2fb05d84ff3ea27c8a70e5c82d65a777ddf8922e42bd"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileHeroSection.spec.ts",
+      "sha256": "a0dc1d2d41c62ab0897747462d95cea08c3a52b70c852b80dd67b3beada9d079"
+    },
+    {
+      "path": "src/components/public-profile/PublicProfileHeroSection.vue",
+      "sha256": "a2b7abfe8732d2eb90b03799e54b3e60f8c8a5ad50f916a62fec1eac971d776e"
+    },
+    {
+      "path": "src/styles/publicProfileV2.css",
+      "sha256": "bf2e2bc964961001dfb7d3e691bd0508d2f2e883deb3ebeb925602b55c450e80"
+    },
+    {
+      "path": "src/views/PublicProfileView.spec.ts",
+      "sha256": "17ba7b7171646a04b341a4fb4eccfc58746df5a098b49417bdfd2dbab94fc1ae"
+    },
+    {
+      "path": "src/views/PublicProfileView.vue",
+      "sha256": "a3f2c910ccdfce87c6c53440ce3a81b822a8cf39a0d06fe86823b37617fb0600"
+    }
+  ]
+}

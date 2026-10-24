@@ -1,5 +1,11 @@
 # PRO CONSULT — UI Migration Plan
 
+## Current supplied snapshot — v5 incremental overlay
+
+`claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. See [current entry point](ui-v2/START_HERE.md), [v5 audit](ui-v2/DESIGN_SYNC_2026-10-23_V5.md), [manifest](ui-v2/SNAPSHOT_MANIFEST_V5.json) and [matrix](ui-v2/IMPLEMENTATION_MATRIX_V5.md).
+
+This overlay supersedes older readiness/current-snapshot claims below; historical product rules and accepted runtime safeguards remain intact. Public Journal/FAQ now have READY Public-Content references; Tour remains its existing redirect. New Session-Pages/Service-Pages and Emails are READY references, not backend approval. Support Chat, Expanded Blog Editor and Public Profile follow-up are IN PROGRESS; current editor/profile references stay READY. Client Dashboard remains HOLD. No source Step 0, email implementation, support service or psychological-support routing is authorized here. Preserve v1, product sections 1–4, all runtime files, open PR branches and historical snapshots.
+
 ## 1. Purpose
 
 This document defines the safe visual migration plan for the PRO CONSULT frontend.
@@ -1964,12 +1970,20 @@ Follow-up (same date, hero parity adjustments):
 
 ---
 
+## UI v2 v3 readiness and routing — current overlay (2026-10-23)
+
+Current supplied snapshot: `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. [Entry point](ui-v2/START_HERE.md), [unchanged source CHANGELOG](ui-v2/CHANGELOG.md), [integrated current plan](ui-v2/MIGRATION_PLAN_V2.md), [matrix](ui-v2/IMPLEMENTATION_MATRIX_V3.md) and [audit/next task](ui-v2/DESIGN_SYNC_2026-10-23_V3.md).
+
+Only DESIGN READY screens enter implementation after real product/backend checks. Public Journal, standalone FAQ and Tour remain DESIGN IN PROGRESS. Client dashboard remains HOLD. Current coverage includes stages 5a/5b, 6, 7, 8 and 9; older “no mockups” assumptions below are historical for those identities. Do not repeat Stage 0, overwrite production assets or remove v1. Existing #54–#57 and #59 plus backend #63 remain unchanged.
+
+Next eligible candidate: KAN-158 v2-only public header/footer brand visuals, preserving working routes and excluding HomeView (#59). KAN-156 is READY but its contract/copy/crisis gates still apply. See the matrix before selecting any stage; this is not automatic Stage 4 or rollout authorization. Earlier migration logs and accepted product rules below remain historical evidence.
+
 ## UI v2 - staged migration (default v1; per-stage acceptance required)
 
 Imported from `handoff/MIGRATION_PLAN_V2.md`; the earlier migration history is unchanged.
 Master TZ and explicit stage approvals override the source prompts.
 Stage 0A merged in PR #49 at `7a101daede5c0f69fe806d2814e7175273c2bb7a`.
-Stage 0B opt-in infrastructure is implemented locally, awaiting acceptance.
+Stage 0B opt-in infrastructure is merged (PR #50). Later public-page work is merged through #53; #54–#57 remain Draft. See the current Design Sync audit for snapshot conformance, not historical acceptance.
 All page migrations, Git finalization, and deployment remain separately gated.
 
 ## Принцип
@@ -1986,7 +2000,7 @@ All page migrations, Git finalization, and deployment remain separately gated.
 - Verify source hashes, exact file scope, and unchanged runtime inputs.
 - Stage 0A reference import is merged; this does not authorize rollout or page migrations.
 
-### Stage 0B - opt-in activation (local implementation awaiting acceptance)
+### Stage 0B - opt-in activation (historical acceptance; merged)
 
 Implemented the approved [PATCHES.md](ui-v2/PATCHES.md) scope locally: independent
 storage fallback, reactive successful-navigation synchronization, v2-only selectors,
@@ -2014,8 +2028,8 @@ Then run targeted tests, typecheck/build, and v1/v2 browser smoke before accepta
 |---|---|---|---|---|---|---|
 | 3.1 | Кабінет клієнта | `ClientDashboardView.vue` | Client-Cabinet.dc.html | Hero-блок найближчої сесії (24px), матеріали — картки 16px, статуси — `.pc2-tag` | Сер. | Лише опубліковані матеріали; посилання на сесію; стани оплати окремо від підтвердження |
 
-## Етап 4 — кабінет спеціаліста (без нових макетів)
-Застосувати токени й компоненти без зміни структури: dashboard → sessions → session detail → clients → client detail → calendar → billing → settings → admin. Для кожної: замінити кнопки/поля/картки/теги на `.pc2-*`, радіуси за шкалою, прибрати font-weight 700 з заголовків. Макети для них — окремий раунд дизайну, якщо потрібно.
+## Етап 4 — кабінет спеціаліста (historical token-only plan; superseded by the 2026-10-23 snapshot)
+Застосувати токени й компоненти без зміни структури: dashboard → sessions → session detail → clients → client detail → calendar → billing → settings → admin. The former blanket assumption of no Stage 4 mockups is obsolete. Use the specific new Cabinet-Dashboard/Drawer/Mobile, Sessions, Clients and Admin references and separately gated visual/behavior stages below. Uncovered pages still need applicable design or explicitly limited scope.
 
 ## Етап 5 — увімкнення за замовчуванням
 1. Only after separate operational approval: staging `VITE_UI_V2=true` ≥ 1 тиждень, smoke за `STAGING_FE_SMOKE_TEST_TEMPLATE.md`.
@@ -2030,3 +2044,24 @@ Then run targeted tests, typecheck/build, and v1/v2 browser smoke before accepta
 - [ ] Стани loading / empty / error / disabled на місці
 - [ ] Тексти не змінені (окрім узгоджених у макеті)
 - [ ] `npm run test` зелений
+
+
+## Claude snapshot roadmap — 2026-10-23 (current reference)
+
+Snapshot `claude-design-2026-10-23-265f221a`; full SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. The [page matrix and detailed contract gates](ui-v2/DESIGN_SYNC_2026-10-23.md) supersede old inventory/no-mockup assumptions while preserving all earlier migration history and valid product/runtime safeguards.
+
+| Priority | Stage / action | Reference / gate |
+| --- | --- | --- |
+| P0 | Record snapshot and resolve product/backend conflicts; no UI changes in sync | [Manifest](ui-v2/SNAPSHOT_MANIFEST.json), [checklist](ui-v2/DESIGN_SYNC_CHECKLIST.md), audit B1–B14/C1–C8 |
+| P1 | Reassess 1.2 Homepage and 2.2 Discovery against the new export | Home and Find-Specialist; automatic 600ms search, semantic labels and nearest slots require separate behavior/contract review |
+| P1 | **4.12 For Clients — new independent page stage** | For-Clients; own UX/copy/route scope, no unverified SLA/search/slots/reminder/crisis claims. Source TZ §4.11 is Brand; source README/CODEX_TASKS supply this missing stage. |
+| P2 | 4.11 brand/header then public-page deltas and independent registration contract rollout | Brand; keep production assets untouched until explicitly authorized; #54/#63 unchanged |
+| P2 | 4.1a dashboard mapping/visual; 4.1b drawer/actions separately | Cabinet-Dashboard + Cabinet-Drawer; real DTOs, permissions and reversible/delayed mutations |
+| P2 | 4.2a session views; 4.2b detail panel; 4.2c drag separately | Sessions; guest deduplication, lifecycle/reschedule/transaction and keyboard constraints |
+| P2 | 4.3a clients; 4.3b client panel; 4.3c workbook privacy | Clients + Drawer; entitlement/archive/invite/regular-time consequences; private notes remain specialist-only |
+| P2 | 4.9a/b/c admin, one accepted scope per PR | Admin + Drawer; existing admin rights and hidden-data/audit safeguards |
+| Per page | 4.10 responsive acceptance after its page stage | Cabinet-Mobile, including 375/768/tablet/desktop; no new behavior inferred |
+| **HOLD** | **Further 3.1 Client Dashboard implementation** | New Client-Cabinet UX must be approved and request/reminder/diary/reschedule/cancellation/payment/material contracts verified; #57 is an older foundation only |
+| Waiting | Uncovered calendar/billing/settings/blog/chat/analytics pages | No dedicated new page reference in the ZIP; no invented layout |
+
+Do not repeat Stage 2.3 registration work. Keep frontend #54–#57 and backend #63 unchanged. Every future task/PR must identify the exact Claude snapshot against which it was developed. Rollout, default-v2 activation, Ready, merge, deployment and v1 removal remain separate authorization gates.

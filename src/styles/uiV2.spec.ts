@@ -52,6 +52,72 @@ describe('UI v2 CSS contract', () => {
     }
   })
 
+  it('isolates public footer resets, accessible links and the separate header/footer lockups', () => {
+    const footer = declarations(`${gate} .shell .footer.pc2-footer`)
+    expect(footer.background).toBe('var(--pc-bg-main)')
+    expect(footer['box-shadow']).toBe('none')
+    expect(footer['border-top']).toContain('var(--pc-border-hair)')
+    expect(contrast(vars['--pc-text-muted']!, vars['--pc-bg-main']!)).toBeGreaterThanOrEqual(4.5)
+    expect(declarations(`${gate} .pc2-header.topbar--guest .pc2-brand-lockup`).height).toBe('var(--pc-space-8)')
+    const selector = `${gate} .pc2-header.topbar--guest .nav a.pc2-header__cta`
+    for (const state of ['', ':hover', ':active']) {
+      const style = { ...declarations(selector), ...declarations(`${selector}${state}`) }
+      expect(contrast(resolve(style.color!), resolve(style.background!))).toBeGreaterThanOrEqual(4.5)
+    }
+    const focus = declarations(`${gate} .pc2-footer a:focus-visible`)
+    expect(resolve(focus.outline!)).toBe('2px solid #12345a')
+  })
+
+  it('keeps approved brand vectors self-contained with outlined type and no substituted fonts', () => {
+    const lockup = read('src/assets/brand-v2/proconsult-fennec-lockup.svg')
+    const symbol = read('src/assets/brand-v2/proconsult-fennec-symbol-blue.svg')
+    expect(lockup).toContain('viewBox="0 0 316.6661 380.2605"')
+    expect(symbol).toContain('viewBox="0 0 316.6173 312.9045"')
+    for (const svg of [lockup, symbol]) {
+      expect(new DOMParser().parseFromString(svg, 'image/svg+xml').querySelector('parsererror')).toBeNull()
+      expect(svg).not.toMatch(/<text|<image|<script|foreignObject|https?:\/\/(?!www\.w3\.org)/)
+      expect(svg).toContain('<path')
+      expect(svg).toContain('#0e2d52')
+    }
+  })
+
+  it('composes a horizontal header from unchanged approved symbol paths and glyphs', () => {
+    const parse = (name: string) => new DOMParser().parseFromString(read(`src/assets/brand-v2/${name}.svg`), 'image/svg+xml')
+    const header = parse('proconsult-fennec-header')
+    const footer = parse('proconsult-fennec-lockup')
+    const symbol = parse('proconsult-fennec-symbol-blue')
+    expect(header.querySelector('parsererror')).toBeNull()
+    const parts = header.querySelectorAll('svg[data-brand-part]')
+    expect(parts).toHaveLength(2)
+    expect(parts[0]!.getAttribute('x')).toBe('0')
+    expect(parts[1]!.getAttribute('x')).toBe('52')
+    expect(parts[1]!.getAttribute('y')).toBe('10')
+    const attributes = (selector: string, root: ParentNode) => Array.from(root.querySelectorAll(selector), (node) =>
+      Object.fromEntries(Array.from(node.attributes, (attr) => [attr.name, attr.value])))
+    expect(attributes('path', parts[0]!)).toEqual(attributes('path', symbol))
+    expect(attributes('use', parts[1]!)).toEqual(attributes('use', footer))
+    expect(attributes('defs path', header)).toEqual(attributes('defs path', footer))
+    expect(header.querySelector('text')).toBeNull()
+  })
+
+  it('keeps the approved compact logo and desktop audience separation without changing mobile actions', () => {
+    const selector = `${gate} .pc2-header.topbar--guest .pc2-brand-lockup`
+    const rootRule = components.nodes.find((node) => node.type === 'rule' && node.selector === selector) as Rule
+    expect(rootRule.nodes.some((node) => node.type === 'decl' && node.prop === 'height' && node.value === 'var(--pc-space-8)')).toBe(true)
+    expect(vars['--pc-space-8']).toBe('32px')
+    let desktopMargin = ''
+    components.walkAtRules('media', (media) => {
+      if (media.params === '(min-width: 1101px)') media.walkRules((rule) => {
+        if (rule.selector === `${gate} .pc2-header.topbar--guest .pc2-header__audience`) {
+          rule.walkDecls('margin-left', (decl) => { desktopMargin = decl.value })
+        }
+      })
+    })
+    expect(desktopMargin).toBe('calc(var(--pc-space-20) - var(--pc-space-6))')
+    expect(vars['--pc-space-20']).toBe('80px')
+    expect(vars['--pc-space-6']).toBe('24px')
+  })
+
   it('gates every selector branch, including nested media queries, away from v1', () => {
     let count = 0
     for (const root of [tokens, components]) {
@@ -68,7 +134,8 @@ describe('UI v2 CSS contract', () => {
     try {
       for (const root of [tokens, components]) {
         root.walkRules((rule) => {
-          for (const selector of rule.selectors) expect(document.querySelector(selector)).toBeNull()
+          // Pseudo-elements have no DOM node; jsdom does not parse native dialog ::backdrop.
+          for (const selector of rule.selectors) expect(document.querySelector(selector.replace(/::backdrop\b/g, ''))).toBeNull()
         })
       }
     } finally {

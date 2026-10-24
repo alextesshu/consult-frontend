@@ -1,0 +1,26 @@
+[
+  {
+    "width": 375,
+    "filename": "Specialist-Profile-Mobile.dc.html",
+    "errors": [],
+    "adaptation": "Only outer phone-board scaffold resized to viewport; source content/styles/handlers retained."
+  },
+  {
+    "width": 768,
+    "filename": "Specialist-Profile-Mobile.dc.html",
+    "errors": [],
+    "adaptation": "Only outer phone-board scaffold resized to viewport; source content/styles/handlers retained."
+  },
+  {
+    "width": 1280,
+    "filename": "Specialist-Profile.dc.html",
+    "errors": [],
+    "adaptation": "BrandListen registration script omitted because profile has no animated listen component; source profile script retained."
+  },
+  {
+    "width": 1440,
+    "filename": "Specialist-Profile.dc.html",
+    "errors": [],
+    "adaptation": "BrandListen registration script omitted because profile has no animated listen component; source profile script retained."
+  }
+]

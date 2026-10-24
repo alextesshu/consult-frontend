@@ -23,12 +23,14 @@
           </span>
           <span>Відеовізитка</span>
         </button>
+        <slot name="share-action" />
       </div>
 
       <div class="hero-main">
         <div class="hero-main__intro">
-          <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
-          <p v-if="profile && displayHeroRoleLine" class="hero-main__role">{{ displayHeroRoleLine }}</p>
+          <p v-if="uiV2 && profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
+          <h1 ref="titleRef" class="title public__title" :style="uiV2 && fittedTitleSize ? { fontSize: `${fittedTitleSize}px` } : undefined"><template v-if="uiV2"><template v-for="(word, index) in titleWords" :key="index"><span class="pc2-profile-name-word">{{ word }}</span>{{ index < titleWords.length - 1 ? ' ' : '' }}</template></template><template v-else>{{ publicName || 'Профіль спеціаліста' }}</template></h1>
+          <p v-if="!uiV2 && profile && displayHeroRoleLine" class="hero-main__role">{{ displayHeroRoleLine }}</p>
           <p class="hero-main__lead hero-main__lead--teaser">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
           <button
             v-if="profile && showAboutDetails"
@@ -69,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 type HeroInfoItem = {
   label: string
@@ -82,6 +84,7 @@ type PublicProfileMedia = {
 }
 
 type Props = {
+  uiV2?: boolean
   profile: PublicProfileMedia | null
   publicName: string
   heroRoleLine: string
@@ -97,6 +100,54 @@ const emit = defineEmits<{
   (event: 'video-action'): void
   (event: 'about-action'): void
 }>()
+
+// Keep complete name words while preserving the source size whenever they fit.
+const titleRef = ref<HTMLElement | null>(null)
+const fittedTitleSize = ref<number | null>(null)
+const titleWords = computed(() => (props.publicName || 'Профіль спеціаліста').split(/\s+/))
+let titleObserver: ResizeObserver | undefined
+let titleDisposed = false
+function fitTitleWords() {
+  const title = titleRef.value
+  if (titleDisposed || !props.uiV2 || !title || !title.clientWidth) return
+  const sourceSize = window.innerWidth < 860 ? 34 : Math.min(60, Math.max(40, window.innerWidth * .046))
+  const style = getComputedStyle(title)
+  const probe = document.createElement('span')
+  Object.assign(probe.style, {
+    position: 'fixed', visibility: 'hidden', whiteSpace: 'nowrap',
+    fontFamily: style.fontFamily, fontWeight: style.fontWeight,
+    fontSize: `${sourceSize}px`,
+    letterSpacing: `${(parseFloat(style.letterSpacing) || 0) * sourceSize / parseFloat(style.fontSize)}px`,
+  })
+  document.body.append(probe)
+  let longest = 0
+  for (const word of (props.publicName || title.textContent || '').split(/\s+/)) {
+    probe.textContent = word
+    longest = Math.max(longest, probe.getBoundingClientRect().width)
+  }
+  probe.remove()
+  fittedTitleSize.value = longest > title.clientWidth
+    ? Math.floor(sourceSize * title.clientWidth / longest * 100) / 100
+    : sourceSize
+}
+onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined') {
+    titleObserver = new ResizeObserver(fitTitleWords)
+    if (titleRef.value) titleObserver.observe(titleRef.value)
+  }
+  window.addEventListener('resize', fitTitleWords)
+  void document.fonts?.ready.then(fitTitleWords)
+  fitTitleWords()
+})
+watch(() => [props.publicName, props.uiV2], () => {
+  fittedTitleSize.value = null
+  fitTitleWords()
+}, { flush: 'post' })
+onBeforeUnmount(() => {
+  titleDisposed = true
+  titleObserver?.disconnect()
+  window.removeEventListener('resize', fitTitleWords)
+})
 
 function normalizeHeroText(value: string): string {
   return value.trim().toLocaleLowerCase('uk-UA').replace(/\s+/g, ' ')

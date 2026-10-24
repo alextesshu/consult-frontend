@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, type Component } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.vue'
 import { applyUiVersion } from '../lib/uiVersion'
 import appRouter from '../router'
@@ -108,6 +108,7 @@ async function renderWithProviders(options?: {
 }) {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' }, meta: { publicSurface: 'neutral' } },
+    { path: '/for-clients', name: 'for-clients', component: { template: '<div>For Clients</div>' }, meta: { publicSurface: 'neutral' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
@@ -294,16 +295,169 @@ describe('App shell', () => {
     const header = document.querySelector('header.pc2-header') as HTMLElement
     const audience = within(header).getByRole('navigation', { name: 'Для кого Pro Consult' })
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('href', '/')
-    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/#client-entry-title')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/for-clients')
     expect(within(header).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
     expect(within(header).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(header).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
     expect(within(header).getByRole('link', { name: /Спробувати безкоштовно/ })).toHaveClass('pc2-btn', 'pc2-btn--primary')
-    expect(header.querySelector('.pc2-header__logo')).toHaveAttribute('src', '/brand/proconsult-logo-dark.png')
+    expect(header.querySelector('.pc2-header__logo')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
     expect(within(header).queryByRole('button', { name: 'Меню' })).not.toBeInTheDocument()
   })
 
-  it('reactively switches header versions and tracks the actual client-entry hash', async () => {
+  it('uses the approved v2 lockup in public chrome and retains legal/privacy destinations', async () => {
+    applyUiVersion('v2')
+    await renderWithProviders()
+    const footer = document.querySelector('footer.pc2-footer') as HTMLElement
+    expect(footer).toBeInTheDocument()
+    expect(within(footer).getByRole('img', { name: 'Pro Consult' }).getAttribute('src')).toContain('proconsult-fennec-lockup.svg')
+    for (const href of ['/terms', '/privacy', '/disclaimer', '/support-and-data-requests', '/faq', '/pricing', '/signup', '/login']) {
+      expect(footer.querySelector(`a[href="${href}"]`)).toBeInTheDocument()
+    }
+    expect(document.querySelector('a[href="/for-clients"]')).toBeInTheDocument()
+    expect(document.querySelector('header img[src="/brand/proconsult-logo-dark.png"]')).toBeNull()
+    await fireEvent.click(within(footer).getByRole('button', { name: 'Налаштування конфіденційності' }))
+    expect(screen.getByRole('heading', { name: 'Файли cookie та аналітика' })).toBeInTheDocument()
+    applyUiVersion('v1')
+    await waitFor(() => expect(document.querySelector('footer.pc2-footer')).toBeNull())
+    expect(document.querySelector('header .brand__logo--full')).toHaveAttribute('src', '/brand/proconsult-logo-dark.png')
+    expect(document.querySelector('footer .footer__logo--light')).toHaveAttribute('src', '/brand/proconsult-logo-light.png')
+  })
+
+  it('provides public navigation disclosure with Escape focus return and closes after navigation', async () => {
+    applyUiVersion('v2')
+    const { router } = await renderWithProviders()
+    const button = screen.getByRole('button', { name: 'Меню сайту' })
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    const nav = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+    const pricing = within(nav).getByRole('link', { name: 'Тарифи' })
+    pricing.focus()
+    await fireEvent.keyDown(pricing, { key: 'Escape' })
+    expect(button).toHaveFocus()
+    expect(screen.queryByRole('navigation', { name: 'Мобільна навігація сайту' })).toBeNull()
+    await fireEvent.click(button)
+    await fireEvent.click(within(screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })).getByRole('link', { name: 'Тарифи' }))
+    await waitFor(() => expect(router.currentRoute.value.path).toBe('/pricing'))
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    await fireEvent.click(document.body)
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    await router.push('/?ui=v2#client-entry-title')
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    await fireEvent.click(button)
+    applyUiVersion('v1')
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Меню сайту' })).toBeNull())
+    applyUiVersion('v2')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Меню сайту' })).toHaveAttribute('aria-expanded', 'false'))
+  })
+
+  describe('Public-Mobile P2 header and menu (< 768px)', () => {
+    function stubViewport(mobile: boolean) {
+      const listeners = new Set<() => void>()
+      const media = {
+        matches: mobile,
+        addEventListener: vi.fn((_: string, fn: () => void) => listeners.add(fn)),
+        removeEventListener: vi.fn((_: string, fn: () => void) => listeners.delete(fn)),
+      }
+      vi.stubGlobal('matchMedia', vi.fn(() => media))
+      return { change(next: boolean) { media.matches = next; listeners.forEach((fn) => fn()) } }
+    }
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    })
+
+    it('opens the full-screen menu from the burger and closes it with Escape, backdrop and navigation', async () => {
+      stubViewport(true)
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders()
+      const header = document.querySelector('header.pc2-header') as HTMLElement
+      expect(within(header).getByRole('link', { name: 'Створити' })).toHaveAttribute('href', '/signup')
+      const button = screen.getByRole('button', { name: 'Меню сайту' })
+      expect(button).toHaveAttribute('aria-controls', 'public-mobile-menu-v2')
+      expect(button).toHaveAttribute('aria-haspopup', 'dialog')
+      await fireEvent.click(button)
+      const dialog = await screen.findByRole('dialog', { name: 'Меню сайту' })
+      expect(button).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.queryByRole('navigation', { name: 'Мобільна навігація сайту' })).toBeNull()
+      expect(document.body.style.overflow).toBe('hidden')
+      await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Закрити меню' })).toHaveFocus())
+      expect(within(dialog).getByRole('link', { name: 'Створити простір' })).toHaveAttribute('href', '/signup')
+      await fireEvent.keyDown(document, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      expect(button).toHaveAttribute('aria-expanded', 'false')
+      expect(button).toHaveFocus()
+      expect(document.body.style.overflow).toBe('')
+      await fireEvent.click(button)
+      await fireEvent.click(document.querySelector('.pc2-mobile-menu__backdrop')!)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      await fireEvent.click(button)
+      await fireEvent.click(within(await screen.findByRole('dialog')).getByRole('link', { name: /Часті питання/ }))
+      await waitFor(() => expect(router.currentRoute.value.path).toBe('/faq'))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      expect(document.body.style.overflow).toBe('')
+    })
+
+    it('matches the header action and menu audience to the client context', async () => {
+      stubViewport(true)
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders({ initialPath: '/for-clients' })
+      const header = document.querySelector('header.pc2-header') as HTMLElement
+      expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
+      expect(within(header).queryByRole('link', { name: 'Створити' })).toBeNull()
+      await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+      const dialog = await screen.findByRole('dialog')
+      expect(within(dialog).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
+      expect(within(dialog).getByRole('link', { name: 'Створити кабінет клієнта' })).toHaveAttribute('href', '/signup-client')
+      await fireEvent.keyDown(document, { key: 'Escape' })
+      await router.push('/login')
+      await waitFor(() => expect(within(header).queryByRole('link', { name: 'Увійти' })).toBeNull())
+      expect(within(header).getByRole('link', { name: 'Створити' })).toHaveAttribute('href', '/signup')
+      await router.push('/specialists')
+      await waitFor(() => expect(within(header).getByRole('link', { name: 'Увійти' })).toBeInTheDocument())
+    })
+
+    it('keeps specialist-owned pages free of product promotion on mobile', async () => {
+      stubViewport(true)
+      applyUiVersion('v2')
+      await renderWithProviders({ initialPath: '/s/olena' })
+      const header = document.querySelector('header.pc2-header') as HTMLElement
+      expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
+      await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      const nav = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+      expect(within(nav).queryByRole('link', { name: 'Тарифи' })).toBeNull()
+      expect(within(nav).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
+    })
+
+    it('falls back to the existing inline menu at 768px and closes the dialog when the viewport widens', async () => {
+      const viewport = stubViewport(true)
+      applyUiVersion('v2')
+      await renderWithProviders()
+      const button = screen.getByRole('button', { name: 'Меню сайту' })
+      await fireEvent.click(button)
+      await screen.findByRole('dialog')
+      viewport.change(false)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      expect(document.body.style.overflow).toBe('')
+      expect(button).toHaveAttribute('aria-controls', 'public-navigation-v2')
+      await fireEvent.click(button)
+      expect(screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })).toBeInTheDocument()
+    })
+
+    it('leaves v1 guest chrome without the mobile action or dialog', async () => {
+      stubViewport(true)
+      await renderWithProviders()
+      expect(document.querySelector('.pc2-header__mobile-action')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Меню сайту' })).toBeNull()
+      expect(document.querySelector('.pc2-mobile-menu')).toBeNull()
+    })
+  })
+
+  it('reactively switches header versions and tracks the client landing and legacy hash', async () => {
     const { router } = await renderWithProviders()
     applyUiVersion('v2')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeInTheDocument())
@@ -311,8 +465,17 @@ describe('App shell', () => {
     await router.push('/#client-entry-title')
     expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('aria-current', 'false')
+    await router.push('/for-clients')
+    expect(document.querySelector('main')).toHaveClass('main--for-clients-v2')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
+    expect(document.querySelector('a.nav__guest-cta')).toHaveAttribute('href', '/signup-client?ui=v2')
+    expect(document.querySelector('.nav__guest-cta-full')).toHaveTextContent('Створити кабінет')
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
+    const mobile = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
+    expect(within(mobile).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
     applyUiVersion('v1')
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeNull())
+    expect(document.querySelector('main')).not.toHaveClass('main--for-clients-v2')
     expect(screen.queryByRole('navigation', { name: 'Для кого Pro Consult' })).not.toBeInTheDocument()
   })
 
@@ -322,6 +485,8 @@ describe('App shell', () => {
       await renderWithProviders({ roles })
       const header = document.querySelector('header.topbar') as HTMLElement
       expect(header).not.toHaveClass('pc2-header')
+      expect(header.querySelector('.pc2-brand-lockup')).toBeNull()
+      expect(document.querySelector('footer.pc2-footer')).toBeNull()
       expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
       await fireEvent.click(within(header).getByRole('button', { name: 'Меню' }))
       expect(header.querySelector('.mobile-menu')).toBeInTheDocument()

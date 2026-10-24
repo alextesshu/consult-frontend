@@ -1,0 +1,644 @@
+{
+  "snapshot_id": "claude-design-2026-10-23-e43f5f80",
+  "pages": {
+    "Admin.dc.html": {
+      "headings": [
+        "Потребує уваги: {{ wq.activeN }}",
+        "{{ wq.sel.title }}",
+        "{{ ib.headline }}",
+        "{{ ib.sel.title }}",
+        "{{ bl.headline }}",
+        "{{ bl.sel.kind }}",
+        "{{ sx.headline }}",
+        "Готовність профілю",
+        "Публікація та пошук",
+        "Запис і запити",
+        "Онбординг",
+        "Пов’язані запити",
+        "Історія змін"
+      ],
+      "props": {
+        "startScreen": {
+          "default": "specs",
+          "options": [
+            "specs",
+            "queue",
+            "inbox",
+            "billing",
+            "spec"
+          ]
+        }
+      },
+      "lines": 702,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Auth.dc.html": {
+      "headings": [
+        "З поверненням",
+        "Відновлення пароля",
+        "Новий пароль",
+        "Пароль змінено",
+        "Посилання вже не діє",
+        "{{ cf.title }}"
+      ],
+      "props": {
+        "screen": {
+          "default": "login",
+          "options": [
+            "login",
+            "forgot",
+            "reset",
+            "verify",
+            "change"
+          ]
+        },
+        "from": {
+          "default": "unknown",
+          "options": [
+            "unknown",
+            "client",
+            "specialist"
+          ]
+        },
+        "loginIssue": {
+          "default": "none",
+          "options": [
+            "none",
+            "unverified",
+            "blocked"
+          ]
+        },
+        "linkResult": {
+          "default": "ok",
+          "options": [
+            "ok",
+            "expired",
+            "used"
+          ]
+        },
+        "invite": {
+          "default": false,
+          "options": null
+        }
+      },
+      "lines": 293,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Billing.dc.html": {
+      "headings": [
+        "{{ h.title }}",
+        "Оплата Pro",
+        "Більше активних клієнтів"
+      ],
+      "props": {
+        "access": {
+          "default": "trial",
+          "options": [
+            "trial",
+            "pending",
+            "approved",
+            "pro",
+            "expired",
+            "start"
+          ]
+        }
+      },
+      "lines": 161,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Brand.dc.html": {
+      "headings": [
+        "Фенек, який уважно слухає",
+        "Варіанти лого",
+        "Як обіграти на сайті"
+      ],
+      "props": {},
+      "lines": 199,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Cabinet-Dashboard.dc.html": {
+      "headings": [
+        "Потребує уваги",
+        "Готовність до звернень",
+        "Практика",
+        "Попереду"
+      ],
+      "props": {
+        "scenario": {
+          "default": "before",
+          "options": [
+            "before",
+            "soon",
+            "live"
+          ]
+        },
+        "readiness": {
+          "default": "partial",
+          "options": [
+            "closed",
+            "partial",
+            "ready"
+          ]
+        },
+        "emptyQueue": {
+          "default": false,
+          "options": null
+        }
+      },
+      "lines": 379,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Cabinet-Drawer.dc.html": {
+      "headings": [
+        "{{ title }}"
+      ],
+      "props": {
+        "$preview": {
+          "default": null,
+          "options": null
+        },
+        "kind": {
+          "default": "create",
+          "options": [
+            "create",
+            "reply",
+            "link",
+            "note",
+            "profile",
+            "plan",
+            "trial",
+            "payment",
+            "override",
+            "reject"
+          ]
+        },
+        "field": {
+          "default": "price",
+          "options": [
+            "name",
+            "about",
+            "spec",
+            "format",
+            "price",
+            "intake"
+          ]
+        },
+        "current": {
+          "default": "Start",
+          "options": [
+            "Start",
+            "Pro",
+            "Leader"
+          ]
+        },
+        "ctx": {
+          "default": "Три кроки: клієнт, час, формат",
+          "options": null
+        },
+        "onClose": {
+          "default": null,
+          "options": null
+        },
+        "onDone": {
+          "default": null,
+          "options": null
+        }
+      },
+      "lines": 402,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Cabinet-Mobile.dc.html": {
+      "headings": [
+        "Кабінет на мобільному",
+        "Потребує уваги",
+        "Загальні правила < 768px"
+      ],
+      "props": {},
+      "lines": 446,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Chat.dc.html": {
+      "headings": [
+        "{{ title }}"
+      ],
+      "props": {
+        "role": {
+          "default": "client",
+          "options": [
+            "client",
+            "specialist"
+          ]
+        }
+      },
+      "lines": 224,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Client-Cabinet.dc.html": {
+      "headings": [
+        "{{ heroTitle }}",
+        "До сесії",
+        "Нове від спеціаліста",
+        "Мій щоденник",
+        "Сесії",
+        "Мої спеціалісти",
+        "Переглянуті нещодавно"
+      ],
+      "props": {
+        "heroState": {
+          "default": "upcoming",
+          "options": [
+            "upcoming",
+            "live",
+            "pending",
+            "none"
+          ]
+        }
+      },
+      "lines": 330,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Client-Pages.dc.html": {
+      "headings": [
+        "Матеріали",
+        "{{ g.title }}",
+        "Коло підтримки: тривога",
+        "Як усе пройде",
+        "Учасники",
+        "Мій щоденник",
+        "Мої спеціалісти",
+        "Профіль",
+        "Видалення акаунта",
+        "Відгук для {{ fbWhoDat }}",
+        "Дякуємо, відгук передано"
+      ],
+      "props": {
+        "screen": {
+          "default": "materials",
+          "options": [
+            "materials",
+            "diary",
+            "specialists",
+            "profile",
+            "feedback",
+            "event"
+          ]
+        },
+        "deleteBlocked": {
+          "default": false,
+          "options": null
+        },
+        "feedbackLimit": {
+          "default": false,
+          "options": null
+        },
+        "eventState": {
+          "default": "scheduled",
+          "options": [
+            "scheduled",
+            "live",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "eventMode": {
+          "default": "meeting",
+          "options": [
+            "meeting",
+            "broadcast"
+          ]
+        },
+        "eventRecorded": {
+          "default": false,
+          "options": null
+        },
+        "eventHideNames": {
+          "default": false,
+          "options": null
+        }
+      },
+      "lines": 528,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Client-Signup.dc.html": {
+      "headings": [
+        "Створіть кабінет клієнта",
+        "Кабінет готовий"
+      ],
+      "props": {
+        "invited": {
+          "default": false,
+          "options": null
+        }
+      },
+      "lines": 148,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Clients.dc.html": {
+      "headings": [
+        "{{ headline }}",
+        "Приватний зошит · {{ c.name }}"
+      ],
+      "props": {},
+      "lines": 458,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Find-Specialist.dc.html": {
+      "headings": [
+        "Знайдіть спеціаліста для вашого запиту",
+        "{{ countLabel }}"
+      ],
+      "props": {},
+      "lines": 234,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "For-Clients.dc.html": {
+      "headings": [
+        "Знайдіть спеціаліста, який вас почує",
+        "Від запиту до першої зустрічі",
+        "Часті питання",
+        "Кабінет клієнта — безкоштовно"
+      ],
+      "props": {},
+      "lines": 253,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Guest.dc.html": {
+      "headings": [
+        "{{ title }}"
+      ],
+      "props": {
+        "screen": {
+          "default": "session",
+          "options": [
+            "session",
+            "proposal",
+            "group"
+          ]
+        },
+        "state": {
+          "default": "open",
+          "options": [
+            "open",
+            "done",
+            "expired"
+          ]
+        },
+        "format": {
+          "default": "online",
+          "options": [
+            "online",
+            "offline"
+          ]
+        },
+        "signedIn": {
+          "default": true,
+          "options": null
+        }
+      },
+      "lines": 222,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Handoff-Spec.dc.html": {
+      "headings": [
+        "Токени й компоненти",
+        "Колір",
+        "Типографіка · Onest",
+        "Заокруглення",
+        "Тіні",
+        "Кнопки",
+        "Поля",
+        "Вибір і статуси",
+        "Картки",
+        "Кабінет і адмінка",
+        "Рух"
+      ],
+      "props": {},
+      "lines": 395,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Home.dc.html": {
+      "headings": [
+        "Менше адміністрування.",
+        "Більше уваги до клієнта.",
+        "{{ c.title }}",
+        "Чесні умови для вашої практики",
+        "Усе для практики — без зайвого",
+        "Дайте клієнту познайомитись з вами до консультації",
+        "Шукаєте спеціаліста для себе?",
+        "Тарифи",
+        "Створіть свій простір за кілька хвилин"
+      ],
+      "props": {
+        "autoplay": {
+          "default": true,
+          "options": null
+        },
+        "stepSeconds": {
+          "default": 3.4,
+          "options": null
+        },
+        "reveal": {
+          "default": true,
+          "options": null
+        }
+      },
+      "lines": 341,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Inquiries.dc.html": {
+      "headings": [
+        "Запити"
+      ],
+      "props": {},
+      "lines": 179,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Profile-Edit.dc.html": {
+      "headings": [
+        "Профіль",
+        "Основне",
+        "Ціни й формат",
+        "Як до вас записуються",
+        "Про вас",
+        "Контакти",
+        "Освіта й документи"
+      ],
+      "props": {},
+      "lines": 302,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Schedule.dc.html": {
+      "headings": [
+        "{{ heroTitle }}",
+        "Нова пауза"
+      ],
+      "props": {
+        "tab": {
+          "default": "slots",
+          "options": [
+            "slots",
+            "rules",
+            "vac"
+          ]
+        }
+      },
+      "lines": 273,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Sessions.dc.html": {
+      "headings": [
+        "{{ weekLabel }}",
+        "{{ g.label }}"
+      ],
+      "props": {},
+      "lines": 591,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Settings.dc.html": {
+      "headings": [
+        "Налаштування",
+        "{{ m.title }}",
+        "Email для входу",
+        "Пароль",
+        "Видалення акаунта"
+      ],
+      "props": {
+        "tab": {
+          "default": "pay",
+          "options": [
+            "pay",
+            "notif",
+            "acc"
+          ]
+        },
+        "plan": {
+          "default": "pro",
+          "options": [
+            "pro",
+            "start"
+          ]
+        }
+      },
+      "lines": 170,
+      "scripts": [
+        "./support.js"
+      ]
+    },
+    "Signup.dc.html": {
+      "headings": [
+        "Як вас звати?",
+        "З чим ви працюєте?",
+        "Останній крок",
+        "Простір готовий, {{ firstName }}"
+      ],
+      "props": {},
+      "lines": 227,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Specialist-Profile.dc.html": {
+      "headings": [
+        "Марія Коваль",
+        "Як проходить робота",
+        "З чим я працюю",
+        "З чим я не працюю",
+        "Моя професійна підготовка",
+        "Блог",
+        "Поширені запитання",
+        "Готові зробити перший крок?"
+      ],
+      "props": {},
+      "lines": 339,
+      "scripts": [
+        "./support.js",
+        "./brand-listen.js"
+      ]
+    },
+    "Specialist-Tools.dc.html": {
+      "headings": [
+        "Завдання",
+        "Групові події",
+        "Власний блог",
+        "Відгуки",
+        "Аналітика",
+        "Сесії по днях",
+        "Коли записуються",
+        "Що можна покращити"
+      ],
+      "props": {
+        "taskView": {
+          "default": "time",
+          "options": [
+            "time",
+            "status"
+          ]
+        },
+        "screen": {
+          "default": "tasks",
+          "options": [
+            "tasks",
+            "events",
+            "blog",
+            "reviews",
+            "analytics"
+          ]
+        }
+      },
+      "lines": 369,
+      "scripts": [
+        "./support.js"
+      ]
+    }
+  }
+}

@@ -14,7 +14,8 @@
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
-          <span class="brand__logo-frame">
+          <img v-if="usePublicHeaderV2" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
+          <span v-else class="brand__logo-frame">
             <img class="brand__logo brand__logo--full" :class="{ 'pc2-header__logo': usePublicHeaderV2 }" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
             <span class="brand__mobile-name" aria-hidden="true">Pro Consult</span>
@@ -26,11 +27,11 @@
           <RouterLink to="/" class="pc2-header__link" active-class="" exact-active-class=""
             :class="{ 'is-active': isHome && !isClientEntry }"
             :aria-current="isHome && !isClientEntry ? 'location' : 'false'">Для спеціалістів</RouterLink>
-          <RouterLink to="/#client-entry-title" class="pc2-header__link" active-class="" exact-active-class=""
+          <RouterLink to="/for-clients" class="pc2-header__link" active-class="" exact-active-class=""
             :class="{ 'is-active': isClientEntry }"
             :aria-current="isClientEntry ? 'location' : 'false'">Для клієнтів</RouterLink>
         </nav>
-        <nav class="nav">
+        <nav class="nav" :class="{ 'pc2-header__actions': usePublicHeaderV2 }">
         <RouterLink
           v-if="isAuthenticated && hasSupportedCabinetRole"
           class="nav__primary-action"
@@ -64,11 +65,19 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
-        <RouterLink v-if="!isAuthenticated" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary': usePublicHeaderV2 }" to="/signup">
-          <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
-          <span class="nav__guest-cta-short">Спробувати</span>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface && !isClientLandingV2" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
+        <RouterLink v-if="!isAuthenticated" :class="{ 'pc2-header__link pc2-header__login': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
+        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary pc2-header__cta': usePublicHeaderV2 }" :to="isClientLandingV2 ? '/signup-client?ui=v2' : '/signup'">
+          <span class="nav__guest-cta-full">{{ isClientLandingV2 ? 'Створити кабінет' : 'Спробувати безкоштовно' }}</span>
+          <span class="nav__guest-cta-short">{{ isClientLandingV2 ? 'Кабінет клієнта' : 'Спробувати' }}</span>
+        </RouterLink>
+        <RouterLink
+          v-if="usePublicHeaderV2 && publicMobileAction"
+          class="pc2-header__mobile-action"
+          :class="publicMobileAction.primary ? 'is-primary' : 'is-link'"
+          :to="publicMobileAction.to"
+        >
+          {{ publicMobileAction.label }}
         </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
@@ -212,6 +221,20 @@
           </div>
         </div>
         <button
+          v-if="usePublicHeaderV2"
+          ref="publicMenuButtonRef"
+          class="pc2-header__menu-toggle"
+          type="button"
+          aria-label="Меню сайту"
+          :aria-controls="usePublicMobileMenu ? 'public-mobile-menu-v2' : 'public-navigation-v2'"
+          :aria-haspopup="usePublicMobileMenu ? 'dialog' : undefined"
+          :aria-expanded="showPublicMenu ? 'true' : 'false'"
+          @click="showPublicMenu = !showPublicMenu"
+        >
+          <svg class="pc2-header__menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <svg class="pc2-header__menu-icon--mobile" viewBox="0 0 20 9" aria-hidden="true"><path d="M1 1h18M1 8h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        </button>
+        <button
           v-if="isAuthenticated"
           ref="mobileMenuButtonRef"
           class="icon-btn nav__mobile-only"
@@ -292,6 +315,27 @@
           </button>
         </div>
         </nav>
+        <nav
+          v-if="usePublicHeaderV2 && showPublicMenu && !usePublicMobileMenu"
+          id="public-navigation-v2"
+          ref="publicMenuPanelRef"
+          class="pc2-header__mobile-nav"
+          aria-label="Мобільна навігація сайту"
+        >
+          <template v-if="!isSpecialistOwnedSurface">
+            <RouterLink to="/" @click="showPublicMenu = false">Для спеціалістів</RouterLink>
+            <RouterLink to="/for-clients" :aria-current="isClientEntry ? 'page' : undefined" @click="showPublicMenu = false">Для клієнтів</RouterLink>
+            <RouterLink to="/specialists" @click="showPublicMenu = false">Знайти спеціаліста</RouterLink>
+            <RouterLink to="/pricing" @click="showPublicMenu = false">Тарифи</RouterLink>
+          </template>
+          <RouterLink to="/login" @click="showPublicMenu = false">Вхід</RouterLink>
+        </nav>
+        <PublicMobileMenuV2
+          v-if="usePublicMobileMenu"
+          v-model:open="showPublicMenu"
+          :audience="publicMenuAudience"
+          :trigger="publicMenuButtonRef"
+        />
       </div>
     </header>
 
@@ -302,6 +346,7 @@
           'main--home': isHome,
           'main--public-profile': isPublicProfilePage,
           'main--tour': isTour,
+          'main--for-clients-v2': isUiV2() && route.name === 'for-clients',
           'main--authenticated': isAuthenticatedLayout,
           'main--specialist-shell': showSpecialistCabinetShell,
         },
@@ -409,10 +454,40 @@
           'footer--public': !isCabinetRoute && !isSpecialistOwnedSurface,
           'footer--specialist-owned': isSpecialistOwnedSurface,
           'footer--home': isHome,
+          'pc2-footer': usePublicFooterV2,
         },
       ]"
     >
-      <template v-if="isCabinetRoute">
+      <template v-if="usePublicFooterV2">
+        <img class="pc2-footer__watermark" :src="fennecSymbol" alt="" aria-hidden="true" />
+        <div class="pc2-footer__brand">
+          <RouterLink to="/" aria-label="Pro Consult — головна"><img :src="fennecLockup" alt="Pro Consult" /></RouterLink>
+          <span>© {{ new Date().getFullYear() }}</span>
+        </div>
+        <nav class="pc2-footer__links" aria-label="Правова інформація та підтримка">
+          <RouterLink to="/faq">Питання та відповіді</RouterLink>
+          <RouterLink to="/privacy">Політика конфіденційності</RouterLink>
+          <RouterLink to="/terms">Умови користування</RouterLink>
+          <RouterLink to="/disclaimer">Дисклеймер</RouterLink>
+          <RouterLink to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
+          <button type="button" @click="openAnalyticsConsent">Налаштування конфіденційності</button>
+        </nav>
+        <nav class="pc2-footer__secondary" aria-label="Продукт Pro Consult">
+          <RouterLink to="/#features">Можливості</RouterLink>
+          <RouterLink to="/specialists">Знайти спеціаліста</RouterLink>
+          <RouterLink to="/pricing">Тарифи</RouterLink>
+          <RouterLink to="/login">Увійти</RouterLink>
+          <RouterLink to="/signup">Створити простір</RouterLink>
+        </nav>
+        <div class="pc2-footer__bottom">
+          <span>Без комісій. Без посередників. З повагою до практики.</span>
+          <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
+            <span class="footer__deploy-env">Staging</span>
+            <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="isCabinetRoute">
         <div class="footer__cabinet-brand">
           <span class="footer__brand-lockup">
             <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
@@ -437,7 +512,7 @@
       <template v-else-if="isSpecialistOwnedSurface">
         <div class="footer__specialist-brand">
           <span class="footer__brand-lockup">
-            <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <img class="footer__logo footer__logo--cabinet" :class="{ 'pc2-footer__compact-logo': usePublicHeaderV2 }" :src="usePublicHeaderV2 ? fennecLockup : '/brand/proconsult-logo-dark.png'" alt="Pro Consult" />
             <span class="footer__name footer__text-fallback">Pro Consult</span>
           </span>
         </div>
@@ -529,6 +604,11 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import { isUiV2 } from './lib/uiVersion'
+import fennecLockup from './assets/brand-v2/proconsult-fennec-lockup.svg'
+import fennecHeader from './assets/brand-v2/proconsult-fennec-header.svg'
+import PublicMobileMenuV2 from './components/PublicMobileMenuV2.vue'
+import type { PublicMenuAudience } from './lib/publicMobileMenu'
+import fennecSymbol from './assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner.vue'
@@ -558,8 +638,32 @@ const isAuthenticatedCabinetRoute = computed(
 )
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const usePublicHeaderV2 = computed(() => isUiV2() && !isAuthenticated.value && !useMinimalShell.value)
-const isClientEntry = computed(() => isHome.value && route.hash === '#client-entry-title')
+const usePublicFooterV2 = computed(() => usePublicHeaderV2.value && !isCabinetRoute.value && !isSpecialistOwnedSurface.value)
+const showPublicMenu = ref(false)
+const publicMenuButtonRef = ref<HTMLButtonElement | null>(null)
+const publicMenuPanelRef = ref<HTMLElement | null>(null)
+watch(() => [route.fullPath, usePublicHeaderV2.value], () => { showPublicMenu.value = false })
+const isClientEntry = computed(() => route.name === 'for-clients' || (isHome.value && route.hash === '#client-entry-title'))
+const isClientLandingV2 = computed(() => usePublicHeaderV2.value && route.name === 'for-clients')
 const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
+// Public-Mobile.dc.html P2 (< 768px): 60px header with one context action and a full-screen menu.
+// Specialist-owned pages keep the restricted inline menu without product promotion.
+const PUBLIC_MOBILE_QUERY = '(max-width: 767px)'
+const publicMobileMedia = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(PUBLIC_MOBILE_QUERY) : null
+const isPublicMobile = ref(Boolean(publicMobileMedia?.matches))
+function syncPublicMobile() { isPublicMobile.value = Boolean(publicMobileMedia?.matches) }
+onMounted(() => publicMobileMedia?.addEventListener('change', syncPublicMobile))
+onBeforeUnmount(() => publicMobileMedia?.removeEventListener('change', syncPublicMobile))
+const usePublicMobileMenu = computed(() => usePublicHeaderV2.value && isPublicMobile.value && !isSpecialistOwnedSurface.value)
+const isClientContext = computed(() => isClientEntry.value || route.path.startsWith('/specialists'))
+const publicMenuAudience = computed<PublicMenuAudience>(() => (isClientContext.value ? 'clients' : 'specialists'))
+const publicMobileAction = computed(() => {
+  // Specialists: «Створити» is the same action as the hero «Створити простір безкоштовно».
+  const action = isClientContext.value || isSpecialistOwnedSurface.value
+    ? { label: 'Увійти', to: '/login', primary: false }
+    : { label: 'Створити', to: '/signup', primary: true }
+  return route.path === action.to ? null : action
+})
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
 )
@@ -1205,6 +1309,11 @@ function handleVisibilityChange() {
 
 function handleGlobalClick(event: MouseEvent) {
   const target = event.target as Node
+  // The teleported P2 menu handles its own backdrop and links.
+  const insideMobileMenu = target instanceof Element && Boolean(target.closest('.pc2-mobile-menu'))
+  if (showPublicMenu.value && !insideMobileMenu && !publicMenuButtonRef.value?.contains(target) && !publicMenuPanelRef.value?.contains(target)) {
+    showPublicMenu.value = false
+  }
   if (showNotifications.value) {
     const button = notificationsButtonRef.value
     const panel = notificationsPanelRef.value
@@ -1230,6 +1339,10 @@ function handleGlobalClick(event: MouseEvent) {
 
 function handleGlobalKeydown(event: KeyboardEvent) {
   if (event.key !== 'Escape') return
+  if (showPublicMenu.value) {
+    showPublicMenu.value = false
+    publicMenuButtonRef.value?.focus()
+  }
   showNotifications.value = false
   showSettings.value = false
   showMobileMenu.value = false
@@ -2179,6 +2292,13 @@ watch(isChatCapable, (value) => {
 
 .main--authenticated {
   width: min(1480px, 100%);
+}
+
+html[data-ui="v2"] .main--for-clients-v2 {
+  width: min(var(--pc-container), calc(100% + var(--shell-inline-pad) * 2));
+  max-width: none;
+  margin: 0;
+  justify-self: center;
 }
 
 .main--specialist-shell {

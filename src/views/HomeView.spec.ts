@@ -16,6 +16,7 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
     { path: '/', component: HomeView },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/s/:slug', component: { template: '<div>Public Profile</div>' } },
+    { path: '/for-clients', component: { template: '<div>For Clients</div>' } },
     { path: '/specialists', component: { template: '<div>Specialist Search</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
     { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
@@ -365,6 +366,60 @@ describe('HomeView', () => {
 describe('HomeView v2', () => {
   beforeEach(() => { applyUiVersion('v2') })
 
+  it('adds the Public-Mobile P1 step strip from the same four journey steps, with keyboard dots', async () => {
+    const { container } = await renderHome()
+    const cards = container.querySelectorAll('.pc2-home__strip-card')
+    expect(Array.from(cards, (card) => card.querySelector('h3')?.textContent)).toEqual(['Покажіть, хто ви', 'Клієнт звертається напряму', 'Час — в одному календарі', 'Контекст кожного клієнта'])
+    expect(cards[0]).toHaveTextContent('Крок 1 з 4')
+    const track = container.querySelector('.pc2-home__strip-track') as HTMLElement
+    expect(track).toHaveAttribute('tabindex', '0')
+    track.scrollTo = vi.fn() as any
+    const dots = screen.getAllByRole('button', { name: /^Крок \d з 4:/ })
+    expect(dots).toHaveLength(4)
+    expect(dots[0]).toHaveAttribute('aria-current', 'step')
+    await fireEvent.click(dots[2]!)
+    expect(dots[2]).toHaveAttribute('aria-current', 'step')
+    expect(dots[0]).not.toHaveAttribute('aria-current')
+    expect(track.scrollTo).toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Створити свій простір Створити простір безкоштовно' })).toHaveAttribute('href', '/signup')
+    expect(screen.getByRole('link', { name: 'Як це працює' })).toHaveAttribute('href', '/#how-it-works')
+  })
+
+  it('renders the current snapshot composition with explicitly labelled examples and working client links', async () => {
+    const { container } = await renderHome()
+    expect(container.querySelector('.pc2-home__hero-mark')).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelector('.pc2-home__peek img')).toHaveAttribute('alt', '')
+    const features = container.querySelectorAll('.pc2-home__bento > article')
+    expect(features).toHaveLength(6)
+    expect(Array.from(features, (feature) => feature.querySelector('h3')?.textContent)).toEqual([
+      'Професійна сторінка', 'Запит без реєстрації', 'Блог і пошук', 'Нотатки', 'Сесії та календар', 'Оплати',
+    ])
+    expect(container.querySelector('.pc2-home__feature--notes')).toHaveTextContent('Матеріали для клієнта публікуються окремо')
+    expect(container.querySelector('.pc2-home__feature--payments')).toHaveTextContent('фіксуєте й підтверджуєте статуси оплат')
+    expect(screen.getByRole('list', { name: 'Можливості власного блогу' }).children).toHaveLength(3)
+    expect(container.querySelector('.pc2-home__blog a')).toBeNull()
+    const clientEntry = container.querySelector('.pc2-home__client') as HTMLElement
+    expect(within(clientEntry).getByRole('heading', { name: 'Шукаєте спеціаліста для себе?' })).toBeInTheDocument()
+    expect(within(clientEntry).getByRole('link', { name: 'Для клієнтів →' })).toHaveAttribute('href', '/for-clients')
+    expect(container.querySelector('a[href="/for-clients"]')).toBeInTheDocument()
+    expect(container.textContent).not.toMatch(/1 400|протягом доби|автоматична оплата|гарантовані клієнти/)
+  })
+
+  it('keeps labelled illustration states non-actionable and preserves the selected step across UI versions', async () => {
+    const { container } = await renderHome()
+    const controls = within(screen.getByRole('group', { name: 'Етапи роботи' })).getAllByRole('button')
+    await fireEvent.click(controls[1]!)
+    expect(screen.getByRole('list', { name: 'Шлях звернення' })).toHaveTextContent('ЗапитУзгодженняСесія')
+    await fireEvent.click(controls[3]!)
+    expect(container.querySelector('.pc2-home__work-preview')).toHaveTextContent('Лише опубліковані')
+    expect(container.querySelector('.pc2-home__illustration a, .pc2-home__illustration button')).toBeNull()
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.querySelector('.home-lite')).toBeInTheDocument())
+    expect(container.querySelector('.pc2-home__hero-mark')).toBeNull()
+    applyUiVersion('v2')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Робота' })).toHaveAttribute('aria-pressed', 'true'))
+  })
+
   it('offers four manual journey steps with illustrative, request-first content', async () => {
     const { container } = await renderHome()
     expect(container.querySelector('.home-lite')).toBeNull()
@@ -378,7 +433,8 @@ describe('HomeView v2', () => {
     }
     await fireEvent.click(controls[1]!)
     expect(screen.getByRole('region', { name: 'Опис обраного етапу' })).toHaveTextContent('Запит не є підтвердженим записом')
-    expect(container.querySelector('.pc2-home__illustration img')).toBeNull()
+    expect(container.querySelector('.pc2-home__illustration')).toHaveTextContent('Ілюстрація роботи сервісу')
+    expect(container.querySelector('.pc2-home__demo-profile')).toHaveTextContent('Марія Коваль · приклад')
     expect(container.querySelector('.pc2-home__illustration button')).toBeNull()
     expect(container.textContent).not.toContain('Олена Коваль')
   })
@@ -397,7 +453,8 @@ describe('HomeView v2', () => {
     expect(container.querySelectorAll('#pricing')).toHaveLength(1)
     expect(container.querySelectorAll('.pc2-home__plan')).toHaveLength(2)
     expect(container.textContent).not.toMatch(/Leader|рейтинг спеціалістів/)
-    for (const link of container.querySelectorAll('a')) expect(['/signup', '/specialists', '/support-and-data-requests']).toContain(link.getAttribute('href'))
+    // '/#how-it-works' is the Public-Mobile P1 secondary hero action (an existing anchor, same as /tour).
+    for (const link of container.querySelectorAll('a')) expect(['/signup', '/specialists', '/for-clients', '/support-and-data-requests', '/#how-it-works']).toContain(link.getAttribute('href'))
   })
 
   it('keeps billing and one-shot analytics state when switching versions', async () => {

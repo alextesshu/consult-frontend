@@ -1,5 +1,17 @@
 <template>
-  <RouterLink class="result-card" :to="profileRoute" :aria-label="profileLinkLabel">
+  <RouterLink v-if="uiV2" class="result-card pc2-specialist-card pc2-card pc2-card--interactive" :to="profileRoute" :aria-label="profileLinkLabel">
+    <div class="pc2-specialist-card__media"><img v-if="item.photo_url" :src="item.photo_url" :alt="publicName" class="pc2-specialist-card__photo"><span v-else class="pc2-specialist-card__photo pc2-specialist-card__initials" aria-hidden="true">{{ initials }}</span></div>
+    <div class="pc2-specialist-card__body">
+      <div class="pc2-specialist-card__identity"><h3>{{ publicName }}</h3><span v-if="priceText" class="pc2-specialist-card__price">{{ priceText }}</span></div>
+      <p v-if="primarySpecialization" class="pc2-specialist-card__role">{{ primarySpecialization }}</p>
+      <span v-if="item.match_kind === 'exact'" class="pc2-specialist-card__match">За вашим запитом</span>
+      <p v-if="item.public_profile_summary" class="pc2-specialist-card__summary">{{ item.public_profile_summary }}</p>
+      <p v-if="compactLine" class="pc2-specialist-card__line">{{ compactLine }}</p>
+      <div class="pc2-specialist-card__meta"><ul v-if="topics.length" aria-label="Основні теми"><li v-for="topic in topics" :key="topic">{{ topic }}</li></ul><span v-if="formatText || publicLocation" class="pc2-specialist-card__format">{{ formatText }}{{ publicLocation ? ` · ${publicLocation}` : '' }}</span></div>
+      <div class="pc2-specialist-card__entry"><span class="pc2-specialist-card__open" aria-hidden="true">Профіль →</span><span>Звернення</span><span>У профілі спеціаліста</span></div>
+    </div>
+  </RouterLink>
+  <RouterLink v-else class="result-card" :class="{ 'pc2-specialist-card pc2-card pc2-card--interactive': uiV2 }" :to="profileRoute" :aria-label="profileLinkLabel">
     <div class="result-card__media">
       <img v-if="item.photo_url" :src="item.photo_url" :alt="publicName" class="result-card__photo" />
       <div v-else class="result-card__photo result-card__photo--empty" aria-hidden="true">Фото</div>
@@ -32,6 +44,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isUiV2 } from '../lib/uiVersion'
+
+const uiV2 = computed(isUiV2)
 
 const props = defineProps<{
   item: {
@@ -47,11 +62,13 @@ const props = defineProps<{
     offers_offline?: boolean
     price?: string | number | null
     price_currency?: string | null
+    match_kind?: 'exact' | 'related' | 'fallback' | null
     photo_url?: string | null
   }
 }>()
 
 const publicName = computed(() => (props.item.public_display_name || props.item.display_name || '').trim())
+const initials = computed(() => publicName.value.split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join(''))
 const profileLinkLabel = computed(() => `Відкрити профіль ${publicName.value}`.trim())
 const specializations = computed(() => {
   if (Array.isArray(props.item.specializations)) return props.item.specializations.map((item) => item.trim()).filter(Boolean)
@@ -79,6 +96,8 @@ const priceText = computed(() => {
   if (currency === 'EUR') return `€${amount}`
   return `${amount} ${currency}`
 })
+// Public-Mobile.dc.html P4 compact card: "format · location · price" on one line below the name.
+const compactLine = computed(() => [formatText.value, publicLocation.value, priceText.value].filter(Boolean).join(' · '))
 const profileRoute = computed(() => {
   const path = String(props.item.public_profile_path || '').trim()
   if (/^\/s\/[^/?#]+\/?$/.test(path)) return path
@@ -113,5 +132,54 @@ const profileRoute = computed(() => {
   .result-card__price { font-size: 15px; }
   .result-card__summary { -webkit-line-clamp: 2; }
   .result-card__details { display: grid; gap: 5px; }
+}
+</style>
+
+<style>
+html[data-ui="v2"] .pc2-specialist-card { display: grid; grid-template-columns: 112px minmax(0,1fr); align-items: start; gap: 20px; padding: 20px; border-radius: 24px; border: 1px solid var(--pc-border-hair); background: var(--pc-bg-card); color: var(--pc-text-main); text-decoration: none; font-family: var(--pc-font); box-shadow: none; transition: box-shadow .3s ease, border-color .3s; }
+html[data-ui="v2"] .pc2-specialist-card:hover { box-shadow: 0 16px 40px rgb(18 35 58 / 8%); border-color: var(--pc-border-strong); color: var(--pc-text-main); transform: none; }
+html[data-ui="v2"] .pc2-specialist-card:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+html[data-ui="v2"] .pc2-specialist-card__photo { width: 112px; height: 112px; border-radius: 18px; object-fit: cover; object-position: 50% 18%; background: var(--pc-bg-sunk); display: block; }
+html[data-ui="v2"] .pc2-specialist-card__initials { display: grid; place-items: center; color: var(--pc-navy-900); font-size: 30px; font-weight: 500; }
+html[data-ui="v2"] .pc2-specialist-card__body { display: flex; flex-direction: column; gap: 8px; min-width: 0; height: 100%; }
+html[data-ui="v2"] .pc2-specialist-card__identity { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+html[data-ui="v2"] .pc2-specialist-card__identity h3 { font-size: 20px; font-weight: 500; letter-spacing: -.02em; margin: 0; overflow-wrap: anywhere; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-specialist-card__price { font-size: 15px; white-space: nowrap; font-weight: 400; }
+html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__role { font-size: 14px; color: var(--pc-text-muted); margin: -4px 0 0; }
+html[data-ui="v2"] .pc2-specialist-card__match { align-self: flex-start; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__summary { font-size: 15px; line-height: 1.5; color: var(--pc-text-body); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html[data-ui="v2"] .pc2-specialist-card__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; padding-top: 4px; }
+html[data-ui="v2"] .pc2-specialist-card__meta ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+html[data-ui="v2"] .pc2-specialist-card__meta li { font-size: 12px; padding: 5px 10px; border-radius: 999px; background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-specialist-card__format { font-size: 13px; color: var(--pc-text-muted); margin-left: auto; }
+html[data-ui="v2"] .pc2-specialist-card__entry { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--pc-bg-sunk); font-size: 13px; color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-specialist-card__entry > span:last-child { font-size: 15px; font-weight: 500; color: var(--pc-text-main); }
+@media (max-width: 639px) {
+  html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: 72px minmax(0,1fr); gap: 14px; }
+  html[data-ui="v2"] .pc2-specialist-card__photo { width: 72px; height: 72px; }
+  html[data-ui="v2"] .pc2-specialist-card__identity { flex-wrap: wrap; gap: 4px 12px; }
+}
+html[data-ui="v2"] .pc2-specialist-card__line, html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__open { display: none; }
+/* Public-Mobile.dc.html P4 (< 768px): 64px photo, role, name, format · price, two topics, profile link. */
+@media (max-width: 767px) {
+  html[data-ui="v2"] .pc2-specialist-card { grid-template-columns: 64px minmax(0,1fr); grid-template-areas: "photo role" "photo name" "photo line" "photo match" "tags tags" "foot foot"; grid-template-rows: auto auto auto auto; align-content: start; column-gap: 12px; row-gap: 0; padding: 14px; border-radius: 20px; }
+  html[data-ui="v2"] .pc2-specialist-card__media { grid-area: photo; align-self: start; }
+  html[data-ui="v2"] .pc2-specialist-card__photo { width: 64px; height: 64px; border-radius: 16px; }
+  html[data-ui="v2"] .pc2-specialist-card__initials { font-size: 18px; }
+  html[data-ui="v2"] .pc2-specialist-card :is(.pc2-specialist-card__body, .pc2-specialist-card__identity, .pc2-specialist-card__meta) { display: contents; }
+  html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__role { grid-area: role; margin: 0 0 3px; font-size: 12px; color: var(--pc-teal-ink); }
+  html[data-ui="v2"] .pc2-specialist-card__identity h3 { grid-area: name; font-size: 17px; letter-spacing: 0; line-height: 1.25; }
+  html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__line { grid-area: line; display: block; margin: 3px 0 0; font-size: 13px; color: var(--pc-text-muted); }
+  html[data-ui="v2"] .pc2-specialist-card__match { grid-area: match; justify-self: start; margin-top: 6px; }
+  html[data-ui="v2"] .pc2-specialist-card :is(.pc2-specialist-card__price, .pc2-specialist-card__summary, .pc2-specialist-card__format) { display: none; }
+  html[data-ui="v2"] .pc2-specialist-card__meta ul { grid-area: tags; gap: 4px; margin-top: 10px; }
+  html[data-ui="v2"] .pc2-specialist-card__meta li { padding: 4px 9px; white-space: nowrap; }
+  html[data-ui="v2"] .pc2-specialist-card__meta li:nth-child(n+3) { display: none; }
+  html[data-ui="v2"] .pc2-specialist-card__entry { grid-area: foot; justify-content: flex-end; margin-top: 10px; padding-top: 10px; }
+  html[data-ui="v2"] .pc2-specialist-card__entry > span { display: none; }
+  html[data-ui="v2"] .pc2-specialist-card .pc2-specialist-card__entry > .pc2-specialist-card__open { display: inline; font-size: 13px; font-weight: 400; color: var(--pc-navy-900); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-specialist-card, html[data-ui="v2"] .pc2-specialist-card * { transition: none; }
 }
 </style>

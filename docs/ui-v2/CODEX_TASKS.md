@@ -1,115 +1,18 @@
-# UI v2 — завдання для Codex
+# UI v2 — canonical task entry point (v5)
 
-> Reference prompts only. Stage 0A imports artifacts without activation.
-> [Master TZ](PROCONSULT_UI_V2_CODEX_MASTER_TZ.md) and explicit approvals take precedence.
-> The current import omits `support.js`; interactive mockup preview is unavailable.
+Snapshot: `claude-design-2026-10-23-7570f1ad`; archive SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`.
+Start with [START_HERE](START_HERE.md), [CHANGELOG](CHANGELOG.md), [matrix](IMPLEMENTATION_MATRIX_V5.md), [audit](DESIGN_SYNC_2026-10-23_V5.md) and [checklist](DESIGN_SYNC_CHECKLIST.md).
 
-## 1. Покласти пакет у репозиторій (один раз, вручну)
+The [exact Claude prompts](snapshots/2026-10-23-7570f1ad/handoff/CODEX_TASKS.md) are preserved as supplied. They are not standalone execution authorization. Runtime file replacement, history deletion, default-v2 rollout and deployment instructions from source START_HERE/PATCHES must not be executed by a documentation sync.
 
-```
-frontend/
-  docs/
-    DESIGN_SYSTEM.md            ← інтегрувати §5–12 і §15, явно зберігши v1; §1–4 не змінювати
-    UI_MIGRATION_PLAN.md        ← дописати в кінець вміст handoff/MIGRATION_PLAN_V2.md
-    ui-v2/
-      README.md                 ← handoff/README.md
-      PATCHES.md                ← handoff/frontend/PATCHES.md
-      CODEX_TASKS.md            ← цей файл
-      mockups/                  ← Home, Signup, Specialist-Profile, Find-Specialist,
-                                   Client-Signup, Client-Cabinet, Handoff-Spec (.dc.html)
-                                   + public/brand/*, assets/*
-  src/styles/tokens-v2.css      ← як є
-  src/styles/components-v2.css  ← як є
-  src/lib/uiVersion.ts          ← як є
-```
+- Check exact screen identity and readiness before planning: IN PROGRESS blocks implementation/integration; READY still requires actual backend/product evidence.
+- Use confirmed product/security/privacy rules and current runtime architecture before design intent. Preserve v1, hardened UI version/storage/bootstrap handling, permissions and real pricing.
+- Keep original `password_confirm` signup and `new_password_confirm` reset contracts until separately approved. Source prompt `password_confirmation` is not the API field. #54/#63 remain Draft.
+- Read source TZ and all page states; never copy mock data or prototype JavaScript or infer endpoints. Do not add semantic/AI claims, nearest-slot data, SLA or 24-hour cancellation claims without contracts. Carry forward KAN-163; only new v5 requirements are assessed in this audit.
+- Preserve existing routes and working navigation. `/find`, `topic`, `/for-clients`, magic-link login, client diary and real undo are not available merely because a prototype links them.
+- Cite snapshot ID, full archive checksum, Git base, source page/status, exact file scope and focused acceptance evidence in every implementation/PR.
+- Follow explicit user authorization for local changes and Git operations; never mutate pending PR branches, Jira, Ready state, merge or deployment by inference.
 
-Макети `.dc.html` — reference source з `x-dc`/`sc-*` та inline-стилями. Виключений `support.js` потрібен для їх інтерактивного runtime; у застосунок макети не підключати. Значення звіряти з токенами й Master TZ.
+[Source map](snapshots/2026-10-23-7570f1ad/handoff/START_HERE.md) and [integrated plan](MIGRATION_PLAN_V2.md) cover stages 0–11. Client dashboard remains HOLD; no duplicate Home, signup, discovery or profile work. Do not apply source statements that all “other pages” lack mockups to the new READY coverage. Public Journal/FAQ are READY under Public-Content; Tour is an existing redirect. Support Chat, Expanded Blog Editor and Public Profile follow-up remain IN PROGRESS; current editor/profile references remain READY.
 
-В `AGENTS.md`, у розділ «Canonical Documentation», додати рядок:
-```
-- UI v2 migration: `docs/ui-v2/README.md` (tokens, components, mockups, task prompts)
-```
-
-## 2. Як давати завдання
-
-- **Одне завдання на один PR із плану.** Не просіть «перенести все» — Codex почне міняти логіку.
-- Кожне завдання починається з однакового блоку правил (нижче). Після нього — конкретне завдання.
-- Спершу просіть план і список файлів, редагувати — після вашого «так» (це вже прописано в AGENTS.md).
-- До кожного завдання про сторінку прикладайте скриншот макета: Codex краще звіряє вигляд з картинкою.
-
-### Спільний блок правил (вставляти на початок кожного завдання)
-```
-Контекст: UI v2 міграція. Прочитай docs/ui-v2/README.md, docs/DESIGN_SYSTEM.md §5–12,
-src/styles/tokens-v2.css, src/styles/components-v2.css.
-Правила:
-- Тільки візуал. Не змінюй роути, API-виклики, store, валідацію, тексти з юридичним змістом.
-- v1 має виглядати як раніше: нова розмітка/стилі тільки під html[data-ui="v2"] або isUiV2().
-- Кольори, розміри, радіуси — лише через var(--pc-*). Жодних нових hex.
-- Класи — з components-v2.css (.pc2-*). Якщо бракує — запропонуй додати туди, не в компонент.
-- Заголовки font-weight 500, не 700.
-- Збережи loading / empty / error / disabled стани.
-- Спершу план і точний список файлів, потім чекай підтвердження.
-- В кінці: npm run test (вузько), vue-tsc, git diff --check; перелік змінених файлів.
-```
-
-## 3. Готові завдання
-
-**Етап 0B — інфраструктура (окреме погодження після 0A)**
-```
-Застосуй docs/ui-v2/PATCHES.md: підключи tokens-v2.css і components-v2.css у main.ts після style.css,
-виклич applyUiVersion() до createApp, додай Onest в index.html, VITE_UI_V2 в .env.example.
-Додай src/lib/uiVersion.spec.ts (порядок: query > localStorage > env, невалідні значення ігноруються).
-Додай примітку «v1 only» на початок docs/UI_SHAPE_STANDARD.md.
-Перевір: ?ui=v1 — без змін; ?ui=v2 — пласкe кремове тло #FBF9F5, Onest 400, фокус-рамка navy.
-```
-
-**1.1 — публічний хедер**
-```
-Під v2 перероби публічний topbar у App.vue за .pc2-header (макет docs/ui-v2/mockups/Home.dc.html, <header>).
-Посилання, умови показу для ролей і мобільне меню не змінюй.
-```
-
-**1.2 — головна**
-```
-HomeView.vue під v2 за mockups/Home.dc.html. Секції: hero, схема «сторінка → запит → сесія → робота»
-з живою карткою, блок практики, тарифи, фінальний CTA. Тексти тарифів і ціни — з поточного коду, не з макета.
-Анімації — тільки з DESIGN_SYSTEM.md §12 «Motion», з урахуванням prefers-reduced-motion.
-```
-
-**1.3a — реєстрація спеціаліста (візуал)**
-```
-SignupView.vue під v2 за mockups/Signup.dc.html: .pc2-input--lg, .pc2-password з кнопкою «Показати/Сховати»,
-.pc2-chips, .pc2-steps. Поля й валідацію поки не змінюй.
-```
-
-**1.3b — реєстрація спеціаліста (поведінка, окремий PR)**
-```
-Прибери поле «Повторіть пароль» з SignupView.vue та його валідацію; лиши ім'я, email, пароль
-і одне питання (спеціалізація, chips). Перевір, що бекенд не вимагає password_confirmation
-(..\backend\docs\AI_CONTRACT.md). Онови тести реєстрації.
-```
-
-**2.1 — профіль спеціаліста**
-```
-PublicProfileView.vue і components/public-profile/* під v2 за mockups/Specialist-Profile.dc.html.
-Сітка minmax(0,1fr) 380px, .pc2-request-panel (липка; <860px — нижній лист).
-Критично: request-first (вибір вікна = запит, не підтверджена сесія), приховані оффери не показувати,
-slug-роут і правила видимості не чіпати.
-```
-
-**2.2 — пошук / 2.3 — реєстрація клієнта / 3.1 — кабінет клієнта**
-```
-<View>.vue під v2 за mockups/<Макет>.dc.html. [для 2.3 — як 1.3a + 1.3b окремими PR]
-[для 2.2 — без рейтингів і «топ»; фільтри й пагінація як були]
-[для 3.1 — тільки опубліковані матеріали; підтвердження сесії й оплата — окремі статуси]
-```
-
-**Етап 4 — кабінет спеціаліста (по одній сторінці)**
-```
-<View>.vue: без зміни структури заміни кнопки/поля/картки/теги на .pc2-*, радіуси за шкалою §8,
-заголовки 500. Нових макетів немає — не вигадуй нові блоки.
-```
-
-## 4. Після кожного PR
-- Перевірити `?ui=v1` і `?ui=v2` на ширині 375 і 1280.
-- Після приймання завершеного етапу — короткий запис у `docs/PHASE_CLOSE_SUMMARIES.md` і оновлення «Active Work» у `docs/HANDOFF.md` (за HANDOFF_RULES.md).
+Stage 11 is a separately scoped backend email task: no templates/sends in this frontend reference sync. support@proconsult.space is approved copy, not mailbox-operation evidence. Psychological support uses the existing discovery landing; topic chips must map to real filters, not be invented.

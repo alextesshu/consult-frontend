@@ -1,0 +1,85 @@
+
+> frontend@0.0.0 test:run
+> vitest run src/views/PublicProfileView.spec.ts src/components/public-profile/PublicProfileIdentityRail.spec.ts src/styles/publicProfileV2.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_ui_v2_stage2_1_public_profile
+
+ ✓ src/views/PublicProfileView.spec.ts (142 tests) 70402ms
+   ✓ PublicProfileView > renders the main public profile sections from loaded data 774ms
+   ✓ PublicProfileView > shares the published profile with its canonical URL and returns focus to the secondary CTA 359ms
+   ✓ PublicProfileView > keeps documents before journal and moves contact block to sticky sidebar 375ms
+   ✓ PublicProfileView > hides work boundaries when the public profile has no authored content 305ms
+   ✓ PublicProfileView > uses sections.publications_preview as primary source for journal preview 365ms
+   ✓ PublicProfileView > falls back to legacy journal endpoints when sections.publications_preview is unavailable 342ms
+   ✓ PublicProfileView > uses sections trust/about/topics/formats/contact_actions as primary source when present 344ms
+   ✓ PublicProfileView > falls back to flat trust/topics/formats/contact_actions when related sections are empty 437ms
+   ✓ PublicProfileView > copies Email, Telegram, Viber, and Phone values from the contact chooser without opening apps 482ms
+   ✓ PublicProfileView > renders a secondary-only phone action with the canonical phone label 360ms
+   ✓ PublicProfileView > copies direct external contact channels without opening an app 400ms
+   ✓ PublicProfileView > returns chooser copy feedback to the default label after a short delay 616ms
+   ✓ PublicProfileView > opens guest booking request flow from slot click without auth 761ms
+   ✓ PublicProfileView > shows consultation offer selector and submits standard offer_type by default 2865ms
+   ✓ PublicProfileView > submits intro offer_type when intro offer is selected 3893ms
+   ✓ PublicProfileView > keeps the chosen request option visible and editable without clearing the request draft 1096ms
+   ✓ PublicProfileView > keeps the selected request option on dialog reopen and resets it after success 1177ms
+   ✓ PublicProfileView > submits couple offer_type only when couple offer is public 737ms
+   ✓ PublicProfileView > does not offer couple selection when couple offer is not public 434ms
+   ✓ PublicProfileView > allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal 1799ms
+   ✓ PublicProfileView > filters available times by selected offer duration 898ms
+   ✓ PublicProfileView > does not show 50-minute slots after selecting 90-minute couple offer 538ms
+   ✓ PublicProfileView > shows calm Ukrainian copy for backend offer duration mismatch 1112ms
+   ✓ PublicProfileView > shows compact Ukrainian validation instead of native browser required tooltips 481ms
+   ✓ PublicProfileView > renders simplified request topic and message copy while keeping topic selection stable 2682ms
+   ✓ PublicProfileView > keeps the request input simple when the Other topic is selected 1135ms
+   ✓ PublicProfileView > renders one concise pre-submit consent block without repeated instructions 714ms
+   ✓ PublicProfileView > submits a valid guest booking request and renders success state copy 1959ms
+   ✓ PublicProfileView > submits guest booking request with canonical telegram contact channel value 2064ms
+   ✓ PublicProfileView > submits guest booking request with canonical phone contact channel value 808ms
+   ✓ PublicProfileView > shows specific validation message for unsupported contact channel choice 2075ms
+   ✓ PublicProfileView > shows friendly unavailable slot error for guest booking request 1038ms
+   ✓ PublicProfileView > shows friendly held slot error for guest booking request 774ms
+   ✓ PublicProfileView > shows friendly guest-flow restriction error for entitlement limits 1646ms
+   ✓ PublicProfileView > keeps canonical client booking flow and does not open guest request modal 459ms
+   ✓ PublicProfileView > prevents an unverified client from starting a direct booking without touching guest flow 1200ms
+   ✓ PublicProfileView > blocks double-submit while client booking confirmation is in progress 536ms
+   ✓ PublicProfileView > shows friendly unavailable slot error for client confirmation booking 493ms
+   ✓ PublicProfileView > blocks booking for a client until booking rules acceptance is confirmed 638ms
+   ✓ PublicProfileView > does not render booking rules prompt when booking_rules has no active items 750ms
+   ✓ PublicProfileView > does not re-prompt booking rules after successful acceptance for repeated booking actions 777ms
+   ✓ PublicProfileView > requires guest booking rules checkbox when active rules are present 796ms
+   ✓ PublicProfileView > does not require guest booking rules checkbox when there are no active booking rules 610ms
+   ✓ PublicProfileView > hides format chooser for online-only specialist and sends online session_format 629ms
+   ✓ PublicProfileView > hides format chooser for offline-only specialist and sends offline session_format 595ms
+   ✓ PublicProfileView > sends online session_format when online option is selected for dual-format specialist 427ms
+   ✓ PublicProfileView > sends offline session_format when offline option is selected for dual-format specialist 432ms
+   ✓ PublicProfileView > shows mapped backend validation message for session format errors 440ms
+   ✓ PublicProfileView > hides the booking calendar and mid-page request section while keeping sidebar and final CTAs 312ms
+   ✓ PublicProfileView > keeps the request modal submit action inside the modal scroll body 553ms
+   ✓ PublicProfileView > keeps right booking card in slot mode while public slots are loading 468ms
+   ✓ PublicProfileView > keeps slot CTA and auto-shifts calendar when current month is empty but horizon has next-month slots 766ms
+   ✓ PublicProfileView > opens generic request modal from secondary slot-mode CTA 1327ms
+   ✓ PublicProfileView > shows no-slots helper and request CTA when no public slots are available 512ms
+   ✓ PublicProfileView > does not consume the recovery request intent without a valid public request format 458ms
+   ✓ PublicProfileView > hides booking calendar when public availability is hidden 431ms
+   ✓ PublicProfileView > submits request-only guest booking request without slot_id 561ms
+   ✓ PublicProfileView > submits active-client request-only booking request without slot_id 530ms
+   ✓ PublicProfileView > opens request form from no-slots fallback CTA for an active client instead of chat 306ms
+   ✓ PublicProfileView > renders a monthly booking calendar and marks available days from month slots 478ms
+   ✓ PublicProfileView > loads previous and next month ranges from calendar navigation 876ms
+   ✓ PublicProfileView > shows inquiry CTA instead of full-chat CTA for a non-active client 1025ms
+   ✓ PublicProfileView > frames inquiry as a low-pressure entry point before booking 347ms
+   ✓ PublicProfileView > creates the first inquiry from the public profile happy path 613ms
+   ✓ PublicProfileView > renders the post-follow-up inquiry state as open while waiting for the final specialist reply 1760ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > moves the existing calendar into a single request panel and preserves configured offers 370ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > reuses the guest request form inline and sends the existing request contract only after submission 618ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > renders actual versioned booking rules in a v2 accordion without inventing consent 410ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > restores the original calendar and preserves entered values through v2/v1 switches 723ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > retains authenticated client confirmation and does not submit on slot selection 367ms
+ ✓ src/components/public-profile/PublicProfileIdentityRail.spec.ts (5 tests) 155ms
+ ✓ src/styles/publicProfileV2.spec.ts (5 tests) 33ms
+
+ Test Files  3 passed (3)
+      Tests  152 passed (152)
+   Start at  01:04:25
+   Duration  77.23s (transform 2.25s, setup 387ms, collect 3.29s, tests 70.59s, environment 2.08s, prepare 273ms)
