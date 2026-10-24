@@ -23,7 +23,7 @@ def save(name, data):
     (HERE / name).write_bytes((json.dumps(data, indent=2, ensure_ascii=False) + '\n').encode())
 
 
-changed = set(git('diff', BASE, '--name-only').decode().splitlines())
+changed = set(git('diff', '6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00', '--name-only').decode().splitlines())
 changed.update(git('ls-files', '--others', '--exclude-standard').decode().splitlines())
 for name in changed:
     assert name in SOURCE or name == REPORT or name.startswith('docs/ui-v2/evidence/specialist-inquiries-phase1/'), name
@@ -55,6 +55,21 @@ for name in ['v1-parity.json', 'incoming-v1-parity.json']:
     else:
         assert rows == json.loads((HERE / name).read_text())
 diagnostics = lambda file: re.findall(r'^src/[^\n]+error TS[^\n]+', (HERE / file).read_text(encoding='utf8'), re.M)
+sync = json.loads((HERE / 'sync-browser-results.json').read_text())
+assert [row['width'] for row in sync['rows']] == [375, 390, 768, 1280]
+sync_pixels = []
+for row in sync['rows']:
+    width = row['width']
+    assert row['scrollWidth'] <= width and row['v1Bounds']['scrollWidth'] <= width and not row['pageErrors']
+    first, second = [Image.open(HERE / f'sync-{label}-v1-{width}.png').convert('RGB') for label in ['baseline', 'candidate']]
+    assert first.size == second.size and ImageChops.difference(first, second).getbbox() is None, width
+    sync_pixels.append({'width': width, 'changedPixels': 0})
+if refresh:
+    save('sync-v1-parity.json', sync_pixels)
+else:
+    assert sync_pixels == json.loads((HERE / 'sync-v1-parity.json').read_text())
+assert diagnostics('sync-typecheck-baseline.txt') == diagnostics('sync-typecheck-candidate.txt')
+assert len(diagnostics('sync-typecheck-candidate.txt')) == 9
 assert diagnostics('typecheck-baseline.txt') == diagnostics('typecheck-candidate.txt')
 assert len(diagnostics('typecheck-candidate.txt')) == 9
 files = sorted([ROOT / file for file in SOURCE + [REPORT]] + [file for file in HERE.iterdir() if file.is_file() and file.name != 'manifest.json'])
@@ -78,4 +93,4 @@ if refresh:
 else:
     assert manifest == json.loads((HERE / 'manifest.json').read_text(encoding='utf8'))
 subprocess.run(['git', 'diff', '--check'], cwd=ROOT, check=True)
-print(f'PASS: strict scope; V1 unchanged; 16 zero-pixel pairs; 8 widths/9 states/motion; 9 baseline diagnostics; {len(inventory)} hashes')
+print(f'PASS: strict scope; V1 unchanged; 20 zero-pixel pairs including 4 actual merged-dev pairs; 8 original widths/9 states/motion; 4 merged widths; 9 baseline diagnostics; {len(inventory)} hashes')

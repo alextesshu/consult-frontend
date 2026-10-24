@@ -2,7 +2,20 @@
 
 2026-10-24. **READY FOR VISUAL REVIEW**, one Draft PR to dev. Branch `feat/ui-v2-specialist-inquiries`, isolated worktree `_specialist_inquiries_v2`. Base at task start: `b2d3e3eb90562b000a6ffd2e35eeda8302d003b8`, containing #65/#66/#67. No KAN-159, Claude worktree, backend, guest workflow, API DTO/client, router, auth or shared-shell source changes.
 
-During implementation branding PR #68 merged; target dev became `6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00`. No automatic merge/rebase was performed. Its two runtime files were read through a temporary Vite git-show overlay for separate prospective integration checks. They were never copied into this worktree. Final PR CI is recorded separately for the pushed SHA; the workflow uses the normal pull_request checkout.
+Historical pre-sync validation: during implementation branding PR #68 merged; target dev became `6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00`. No automatic merge/rebase was performed. Its two runtime files were read through a temporary Vite git-show overlay for separate prospective integration checks. They were never copied into this worktree. Final PR CI is recorded separately for the pushed SHA; the workflow uses the normal pull_request checkout.
+
+## Actual dev synchronization acceptance
+
+2026-10-24 follow-up: current origin/dev is `6f91363f6fbed0f63d6fb181a6aa45ecffb3ba00`. It was merged into the existing feature branch with merge commit `22238ffb7a39c2b8b1a2f08139fdeb7ccc5abb12`, without conflicts or force push. No inquiry runtime edits were needed. App.vue, its tests and shared CSS came directly from the authorized dev merge; no shared-shell customization was made.
+
+- Focused inquiry/CSS/App branding tests: **113/113 PASS**. Cabinet Shell/CSS/navigation tests: **13/13 PASS**.
+- Production build: PASS; existing large-chunk warning retained.
+- Fresh forced typecheck against an isolated exact dev archive: **9 identical diagnostics, 0 new**; both advisory commands exit 2.
+- Actual merged-branch Chromium checks: **375/390/768/1280px**. UI v1 and v2 have no document overflow; compact list/thread navigation works, Cabinet Shell and the existing guest-request destination remain intact. The header uses the approved fennec. The compact cabinet footer retains the legacy logo exactly as current dev does; this follow-up does not change its ownership or design.
+- UI v1 pixel parity against pinned current dev: **0 changed pixels on all four widths**. Font raster cache is warmed before independent capture pairs. Browser APIs remain explicit fixtures, not backend acceptance.
+- [Browser integration results](evidence/specialist-inquiries-phase1/sync-browser-results.json), [pixel results](evidence/specialist-inquiries-phase1/sync-v1-parity.json), [fresh typecheck comparison](evidence/specialist-inquiries-phase1/sync-typecheck-comparison.json), [375px](evidence/specialist-inquiries-phase1/sync-v2-375.png), [1280px](evidence/specialist-inquiries-phase1/sync-v2-1280.png).
+
+Final post-push automatic CI is recorded on the existing Draft PR #69 for its exact HEAD. No manual CI rerun, Ready transition, PR merge, deployment or Jira mutation is authorized or performed. The original validation below remains historical pre-sync evidence.
 
 ## Design provenance and fidelity
 

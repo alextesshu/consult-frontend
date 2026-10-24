@@ -26,3 +26,5 @@ python docs/ui-v2/evidence/specialist-inquiries-phase1/verify.py --refresh
 ```
 
 Run the commands from the delivery report for unit/full/build/typecheck. A clean verification run uses verify.py without --refresh. The manifest hashes UTF-8/LF text and exact binary bytes, excluding itself. Automatic final CI status is recorded on the Draft PR to avoid a self-referential evidence commit.
+
+Actual synchronization follow-up: `sync.cjs` checks the merged branch at 5354 against pinned dev at 5355 on 375/390/768/1280px. Start `candidate.config.mjs` on 5354 and `sync-baseline.config.mjs` on 5355. The latter reads only the original inquiry view from dev; App.vue/shared CSS are the actual merged files on both servers. This replaces the earlier prospective overlay for current acceptance. `sync-*` artifacts contain fresh focused/shell/build/typecheck results, screenshots, browser bounds and exact V1 parity. All browser API responses remain fixtures. The cabinet legacy footer is deliberately preserved from dev; no shared-shell source changes were made.
