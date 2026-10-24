@@ -1,7 +1,7 @@
 // Chromium acceptance for Public Mobile P1–P5 (browser fixtures; not backend acceptance).
 const assert = require('assert')
 const { chromium, fs, out, path, candidate, baseline, context, settle, noOverflow } = require('./common.cjs')
-const ready = { '/': '#home-hero-title', '/for-clients': '#clients-title, #home-hero-title', '/specialists': '.pc2-specialist-card, .result-card', '/login': '#login-title, .auth__title' }
+const ready = { '/': '#home-hero-title', '/for-clients': '#clients-title, #home-hero-title', '/specialists': '.pc2-specialist-card, .result-card', '/login': '#login-title, .auth__title', '/s/olena': 'h1' }
 
 async function open(p, base, route, ui) {
   await p.goto(`${base}${route}${route.includes('?') ? '&' : '?'}ui=${ui}`)
@@ -138,7 +138,7 @@ const sheetState = (p) => p.evaluate(() => {
   // No horizontal overflow at every width on every page, v1 and v2.
   for (const width of [375, 390, 640, 768, 1280, 1440]) {
     const { c, p } = await context(browser, width)
-    for (const ui of ['v1', 'v2']) for (const route of ['/', '/for-clients', '/specialists', '/login']) {
+    for (const ui of ['v1', 'v2']) for (const route of ['/', '/for-clients', '/specialists', '/login', '/s/olena']) {
       await open(p, candidate, route, ui)
       results.overflow.push({ width, ui, route, ...(await noOverflow(p)) })
     }
@@ -149,7 +149,7 @@ const sheetState = (p) => p.evaluate(() => {
 
   // Pixel parity: v1 at all checked widths and v2 desktop (>= 768) against origin/dev.
   const parity = []
-  const routes = [['home', '/'], ['for-clients', '/for-clients'], ['discovery', '/specialists'], ['login', '/login']]
+  const routes = [['home', '/'], ['for-clients', '/for-clients'], ['discovery', '/specialists'], ['login', '/login'], ['profile', '/s/olena']]
   for (const [ui, widths, names] of [['v1', [375, 768, 1280, 1440], routes], ['v2', [768, 1280, 1440], routes.filter(([n]) => n !== 'login')]]) {
     for (const width of widths) {
       for (const [name, route] of names) {

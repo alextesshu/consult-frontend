@@ -10,6 +10,15 @@ Source: `handoff/mockups/Public-Mobile.dc.html` (+ `Home`, `For-Clients`, `Find-
   - Differ: `Clients`, `Sessions`, `Service-Pages` (trailing whitespace only, already recorded in the snapshot README); `Specialist-Tools` (one line, line 531: `₴` → `грн`). None of these are P1–P6 sources.
 - Result: the imported snapshot is used as-is. No snapshot was added or overwritten.
 
+## Integration with KAN-158 (merged `origin/dev` 42a2c8c)
+
+- The branch is synced by a regular merge of `origin/dev` (merge commit on this branch; no rebase, no force push). The merge had no conflicts: KAN-158 does not touch `App.vue`, `components-v2.css`, the router, tokens or this PR's files.
+- **One integration conflict, fixed.** KAN-158 makes the profile section nav (`.pc2-profile-nav`) sticky at a hard-coded `top: 76px`, the desktop header height. With the 60px Public-Mobile header this left a 16px gap below the header at < 768px.
+  - The fix is two values in `src/styles/publicProfileV2.css`: `76px` → `var(--pc-header-h)`. That variable is 76px for every header except the < 768px guest UI v2 header.
+  - The fix lives in the KAN-158 file because KAN-158's own guard test forbids `.pc2-public-profile` in `components-v2.css`.
+  - Measured with `profile-integration.cjs`: the nav top equals the header bottom at 375/390/640 (60) and at 768/1280 (76). Baseline (`origin/dev`) is 76/76 at every width.
+- On profile pages (specialist-owned) the mobile header shows only «Увійти», and the burger keeps the restricted inline menu («Вхід» only). The P2 dialog and its scroll lock are not mounted there, so they do not interact with the KAN-158 request sheet or the About overlay.
+
 ## Fidelity matrix
 
 | | Scenario | Status | Implemented | Not implemented / gate |
@@ -53,9 +62,10 @@ Source: `handoff/mockups/Public-Mobile.dc.html` (+ `Home`, `For-Clients`, `Find-
   - Enter opens the menu, focus lands on ×, Tab stays inside, Escape closes it and returns focus to the burger; × closes it; the backdrop closes it at 640px; «Тарифи» goes to `/#pricing` and closes it;
   - scroll lock is set and removed; no overflow; at 768/1280 the inline menu stays and no dialog appears; no transitions under reduced motion.
 - API data in the browser checks are **browser fixtures** (`common.cjs`), not backend acceptance.
-- Pixel parity against `origin/dev` 7d43768, three runs (`parity-run1..3.json`, combined in `parity-summary.json` by `parity_summary.py`), each with a second baseline capture as a noise control. Font loading makes text glyphs differ between captures of the *same* build, so a pair passes when at least one run matches exactly. All 25 pairs pass with 0 px:
-  - UI v2 desktop at 768/1280/1440 (Home, For Clients, Discovery): 0 px; 8 of 9 pairs are 0 in every run.
-  - UI v1 at 375/768/1280/1440 (Home, `/for-clients` → Home redirect, Discovery, Login): 0 px; Home and Login are 0 in every run.
+- Pixel parity against `origin/dev` 42a2c8c (KAN-158 merged), four runs (`parity-run1..4.json`, combined in `parity-summary.json` by `parity_summary.py`), each with a second baseline capture as a noise control. Font loading makes text glyphs differ between captures of the *same* build, so a pair passes when at least one run matches exactly. All pairs pass with 0 px except v1 768 `/for-clients`:
+  - UI v2 desktop at 768/1280/1440 (Home, For Clients, Discovery, KAN-158 profile): 0 px; 8 of 9 pairs are 0 in every run.
+  - UI v1 at 375/768/1280/1440 (Home, `/for-clients` → Home redirect, Discovery, Login, KAN-158 profile `/s/olena`): 0 px; Home and Login are 0 in every run.
+  - v1 768 `/for-clients` (best 13 685 px) redirects to the v1 Home `#client-entry-title` anchor. The difference sits only in the animated v1 hero band (y 0–1071) and the page size is identical. The baseline differs from its own control by up to 157 000 px on this pair, and v1 Home is unchanged in this PR.
   - Discovery differs by 19–50 px of card-border antialiasing, and the baseline differs from its own control by the same amount. The v1 `/for-clients` redirect scrolls to an anchor and varies between captures of the same build.
 - Recordings: `recordings/claude-p4-sheet.webm` (source), `vue-375-p4-sheet.webm`, `vue-375-p1-strip.webm`, `vue-375-p2-menu.webm`.
 - Screenshots: `claude-p1…p6.png` and `claude-p4-sheet-*.png` (source); `vue-<width>-<page>.png` at every width; `vue-375-*-full.png`; `vue-*-discovery-sheet*.png`; `vue-*-menu-*.png` (real app); `vue-<width>-header-*.png`.

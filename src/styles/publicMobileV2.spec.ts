@@ -90,6 +90,10 @@ describe('Public Mobile P1–P6 source contract', () => {
     expect(shell).toContain('.nav > a:not(.pc2-header__mobile-action) { display: none; }')
     expect(shell).toContain('height: 40px; padding: 0 14px;')
     expect(shell).toContain('width: 44px; height: 44px;')
+    // KAN-158 profile section nav follows the shell header height (76px desktop, 60px mobile guest v2).
+    const profile = readFileSync('src/styles/publicProfileV2.css', 'utf8')
+    expect(profile).not.toMatch(/pc2-profile-nav \{[^}]*top: 76px/)
+    expect(profile.match(/\.pc2-profile-nav \{[^}]*top: var\(--pc-header-h\)/g)).toHaveLength(2)
     const app = readFileSync('src/App.vue', 'utf8')
     expect(app).toContain('<PublicMobileMenuV2')
     expect(app).toContain("PUBLIC_MOBILE_QUERY = '(max-width: 767px)'")

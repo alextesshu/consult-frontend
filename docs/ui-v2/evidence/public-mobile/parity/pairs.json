@@ -21,6 +21,11 @@
   },
   {
     "ui": "v1",
+    "width": 375,
+    "page": "profile"
+  },
+  {
+    "ui": "v1",
     "width": 768,
     "page": "home"
   },
@@ -41,6 +46,11 @@
   },
   {
     "ui": "v1",
+    "width": 768,
+    "page": "profile"
+  },
+  {
+    "ui": "v1",
     "width": 1280,
     "page": "home"
   },
@@ -61,6 +71,11 @@
   },
   {
     "ui": "v1",
+    "width": 1280,
+    "page": "profile"
+  },
+  {
+    "ui": "v1",
     "width": 1440,
     "page": "home"
   },
@@ -80,6 +95,11 @@
     "page": "login"
   },
   {
+    "ui": "v1",
+    "width": 1440,
+    "page": "profile"
+  },
+  {
     "ui": "v2",
     "width": 768,
     "page": "home"
@@ -93,6 +113,11 @@
     "ui": "v2",
     "width": 768,
     "page": "discovery"
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "profile"
   },
   {
     "ui": "v2",
@@ -111,6 +136,11 @@
   },
   {
     "ui": "v2",
+    "width": 1280,
+    "page": "profile"
+  },
+  {
+    "ui": "v2",
     "width": 1440,
     "page": "home"
   },
@@ -123,5 +153,10 @@
     "ui": "v2",
     "width": 1440,
     "page": "discovery"
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "profile"
   }
 ]

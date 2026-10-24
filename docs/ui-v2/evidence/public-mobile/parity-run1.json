@@ -11,8 +11,8 @@
     "ui": "v1",
     "width": 375,
     "page": "for-clients",
-    "candidateVsBaseline": 107064,
-    "controlVsBaseline": 107064,
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
     "candidateVsControl": 0
   },
   {
@@ -33,6 +33,14 @@
   },
   {
     "ui": "v1",
+    "width": 375,
+    "page": "profile",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
     "width": 768,
     "page": "home",
     "candidateVsBaseline": 0,
@@ -43,9 +51,9 @@
     "ui": "v1",
     "width": 768,
     "page": "for-clients",
-    "candidateVsBaseline": 58176,
-    "controlVsBaseline": 156196,
-    "candidateVsControl": 153282
+    "candidateVsBaseline": 75230,
+    "controlVsBaseline": 153282,
+    "candidateVsControl": 156831
   },
   {
     "ui": "v1",
@@ -65,6 +73,14 @@
   },
   {
     "ui": "v1",
+    "width": 768,
+    "page": "profile",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 2014,
+    "candidateVsControl": 2014
+  },
+  {
+    "ui": "v1",
     "width": 1280,
     "page": "home",
     "candidateVsBaseline": 0,
@@ -76,16 +92,16 @@
     "width": 1280,
     "page": "for-clients",
     "candidateVsBaseline": 0,
-    "controlVsBaseline": 0,
-    "candidateVsControl": 0
+    "controlVsBaseline": 190879,
+    "candidateVsControl": 190879
   },
   {
     "ui": "v1",
     "width": 1280,
     "page": "discovery",
-    "candidateVsBaseline": 50,
+    "candidateVsBaseline": 0,
     "controlVsBaseline": 50,
-    "candidateVsControl": 0
+    "candidateVsControl": 50
   },
   {
     "ui": "v1",
@@ -97,6 +113,14 @@
   },
   {
     "ui": "v1",
+    "width": 1280,
+    "page": "profile",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v1",
     "width": 1440,
     "page": "home",
     "candidateVsBaseline": 0,
@@ -107,17 +131,17 @@
     "ui": "v1",
     "width": 1440,
     "page": "for-clients",
-    "candidateVsBaseline": 235236,
+    "candidateVsBaseline": 70274,
     "controlVsBaseline": 0,
-    "candidateVsControl": 235236
+    "candidateVsControl": 70274
   },
   {
     "ui": "v1",
     "width": 1440,
     "page": "discovery",
     "candidateVsBaseline": 0,
-    "controlVsBaseline": 0,
-    "candidateVsControl": 0
+    "controlVsBaseline": 50,
+    "candidateVsControl": 50
   },
   {
     "ui": "v1",
@@ -128,12 +152,20 @@
     "candidateVsControl": 0
   },
   {
+    "ui": "v1",
+    "width": 1440,
+    "page": "profile",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
     "ui": "v2",
     "width": 768,
     "page": "home",
-    "candidateVsBaseline": 6398,
+    "candidateVsBaseline": 0,
     "controlVsBaseline": 0,
-    "candidateVsControl": 6398
+    "candidateVsControl": 0
   },
   {
     "ui": "v2",
@@ -147,6 +179,14 @@
     "ui": "v2",
     "width": 768,
     "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "profile",
     "candidateVsBaseline": 0,
     "controlVsBaseline": 0,
     "candidateVsControl": 0
@@ -177,6 +217,14 @@
   },
   {
     "ui": "v2",
+    "width": 1280,
+    "page": "profile",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
     "width": 1440,
     "page": "home",
     "candidateVsBaseline": 0,
@@ -195,6 +243,14 @@
     "ui": "v2",
     "width": 1440,
     "page": "discovery",
+    "candidateVsBaseline": 0,
+    "controlVsBaseline": 0,
+    "candidateVsControl": 0
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "profile",
     "candidateVsBaseline": 0,
     "controlVsBaseline": 0,
     "candidateVsControl": 0

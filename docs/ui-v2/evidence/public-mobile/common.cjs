@@ -10,6 +10,7 @@ const source = '/docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/'
 const candidate = 'http://127.0.0.1:5371'
 const baseline = 'http://127.0.0.1:5372'
 const WIDTHS = [375, 390, 640, 768, 1280, 1440]
+const profileFixture = JSON.parse(fs.readFileSync(path.join(repo, 'docs/ui-v2/evidence/kan-158/v66-v67/fixture.json'), 'utf8'))
 
 const specialist = (i, extra) => ({
   slug: `fixture-${i}`, public_slug: `fixture-${i}`, public_profile_path: `/s/fixture-${i}`,
@@ -43,6 +44,9 @@ async function context(browser, width, { motion = 'no-preference', video = false
   await c.route('**/api/**', async (r) => {
     const url = new URL(r.request().url())
     if (url.pathname.endsWith('/public/specialists/discovery/')) return r.fulfill({ json: discovery(url) })
+    // KAN-158 public profile fixture (same data as docs/ui-v2/evidence/kan-158/v66-v67/fixture.json).
+    if (/\/(s|public\/specialists|public\/therapists)\/olena\/$/.test(url.pathname)) return r.fulfill({ json: profileFixture.profile })
+    if (url.pathname.endsWith('/booking/slots/')) return r.fulfill({ json: profileFixture.slots })
     return r.fulfill({ status: url.pathname.includes('/auth/') ? 401 : 200, json: [] })
   })
   const p = await c.newPage()
