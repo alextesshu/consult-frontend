@@ -1,12 +1,12 @@
-﻿<template>
+<template>
   <section class="public" :class="{ 'pc2-public-profile': uiV2 }">
-    <dialog v-if="uiV2" ref="profileRequestSheetRef" class="pc2-profile-sheet" aria-labelledby="pc2-profile-sheet-title" @close="profileSheetOpen = false" @click="closeProfileSheetBackdrop">
-        <div class="pc2-profile-sheet__header">
-          <h2 id="pc2-profile-sheet-title">Запит до спеціаліста</h2>
-          <button class="pc2-btn pc2-btn--ghost" type="button" @click="closeProfileRequestSheet">Закрити панель</button>
-        </div>
-        <div id="pc2-profile-mobile-content"></div>
-      </dialog>
+    <PublicProfileOverlay v-if="uiV2" v-model:open="profileSheetOpen" kind="request" title="Запит до спеціаліста" title-id="pc2-profile-sheet-title" :locked="guestBookingSubmitting || bookingSlotId !== null">
+      <div id="pc2-profile-mobile-content"></div>
+    </PublicProfileOverlay>
+    <PublicProfileOverlay v-if="uiV2" v-model:open="showAboutModal" kind="about" title="Про мене" title-id="pc2-profile-about-title" @closed="afterProfileAboutClosed">
+      <div class="pc2-profile-about-text">{{ aboutNarrativeText }}</div>
+      <button class="pc2-profile-about-cta" type="button" @click="requestFromAbout">{{ compactProfile ? 'Обрати час' : 'Залишити запит' }}</button>
+    </PublicProfileOverlay>
     <div v-if="loading" class="muted" role="status" aria-live="polite">Завантаження профілю...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
       <div class="panel__header">
@@ -24,37 +24,53 @@
       </div>
     </section>
     <section v-else-if="error" class="public__error" role="alert" aria-live="assertive">
-      <p class="form-error">{{ error }}</p>
+      <template v-if="uiV2 && profileUnavailable">
+        <p class="pc2-profile-unavailable-kicker">Профіль спеціаліста</p>
+        <h1>Профіль недоступний</h1>
+        <p>Сторінка може бути прихована або більше не існувати. Спробуйте пізніше чи знайдіть іншого спеціаліста.</p>
+        <RouterLink class="pc2-btn pc2-btn--primary" to="/specialists">Знайти спеціаліста</RouterLink>
+      </template>
+      <p v-else class="form-error">{{ error }}</p>
       <button class="btn btn--ghost" type="button" @click="retryPublicProfile">Спробувати ще раз</button>
     </section>
 
     <section v-else-if="profile" class="public__layout">
       <section class="public__hero-col">
         <PublicProfileHeroSection
+          :ui-v2="uiV2"
           :profile="heroMediaProfile"
           :public-name="publicName"
           :hero-role-line="heroRoleLine"
           :hero-lead-text="heroLeadText"
           :hero-support-text="heroSupportText"
           :display-specialization-chips="displaySpecializationChips"
-          :general-info-items="trustItems"
+          :general-info-items="uiV2 ? profileV2Info : trustItems"
           :show-about-details="Boolean(aboutNarrativeText)"
           @video-action="openProfileVideoModal"
           @about-action="openAboutModal"
-        />
+        >
+          <template v-if="uiV2 && canShareProfile" #share-action>
+            <button ref="profileShareButtonRef" class="pc2-profile-hero-share" type="button" aria-haspopup="dialog" :aria-expanded="profileShareDialogOpen" @click="openProfileShare">
+              <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,109.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,112H165a88,88,0,0,0-85.23,66,8,8,0,0,1-15.5-4A103.94,103.94,0,0,1,165,96h39.71L170.34,61.66a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,109.66ZM192,208H40V88a8,8,0,0,0-16,0V208a16,16,0,0,0,16,16H192a8,8,0,0,0,0-16Z" /></svg>
+              Поділитися профілем
+            </button>
+          </template>
+        </PublicProfileHeroSection>
       </section>
 
       <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && showGuestBookingModal }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep">
+      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (compactProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep">
         <ol v-if="uiV2" class="pc2-profile-steps" aria-label="Кроки запиту">
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'offer' ? 'step' : undefined">1. Послуга</li>
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'time' ? 'step' : undefined">2. Час</li>
           <li :aria-current="showGuestBookingModal ? 'step' : undefined">3. Контакт</li>
         </ol>
         <PublicProfileIdentityRail
+          :ui-v2="uiV2"
           :profile="profile"
-          :hero-cta-title="heroCtaTitle"
-          :hero-primary-label="heroPrimaryLabel"
+          :meeting-format-label="meetingFormatLabel"
+          :hero-cta-title="uiV2 ? 'Формат зустрічі' : heroCtaTitle"
+          :hero-primary-label="uiV2 && publicDirectBookingEnabled ? 'Обрати час' : heroPrimaryLabel"
           :show-client-sessions-cta="showClientSessionsCta"
           :primary-action-next-step-copy="primaryActionNextStepCopy"
           :intro-price-display="introPriceDisplay"
@@ -69,7 +85,7 @@
           :copied-contact-id="copiedContactId"
           :show-chat-cta="canMessageSpecialist"
           chat-cta-label="Написати в чат"
-          :show-request-cta="showRailRequestCta"
+          :show-request-cta="uiV2 && publicDirectBookingEnabled ? false : showRailRequestCta"
           :request-cta-label="railRequestCtaLabel"
           :show-request-explanation="showRequestExplanation"
           :request-helper-text="railRequestHelperText"
@@ -87,9 +103,9 @@
           @copy-contact-action="copyPublicContactValue"
           @select-offer="selectPublicOffer"
         >
-          <template #share-action>
+          <template v-if="!uiV2" #share-action>
             <button
-              v-if="canShareProfile"
+              v-if="!uiV2 && canShareProfile"
               ref="profileShareButtonRef"
               class="btn public-profile-share-cta"
               type="button"
@@ -108,7 +124,11 @@
       </Teleport>
 
       <section class="public__grid">
+        <nav v-if="uiV2" class="pc2-profile-nav" aria-label="Розділи профілю">
+          <button v-for="tab in profileTabs" :key="tab.id" type="button" :aria-current="profileActiveTab === tab.id ? 'location' : undefined" @click="goToProfileSection(tab.id)">{{ tab.label }}</button>
+        </nav>
         <PublicProfileAboutSection
+          :ui-v2="uiV2"
           :work-process-texts="workProcessTexts"
           :work-with-text="whoThisIsForText"
           :work-with-chips="mainRequestChips"
@@ -116,6 +136,8 @@
         />
 
         <PublicProfileTrustSection
+          :id="uiV2 ? 'pc2-profile-education' : undefined"
+          :ui-v2="uiV2"
           :education-summary="competenceEducationSummary"
           :education-items="competenceEducationItems"
           :professional-development-items="competenceProfessionalDevelopmentItems"
@@ -194,7 +216,7 @@
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
-            <h2 class="panel__title">Оберіть час для запиту</h2>
+            <h2 class="panel__title">{{ uiV2 ? 'Вільні вікна' : 'Оберіть час для запиту' }}</h2>
             <p class="panel__lead">Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.</p>
           </div>
           <div v-if="showSlotHeaderActions" class="slot-request-actions">
@@ -210,7 +232,11 @@
         <div class="slot-top">
           <div class="slot-filter">
             <div class="slot-filter__calendar">
-              <div class="booking-calendar__header">
+              <div v-if="uiV2" class="pc2-profile-days" aria-label="Дати вільних вікон">
+                <button v-for="day in profilePreviewDays" :key="day.date" type="button" :disabled="!day.isAvailable" :aria-pressed="day.isSelected" :aria-label="day.ariaLabel" @click="selectCalendarDay(day.date)">{{ profileWeekday(day.date) }}<strong>{{ day.dayNumber }}</strong></button>
+              </div>
+              <button v-if="uiV2" class="pc2-profile-calendar-toggle" type="button" :aria-expanded="profileCalendarOpen" @click="profileCalendarOpen = !profileCalendarOpen">{{ profileCalendarOpen ? 'Згорнути календар' : 'Інші дати — календар' }}</button>
+              <div v-if="!uiV2 || profileCalendarOpen" class="booking-calendar__header">
                 <button
                   class="booking-calendar__nav"
                   type="button"
@@ -229,7 +255,7 @@
                   ›
                 </button>
               </div>
-              <div class="booking-calendar__grid" role="grid" :aria-label="visibleMonthLabel">
+              <div v-if="!uiV2 || profileCalendarOpen" class="booking-calendar__grid" role="grid" :aria-label="visibleMonthLabel">
                 <div
                   v-for="dayName in calendarWeekdayHeaders"
                   :key="dayName"
@@ -408,7 +434,7 @@
           </div>
         </section>
 
-        <div class="first-session-flow">
+        <div v-if="!uiV2" class="first-session-flow">
           <article class="flow-card">
             <div class="flow-card__title">Як проходить перша сесія</div>
             <ul class="flow-card__list">
@@ -435,6 +461,8 @@
           </article>
         </div>
       </div>
+        <button v-if="uiV2 && showRailRequestCta" type="button" class="pc2-profile-no-time" @click="handlePublicRequestAction">Не обирати час — домовимось</button>
+        <p v-if="uiV2" class="pc2-profile-request-note">Це запит, а не автоматичний запис. Спеціаліст має підтвердити час.</p>
       </Teleport>
 
       <PublicProfileJournalPreviewSection
@@ -483,6 +511,9 @@
       />
 
       <PublicProfileFaqSection
+        :compact="compactProfile"
+        :id="uiV2 ? 'pc2-profile-faq' : undefined"
+        :ui-v2="uiV2"
         :faq-items="faqItems"
       />
 
@@ -491,7 +522,7 @@
         class="public__final-cta"
         :closing-cta-support-line="closingCtaSupportLine"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
-        :closing-primary-label="closingPrimaryLabel"
+        :closing-primary-label="uiV2 && publicDirectBookingEnabled ? 'Обрати час' : closingPrimaryLabel"
         :closing-secondary-kind="closingSecondaryKind"
         :contact-cta-label="CONTACT_CHOOSER_COPY.ctaLabel"
         :show-chat-cta="canMessageSpecialist"
@@ -508,7 +539,10 @@
     </section>
 
     <template v-if="uiV2 && profile && !loading && !error && !ownerUnpublishedProfile">
-      <button v-if="compactProfile" ref="profileRequestButtonRef" class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">Послуги та запит</button>
+      <div v-if="compactProfile" class="pc2-profile-bottom-bar">
+        <div><strong v-if="mobileProfilePrice">{{ mobileProfilePrice }}</strong><span>{{ mobileProfileAvailability }}</span></div>
+        <button class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">Обрати час</button>
+      </div>
     </template>
 
     <div v-if="showContactChooserModal" class="setting-modal">
@@ -599,7 +633,7 @@
       </div>
     </div>
 
-    <div v-if="showAboutModal && aboutNarrativeText" class="setting-modal">
+    <div v-if="!uiV2 && showAboutModal && aboutNarrativeText" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeAboutModal"></div>
       <div class="setting-modal__content about-modal">
         <div class="setting-modal__header">
@@ -614,14 +648,14 @@
       </div>
     </div>
 
-    <Teleport :to="uiV2 && !compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || compactProfile || !profileTargetsReady">
+    <Teleport :to="uiV2 && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !profileTargetsReady">
     <div
       v-if="showGuestBookingModal"
       ref="guestBookingModalRef"
       class="setting-modal"
-      :class="{ 'pc2-profile-inline': uiV2 && !compactProfile }"
-      :role="uiV2 && !compactProfile ? 'region' : 'dialog'"
-      :aria-modal="!uiV2 || compactProfile ? true : undefined"
+      :class="{ 'pc2-profile-inline': uiV2 }"
+      :role="uiV2 ? 'region' : 'dialog'"
+      :aria-modal="!uiV2 ? true : undefined"
       aria-labelledby="guest-booking-modal-title"
     >
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
@@ -836,7 +870,16 @@
               <p>Цей запит не є екстреною допомогою.</p>
             </section>
 
-            <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
+            <section v-if="uiV2 && shouldShowGuestBookingRulesPrompt" class="pc2-profile-rules">
+              <button type="button" :aria-expanded="profileRulesOpen" aria-controls="pc2-profile-rules-content" @click="profileRulesOpen = !profileRulesOpen">Умови перед запитом <span>{{ profileRulesOpen ? 'Згорнути' : 'Переглянути' }}</span></button>
+              <div id="pc2-profile-rules-content" class="pc2-profile-rules__content" :class="{ 'is-open': profileRulesOpen }" :aria-hidden="!profileRulesOpen" :inert="!profileRulesOpen ? true : undefined"><div>
+                <article v-if="activePlatformBookingRules.length" class="booking-rules-block"><h4>Правила Pro Consult</h4><p v-for="rule in activePlatformBookingRules" :key="rule.version">{{ rule.text }}</p></article>
+                <article v-if="activeSpecialistBookingRules.length" class="booking-rules-block"><h4>Умови спеціаліста</h4><p v-for="rule in activeSpecialistBookingRules" :key="rule.version">{{ rule.text }}</p></article>
+              </div></div>
+            </section>
+            <p v-if="uiV2 && !shouldShowGuestBookingRulesPrompt && activeBookingRuleItems.length && activeBookingRuleItems.every(rule => rule.accepted)" class="pc2-profile-rules-accepted">✓ Умови вже прийняті</p>
+
+            <article v-if="!uiV2 && shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
               <div class="booking-rules-block__title">Правила Pro Consult</div>
               <p
                 v-for="rule in activePlatformBookingRules"
@@ -847,7 +890,7 @@
               </p>
             </article>
 
-            <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
+            <article v-if="!uiV2 && shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
               <div class="booking-rules-block__title">Правила спеціаліста</div>
               <p
                 v-for="rule in activeSpecialistBookingRules"
@@ -877,7 +920,8 @@
 
     </Teleport>
 
-    <div v-if="showClientBookingConfirmModal" class="setting-modal">
+    <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
+    <div v-if="showClientBookingConfirmModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && compactProfile }">
       <div class="setting-modal__backdrop" @click="closeClientBookingConfirmModal"></div>
       <div class="setting-modal__content booking-confirm-modal">
         <div class="setting-modal__header">
@@ -933,8 +977,10 @@
         </div>
       </div>
     </div>
+    </Teleport>
 
-    <div v-if="showBookingModal" class="setting-modal">
+    <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
+    <div v-if="showBookingModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && compactProfile }">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
         <div class="setting-modal__header">
@@ -968,7 +1014,9 @@
         </div>
       </div>
     </div>
-    <ShareDialog
+    </Teleport>
+    <PublicProfileShare v-if="uiV2" v-model:open="profileShareDialogOpen" :canonical-url="canonicalProfileShareUrl" :name="publicName" :photo="heroMediaProfile?.photo_url" :anchor="profileShareButtonRef" @shared="trackProfileShare" />
+    <ShareDialog v-else
       :open="profileShareDialogOpen"
       :canonical-url="canonicalProfileShareUrl"
       :title="profileShareTitle"
@@ -985,6 +1033,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { isUiV2 } from '../lib/uiVersion'
+import PublicProfileOverlay from '../components/public-profile/PublicProfileOverlay.vue'
+import PublicProfileShare from '../components/public-profile/PublicProfileShare.vue'
+import { useProfileMotion } from '../composables/useProfileMotion'
+import '../styles/publicProfileV2.css'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
@@ -1077,15 +1129,16 @@ import {
 } from '../lib/clientAcquisitionAttribution'
 
 const uiV2 = computed(isUiV2)
+const { highlighted: profileHighlighted, highlight: highlightProfilePanel } = useProfileMotion(uiV2)
+let requestAfterAbout = false
+let profileShareAttempt = 0
 const compactProfile = ref(false)
 const profileTargetsReady = ref(false)
 const profileSheetOpen = ref(false)
+const profileCalendarOpen = ref(false)
+const profileRulesOpen = ref(false)
 const profilePickStep = ref<'offer' | 'time'>('offer')
-const profileRequestSheetRef = ref<HTMLDialogElement | null>(null)
-const profileRequestButtonRef = ref<HTMLButtonElement | null>(null)
 let profileMedia: MediaQueryList | undefined
-let profileOverflowBefore: string | undefined
-let profileGuestReturnFocus: HTMLElement | null = null
 
 function syncProfileRequestStep(event: FocusEvent) {
   if (!uiV2.value || !(event.target instanceof HTMLElement)) return
@@ -1096,45 +1149,50 @@ function profileTeleportTarget(id: string) {
   return document.getElementById(id) ?? document.body
 }
 function syncProfileViewport() {
+  requestAfterAbout = false
   compactProfile.value = profileMedia?.matches ?? false
-  if (!compactProfile.value) closeProfileRequestSheet()
+  closeProfileRequestSheet()
+  showAboutModal.value = false
+  profileShareDialogOpen.value = false
 }
 function openProfileRequestSheet() {
-  if (!uiV2.value || !compactProfile.value || !profileRequestSheetRef.value) return
-  profileRequestSheetRef.value.showModal()
+  if (!uiV2.value || !compactProfile.value) return
   profileSheetOpen.value = true
 }
-function closeProfileRequestSheet() {
-  if (profileRequestSheetRef.value?.open) profileRequestSheetRef.value.close()
-  profileSheetOpen.value = false
-}
-function closeProfileSheetBackdrop(event: MouseEvent) {
-  const sheet = profileRequestSheetRef.value
-  if (!sheet || event.target !== sheet) return
-  const rect = sheet.getBoundingClientRect()
-  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeProfileRequestSheet()
-}
+function closeProfileRequestSheet() { profileSheetOpen.value = false }
 function handleProfileBookingClick(slotId: number) {
-  if (uiV2.value) closeProfileRequestSheet()
+  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
   return handleBookingClick(slotId)
-}
-function profileDialogKeydown(event: KeyboardEvent) {
-  if (!uiV2.value || !compactProfile.value || !showGuestBookingModal.value) return
-  if (event.key === 'Escape') { event.preventDefault(); closeGuestBookingModal(); return }
-  if (event.key !== 'Tab') return
-  const controls = Array.from(guestBookingModalRef.value?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]') ?? [])
-    .filter(el => getComputedStyle(el).display !== 'none' && !el.closest('[hidden]'))
-  const first = controls[0], last = controls[controls.length - 1]
-  if (!first || !last) return
-  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
-  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
 }
 onMounted(() => {
   profileMedia = window.matchMedia?.('(max-width: 859px)')
   profileMedia?.addEventListener('change', syncProfileViewport)
   syncProfileViewport()
-  document.addEventListener('keydown', profileDialogKeydown)
 })
+
+const profileActiveTab = ref('pc2-profile-work')
+const profileTabs = computed(() => [
+  ...(workProcessTexts.value.length ? [{ id: 'pc2-profile-work', label: 'Про роботу' }] : []),
+  ...(competenceEducationItems.value.length || competenceEducationSummary.value || publicDocuments.value.length ? [{ id: 'pc2-profile-education', label: 'Підготовка' }] : []),
+  ...(hasPublicJournalPosts.value ? [{ id: 'journal', label: 'Блог' }] : []),
+  ...(faqItems.value.length ? [{ id: 'pc2-profile-faq', label: 'Питання' }] : []),
+])
+function syncProfileSections() {
+  if (!uiV2.value) return
+  let active = profileTabs.value[0]?.id ?? ''
+  for (const tab of profileTabs.value) {
+    const el = document.getElementById(tab.id)
+    if (el && el.getBoundingClientRect().top < 200) active = tab.id
+  }
+  profileActiveTab.value = active
+}
+function goToProfileSection(id: string) {
+  const el = document.getElementById(id)
+  if (!el) return
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 140, behavior: profileScrollBehavior() })
+}
+onMounted(() => window.addEventListener('scroll', syncProfileSections, { passive: true }))
+onBeforeUnmount(() => window.removeEventListener('scroll', syncProfileSections))
 
 type PublicSlot = {
   id: number
@@ -1295,6 +1353,7 @@ const horizonSlotsLoaded = ref(false)
 const horizonSlotsError = ref(false)
 const error = ref('')
 const ownerUnpublishedProfile = ref(false)
+const profileUnavailable = ref(false)
 const slotsError = ref('')
 const bookingError = ref('')
 const bookingSuccess = ref('')
@@ -1779,6 +1838,21 @@ const canShareProfile = computed(
   () => Boolean(profile.value && canonicalProfileShareUrl.value && !ownerUnpublishedProfile.value)
 )
 
+async function openProfileShare() {
+  const attempt = ++profileShareAttempt
+  if (!canShareProfile.value) return
+  if (uiV2.value && compactProfile.value && navigator.share) {
+    try { await navigator.share({ title: profileShareTitle.value, text: publicName.value, url: canonicalProfileShareUrl.value }); return }
+    catch (error) { if (error instanceof Error && error.name === 'AbortError') return }
+  }
+  if (attempt === profileShareAttempt && canShareProfile.value) profileShareDialogOpen.value = true
+}
+function requestFromAbout() { requestAfterAbout = true; showAboutModal.value = false }
+function afterProfileAboutClosed() {
+  if (!requestAfterAbout) return
+  requestAfterAbout = false
+  if (uiV2.value) { focusSlotsSection(); if (!publicDirectBookingEnabled.value) handlePublicRequestAction() }
+}
 async function closeProfileShareDialog() {
   profileShareDialogOpen.value = false
   await nextTick()
@@ -2206,7 +2280,7 @@ function applyProfileRuntimeMetadata() {
 }
 
 const heroRoleLine = computed(() => {
-  if (heroLeadText.value) return ''
+  if (heroLeadText.value && !uiV2.value) return ''
   const focus = String(profile.value?.professional_focus || '').trim()
   return PROFESSIONAL_FOCUS_LABELS[focus] || ''
 })
@@ -2455,6 +2529,22 @@ const availableGuestRequestOffers = computed<PublicConsultationOfferView[]>(() =
   return offers
 })
 
+const profilePreviewDays = computed(() => {
+  const index = Math.max(0, calendarDays.value.findIndex(day => day.isSelected || day.isAvailable))
+  return calendarDays.value.slice(Math.max(0, Math.min(index, calendarDays.value.length - 5)), Math.max(0, Math.min(index, calendarDays.value.length - 5)) + 5)
+})
+function profileWeekday(date: string) { return new Date(`${date}T12:00:00`).toLocaleDateString('uk-UA', { weekday: 'short' }) }
+const mobileProfilePrice = computed(() => {
+  const prices = availableGuestRequestOffers.value.map(offer => offer.priceDisplay).filter(Boolean)
+  if (!prices.length) return ''
+  const currencies = new Set(prices.map(price => price.replace(/[\d\s.,]/g, '')))
+  return currencies.size === 1 ? prices.slice().sort((a, b) => Number(a.replace(/[^\d.]/g, '')) - Number(b.replace(/[^\d.]/g, '')))[0] : priceDisplay.value
+})
+const mobileProfileAvailability = computed(() => {
+  const slot = publicDirectBookingEnabled.value ? slots.value[0] : null
+  return slot ? `Доступне вікно: ${formatDate(slot.start_at)}` : 'Час узгодимо'
+})
+
 function slotDurationMinutes(slot: PublicSlot | null) {
   if (!slot) return 0
   const start = new Date(slot.start_at).getTime()
@@ -2698,6 +2788,15 @@ const trustItems = computed<ProfileKeyValueItem[]>(() => {
     appendTrustItemIfUnique(items, { label: 'Локація', value: location })
   }
   return items.filter((item) => !isGeneralInfoExcludedLabel(item.label))
+})
+
+const profileV2Info = computed(() => {
+  const format = trustItems.value.find(item => item.label.toLowerCase().includes('формат'))
+  const location = trustItems.value.find(item => item.label === 'Локація')
+  const other = trustItems.value.filter(item => item !== format && item !== location)
+  const values = [format?.value, location?.value].filter((value): value is string => Boolean(value))
+  const unique = values.filter((value, index) => values.findIndex(other => other.toLowerCase() === value.toLowerCase()) === index)
+  return unique.length ? [...other, { label: 'Формат', value: unique.join(', ') }] : other
 })
 
 const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
@@ -3352,8 +3451,9 @@ function focusInquirySection() {
 }
 
 function focusSlotsSection() {
+  if (uiV2.value) highlightProfilePanel()
   if (uiV2.value && compactProfile.value) openProfileRequestSheet()
-  document.getElementById('slots')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' })
+  void nextTick(() => { document.getElementById('slots')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' }) })
 }
 
 function openProfileVideoModal() {
@@ -3556,6 +3656,7 @@ async function loadProfile() {
   loading.value = true
   error.value = ''
   ownerUnpublishedProfile.value = false
+  profileUnavailable.value = false
   try {
     const loadedProfile = await fetchPublicSpecialistProfile(requestedSlug)
     if (!isCurrentLoad()) return
@@ -3573,6 +3674,7 @@ async function loadProfile() {
     resetPublicPageMetadata()
     const status = Number((err as { response?: { status?: number } })?.response?.status || 0)
     if (status === 404) {
+      profileUnavailable.value = true
       const hasOwnerRole = (auth.me?.user.roles || auth.user?.roles || []).some((role) =>
         ['SPECIALIST', 'THERAPIST'].includes(String(role).toUpperCase())
       )
@@ -4749,33 +4851,21 @@ watch([uiV2, profile, loading, error, ownerUnpublishedProfile], () => {
 watch([uiV2, compactProfile, profile, loading, error, ownerUnpublishedProfile], () => {
   if (!uiV2.value || !compactProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
 })
-watch(() => uiV2.value && (profileSheetOpen.value || (compactProfile.value && showGuestBookingModal.value)), (active) => {
-  if (active && profileOverflowBefore === undefined) {
-    profileOverflowBefore = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-  } else if (!active && profileOverflowBefore !== undefined) {
-    document.body.style.overflow = profileOverflowBefore
-    profileOverflowBefore = undefined
-  }
-}, { flush: 'post' })
-watch([showGuestBookingModal, uiV2], async ([open, version], old) => {
-  if (open && version) {
-    profileGuestReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    await nextTick()
-    guestBookingModalRef.value?.querySelector<HTMLElement>('button:not(:disabled), input:not(:disabled)')?.focus()
-  } else if (old?.[0] && old?.[1]) {
-    await nextTick()
-    const target = compactProfile.value && uiV2.value ? profileRequestButtonRef.value : profileGuestReturnFocus
-    if (target?.isConnected) target.focus()
-    profileGuestReturnFocus = null
-  }
-}, { flush: 'post' })
+watch(showGuestBookingModal, open => {
+  if (open && uiV2.value && compactProfile.value) openProfileRequestSheet()
+})
+watch(() => route.fullPath ?? route.path, () => {
+  profileShareAttempt++
+  requestAfterAbout = false
+  closeProfileRequestSheet(); showAboutModal.value = false; profileShareDialogOpen.value = false
+})
+watch(uiV2, value => {
+  if (!value) { profileShareAttempt++; requestAfterAbout = false; closeProfileRequestSheet(); showAboutModal.value = false; profileShareDialogOpen.value = false }
+})
 
 onBeforeUnmount(() => {
+  profileShareAttempt++
   profileMedia?.removeEventListener('change', syncProfileViewport)
-  document.removeEventListener('keydown', profileDialogKeydown)
-  if (profileRequestSheetRef.value?.open) profileRequestSheetRef.value.close()
-  if (profileOverflowBefore !== undefined) document.body.style.overflow = profileOverflowBefore
   profileLoadSequence += 1
   resetPublicPageMetadata()
   clearContactActionFallbackTimer()

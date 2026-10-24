@@ -23,12 +23,14 @@
           </span>
           <span>Відеовізитка</span>
         </button>
+        <slot name="share-action" />
       </div>
 
       <div class="hero-main">
         <div class="hero-main__intro">
+          <p v-if="uiV2 && profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
           <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
-          <p v-if="profile && displayHeroRoleLine" class="hero-main__role">{{ displayHeroRoleLine }}</p>
+          <p v-if="!uiV2 && profile && displayHeroRoleLine" class="hero-main__role">{{ displayHeroRoleLine }}</p>
           <p class="hero-main__lead hero-main__lead--teaser">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
           <button
             v-if="profile && showAboutDetails"
@@ -82,6 +84,7 @@ type PublicProfileMedia = {
 }
 
 type Props = {
+  uiV2?: boolean
   profile: PublicProfileMedia | null
   publicName: string
   heroRoleLine: string

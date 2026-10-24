@@ -5001,7 +5001,7 @@ describe('PublicProfileView', () => {
       const panel = view.container.querySelector('.pc2-request-panel')!
       await waitFor(() => expect(panel.querySelector('#slots')).toBeInTheDocument())
       expect(view.container.querySelectorAll('#slots')).toHaveLength(1)
-      await fireEvent.focusIn(panel.querySelector('.booking-calendar__nav')!)
+      await fireEvent.focusIn(panel.querySelector('.pc2-profile-calendar-toggle')!)
       expect(panel.querySelector('[aria-current="step"]')).toHaveTextContent('2. Час')
       await fireEvent.focusIn(within(panel as HTMLElement).getByRole('button', { name: /Консультація: / }))
       expect(panel.querySelector('[aria-current="step"]')).toHaveTextContent('1. Послуга')
@@ -5026,6 +5026,24 @@ describe('PublicProfileView', () => {
       await fireEvent.submit(form)
       await waitFor(() => expect(mockedApiPost).toHaveBeenCalledWith('/public/specialists/olena/guest-booking-requests/', expect.objectContaining({ slot_id: 100, guest_name: 'Ірина', offer_type: 'standard' })))
       expect(screen.getByText('Це ще не підтверджена сесія.', { exact: false })).toBeInTheDocument()
+      view.unmount()
+    })
+
+    it('renders actual versioned booking rules in a v2 accordion without inventing consent', async () => {
+      mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ booking_rules: { show_prompt: true, items: [
+        { scope: 'PLATFORM', version: 'platform-v1', text: 'Правила з API', accepted: false },
+        { scope: 'SPECIALIST', version: 'specialist-v2', text: 'Умови з API', accepted: false, specialist_id: 12 },
+      ] } }))
+      const view = renderView()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      const toggle = screen.getByRole('button', { name: /Умови перед запитом/ })
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      expect(view.container.querySelector('#pc2-profile-rules-content')).toHaveAttribute('inert')
+      await fireEvent.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByText('Умови з API')).toBeInTheDocument()
+      expect(screen.getByRole('checkbox')).not.toBeChecked()
+      expect(mockedApiPost).not.toHaveBeenCalled()
       view.unmount()
     })
 
@@ -5099,13 +5117,13 @@ describe('PublicProfileView', () => {
       const previous = document.body.style.overflow
       const view = renderView()
       try {
-        await fireEvent.click(await screen.findByRole('button', { name: 'Послуги та запит' }))
+        await waitFor(() => expect(view.container.querySelector('.pc2-profile-mobile-cta')).toBeInTheDocument()); await fireEvent.click(view.container.querySelector('.pc2-profile-mobile-cta')!)
         expect(show).toHaveBeenCalledTimes(1)
         expect(document.body.style.overflow).toBe('hidden')
         expect(view.container.querySelector('#pc2-profile-mobile-content .pc2-request-panel')).toBeInTheDocument()
-        await fireEvent.click(screen.getByRole('button', { name: 'Закрити панель' }))
+        await fireEvent.click(screen.getByRole('button', { name: 'Закрити' }))
         expect(document.body.style.overflow).toBe(previous)
-        await fireEvent.click(screen.getByRole('button', { name: 'Послуги та запит' }))
+        await fireEvent.click(view.container.querySelector('.pc2-profile-mobile-cta')!)
       } finally {
         view.unmount(); window.matchMedia = original
         if (originalShow) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShow)

@@ -1,36 +1,38 @@
 import { readFileSync } from 'node:fs'
 import postcss from 'postcss'
 import { describe, expect, it } from 'vitest'
-const all = readFileSync('src/styles/components-v2.css', 'utf8')
-const text = all.slice(all.indexOf('/* Stage 2.1:'))
-const css = postcss.parse(text)
-const root = 'html[data-ui="v2"] .pc2-public-profile'
-const tokens = readFileSync('src/styles/tokens-v2.css', 'utf8')
-function declarations(selector: string) {
-  const result: Record<string, string> = {}
-  css.walkRules(rule => { if (rule.selectors.includes(selector)) rule.walkDecls(decl => { result[decl.prop] = decl.value }) })
-  return result
-}
-describe('public profile v2 CSS contract', () => {
-  it('isolates every new selector including mobile, hover and reduced motion', () => {
-    css.walkRules(rule => { for (const selector of rule.selectors) expect(selector.startsWith(root)).toBe(true) })
-    expect(text).not.toMatch(/@import|url\(|#[a-f\d]{3,8}\b|font-weight:\s*[789]00|gradient\(/i)
-    for (const match of text.matchAll(/var\((--pc-[a-z0-9-]+)\)/g)) expect(tokens + text).toContain(match[1] + ':')
+const text = readFileSync('src/styles/publicProfileV2.css', 'utf8')
+const overlay = readFileSync('src/components/public-profile/PublicProfileOverlay.vue', 'utf8').split('<style>')[1]!.split('</style>')[0]!
+
+describe('public profile v6.6 presentation boundaries', () => {
+ it('isolates all page and overlay rules behind v2 profile selectors', () => {
+  for (const sheet of [text, overlay]) postcss.parse(sheet).walkRules(rule => {
+   for (const selector of rule.selectors) expect(selector.startsWith('html[data-ui="v2"] .pc2-')).toBe(true)
   })
-  it('uses a 380px flat sticky request panel with token spacing', () => {
-    expect(declarations(root + '.public')['--pc-profile-request-width']).toBe('380px')
-    expect(declarations(root + ' .public__layout')['grid-template-columns']).toBe('minmax(0, 1fr)')
-    expect(text).toContain('grid-template-columns: minmax(0, 1fr) var(--pc-profile-request-width)')
-    expect(text).toContain('top: var(--pc-space-24)')
-    expect(declarations(root + ' .public__sidebar.pc2-request-panel')['box-shadow']).toBe('none')
-    expect(declarations(root + ' .pc2-profile-inline > .setting-modal__backdrop').display).toBe('none')
-  })
-  it('keeps keyboard focus, readable button states, safe areas and reduced motion', () => {
-    expect(declarations(root + ' :focus-visible').outline).toBe('var(--pc-focus-width) solid var(--pc-navy-900)')
-    expect(text).toContain('@media (max-width: 859px)')
-    expect(text).toContain('max-height: calc(100dvh - var(--pc-space-8))')
-    expect(text).toContain('@media (prefers-reduced-motion: reduce)')
-    expect(text).toContain('animation: none; transition: none; scroll-behavior: auto')
-    expect(declarations(root + ' :is(.public__sidebar, .setting-modal, .public__grid) .btn--primary:hover:not(:disabled)')).toMatchObject({ background: 'var(--pc-navy-950)', color: 'var(--pc-bg-card)' })
-  })
+  expect(readFileSync('src/styles/components-v2.css', 'utf8')).not.toContain('.pc2-public-profile')
+ })
+ it('preserves the independently scrolling desktop request panel and source highlight', () => {
+  expect(text).toContain('max-height: calc(100dvh - 112px)')
+  expect(text).toContain('overscroll-behavior: contain')
+  expect(text).toContain('transition: box-shadow .6s ease')
+  expect(text).toContain('0 0 0 4px rgba(143,203,200,.45)')
+ })
+ it('retains source mobile sheet, backdrop and About motion rather than generic fades', () => {
+  expect(overlay).toContain('height: 86dvh')
+  expect(overlay).toContain('transform .4s cubic-bezier(.2,.8,.2,1)')
+  expect(overlay).toContain('transition: background .3s')
+  expect(overlay).toContain('height: 100dvh')
+ })
+ it('keeps source accordion timings and mobile safe areas', () => {
+  expect(text).toContain('grid-template-rows .45s ease')
+  expect(text).toContain('grid-template-rows .4s ease')
+  expect(text).toContain('transform .3s,background .3s')
+  expect(text).toContain('env(safe-area-inset-bottom)')
+  expect(text).toContain('scroll-snap-type: x mandatory')
+ })
+ it('preserves reduced-motion and keyboard overrides without public asset imports', () => {
+  expect(text).toContain('@media (prefers-reduced-motion: reduce)')
+  expect(overlay).toContain('outline: 2px solid #12345A')
+  expect(text + overlay).not.toMatch(/@import|url\(/)
+ })
 })

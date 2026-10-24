@@ -1,0 +1,28 @@
+{
+  "baseline_runtime_sha": "e63b1ca1a941f56c6578c32a7b964a133404bbb6",
+  "integration_base_sha": "7d437689a648923d319a26d604b7b31eb81b4473",
+  "baselineDiagnostics": [
+    "src/lib/specialistDiscoveryApi.spec.ts(22,7): error TS2353: Object literal may only specify known properties, and 'page_size' does not exist in type 'RotatedPublicSpecialistDiscoveryParams'.\r",
+    "src/views/AdminWorkQueueView.spec.ts(823,13): error TS2561: Object literal may only specify known properties, but 'specialist_slug' does not exist in type 'AdminWorkQueueRelated'. Did you mean to write 'specialist_id'?\r",
+    "src/views/AdminWorkQueueView.vue(790,19): error TS18048: 'path' is possibly 'undefined'.\r",
+    "src/views/AdminWorkQueueView.vue(845,10): error TS2532: Object is possibly 'undefined'.\r",
+    "src/views/AdminWorkQueueView.vue(852,16): error TS2532: Object is possibly 'undefined'.\r",
+    "src/views/TherapistClientsView.spec.ts(1676,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.\r",
+    "src/views/TherapistClientsView.spec.ts(3909,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.\r",
+    "src/views/TherapistClientsView.vue(6789,27): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.\r",
+    "src/views/TherapistClientsView.vue(6789,33): error TS18048: 'month' is possibly 'undefined'.\r"
+  ],
+  "candidateDiagnostics": [
+    "src/lib/specialistDiscoveryApi.spec.ts(22,7): error TS2353: Object literal may only specify known properties, and 'page_size' does not exist in type 'RotatedPublicSpecialistDiscoveryParams'.\r",
+    "src/views/AdminWorkQueueView.spec.ts(823,13): error TS2561: Object literal may only specify known properties, but 'specialist_slug' does not exist in type 'AdminWorkQueueRelated'. Did you mean to write 'specialist_id'?\r",
+    "src/views/AdminWorkQueueView.vue(790,19): error TS18048: 'path' is possibly 'undefined'.\r",
+    "src/views/AdminWorkQueueView.vue(845,10): error TS2532: Object is possibly 'undefined'.\r",
+    "src/views/AdminWorkQueueView.vue(852,16): error TS2532: Object is possibly 'undefined'.\r",
+    "src/views/TherapistClientsView.spec.ts(1676,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.\r",
+    "src/views/TherapistClientsView.spec.ts(3909,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.\r",
+    "src/views/TherapistClientsView.vue(6789,27): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.\r",
+    "src/views/TherapistClientsView.vue(6789,33): error TS18048: 'month' is possibly 'undefined'.\r"
+  ],
+  "newDiagnostics": [],
+  "result": "9 identical baseline diagnostics; 0 new"
+}
