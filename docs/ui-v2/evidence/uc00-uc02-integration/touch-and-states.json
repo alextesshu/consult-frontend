@@ -1,0 +1,20 @@
+{
+  "rows": [
+    {
+      "width": 375,
+      "touchPageDelta": 265,
+      "closeHeight": 44,
+      "scrollLockRestored": true,
+      "focusReturned": true,
+      "documentOverflow": false
+    },
+    {
+      "width": 390,
+      "touchPageDelta": 265,
+      "closeHeight": 44,
+      "scrollLockRestored": true,
+      "focusReturned": true,
+      "documentOverflow": false
+    }
+  ]
+}

@@ -1,0 +1,2973 @@
+{
+  "database": "uc_integration",
+  "results": [
+    {
+      "name": "real preferences GET / feeds / no page errors",
+      "result": "PASS",
+      "detail": {
+        "database": "uc_integration",
+        "backend": "47d57b5791e750cb3a47846be67f9e2e655bb3ec",
+        "migration": "0098",
+        "fixtures": false
+      }
+    },
+    {
+      "name": "regular Day survives needs_action, refresh and second browser",
+      "result": "PASS",
+      "detail": {
+        "actionView": "list",
+        "regularView": "day"
+      }
+    },
+    {
+      "name": "custom layer preserves mode; explicit reset restores mode layers",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "name": "URL preview / refresh / history never PATCH; explicit adoption PATCHes once",
+      "result": "PASS",
+      "detail": {
+        "previewWrites": 0,
+        "adoptionWrites": 1
+      }
+    },
+    {
+      "name": "stale real UI PATCH returns 409, reloads, informs, never replays",
+      "result": "PASS",
+      "detail": {
+        "status": 409,
+        "authoritativeRevision": 37,
+        "replay": false
+      }
+    },
+    {
+      "name": "concurrent equal-revision PATCHes produce one 200 and one 409",
+      "result": "PASS",
+      "detail": [
+        200,
+        409
+      ]
+    },
+    {
+      "name": "offline keeps confirmed snapshot read-only; reconnect only GETs",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "name": "controlled 503 leaves snapshot read-only; explicit retry recovers",
+      "result": "PASS",
+      "detail": {
+        "faultInjection": "GET 503 only; all successful API data real"
+      }
+    },
+    {
+      "name": "five-width Week/Day/List and mobile projection / no overflow",
+      "result": "PASS",
+      "detail": [
+        {
+          "width": 375,
+          "view": "week",
+          "scrollWidth": 375,
+          "innerWidth": 375
+        },
+        {
+          "width": 375,
+          "view": "day",
+          "scrollWidth": 375,
+          "innerWidth": 375
+        },
+        {
+          "width": 375,
+          "view": "list",
+          "scrollWidth": 375,
+          "innerWidth": 375
+        },
+        {
+          "width": 390,
+          "view": "week",
+          "scrollWidth": 390,
+          "innerWidth": 390
+        },
+        {
+          "width": 390,
+          "view": "day",
+          "scrollWidth": 390,
+          "innerWidth": 390
+        },
+        {
+          "width": 390,
+          "view": "list",
+          "scrollWidth": 390,
+          "innerWidth": 390
+        },
+        {
+          "width": 768,
+          "view": "week",
+          "scrollWidth": 768,
+          "innerWidth": 768
+        },
+        {
+          "width": 768,
+          "view": "day",
+          "scrollWidth": 768,
+          "innerWidth": 768
+        },
+        {
+          "width": 768,
+          "view": "list",
+          "scrollWidth": 768,
+          "innerWidth": 768
+        },
+        {
+          "width": 1280,
+          "view": "week",
+          "scrollWidth": 1280,
+          "innerWidth": 1280
+        },
+        {
+          "width": 1280,
+          "view": "day",
+          "scrollWidth": 1280,
+          "innerWidth": 1280
+        },
+        {
+          "width": 1280,
+          "view": "list",
+          "scrollWidth": 1280,
+          "innerWidth": 1280
+        },
+        {
+          "width": 1440,
+          "view": "week",
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        },
+        {
+          "width": 1440,
+          "view": "day",
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        },
+        {
+          "width": 1440,
+          "view": "list",
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      ]
+    },
+    {
+      "name": "sparse timeline still chains wheel scrolling to the page",
+      "result": "PASS",
+      "detail": {
+        "pageY": 240,
+        "timelineTop": 0
+      }
+    },
+    {
+      "name": "logout/login switches specialist preferences and calendar feeds",
+      "result": "PASS",
+      "detail": {
+        "specialistSwitch": true,
+        "priorView": "day",
+        "newView": "week"
+      }
+    },
+    {
+      "name": "anonymous 401 and client 403 from real API (API-only)",
+      "result": "PASS",
+      "detail": {
+        "anonymous": 401,
+        "client": 403,
+        "browserUI": false
+      }
+    }
+  ],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/threads/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/threads/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 31
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "mode": "needs_action",
+        "expected_revision": 31
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "mode": "workday",
+        "expected_revision": 32
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "layers": {
+          "external_guest_sessions": true
+        },
+        "expected_revision": 33
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "mode": "workday",
+        "expected_revision": 34
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "mode": "availability",
+        "expected_revision": 35
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "list",
+        "expected_revision": 36
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "mode": "workday",
+        "expected_revision": 36
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 37
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 37
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "mode": "workday",
+        "expected_revision": 38
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 39
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 40
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "list",
+        "expected_revision": 41
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 42
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 43
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "list",
+        "expected_revision": 44
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 45
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 46
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "list",
+        "expected_revision": 47
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 48
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 49
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "list",
+        "expected_revision": 50
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 51
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 52
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "list",
+        "expected_revision": 53
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "week",
+        "expected_revision": 54
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/cabinet/settings/calendar/",
+      "payload": {
+        "regular_view": "day",
+        "expected_revision": 55
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/threads/"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/work-queue/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/unread-count/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/schedule/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/availability-exceptions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/external-sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/booking/sessions/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/sessions/reschedule-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/guest-booking-requests/"
+    },
+    {
+      "method": "GET",
+      "path": "/api/cabinet/settings/calendar/"
+    }
+  ],
+  "responses": [
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 31,
+        "updated_at": "2026-10-25T17:26:39.814715Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 31,
+        "updated_at": "2026-10-25T17:26:39.814715Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 31,
+        "updated_at": "2026-10-25T17:26:39.814715Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 31,
+        "updated_at": "2026-10-25T17:26:39.814715Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 31,
+        "updated_at": "2026-10-25T17:26:39.814715Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "needs_action",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "needs_action",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": false,
+          "external_guest_sessions": false
+        },
+        "revision": 32,
+        "updated_at": "2026-10-25T17:45:17.942088Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "needs_action",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "needs_action",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": false,
+          "external_guest_sessions": false
+        },
+        "revision": 32,
+        "updated_at": "2026-10-25T17:45:17.942088Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "needs_action",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "needs_action",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": false,
+          "external_guest_sessions": false
+        },
+        "revision": 32,
+        "updated_at": "2026-10-25T17:45:17.942088Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "needs_action",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "needs_action",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": false,
+          "external_guest_sessions": false
+        },
+        "revision": 32,
+        "updated_at": "2026-10-25T17:45:17.942088Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 33,
+        "updated_at": "2026-10-25T17:45:21.993705Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "custom",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": true
+        },
+        "revision": 34,
+        "updated_at": "2026-10-25T17:45:22.134275Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 35,
+        "updated_at": "2026-10-25T17:45:22.233381Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 36,
+        "updated_at": "2026-10-25T17:45:35.524182Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 36,
+        "updated_at": "2026-10-25T17:45:35.524182Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 36,
+        "updated_at": "2026-10-25T17:45:35.524182Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 37,
+        "updated_at": "2026-10-25T17:45:37.492729Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 409,
+      "body": {
+        "code": "CALENDAR_PREFERENCES_STALE",
+        "detail": "Calendar preferences changed on another device. Reload and try again."
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 37,
+        "updated_at": "2026-10-25T17:45:37.492729Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 37,
+        "updated_at": "2026-10-25T17:45:37.492729Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 37,
+        "updated_at": "2026-10-25T17:45:37.492729Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 37,
+        "updated_at": "2026-10-25T17:45:37.492729Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 409,
+      "body": {
+        "code": "CALENDAR_PREFERENCES_STALE",
+        "detail": "Calendar preferences changed on another device. Reload and try again."
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 38,
+        "updated_at": "2026-10-25T17:45:37.914226Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 38,
+        "updated_at": "2026-10-25T17:45:37.914226Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 38,
+        "updated_at": "2026-10-25T17:45:37.914226Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 503,
+      "body": {
+        "code": "TEST_OUTAGE",
+        "detail": "Synthetic network fault"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "availability",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "availability",
+        "layers": {
+          "sessions": true,
+          "past": false,
+          "free_slots": true,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 38,
+        "updated_at": "2026-10-25T17:45:37.914226Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 39,
+        "updated_at": "2026-10-25T17:45:40.113529Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 40,
+        "updated_at": "2026-10-25T17:45:40.310501Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 40,
+        "updated_at": "2026-10-25T17:45:40.310501Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 41,
+        "updated_at": "2026-10-25T17:45:40.659589Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 41,
+        "updated_at": "2026-10-25T17:45:40.659589Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 42,
+        "updated_at": "2026-10-25T17:45:40.958955Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 42,
+        "updated_at": "2026-10-25T17:45:40.958955Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 43,
+        "updated_at": "2026-10-25T17:45:41.299619Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 43,
+        "updated_at": "2026-10-25T17:45:41.299619Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 44,
+        "updated_at": "2026-10-25T17:45:41.658724Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 44,
+        "updated_at": "2026-10-25T17:45:41.658724Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 45,
+        "updated_at": "2026-10-25T17:45:41.996140Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 45,
+        "updated_at": "2026-10-25T17:45:41.996140Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 46,
+        "updated_at": "2026-10-25T17:45:42.402589Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 46,
+        "updated_at": "2026-10-25T17:45:42.402589Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 47,
+        "updated_at": "2026-10-25T17:45:42.787848Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 47,
+        "updated_at": "2026-10-25T17:45:42.787848Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 48,
+        "updated_at": "2026-10-25T17:45:43.161270Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 48,
+        "updated_at": "2026-10-25T17:45:43.161270Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 49,
+        "updated_at": "2026-10-25T17:45:43.523872Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 49,
+        "updated_at": "2026-10-25T17:45:43.523872Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 50,
+        "updated_at": "2026-10-25T17:45:43.983269Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 50,
+        "updated_at": "2026-10-25T17:45:43.983269Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 51,
+        "updated_at": "2026-10-25T17:45:44.475370Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 51,
+        "updated_at": "2026-10-25T17:45:44.475370Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 52,
+        "updated_at": "2026-10-25T17:45:44.860848Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 52,
+        "updated_at": "2026-10-25T17:45:44.860848Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 53,
+        "updated_at": "2026-10-25T17:45:45.274364Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 53,
+        "updated_at": "2026-10-25T17:45:45.274364Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 54,
+        "updated_at": "2026-10-25T17:45:45.661601Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "list",
+        "regular_view": "list",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 54,
+        "updated_at": "2026-10-25T17:45:45.661601Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 55,
+        "updated_at": "2026-10-25T17:45:46.025802Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 55,
+        "updated_at": "2026-10-25T17:45:46.025802Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 56,
+        "updated_at": "2026-10-25T17:45:46.374819Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "day",
+        "regular_view": "day",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 56,
+        "updated_at": "2026-10-25T17:45:46.374819Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 1,
+        "updated_at": "2026-10-25T17:17:18.479741Z",
+        "timezone": "Europe/Kyiv"
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "body": {
+        "mode": "workday",
+        "view": "week",
+        "regular_view": "week",
+        "preset": "workday",
+        "layers": {
+          "sessions": true,
+          "past": true,
+          "free_slots": false,
+          "guest_requests": true,
+          "absences": true,
+          "external_guest_sessions": false
+        },
+        "revision": 1,
+        "updated_at": "2026-10-25T17:17:18.479741Z",
+        "timezone": "Europe/Kyiv"
+      }
+    }
+  ],
+  "errors": []
+}
