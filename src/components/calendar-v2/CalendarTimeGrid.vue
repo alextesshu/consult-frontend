@@ -89,6 +89,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CalendarItem } from '../../lib/calendarItems'
 import type { CalendarMode } from '../../lib/calendarModes'
 import { dayBounds, dayLabels, formatTime, wallMinutes, type DayKey } from '../../lib/calendarTime'
+import { gridHeightCap, hourPixels, visibleHours } from '../../lib/calendarGridScale'
 import { emptyDayLabel, plural, slotsLabel, windowsLabel, type FreeWindow } from '../../lib/calendarWindows'
 import CalendarEventChip from './CalendarEventChip.vue'
 
@@ -108,11 +109,7 @@ const props = defineProps<{
 }>()
 defineEmits<{ open: [item: CalendarItem]; 'open-window': [window: FreeWindow] }>()
 
-// Hour height: at least 52px (spec); a short range is stretched to the grid's usable height
-// (the scroll box's own cap, min(70vh, 720px), never below MIN_BODY_PX) instead of collapsing to a
-// strip with a few hours. Only real clock hours are drawn; the range itself is not padded.
-const HOUR_PX = 52
-const MIN_BODY_PX = 360
+// Time scale: see calendarGridScale.ts (≥ 4 visible hours, 52–80px per hour, scroll only when needed).
 const MIN_EVENT_PX = 26
 const viewportHeight = ref(typeof window === 'undefined' ? 900 : window.innerHeight)
 const onResize = () => { viewportHeight.value = window.innerHeight }
@@ -190,12 +187,12 @@ const extremes = computed(() => {
   if (!entries.length) return { from: 9 * 60, to: 18 * 60 }
   return { from: Math.min(...entries.map((entry) => entry.startMinute)), to: Math.max(...entries.map((entry) => entry.endMinute)) }
 })
-const startHour = computed(() => (fullDay.value ? 0 : Math.max(0, Math.floor(extremes.value.from / 60))))
-const endHour = computed(() => (fullDay.value ? 24 : Math.min(24, Math.max(startHour.value + 1, Math.ceil(extremes.value.to / 60)))))
+const range = computed(() => (fullDay.value ? { start: 0, end: 24 } : visibleHours(extremes.value.from, extremes.value.to)))
+const startHour = computed(() => range.value.start)
+const endHour = computed(() => range.value.end)
 const hours = computed(() => Array.from({ length: endHour.value - startHour.value + 1 }, (_, index) => startHour.value + index))
-const usableHeight = computed(() => Math.max(MIN_BODY_PX, Math.min(viewportHeight.value * 0.7, 720)))
-const hourPx = computed(() => Math.max(HOUR_PX, usableHeight.value / (endHour.value - startHour.value)))
-const halfHourLines = computed(() => hourPx.value >= 2 * HOUR_PX)
+const hourPx = computed(() => hourPixels(endHour.value - startHour.value, gridHeightCap(viewportHeight.value)))
+const halfHourLines = computed(() => hourPx.value >= 64)
 const bodyHeight = computed(() => (endHour.value - startHour.value) * hourPx.value)
 const toPx = (minute: number) => (minute - startHour.value * 60) * (hourPx.value / 60)
 
@@ -211,9 +208,11 @@ const columns = computed(() =>
       else laneEnds[lane] = entry.endMinute
       return { ...entry, lane }
     })
+    // Events keep their true duration; a very short one gets MIN_EVENT_PX but never spills past the body.
     const box = (entry: { startMinute: number; endMinute: number }) => {
-      const top = Math.max(0, toPx(entry.startMinute))
-      return { top, height: Math.max(MIN_EVENT_PX, toPx(entry.endMinute) - top) }
+      const start = Math.max(0, toPx(entry.startMinute))
+      const height = Math.max(MIN_EVENT_PX, toPx(entry.endMinute) - start)
+      return { top: Math.max(0, Math.min(start, bodyHeight.value - height)), height }
     }
     const events = placed.map((entry) => {
       const lanes = 1 + Math.max(0, ...placed.filter((other) => other.startMinute < entry.endMinute && other.endMinute > entry.startMinute).map((other) => other.lane))

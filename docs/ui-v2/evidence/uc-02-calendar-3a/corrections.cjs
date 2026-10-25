@@ -64,7 +64,8 @@ const gridInfo = (p) => p.evaluate(() => {
     rows.push({ check: 'grid-height', width, range: name, ...info, full, errors: [...errors], overflow: await overflow(p) })
     writesAll.push(...writes)
     const id = `${width} ${name}`
-    if (info.bodyHeight < 360) fail(`${id}: grid body only ${info.bodyHeight}px`)
+    // Final scale: ≥ 4 visible hours at 52–80px per hour (a sparse week is ~320px, never a strip).
+    if (info.bodyHeight < 300) fail(`${id}: grid body only ${info.bodyHeight}px`)
     if (sessions.some((row) => !info.events.some((label) => label?.includes(row.client_display_name)))) fail(`${id}: an event is missing`)
     if (name === '12h' && !info.range.startsWith('Показано 07:00–19:00')) fail(`${id}: range ${info.range}`)
     if (name !== '12h' && info.innerScroll) fail(`${id}: short range still scrolls inside`)

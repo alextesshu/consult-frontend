@@ -62,7 +62,12 @@ When the card's item lies outside the selected week, the card adds «поза в
 ### Visible hours and time zone
 
 - **Visible hours:** 09–18 by default, widened to the week's events (all-day absences excluded). The bar «Показано HH:00–HH:00 — поза цим часом подій немає» has a «Показати всю добу» toggle.
-- **Grid height:** an hour is at least 52 px. A short range is stretched to the grid's usable height (the scroll box cap `min(70vh, 720px)`, never below 360 px), so 1 or 5 hours fill the grid instead of a low strip with its own scroll. From 13 hours (at 900 px viewport height) hours stay at 52 px and the grid scrolls. Only real clock hours are drawn; at ≥ 104 px per hour dashed half-hour lines keep the scale readable.
+- **Grid scale** (`src/lib/calendarGridScale.ts`):
+  - at least 4 visible hours around the events: the missing hours are split before and after, inside 00:00–24:00; an empty week shows 09:00–18:00;
+  - 52–80 px per hour: the grid fills the height cap `min(70vh, 720px)` when that stays within the band, otherwise hours stay at 52 px and the timeline scrolls;
+  - events and availability windows keep their true position and duration (a 50-minute session is 67 px at 80 px/h); a very short event gets 26 px but never spills past the grid body;
+  - dashed half-hour lines from 64 px per hour.
+- **Scrolling:** the timeline scroller has no `overscroll-behavior`, so wheel and touch scrolling chain to the page when the timeline fits or is at its first/last position; the grid body clips its own lines (`overflow: clip`) so a fitting timeline never overflows by 1 px. No wheel or touch handlers.
 - **Empty days:** a day with nothing visible is labelled by what was loaded for it, not by what is visible:
 
   | Day | Label |
@@ -119,10 +124,10 @@ All data are **browser fixtures** (Playwright routes shaped like the existing en
 - `NOW` = Thu 22.10.2026 16:50 Kyiv; the week ends with the DST change.
 - A timed fixture absence covers 00:00–02:00 on 22 Oct, so the visible range is 00:00–19:00. This is correct behavior for that data.
 
-**Acceptance — `acceptance.cjs` → `acceptance.json`: 18 rows, 0 problems.**
+**Acceptance — `acceptance.cjs` → `acceptance.json`: 21 rows, 0 problems.**
 
 Matrix:
-- 375 / 390 / 768 / 1280 / 1440 × three modes;
+- 375 / 390 / 440 / 768 / 1280 / 1440 × three modes;
 - «Вигляд» menu at 1440 (popover) and 375 (bottom sheet).
 
 Checks:
@@ -138,7 +143,7 @@ Checks:
 - deviation chip «+ зовнішні гостьові»;
 - UI v1 `/cabinet/sessions` still renders «Сесії» without the calendar.
 
-Screenshots: `screenshots/v2-{375,390,768,1280,1440}-{workday,availability,actions}.png`, `v2-{1440,375}-view-menu.png`, `v2-{1440,375}-deviation-chip.png`.
+Screenshots: `screenshots/v2-{375,390,440,768,1280,1440}-{workday,availability,actions}.png`, `v2-{1440,375}-view-menu.png`, `v2-{1440,375}-deviation-chip.png`.
 
 **Parity — `parity.cjs` + `compare.py` → `parity.json`: 10/10 pixel-identical.**
 - Compared against `origin/dev` 3085c1c: v1 `/cabinet/sessions`, `/cabinet`, `/cabinet/slots` and v2 `/cabinet`, `/cabinet/slots` at 375 and 1280.
@@ -146,7 +151,7 @@ Screenshots: `screenshots/v2-{375,390,768,1280,1440}-{workday,availability,actio
 - PNGs are not committed.
 
 **Review corrections — `corrections.cjs` → `corrections.json`: 16 rows, 0 problems.**
-- Grid height at 1440 / 1280 / 768 for 1, 5 and 12 hours of events and the full day: the body fills the usable height (630 px at 900 px viewport) without inner scroll for short ranges; the full day has 25 hour labels and scrolls; no event is hidden.
+- Grid height at 1440 / 1280 / 768 for 1, 5 and 12 hours of events and the full day: no inner scroll for short ranges, at least 300 px, the full day has 25 hour labels and scrolls; no event is hidden. (Re-run with the final scale below.)
 - Empty labels in «Доступність»: Wed 21 (completed session, no slots) → «Немає вільних слотів · є зайняті події»; Mon 19 (only a cancelled session) → «Порожній день»; Fri 23 → no label.
 - Next-action card at 1440 / 768 / 390 / 375: «Найближча з усіх дій · …», «поза вибраним тижнем» on the next week, the name is not truncated, the phone button is 44 px tall.
 - Phone sheet at 375×600 and 390×844: header and 44×44 close visible, the sheet body scrolls (375×600) while the page does not, page scroll lock set and released, Esc and «Закрити вигляд» return focus to «Вигляд календаря», no horizontal overflow.
@@ -163,22 +168,53 @@ Setup:
 - **Login:** the real login flow with locally generated test credentials, never printed or committed.
 
 Result:
-- the current week shows a real 1-hour range (11:00–12:00) stretched to 630 px without inner scroll;
+- the current week (one completed 50-minute session) shows 10:00–14:00 at 80 px/h: a 320 px grid without inner scroll;
+- a real mouse wheel over that timeline scrolls the page by 240 px and leaves the timeline at `scrollTop` 0;
 - in «Доступність» Friday reads «Немає вільних слотів · є зайняті події», the other days «Порожній день»;
 - the card shows the next week's missing link with «поза вибраним тижнем»; the badge is 2;
-- next week: one window «12:00–14:50, 3 слоти» and two sessions muted to «Зайнято»; a 7-hour range;
+- next week: one window «12:00–14:50, 3 слоти» and two sessions muted to «Зайнято»; a 7-hour range (09:00–16:00) at 80 px/h = 560 px;
 - only GET requests to calendar sources (plus the existing token refresh); zero page errors.
 
 Afterwards the database, credentials and worktree were removed.
 
-Screenshots: `screenshots/real-backend-1440-{workday-1h,availability-empty,next-week}.png`.
+Screenshots: `screenshots/real-backend-1440-{workday-sparse,availability-empty,next-week}.png`.
+
+**Final UX — `final-ux.cjs` → `final-ux-before.json` (7ebc16b) and `final-ux-after.json`: 0 writes, 0 page errors.**
+
+The same script ran against the previous HEAD (7ebc16b, served from a temporary worktree) and the final code. Grid at 1440 × 900:
+
+| Week | Before: range · px/h · grid | After: range · px/h · grid | 50-min event before → after |
+|---|---|---|---|
+| empty | 09–18 · 70 · 630 | 09–18 · 70 · 630 | — |
+| one 50-min session | 10–11 · 630 · 630 | 09–13 · 80 · 320 | 525 → 67 px |
+| two sessions 6 h apart | 09–16 · 90 · 630 | 09–16 · 80 · 560 | 75 → 67 px |
+| 5 hours | 09–14 · 126 · 630 | 09–14 · 80 · 400 | 105 → 67 px |
+| 12 hours | 07–19 · 52.5 · 630 | 07–19 · 52.5 · 630 | 44 → 44 px |
+| early + late (06:00, 21:00) | 06–22 · 52 · 832, scrolls | same | 43 → 43 px |
+| 3 overlapping | 10–12 · 315 · 630 | 09–13 · 80 · 320, 2 lanes | 263 → 67 px |
+| sparse «Доступність» (session + 14:00–15:50 window) | 10–16 · 105 · 630, window 193 px | 10–16 · 80 · 480, window 147 px | — |
+| full day | 00–24 · 52 · 1248, scrolls | same | — |
+
+Real mouse wheel (`page.mouse.wheel`, 240 px) at 1440 and 1280. Pointer over an empty cell, a session, an availability window, near the top and near the bottom edge; `window.scrollY` and timeline `scrollTop` measured:
+
+| Case | Before | After |
+|---|---|---|
+| sparse timeline fits, wheel down from the page top | timeline took it (scrollTop +1, 1 px overflow) or page moved, depending on point | page scrolls (+119 / +150 px), scrollTop 0 — 10/10 |
+| sparse timeline fits, wheel up from the page end | nothing moved — 10/10 | page scrolls up, scrollTop 0 — 10/10 |
+| dense timeline, middle | timeline scrolls, page still | timeline scrolls (+179), page still — 10/10 |
+| dense timeline at its bottom, wheel down | nothing moved — 10/10 | page scrolls — 10/10 |
+| dense timeline at its top, wheel up | nothing moved — 8/8 | page scrolls up — 8/8 |
+
+Touch (real `touchStart → touchMove → touchEnd` drag over the calendar): page scrolls at 375 / 390 / 440 (+201…209 px), also after closing the «Вигляд» sheet (`html` overflow restored to `''`). At 768 the drag over the grid moved the page 0 px before and 206 px after. Keyboard: focusing the last event of a dense week keeps it inside the timeline; End scrolls the page (+330 px).
+
+Screenshots: `screenshots/final-1440-grid-{empty,one50,twoApart,five,twelve,earlyLate,overlap,fullday,sparse-availability}.png`, `final-1440-dense-after-wheel.png`.
 
 **Recording:** a 1440 recording of mode switching and the popover was captured locally and is not committed.
 
 ## Tests
 
-- **New:** `calendarModes.spec.ts` (3), `calendarWindows.spec.ts` (6), `calendarActions.spec.ts` (5), `useCalendarActions.spec.ts` (2).
-- **Rewritten:** `calendarPreferencesSource.spec.ts` (5), `CalendarV2.spec.ts` (18).
+- **New:** `calendarModes.spec.ts` (3), `calendarWindows.spec.ts` (6), `calendarActions.spec.ts` (5), `calendarGridScale.spec.ts` (5), `useCalendarActions.spec.ts` (2).
+- **Rewritten:** `calendarPreferencesSource.spec.ts` (5), `CalendarV2.spec.ts` (21).
 - **Extended:** `calendarItems.spec.ts` (+1).
 
 Covered:
@@ -190,7 +226,8 @@ Covered:
 - phone and tablet;
 - DST week;
 - `?mode=` deep link with no mutations;
-- grid height for 1 / 5 / 12 / 13 hours and the full day;
+- grid scale: empty week, one 50-minute session, sessions hours apart, 12 hours, early + late, overlapping lanes, availability windows, full day;
+- scroll chaining: no `overscroll-behavior` on the timeline and a clipped grid body (CSS regression test);
 - empty-day labels (unit and desktop/phone);
 - next-action scope on another week;
 - phone sheet close control, scroll lock and focus return.

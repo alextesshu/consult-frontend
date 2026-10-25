@@ -69,10 +69,10 @@ const externalSessions = [
 ]
 const rescheduleRequests = [{ id: 61, session_id: 7, requested_slot_id: 220, requested_slot_start_at: '2026-10-24T12:00:00Z', status: 'PENDING' }]
 
-async function open(browser, width, { height, video } = {}) {
+async function open(browser, width, { height, video, touch } = {}) {
   const h = height || (width < 768 ? 812 : 900)
   const c = await browser.newContext({
-    viewport: { width, height: h }, deviceScaleFactor: 1, hasTouch: width < 768, timezoneId: 'Europe/Kyiv', locale: 'uk-UA', reducedMotion: 'reduce',
+    viewport: { width, height: h }, deviceScaleFactor: 1, hasTouch: touch ?? width < 768, timezoneId: 'Europe/Kyiv', locale: 'uk-UA', reducedMotion: 'reduce',
     ...(video ? { recordVideo: { dir: video, size: { width, height: h } } } : {}),
   })
   await c.clock.setFixedTime(NOW)

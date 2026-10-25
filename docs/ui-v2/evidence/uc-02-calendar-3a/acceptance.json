@@ -152,6 +152,81 @@
       "file": "v2-390-actions.png"
     },
     {
+      "width": 440,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-440-workday.png"
+    },
+    {
+      "width": 440,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [
+        "09:00–12:50Вільно · 4 слоти",
+        "14:00–15:50Вільно · 2 слоти",
+        "17:00–18:50Вільно · 2 слоти"
+      ],
+      "mutedNames": [
+        "13:00–13:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-440-availability.png"
+    },
+    {
+      "width": 440,
+      "mode": "actions",
+      "selectedTab": "Дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-440-actions.png"
+    },
+    {
       "width": 768,
       "mode": "workday",
       "selectedTab": "Робочий день",

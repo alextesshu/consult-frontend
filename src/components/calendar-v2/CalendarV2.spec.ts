@@ -275,35 +275,67 @@ describe('CalendarV2 3a week grid height', () => {
     await screen.findByRole('link', { name: /Клієнт 0/ })
   }
 
-  it('stretches a 1-hour range to the usable height without adding hours', async () => {
-    await renderSessions([kyiv(10)])
-    expect(screen.getByText(/Показано 10:00–11:00/)).toBeInTheDocument()
+  const slotStyle = (name: RegExp) => (screen.getByRole('link', { name }).closest('li') as HTMLElement).style
+
+  it('shows an empty week as 09:00–18:00 with a useful height', async () => {
+    mocked.apiGet.mockImplementation((async () => []) as never)
+    await renderCalendar()
+    expect(await screen.findByText(/Показано 09:00–18:00/)).toBeInTheDocument()
     expect(bodyHeight()).toBe(630)
-    expect(document.querySelectorAll('.pc2-cal-grid__hours span')).toHaveLength(2)
+  })
+
+  it('gives one 50-minute session 4 hours of context and its true duration (80px/h)', async () => {
+    await renderSessions([kyiv(10)])
+    expect(screen.getByText(/Показано 09:00–13:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(320)
+    const style = slotStyle(/10:00–10:50, Сесія, Клієнт 0/)
+    expect(parseFloat(style.top)).toBe(80)
+    expect(parseFloat(style.height)).toBeCloseTo(66.67, 1)
     expect(document.querySelector('.pc2-cal-grid__line.is-half')).not.toBeNull()
   })
 
-  it('stretches a 5-hour range and keeps 52px hours for 12 hours and the full day', async () => {
-    await renderSessions([kyiv(9), kyiv(13)])
-    expect(screen.getByText(/Показано 09:00–14:00/)).toBeInTheDocument()
+  it('keeps 80px hours for two sessions hours apart and for a 5-hour range', async () => {
+    await renderSessions([kyiv(9), kyiv(15)])
+    expect(screen.getByText(/Показано 09:00–16:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(560)
+    expect(parseFloat(slotStyle(/15:00–15:50/).top)).toBe(480)
+  })
+
+  it('fits 12 hours into the cap and keeps 52px hours (scrolling) for early and late events', async () => {
+    await renderSessions([kyiv(7), kyiv(18)])
+    expect(screen.getByText(/Показано 07:00–19:00/)).toBeInTheDocument()
     expect(bodyHeight()).toBe(630)
+  })
+
+  it('never hides early-morning or late-evening sessions', async () => {
+    await renderSessions([kyiv(6), kyiv(21)])
+    expect(screen.getByText(/Показано 06:00–22:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(16 * 52)
+    expect(parseFloat(slotStyle(/21:00–21:50/).top) + parseFloat(slotStyle(/21:00–21:50/).height)).toBeLessThanOrEqual(16 * 52)
     await fireEvent.click(screen.getByRole('button', { name: 'Показати всю добу' }))
     expect(bodyHeight()).toBe(24 * 52)
   })
 
-  it('fills the height with 12 hours and keeps the 52px minimum (scrolling) beyond that', async () => {
-    await renderSessions([kyiv(7), kyiv(18)])
-    expect(screen.getByText(/Показано 07:00–19:00/)).toBeInTheDocument()
-    expect(bodyHeight()).toBe(630)
-    expect(screen.getByRole('link', { name: /18:00–18:50, Сесія, Клієнт 1/ })).toBeInTheDocument()
+  it('lays overlapping sessions out in lanes at the same scale', async () => {
+    await renderSessions([kyiv(10), kyiv(10, 30), kyiv(11)])
+    expect(bodyHeight()).toBe(320)
+    // jsdom normalizes calc(100% / 2) and calc(1 * 100% / 2) to calc(50%): two lanes, the second one shifted.
+    expect(slotStyle(/10:00–10:50/).width).toBe('calc(50%)')
+    expect(slotStyle(/10:00–10:50/).left).toBe('calc(0%)')
+    expect(slotStyle(/10:30–11:20/).left).toBe('calc(50%)')
+    expect(parseFloat(slotStyle(/10:30–11:20/).top)).toBe(120)
   })
 
-  it('keeps 52px hours for 13 hours, never hiding early or late sessions', async () => {
-    await renderSessions([kyiv(6), kyiv(18)])
-    expect(screen.getByText(/Показано 06:00–19:00/)).toBeInTheDocument()
-    expect(bodyHeight()).toBe(13 * 52)
-    expect(screen.getByRole('link', { name: /06:00–06:50, Сесія, Клієнт 0/ })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /18:00–18:50, Сесія, Клієнт 1/ })).toBeInTheDocument()
+  it('draws availability windows on the same proportional scale', async () => {
+    mocked.schedule.mockResolvedValue({ events: [slot(61, kyiv(14)), slot(62, kyiv(15))] as never })
+    mocked.apiGet.mockImplementation((async (_url: string, config?: { params?: Record<string, unknown> }) =>
+      config?.params?.upcoming ? [] : [row(40, 'CONFIRMED', kyiv(10), 'Клієнт 0')]) as never)
+    await renderCalendar('/cabinet/sessions?ui=v2&mode=availability')
+    const window = await screen.findByRole('button', { name: 'Вільне вікно 14:00–15:50, 2 слоти' })
+    const style = (window.closest('li') as HTMLElement).style
+    expect(screen.getByText(/Показано 10:00–16:00/)).toBeInTheDocument()
+    expect(parseFloat(style.top)).toBe(320)
+    expect(parseFloat(style.height)).toBeCloseTo((110 / 60) * 80, 1)
   })
 })
 

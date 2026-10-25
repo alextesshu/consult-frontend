@@ -5,7 +5,7 @@ const shots = path.join(out, 'screenshots')
 const videos = path.join(out, 'recordings')
 fs.mkdirSync(shots, { recursive: true })
 fs.mkdirSync(videos, { recursive: true })
-const WIDTHS = [375, 390, 768, 1280, 1440]
+const WIDTHS = [375, 390, 440, 768, 1280, 1440]
 const MODES = [['workday', 'Робочий день'], ['availability', 'Доступність'], ['actions', 'Потребує дії']]
 
 ;(async () => {

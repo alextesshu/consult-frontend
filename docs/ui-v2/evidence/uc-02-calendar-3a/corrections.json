@@ -4,13 +4,16 @@
     {
       "check": "grid-height",
       "width": 1440,
-      "range": "Показано 10:00–11:00 — поза цим часом подій немає",
-      "bodyHeight": 630,
-      "scrollBox": 630,
+      "range": "Показано 09:00–13:00 — поза цим часом подій немає",
+      "bodyHeight": 320,
+      "scrollBox": 320,
       "innerScroll": false,
       "hourLabels": [
+        "09:00",
         "10:00",
-        "11:00"
+        "11:00",
+        "12:00",
+        "13:00"
       ],
       "halfLines": true,
       "events": [
@@ -64,8 +67,8 @@
       "check": "grid-height",
       "width": 1440,
       "range": "Показано 09:00–14:00 — поза цим часом подій немає",
-      "bodyHeight": 630,
-      "scrollBox": 630,
+      "bodyHeight": 400,
+      "scrollBox": 400,
       "innerScroll": false,
       "hourLabels": [
         "09:00",
@@ -126,13 +129,16 @@
     {
       "check": "grid-height",
       "width": 1280,
-      "range": "Показано 10:00–11:00 — поза цим часом подій немає",
-      "bodyHeight": 630,
-      "scrollBox": 630,
+      "range": "Показано 09:00–13:00 — поза цим часом подій немає",
+      "bodyHeight": 320,
+      "scrollBox": 320,
       "innerScroll": false,
       "hourLabels": [
+        "09:00",
         "10:00",
-        "11:00"
+        "11:00",
+        "12:00",
+        "13:00"
       ],
       "halfLines": true,
       "events": [
@@ -186,8 +192,8 @@
       "check": "grid-height",
       "width": 1280,
       "range": "Показано 09:00–14:00 — поза цим часом подій немає",
-      "bodyHeight": 630,
-      "scrollBox": 630,
+      "bodyHeight": 400,
+      "scrollBox": 400,
       "innerScroll": false,
       "hourLabels": [
         "09:00",
@@ -248,13 +254,16 @@
     {
       "check": "grid-height",
       "width": 768,
-      "range": "Показано 10:00–11:00 — поза цим часом подій немає",
-      "bodyHeight": 630,
-      "scrollBox": 630,
+      "range": "Показано 09:00–13:00 — поза цим часом подій немає",
+      "bodyHeight": 320,
+      "scrollBox": 320,
       "innerScroll": false,
       "hourLabels": [
+        "09:00",
         "10:00",
-        "11:00"
+        "11:00",
+        "12:00",
+        "13:00"
       ],
       "halfLines": true,
       "events": [
@@ -308,8 +317,8 @@
       "check": "grid-height",
       "width": 768,
       "range": "Показано 09:00–14:00 — поза цим часом подій немає",
-      "bodyHeight": 630,
-      "scrollBox": 630,
+      "bodyHeight": 400,
+      "scrollBox": 400,
       "innerScroll": false,
       "hourLabels": [
         "09:00",
