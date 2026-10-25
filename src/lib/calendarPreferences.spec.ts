@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch } from './api'
 import {
   CALENDAR_LAYER_KEYS,
+  CALENDAR_MODES,
   CALENDAR_PREFERENCES_URL,
   CALENDAR_SELECTABLE_PRESETS,
   CALENDAR_VIEWS,
+  displayRegularView,
   normalizeCalendarPreferences,
   type CalendarPreferencesResponse,
   calendarPreferencesErrorCode,
@@ -78,5 +80,46 @@ describe('calendar preferences API client (UC-00 contract)', () => {
     expect(await fetchCalendarPreferences()).toMatchObject(reply)
     expect(await updateCalendarPreferences({ mode: 'availability', expected_revision: 4 })).toMatchObject(reply)
     expect(mockedPatch).toHaveBeenCalledWith(CALENDAR_PREFERENCES_URL, { mode: 'availability', expected_revision: 4 })
+  })
+})
+
+describe('calendar preferences regular_view contract (backend #64, migration 0098)', () => {
+  beforeEach(() => {
+    mockedGet.mockReset()
+    mockedPatch.mockReset()
+  })
+
+  it.each(CALENDAR_VIEWS)('keeps a server regular_view %s as the persisted value', (regular) => {
+    for (const mode of CALENDAR_MODES) {
+      const normalized = normalizeCalendarPreferences({ mode, view: mode === 'needs_action' ? 'list' : 'week', regular_view: regular } as CalendarPreferencesResponse)
+      expect(normalized.regular_view).toBe(regular)
+      expect(displayRegularView(normalized)).toBe(regular)
+    }
+  })
+
+  it('keeps regular_view unknown (null) for an older backend and derives a display-only fallback', () => {
+    const workday = normalizeCalendarPreferences({ mode: 'workday', view: 'day' } as CalendarPreferencesResponse)
+    const availability = normalizeCalendarPreferences({ mode: 'availability', view: 'list' } as CalendarPreferencesResponse)
+    const actions = normalizeCalendarPreferences({ mode: 'needs_action', view: 'list' } as CalendarPreferencesResponse)
+    const legacyPreset = normalizeCalendarPreferences({ preset: 'needs_action', view: 'list' } as CalendarPreferencesResponse)
+    expect([workday, availability, actions, legacyPreset].map((item) => item.regular_view)).toEqual([null, null, null, null])
+    expect(displayRegularView(workday)).toBe('day')
+    expect(displayRegularView(availability)).toBe('list')
+    expect(displayRegularView(actions)).toBe('week')
+    expect(displayRegularView(legacyPreset)).toBe('week')
+    expect(normalizeCalendarPreferences({ mode: 'workday', view: 'day', regular_view: null } as CalendarPreferencesResponse).regular_view).toBeNull()
+  })
+
+  it('rejects an invalid regular_view from the server', () => {
+    expect(() => normalizeCalendarPreferences({ mode: 'workday', view: 'week', regular_view: 'month' } as unknown as CalendarPreferencesResponse)).toThrow(
+      'Invalid calendar regular view'
+    )
+  })
+
+  it('sends regular_view as its own guarded PATCH and normalizes the reply', async () => {
+    mockedPatch.mockResolvedValue({ mode: 'needs_action', view: 'list', regular_view: 'day', revision: 4 })
+    const reply = await updateCalendarPreferences({ regular_view: 'day', expected_revision: 3 })
+    expect(mockedPatch).toHaveBeenCalledWith(CALENDAR_PREFERENCES_URL, { regular_view: 'day', expected_revision: 3 })
+    expect(reply).toMatchObject({ mode: 'needs_action', view: 'list', regular_view: 'day', revision: 4 })
   })
 })

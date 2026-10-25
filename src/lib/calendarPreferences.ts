@@ -27,7 +27,14 @@ export type CalendarMode = (typeof CALENDAR_MODES)[number]
 
 export type CalendarPreferences = {
   mode: CalendarMode
+  /** Legacy rendered view (`list` while in needs_action). */
   view: CalendarView
+  /**
+   * The persisted regular Week/Day/List view, exactly as the server reported it.
+   * `null` means the server did not send the field (a backend before migration 0098):
+   * it is unknown, not `week`, and must not be written (see `displayRegularView`).
+   */
+  regular_view: CalendarView | null
   preset: CalendarPreset
   layers: CalendarLayers
   revision: number
@@ -36,22 +43,57 @@ export type CalendarPreferences = {
   timezone: string
 }
 
-/** Either a preset or individual layers, never both (the server rejects the mix). */
+/**
+ * Either a preset or individual layers, never both (the server rejects the mix).
+ * `regular_view` is always a dedicated change: the server rejects it together with
+ * mode, preset, layers or view.
+ */
 export type CalendarPreferencesChange =
-  | { view?: CalendarView; mode: CalendarMode; preset?: never; layers?: never }
-  | { view?: CalendarView; preset: CalendarSelectablePreset; mode?: never; layers?: never }
-  | { view?: CalendarView; layers?: Partial<CalendarLayers>; preset?: never; mode?: never }
+  | { view?: CalendarView; mode: CalendarMode; preset?: never; layers?: never; regular_view?: never }
+  | { view?: CalendarView; preset: CalendarSelectablePreset; mode?: never; layers?: never; regular_view?: never }
+  | { view?: CalendarView; layers?: Partial<CalendarLayers>; preset?: never; mode?: never; regular_view?: never }
+  | { regular_view: CalendarView; view?: never; mode?: never; preset?: never; layers?: never }
 
 /** Every write from this adapter is guarded, even though legacy backend writes remain supported. */
 export type CalendarPreferencesPatch = CalendarPreferencesChange & { expected_revision: number }
 
-export type CalendarPreferencesResponse = Omit<CalendarPreferences, 'mode'> & { mode?: CalendarMode }
+export type CalendarPreferencesResponse = Omit<CalendarPreferences, 'mode' | 'regular_view'> & {
+  mode?: CalendarMode
+  regular_view?: CalendarView | null
+}
 
-/** Legacy custom/all cannot reveal the historical base mode; workday is a fallback only. */
+/**
+ * Legacy custom/all cannot reveal the historical base mode; workday is a fallback only.
+ * A missing `regular_view` stays `null` (unknown) instead of being invented.
+ */
 export function normalizeCalendarPreferences(data: CalendarPreferencesResponse): CalendarPreferences {
   const mode = data.mode ?? (CALENDAR_MODES.includes(data.preset as CalendarMode) ? data.preset as CalendarMode : 'workday')
   if (!CALENDAR_MODES.includes(mode)) throw new Error('Invalid calendar mode in server response')
-  return { ...data, mode }
+  const regular_view = data.regular_view ?? null
+  if (regular_view !== null && !CALENDAR_VIEWS.includes(regular_view)) {
+    throw new Error('Invalid calendar regular view in server response')
+  }
+  return { ...data, mode, regular_view }
+}
+
+/**
+ * The regular view to render. The persisted `regular_view` when the server sent it;
+ * otherwise a read-only display fallback: the legacy `view` in an ordinary mode, `week`
+ * in needs_action (its earlier regular view cannot be reconstructed). Never written back.
+ */
+export function displayRegularView(preferences: CalendarPreferences): CalendarView {
+  if (preferences.regular_view !== null) return preferences.regular_view
+  return preferences.mode === 'needs_action' ? 'week' : preferences.view
+}
+
+/** The server has not confirmed `regular_view` support; the write is refused locally. */
+export const CALENDAR_REGULAR_VIEW_UNSUPPORTED = 'CALENDAR_REGULAR_VIEW_UNSUPPORTED'
+export class CalendarRegularViewUnsupportedError extends Error {
+  readonly code = CALENDAR_REGULAR_VIEW_UNSUPPORTED
+  constructor() {
+    super('The calendar preferences API does not report regular_view yet.')
+    this.name = 'CalendarRegularViewUnsupportedError'
+  }
 }
 
 export async function fetchCalendarPreferences(): Promise<CalendarPreferences> {
