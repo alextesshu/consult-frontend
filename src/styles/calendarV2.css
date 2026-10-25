@@ -85,8 +85,11 @@ html[data-ui="v2"] .pc2-cal-grid__body { position: relative; }
 html[data-ui="v2"] .pc2-cal-grid__hours { position: relative; }
 html[data-ui="v2"] .pc2-cal-grid__hours span { position: absolute; right: var(--pc-space-2); transform: translateY(-50%); font-size: 11px; color: var(--pc-text-soft); }
 html[data-ui="v2"] .pc2-cal-grid__hours span:first-child { transform: none; }
+/* The last label sits on the bottom edge: keep it inside the body so a fitted grid never scrolls. */
+html[data-ui="v2"] .pc2-cal-grid__hours span:last-child:not(:first-child) { transform: translateY(-100%); }
 html[data-ui="v2"] .pc2-cal-grid__col { position: relative; min-width: 0; border-left: 1px solid var(--pc-bg-sunk); }
 html[data-ui="v2"] .pc2-cal-grid__line { position: absolute; left: 0; right: 0; border-top: 1px solid var(--pc-bg-sunk); }
+html[data-ui="v2"] .pc2-cal-grid__line.is-half { border-top-style: dashed; opacity: .6; }
 html[data-ui="v2"] .pc2-cal-grid__events { margin: 0; padding: 0; list-style: none; }
 html[data-ui="v2"] .pc2-cal-grid__slot { position: absolute; padding: 1px 3px; box-sizing: border-box; z-index: 2; }
 html[data-ui="v2"] .pc2-cal-grid__slot.is-overlay { z-index: 4; }
@@ -95,7 +98,7 @@ html[data-ui="v2"] .pc2-cal-grid__slot > * { height: 100%; }
 html[data-ui="v2"] .pc2-cal-grid__absence { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(135deg, var(--pc-bg-sunk) 0 6px, transparent 6px 12px); }
 html[data-ui="v2"] .pc2-cal-grid__absence-label { position: absolute; left: var(--pc-space-2); right: var(--pc-space-2); top: var(--pc-space-3); padding: 6px 8px; border: 1px solid var(--pc-border); border-radius: var(--pc-radius-xs); background: var(--pc-bg-card); font-size: 12px; color: var(--pc-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[data-ui="v2"] .pc2-cal-grid__now { position: absolute; left: -4px; right: 0; height: 2px; background: #d9822b; z-index: 5; }
-html[data-ui="v2"] .pc2-cal-grid__empty { position: absolute; left: 0; right: 0; top: 40%; margin: 0; text-align: center; font-size: 12px; color: var(--pc-text-soft); }
+html[data-ui="v2"] .pc2-cal-grid__empty { position: absolute; left: 0; right: 0; top: 40%; margin: 0; padding: 0 var(--pc-space-2); text-align: center; font-size: 12px; line-height: 1.4; color: var(--pc-text-soft); }
 html[data-ui="v2"] .pc2-cal-grid__col--weekend { padding: var(--pc-space-2) var(--pc-space-1); }
 html[data-ui="v2"] .pc2-cal-grid__weekend-list { display: grid; gap: var(--pc-space-1); margin: 0; padding: 0; list-style: none; }
 html[data-ui="v2"] .pc2-cal-grid__col--weekend .pc2-cal-grid__empty { position: static; margin-top: var(--pc-space-6); }
@@ -156,9 +159,12 @@ html[data-ui="v2"] .pc2-cal-actions__how-title { margin: 0; font-size: 16px; fon
 html[data-ui="v2"] .pc2-cal__backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(18, 35, 58, .24); }
 html[data-ui="v2"] .pc2-cal__backdrop.is-transparent { background: transparent; }
 html[data-ui="v2"] .pc2-cal-view {
-  position: fixed; z-index: 61; top: 120px; right: max(24px, calc((100vw - 1440px) / 2 + 24px)); width: 320px; max-height: calc(100dvh - 140px); overflow-y: auto;
-  display: grid; gap: var(--pc-space-3); padding: var(--pc-space-4); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-sm); background: var(--pc-bg-card); box-shadow: var(--pc-shadow-md); box-sizing: border-box;
+  position: fixed; z-index: 61; top: 120px; right: max(24px, calc((100vw - 1440px) / 2 + 24px)); width: 320px; max-height: calc(100dvh - 140px); overflow: hidden;
+  display: flex; flex-direction: column; padding: 0; border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-sm); background: var(--pc-bg-card); box-shadow: var(--pc-shadow-md); box-sizing: border-box;
 }
+html[data-ui="v2"] .pc2-cal-view__head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--pc-space-2); padding: var(--pc-space-2) var(--pc-space-2) var(--pc-space-2) var(--pc-space-4); border-bottom: 1px solid var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-cal-view__close { border-color: transparent; }
+html[data-ui="v2"] .pc2-cal-view__body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: var(--pc-space-3); padding: var(--pc-space-3) var(--pc-space-4) var(--pc-space-4); }
 html[data-ui="v2"] .pc2-cal-view__title { margin: 0; font-size: var(--pc-fs-ui); font-weight: var(--pc-fw-medium); }
 html[data-ui="v2"] .pc2-cal-view__layers { display: grid; gap: 2px; margin: 0; padding: 0; border: 0; }
 html[data-ui="v2"] .pc2-cal-view__layer { min-height: 44px; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto auto; align-items: center; gap: var(--pc-space-2); font-size: var(--pc-fs-small); cursor: pointer; }
@@ -171,7 +177,10 @@ html[data-ui="v2"] .pc2-cal-view__legend dl { display: grid; gap: 6px; margin: v
 html[data-ui="v2"] .pc2-cal-view__legend div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--pc-space-2); }
 html[data-ui="v2"] .pc2-cal-view__legend dt { color: var(--pc-peach-ink); }
 html[data-ui="v2"] .pc2-cal-view__legend dd { margin: 0; color: var(--pc-text-body); }
-html[data-ui="v2"] .pc2-cal-view.is-sheet { top: auto; right: 0; bottom: 0; left: 0; width: 100%; max-height: 85dvh; border-radius: var(--pc-radius-lg) var(--pc-radius-lg) 0 0; padding-bottom: calc(var(--pc-space-6) + env(safe-area-inset-bottom)); }
+html[data-ui="v2"] .pc2-cal-view.is-sheet { top: auto; right: 0; bottom: 0; left: 0; width: 100%; max-height: min(85dvh, calc(100dvh - 24px - env(safe-area-inset-top))); border-radius: var(--pc-radius-lg) var(--pc-radius-lg) 0 0; }
+html[data-ui="v2"] .pc2-cal-view.is-sheet .pc2-cal-view__head { padding-left: calc(var(--pc-space-4) + env(safe-area-inset-left)); padding-right: calc(var(--pc-space-2) + env(safe-area-inset-right)); }
+html[data-ui="v2"] .pc2-cal-view.is-sheet .pc2-cal-view__close { width: 44px; min-height: 44px; }
+html[data-ui="v2"] .pc2-cal-view.is-sheet .pc2-cal-view__body { padding: var(--pc-space-3) calc(var(--pc-space-4) + env(safe-area-inset-right)) calc(var(--pc-space-6) + env(safe-area-inset-bottom)) calc(var(--pc-space-4) + env(safe-area-inset-left)); }
 
 /* Read-only details dialog */
 html[data-ui="v2"] .pc2-cal__panel {
@@ -237,11 +246,12 @@ html[data-ui="v2"] .pc2-cal__strip-dot.is-action { background: var(--pc-peach-50
   html[data-ui="v2"] .pc2-cal__icon-btn { width: 44px; min-height: 44px; }
   html[data-ui="v2"] .pc2-cal__btn { min-height: 44px; }
   html[data-ui="v2"] .pc2-cal__link-btn { min-height: 44px; }
-  html[data-ui="v2"] .pc2-cal-next { min-height: 64px; grid-template-rows: auto auto; padding: 10px 8px 10px 14px; border-radius: 18px; }
+  /* One column: the full name and reason stay readable; the button moves under them. */
+  html[data-ui="v2"] .pc2-cal-next { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 4px; padding: 12px 14px; border-radius: 18px; }
   html[data-ui="v2"] .pc2-cal-next__meta { font-size: 12px; }
-  html[data-ui="v2"] .pc2-cal-next__who { font-size: 16px; }
+  html[data-ui="v2"] .pc2-cal-next__who { font-size: 17px; white-space: normal; overflow-wrap: anywhere; }
   html[data-ui="v2"] .pc2-cal-next__state { font-size: 12px; }
-  html[data-ui="v2"] .pc2-cal-next__btn { min-height: 44px; }
+  html[data-ui="v2"] .pc2-cal-next__btn { grid-column: 1; grid-row: auto; justify-self: start; min-height: 44px; margin-top: 6px; }
   html[data-ui="v2"] .pc2-cal__modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 3px; border: 0; border-radius: var(--pc-radius-pill); background: var(--pc-bg-sunk); }
   html[data-ui="v2"] .pc2-cal__mode { justify-content: center; min-height: 44px; margin: 0; padding: 0 var(--pc-space-1); border: 0; border-radius: var(--pc-radius-pill); font-size: 13px; font-weight: var(--pc-fw-regular); color: var(--pc-text-muted); }
   html[data-ui="v2"] .pc2-cal__mode[aria-selected="true"] { background: var(--pc-bg-card); box-shadow: 0 1px 2px rgba(18, 35, 58, .1); color: var(--pc-text-main); }

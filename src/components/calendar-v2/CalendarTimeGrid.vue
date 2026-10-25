@@ -24,7 +24,7 @@
     <div ref="scrollRef" class="pc2-cal-grid__scroll">
       <div class="pc2-cal-grid__body" :style="{ height: `${bodyHeight}px` }">
         <div class="pc2-cal-grid__hours" aria-hidden="true">
-          <span v-for="hour in hours" :key="hour" :style="{ top: `${(hour - startHour) * HOUR_PX}px` }">{{ hourLabel(hour) }}</span>
+          <span v-for="hour in hours" :key="hour" :style="{ top: `${(hour - startHour) * hourPx}px` }">{{ hourLabel(hour) }}</span>
         </div>
         <section
           v-for="day in columns"
@@ -33,7 +33,10 @@
           :class="{ 'is-today': day.isToday }"
           :aria-label="`${day.labels.full}${day.isToday ? ', сьогодні' : ''}: ${day.summary.main}${day.summary.sub ? `, ${day.summary.sub}` : ''}`"
         >
-          <span v-for="hour in hours" :key="hour" class="pc2-cal-grid__line" :style="{ top: `${(hour - startHour) * HOUR_PX}px` }" aria-hidden="true"></span>
+          <span v-for="hour in hours" :key="hour" class="pc2-cal-grid__line" :style="{ top: `${(hour - startHour) * hourPx}px` }" aria-hidden="true"></span>
+          <template v-if="halfHourLines">
+            <span v-for="hour in hours.slice(0, -1)" :key="`${hour}:30`" class="pc2-cal-grid__line is-half" :style="{ top: `${(hour - startHour + 0.5) * hourPx}px` }" aria-hidden="true"></span>
+          </template>
           <span v-for="band in day.bands" :key="band.item.key" class="pc2-cal-grid__absence" :style="{ top: `${band.top}px`, height: `${band.height}px` }">
             <span class="pc2-cal-grid__absence-label">{{ band.item.title }}</span>
           </span>
@@ -60,7 +63,7 @@
             </li>
           </ul>
           <span v-if="day.nowTop !== null" class="pc2-cal-grid__now" :style="{ top: `${day.nowTop}px` }" aria-hidden="true"></span>
-          <p v-if="day.empty" class="pc2-cal-grid__empty">Порожній день</p>
+          <p v-if="day.emptyLabel" class="pc2-cal-grid__empty">{{ day.emptyLabel }}</p>
         </section>
         <section v-if="weekend.length" class="pc2-cal-grid__col pc2-cal-grid__col--weekend" :aria-label="`Вихідні, ${weekendLabel}`">
           <ul class="pc2-cal-grid__weekend-list" role="list">
@@ -74,7 +77,7 @@
               </button>
             </li>
           </ul>
-          <p v-if="!weekendItems.length && !weekendWindows.length" class="pc2-cal-grid__empty">Порожньо</p>
+          <p v-if="!weekendItems.length && !weekendWindows.length" class="pc2-cal-grid__empty">{{ weekendEmptyLabel }}</p>
         </section>
       </div>
     </div>
@@ -82,11 +85,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CalendarItem } from '../../lib/calendarItems'
 import type { CalendarMode } from '../../lib/calendarModes'
 import { dayBounds, dayLabels, formatTime, wallMinutes, type DayKey } from '../../lib/calendarTime'
-import { plural, slotsLabel, windowsLabel, type FreeWindow } from '../../lib/calendarWindows'
+import { emptyDayLabel, plural, slotsLabel, windowsLabel, type FreeWindow } from '../../lib/calendarWindows'
 import CalendarEventChip from './CalendarEventChip.vue'
 
 const props = defineProps<{
@@ -105,9 +108,16 @@ const props = defineProps<{
 }>()
 defineEmits<{ open: [item: CalendarItem]; 'open-window': [window: FreeWindow] }>()
 
+// Hour height: at least 52px (spec); a short range is stretched to the grid's usable height
+// (the scroll box's own cap, min(70vh, 720px), never below MIN_BODY_PX) instead of collapsing to a
+// strip with a few hours. Only real clock hours are drawn; the range itself is not padded.
 const HOUR_PX = 52
-const PX_PER_MIN = HOUR_PX / 60
+const MIN_BODY_PX = 360
 const MIN_EVENT_PX = 26
+const viewportHeight = ref(typeof window === 'undefined' ? 900 : window.innerHeight)
+const onResize = () => { viewportHeight.value = window.innerHeight }
+onMounted(() => window.addEventListener('resize', onResize))
+onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 const weekend = computed(() => props.weekend ?? [])
 const fullDay = ref(false)
 
@@ -183,8 +193,11 @@ const extremes = computed(() => {
 const startHour = computed(() => (fullDay.value ? 0 : Math.max(0, Math.floor(extremes.value.from / 60))))
 const endHour = computed(() => (fullDay.value ? 24 : Math.min(24, Math.max(startHour.value + 1, Math.ceil(extremes.value.to / 60)))))
 const hours = computed(() => Array.from({ length: endHour.value - startHour.value + 1 }, (_, index) => startHour.value + index))
-const bodyHeight = computed(() => (endHour.value - startHour.value) * HOUR_PX)
-const toPx = (minute: number) => (minute - startHour.value * 60) * PX_PER_MIN
+const usableHeight = computed(() => Math.max(MIN_BODY_PX, Math.min(viewportHeight.value * 0.7, 720)))
+const hourPx = computed(() => Math.max(HOUR_PX, usableHeight.value / (endHour.value - startHour.value)))
+const halfHourLines = computed(() => hourPx.value >= 2 * HOUR_PX)
+const bodyHeight = computed(() => (endHour.value - startHour.value) * hourPx.value)
+const toPx = (minute: number) => (minute - startHour.value * 60) * (hourPx.value / 60)
 
 const columns = computed(() =>
   segments.value.map((day) => {
@@ -230,11 +243,16 @@ const columns = computed(() =>
       events,
       windowBlocks,
       bands,
-      empty: !events.length && !windowBlocks.length && !bands.length,
+      emptyLabel: events.length || windowBlocks.length || bands.length ? '' : dayEmptyLabel([day.key]),
       nowTop: nowPx !== null && nowPx >= 0 && nowPx <= bodyHeight.value ? nowPx : null,
     }
   })
 )
+
+function dayEmptyLabel(keys: DayKey[]) {
+  const all = keys.flatMap((key) => touching(props.summaryItems, key))
+  return emptyDayLabel(all, props.summaryWindows.filter((window) => keys.includes(window.day)).length, props.mode)
+}
 
 const weekendItems = computed(() => {
   const seen = new Set<string>()
@@ -244,6 +262,7 @@ const weekendItems = computed(() => {
 })
 const weekendWindows = computed(() => props.windows.filter((window) => weekend.value.includes(window.day)))
 const weekendSummary = computed(() => daySummary(weekend.value))
+const weekendEmptyLabel = computed(() => dayEmptyLabel(weekend.value))
 const weekendLabel = computed(() => weekend.value.map((key) => dayLabels(key).day).join('–'))
 
 // Auto-scroll to the «now» line, otherwise to today's first event, otherwise to the first event.
@@ -257,7 +276,7 @@ async function autoScroll() {
   const firstToday = today ? Math.min(...tops(today), Infinity) : Infinity
   const firstAny = Math.min(...columns.value.flatMap(tops), Infinity)
   const target = today?.nowTop ?? (Number.isFinite(firstToday) ? firstToday : Number.isFinite(firstAny) ? firstAny : 0)
-  el.scrollTop = Math.max(0, target - HOUR_PX)
+  el.scrollTop = Math.max(0, target - hourPx.value)
 }
 onMounted(autoScroll)
 watch(() => [props.days.join(), props.mode, fullDay.value], autoScroll)

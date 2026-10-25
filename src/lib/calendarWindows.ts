@@ -19,7 +19,7 @@ export type FreeWindow = {
 const BUSY_KINDS = new Set<CalendarItem['kind']>(['session', 'guest_request', 'absence', 'external_guest_session'])
 const INACTIVE_SESSION_STATUSES = new Set(['CANCELLED', 'NO_SHOW'])
 
-function isBusy(item: CalendarItem) {
+export function isBusy(item: CalendarItem) {
   if (!BUSY_KINDS.has(item.kind)) return false
   if (item.kind === 'session' && INACTIVE_SESSION_STATUSES.has(item.status)) return false
   if (item.kind === 'external_guest_session' && item.status === 'CANCELLED') return false
@@ -50,6 +50,18 @@ export function groupFreeWindows(items: CalendarItem[], timeZone: string): FreeW
     windows.push(current)
   }
   return windows
+}
+
+/**
+ * Label for a day column with nothing visible. A day hidden by «Вигляд» layers or with only busy
+ * time is never called empty: «Порожній день» means no busy events and no free slots were loaded.
+ */
+export function emptyDayLabel(dayItems: CalendarItem[], freeWindows: number, mode: 'workday' | 'availability') {
+  const busy = dayItems.some(isBusy)
+  if (busy && mode === 'availability' && !freeWindows) return 'Немає вільних слотів · є зайняті події'
+  if (busy) return 'Є зайняті події — приховані у «Вигляді»'
+  if (freeWindows) return 'Сесій немає · є вільний час'
+  return 'Порожній день'
 }
 
 /** Ukrainian plural helper: one / few (2–4) / many. */

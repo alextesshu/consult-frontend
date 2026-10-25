@@ -11,7 +11,11 @@
     aria-labelledby="pc2-cal-view-title"
     @keydown.esc.stop.prevent="$emit('close')"
   >
-    <h2 id="pc2-cal-view-title" class="pc2-cal-view__title">Вигляд · {{ CALENDAR_MODE_LABELS[mode] }}</h2>
+    <div class="pc2-cal-view__head">
+      <h2 id="pc2-cal-view-title" class="pc2-cal-view__title">Вигляд · {{ CALENDAR_MODE_LABELS[mode] }}</h2>
+      <button type="button" class="pc2-cal__icon-btn pc2-cal-view__close" aria-label="Закрити вигляд" @click="$emit('close')">×</button>
+    </div>
+    <div class="pc2-cal-view__body">
     <fieldset class="pc2-cal-view__layers">
       <legend class="pc2-cal-sr">Що показувати</legend>
       <label v-for="layer in CALENDAR_LAYERS" :key="layer" class="pc2-cal-view__layer">
@@ -35,11 +39,12 @@
       </dl>
     </details>
     <button type="button" class="pc2-cal__btn pc2-cal__btn--quiet" @click="$emit('close')">Готово</button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { CALENDAR_LAYER_LABELS, CALENDAR_LAYERS, type CalendarLayer, type CalendarLayers } from '../../lib/calendarItems'
 import { CALENDAR_MODE_LABELS, layerDeviations, type CalendarMode } from '../../lib/calendarModes'
 
@@ -61,8 +66,17 @@ const deviated = computed(() => new Set(layerDeviations(props.mode, props.layers
 const visibleCount = computed(() => CALENDAR_LAYERS.filter((layer) => props.layers[layer]).length)
 
 const panelRef = ref<HTMLElement | null>(null)
+// The phone sheet scrolls on its own; the page behind it does not.
+let restoreOverflow: string | null = null
 onMounted(async () => {
+  if (props.sheet) {
+    restoreOverflow = document.documentElement.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+  }
   await nextTick()
   panelRef.value?.querySelector<HTMLInputElement>('input:not(:disabled)')?.focus()
+})
+onBeforeUnmount(() => {
+  if (restoreOverflow !== null) document.documentElement.style.overflow = restoreOverflow
 })
 </script>

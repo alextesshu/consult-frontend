@@ -108,7 +108,7 @@ describe('CalendarV2 3a on desktop', () => {
     await renderCalendar()
     // Nearest action: tomorrow's guest request (15:00) comes before Saturday's confirmation.
     expect(await screen.findByRole('heading', { level: 2, name: 'Катерина' })).toBeInTheDocument()
-    expect(screen.getByText(/Найближча дія · завтра 15:00/)).toBeInTheDocument()
+    expect(screen.getByText(/^Найближча з усіх дій · завтра 15:00 · через \d/)).not.toHaveTextContent('поза вибраним тижнем')
     expect(screen.getByRole('link', { name: 'Відкрити запит →' })).toHaveAttribute('href', '/cabinet/external-sessions#guest-requests')
     expect(screen.getByRole('heading', { level: 2, name: '19 – 25 жовтня' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Робочий день' })).toHaveAttribute('aria-selected', 'true')
@@ -116,6 +116,14 @@ describe('CalendarV2 3a on desktop', () => {
     expect(screen.queryByRole('button', { name: /Вільне вікно/ })).toBeNull()
     expect(screen.getByRole('region', { name: /П’ятниця, 23 жовтня: 1 сесія · 1 запит, 2 вільні вікна/ })).toBeInTheDocument()
     expect(screen.getByText(/Тимчасово: режим і вигляд діють лише в цій вкладці/)).toBeInTheDocument()
+  })
+
+  it('says the next action comes from all weeks, also when another week is on screen', async () => {
+    await renderCalendar()
+    await screen.findByRole('heading', { level: 2, name: 'Катерина' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Катерина' })).toBeInTheDocument()
+    expect(screen.getByText(/^Найближча з усіх дій · завтра 15:00/)).toHaveTextContent('поза вибраним тижнем')
   })
 
   it('never hides events outside working hours', async () => {
@@ -139,6 +147,21 @@ describe('CalendarV2 3a on desktop', () => {
     expect(screen.queryByRole('link', { name: /Ірина Ткаченко/ })).toBeNull()
     expect(screen.getByRole('region', { name: /П’ятниця, 23 жовтня: 3 слоти вільно, 2 вікна/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Запит на час/ })).toBeInTheDocument()
+  })
+
+  it('never calls a day with a real session empty, even when the session layer is hidden', async () => {
+    await renderCalendar('/cabinet/sessions?ui=v2&mode=availability')
+    // Wed 21: a past confirmed session (the «Минулі сесії» layer is off in «Доступність»), no slots.
+    const wednesday = await screen.findByRole('region', { name: /Середа, 21 жовтня/ })
+    expect(within(wednesday).getByText('Немає вільних слотів · є зайняті події')).toBeInTheDocument()
+    // Tue 20 only has a «не підтверджено вчасно» session (not busy); Mon 19 has nothing.
+    expect(within(screen.getByRole('region', { name: /Понеділок, 19 жовтня/ })).getByText('Порожній день')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: /П’ятниця, 23 жовтня/ })).queryByText(/Порожній|Немає вільних/)).toBeNull()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Робочий день' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Вигляд ▾' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('checkbox', { name: /Минулі сесії/ }))
+    expect(within(screen.getByRole('region', { name: /Середа, 21 жовтня/ })).getByText('Є зайняті події — приховані у «Вигляді»')).toBeInTheDocument()
   })
 
   it('moves between mode tabs with the arrow keys (roving tabindex)', async () => {
@@ -232,6 +255,58 @@ describe('CalendarV2 3a on desktop', () => {
   })
 })
 
+describe('CalendarV2 3a week grid height', () => {
+  const kyiv = (hour: number, minute = 0) => new Date(Date.UTC(2026, 9, 23, hour - 3, minute)).toISOString()
+  const bodyHeight = () => parseFloat((document.querySelector('.pc2-cal-grid__body') as HTMLElement).style.height)
+
+  beforeEach(() => {
+    resetMocks()
+    stubViewport(1440)
+    // Usable grid height = min(70% of 900, 720) = 630px.
+    vi.stubGlobal('innerHeight', 900)
+    mocked.schedule.mockResolvedValue({ events: [] })
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  async function renderSessions(starts: string[]) {
+    mocked.apiGet.mockImplementation((async (_url: string, config?: { params?: Record<string, unknown> }) =>
+      config?.params?.upcoming ? [] : starts.map((start, index) => row(40 + index, 'CONFIRMED', start, `Клієнт ${index}`))) as never)
+    await renderCalendar()
+    await screen.findByRole('link', { name: /Клієнт 0/ })
+  }
+
+  it('stretches a 1-hour range to the usable height without adding hours', async () => {
+    await renderSessions([kyiv(10)])
+    expect(screen.getByText(/Показано 10:00–11:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(630)
+    expect(document.querySelectorAll('.pc2-cal-grid__hours span')).toHaveLength(2)
+    expect(document.querySelector('.pc2-cal-grid__line.is-half')).not.toBeNull()
+  })
+
+  it('stretches a 5-hour range and keeps 52px hours for 12 hours and the full day', async () => {
+    await renderSessions([kyiv(9), kyiv(13)])
+    expect(screen.getByText(/Показано 09:00–14:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(630)
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати всю добу' }))
+    expect(bodyHeight()).toBe(24 * 52)
+  })
+
+  it('fills the height with 12 hours and keeps the 52px minimum (scrolling) beyond that', async () => {
+    await renderSessions([kyiv(7), kyiv(18)])
+    expect(screen.getByText(/Показано 07:00–19:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(630)
+    expect(screen.getByRole('link', { name: /18:00–18:50, Сесія, Клієнт 1/ })).toBeInTheDocument()
+  })
+
+  it('keeps 52px hours for 13 hours, never hiding early or late sessions', async () => {
+    await renderSessions([kyiv(6), kyiv(18)])
+    expect(screen.getByText(/Показано 06:00–19:00/)).toBeInTheDocument()
+    expect(bodyHeight()).toBe(13 * 52)
+    expect(screen.getByRole('link', { name: /06:00–06:50, Сесія, Клієнт 0/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /18:00–18:50, Сесія, Клієнт 1/ })).toBeInTheDocument()
+  })
+})
+
 describe('CalendarV2 3a on tablets and phones', () => {
   beforeEach(resetMocks)
   afterEach(() => vi.unstubAllGlobals())
@@ -266,7 +341,25 @@ describe('CalendarV2 3a on tablets and phones', () => {
     const menuButton = screen.getByRole('button', { name: 'Вигляд календаря' })
     await fireEvent.click(menuButton)
     expect(document.querySelector('.pc2-cal-view.is-sheet')).not.toBeNull()
+    expect(document.documentElement.style.overflow).toBe('hidden')
     await fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     expect(menuButton).toHaveFocus()
+    expect(document.documentElement.style.overflow).toBe('')
+
+    // The sheet header keeps a close control next to the title.
+    await fireEvent.click(menuButton)
+    const sheet = screen.getByRole('dialog', { name: 'Вигляд · Доступність' })
+    await fireEvent.click(within(sheet).getByRole('button', { name: 'Закрити вигляд' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(menuButton).toHaveFocus()
+  })
+
+  it('names a phone day with only busy, hidden time correctly', async () => {
+    stubViewport(375)
+    await renderCalendar('/cabinet/sessions?ui=v2&mode=availability')
+    await fireEvent.click(within(await screen.findByRole('group', { name: 'Дні тижня' })).getByRole('button', { name: /Середа, 21 жовтня/ }))
+    expect(await screen.findByText('Немає вільних слотів · є зайняті події')).toBeInTheDocument()
+    await fireEvent.click(within(screen.getByRole('group', { name: 'Дні тижня' })).getByRole('button', { name: /Понеділок, 19 жовтня/ }))
+    expect(screen.getByText('Порожній день')).toBeInTheDocument()
   })
 })

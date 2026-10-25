@@ -30,7 +30,7 @@
         </template>
       </li>
     </ul>
-    <p v-else class="pc2-cal-agenda__empty">Порожній день</p>
+    <p v-else class="pc2-cal-agenda__empty">{{ emptyLabel }}</p>
   </section>
 </template>
 
@@ -39,12 +39,14 @@ import { computed, ref } from 'vue'
 import type { CalendarItem } from '../../lib/calendarItems'
 import type { CalendarMode } from '../../lib/calendarModes'
 import { dayBounds, dayLabels, formatTime, type DayKey } from '../../lib/calendarTime'
-import { plural, slotsLabel, windowsLabel, type FreeWindow } from '../../lib/calendarWindows'
+import { emptyDayLabel, plural, slotsLabel, windowsLabel, type FreeWindow } from '../../lib/calendarWindows'
 import CalendarEventChip from './CalendarEventChip.vue'
 
 const props = defineProps<{
   day: DayKey
   items: CalendarItem[]
+  /** Everything loaded for the period (visible or not), so a day hidden by layers is not called empty. */
+  summaryItems: CalendarItem[]
   windows: FreeWindow[]
   /** All loaded windows of the day (summary even when the free-slots layer is hidden). */
   summaryWindows: FreeWindow[]
@@ -81,6 +83,13 @@ const heading = computed(() => {
   if (props.mode === 'availability') return `${label.short}, ${label.dateOnly}${today}`
   return `${label.short}, ${label.dateOnly}${today}${sessions ? ` · ${sessions} ${plural(sessions, 'сесія', 'сесії', 'сесій')}` : ''}`
 })
+const emptyLabel = computed(() =>
+  emptyDayLabel(
+    props.summaryItems.filter((item) => item.start < bounds.value.end && item.end > bounds.value.start),
+    props.summaryWindows.filter((window) => window.day === props.day).length,
+    props.mode
+  )
+)
 const subheading = computed(() => {
   const windows = props.summaryWindows.filter((window) => window.day === props.day)
   if (!windows.length) return ''

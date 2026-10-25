@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CabinetScheduleEvent } from './api'
 import { buildCalendarItems, type CalendarSessionRow } from './calendarItems'
-import { groupFreeWindows, plural, slotsLabel } from './calendarWindows'
+import { emptyDayLabel, groupFreeWindows, plural, slotsLabel } from './calendarWindows'
 
 const KYIV = 'Europe/Kyiv'
 const NOW = Date.parse('2026-10-26T06:00:00Z')
@@ -89,5 +89,19 @@ describe('groupFreeWindows', () => {
     expect(slotsLabel(15)).toBe('15 слотів')
     expect(plural(21, 'вікно', 'вікна', 'вікон')).toBe('вікно')
     expect(plural(12, 'вікно', 'вікна', 'вікон')).toBe('вікон')
+  })
+})
+
+describe('emptyDayLabel', () => {
+  const busy = buildCalendarItems({ sessions: [session(1, 10)] }, RANGE, NOW)
+  const cancelled = buildCalendarItems({ sessions: [{ ...session(2, 10), status: 'CANCELLED' }] }, RANGE, NOW)
+
+  it('tells «no free slots», «busy but hidden» and «fully empty» apart', () => {
+    expect(emptyDayLabel(busy, 0, 'availability')).toBe('Немає вільних слотів · є зайняті події')
+    expect(emptyDayLabel(busy, 2, 'availability')).toBe('Є зайняті події — приховані у «Вигляді»')
+    expect(emptyDayLabel(busy, 0, 'workday')).toBe('Є зайняті події — приховані у «Вигляді»')
+    expect(emptyDayLabel([], 2, 'workday')).toBe('Сесій немає · є вільний час')
+    expect(emptyDayLabel(cancelled, 0, 'availability')).toBe('Порожній день')
+    expect(emptyDayLabel([], 0, 'workday')).toBe('Порожній день')
   })
 })

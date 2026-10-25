@@ -5,13 +5,13 @@
       <p id="pc2-cal-next-title" class="pc2-cal-next__who">Завантажуємо…</p>
     </template>
     <template v-else-if="card.kind === 'action'">
-      <p class="pc2-cal-next__meta">Найближча дія · {{ whenLabel }}<template v-if="relative"> · {{ relative }}</template></p>
+      <p class="pc2-cal-next__meta">Найближча з усіх дій · {{ whenLabel }}<template v-if="relative"> · {{ relative }}</template><template v-if="outsideWeek"> · поза вибраним тижнем</template></p>
       <h2 id="pc2-cal-next-title" class="pc2-cal-next__who">{{ card.action.who }}</h2>
       <p class="pc2-cal-next__state"><span class="pc2-cal-next__marker">{{ card.action.marker }}</span>{{ card.action.reason }}</p>
       <RouterLink class="pc2-cal-next__btn" :to="card.action.href">{{ card.action.primaryLabel }} →</RouterLink>
     </template>
     <template v-else-if="card.kind === 'session' && card.today">
-      <p class="pc2-cal-next__meta">Наступна · {{ whenLabel }}<template v-if="relative"> · {{ relative }}</template></p>
+      <p class="pc2-cal-next__meta">Наступна сесія · {{ whenLabel }}<template v-if="relative"> · {{ relative }}</template><template v-if="outsideWeek"> · поза вибраним тижнем</template></p>
       <h2 id="pc2-cal-next-title" class="pc2-cal-next__who">{{ sessionName }}</h2>
       <p class="pc2-cal-next__state">{{ sessionState }}</p>
       <RouterLink class="pc2-cal-next__btn" :to="`/cabinet/sessions/${card.session.id}`">Відкрити сесію →</RouterLink>
@@ -19,6 +19,7 @@
     <template v-else-if="card.kind === 'session'">
       <p class="pc2-cal-next__meta">Сьогодні сесій немає</p>
       <h2 id="pc2-cal-next-title" class="pc2-cal-next__who">Найближча — {{ whenLabel }}</h2>
+      <p v-if="outsideWeek" class="pc2-cal-next__meta">Поза вибраним тижнем</p>
       <p class="pc2-cal-next__state">{{ sessionName }} · {{ sessionState }}</p>
       <RouterLink class="pc2-cal-next__btn" :to="`/cabinet/sessions/${card.session.id}`">Відкрити сесію →</RouterLink>
     </template>
@@ -37,7 +38,9 @@ import { formatWhen, relativeLabel, type NextActionCard } from '../../lib/calend
 import { SESSION_STATUS_LABELS } from '../../lib/calendarItems'
 import { addDays, dayKeyOf, formatTime } from '../../lib/calendarTime'
 
-const props = defineProps<{ card: NextActionCard; now: number; timeZone: string; loading?: boolean; partial?: boolean }>()
+// The card always shows the nearest item of ALL weeks (global sources), not of the selected week;
+// `week` only adds «поза вибраним тижнем» when the item is outside the week on screen.
+const props = defineProps<{ card: NextActionCard; now: number; timeZone: string; week?: { start: number; end: number }; loading?: boolean; partial?: boolean }>()
 
 const quiet = computed(() => props.card.kind === 'none' || (props.card.kind === 'session' && !props.card.today))
 
@@ -49,6 +52,12 @@ const whenLabel = computed(() => {
   if (key === today) return `сьогодні ${formatTime(card.when, props.timeZone)}`
   if (key === addDays(today, 1)) return `завтра ${formatTime(card.when, props.timeZone)}`
   return formatWhen(card.when, props.timeZone)
+})
+
+const outsideWeek = computed(() => {
+  const card = props.card
+  if (card.kind === 'none' || !props.week) return false
+  return card.when < props.week.start || card.when >= props.week.end
 })
 
 const relative = computed(() => (props.card.kind === 'none' ? '' : relativeLabel(props.card.when, props.now)))

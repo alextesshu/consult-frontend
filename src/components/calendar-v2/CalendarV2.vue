@@ -16,7 +16,7 @@
     </div>
 
     <div class="pc2-cal__top">
-      <CalendarNextAction :card="nextCard" :now="nowValue" :time-zone="timeZone" :loading="actionsStatus === 'loading'" :partial="actionsFailed.length > 0" />
+      <CalendarNextAction :card="nextCard" :now="nowValue" :time-zone="timeZone" :week="range" :loading="actionsStatus === 'loading'" :partial="actionsFailed.length > 0" />
       <div class="pc2-cal__control">
         <div v-if="!isMobile" class="pc2-cal__navrow">
           <button
@@ -136,6 +136,7 @@
           v-else-if="isMobile"
           :day="anchor"
           :items="gridItems"
+          :summary-items="weekItems"
           :windows="visibleWindows"
           :summary-windows="allWindows"
           :mode="mode"
