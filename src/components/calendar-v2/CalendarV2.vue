@@ -1,352 +1,439 @@
 <template>
-  <section class="pc2-cal" :class="{ 'is-mobile': isMobile }" aria-labelledby="pc2-cal-title">
-    <header class="pc2-cal__head">
-      <div class="pc2-cal__heading">
-        <p class="pc2-cal__eyebrow">Календар</p>
-        <h1 id="pc2-cal-title" class="pc2-cal__title">{{ periodLabel }}</h1>
-      </div>
-      <div class="pc2-cal__nav" role="group" aria-label="Період">
-        <button type="button" class="pc2-cal__icon-btn" :aria-label="effectiveView === 'day' ? 'Попередній день' : 'Попередній тиждень'" @click="shift(-1)">‹</button>
-        <button type="button" class="pc2-cal__icon-btn" :aria-label="effectiveView === 'day' ? 'Наступний день' : 'Наступний тиждень'" @click="shift(1)">›</button>
-        <button type="button" class="pc2-cal__btn" :disabled="isCurrentPeriod" @click="goToday">Сьогодні</button>
-      </div>
-      <div class="pc2-cal__views" role="group" aria-label="Вигляд календаря">
-        <button
-          v-for="option in viewOptions"
-          :key="option.view"
-          type="button"
-          class="pc2-cal__seg"
-          :aria-pressed="effectiveView === option.view"
-          @click="prefs.setView(option.view)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
+  <section class="pc2-cal" :class="{ 'is-mobile': isMobile, 'is-tablet': isTablet }" aria-labelledby="pc2-cal-title">
+    <div class="pc2-cal__mobile-head">
+      <h1 id="pc2-cal-title" class="pc2-cal__page-title">Календар</h1>
       <button
-        ref="layersButtonRef"
+        v-if="isMobile"
+        ref="viewButtonMobileRef"
         type="button"
-        class="pc2-cal__btn pc2-cal__layers-btn"
+        class="pc2-cal__icon-btn"
         aria-haspopup="dialog"
-        :aria-expanded="layersOpen"
-        aria-controls="pc2-cal-layers"
-        @click="layersOpen ? closeLayers() : openLayers()"
-      >
-        Шари<span v-if="hiddenNeedsAction" class="pc2-cal__dot" aria-label="у прихованих шарах є записи, що потребують дії"></span>
-      </button>
-    </header>
-
-    <div class="pc2-cal__presets" role="group" aria-label="Набори шарів">
-      <button
-        v-for="preset in CALENDAR_PRESETS"
-        :key="preset"
-        type="button"
-        class="pc2-cal__chip"
-        :aria-pressed="state.preset === preset"
-        @click="prefs.setPreset(preset)"
-      >
-        {{ CALENDAR_PRESET_LABELS[preset] }}
-      </button>
-      <span v-if="state.preset === 'custom'" class="pc2-cal__custom">Власний набір</span>
+        :aria-expanded="viewOpen"
+        aria-controls="pc2-cal-view-menu"
+        aria-label="Вигляд календаря"
+        @click="openView($event)"
+      >≡</button>
     </div>
+
+    <div class="pc2-cal__top">
+      <CalendarNextAction :card="nextCard" :now="nowValue" :time-zone="timeZone" :loading="actionsStatus === 'loading'" :partial="actionsFailed.length > 0" />
+      <div class="pc2-cal__control">
+        <div v-if="!isMobile" class="pc2-cal__navrow">
+          <button
+            ref="viewButtonRef"
+            type="button"
+            class="pc2-cal__quiet-btn"
+            aria-haspopup="dialog"
+            :aria-expanded="viewOpen"
+            aria-controls="pc2-cal-view-menu"
+            title="Що показувати в сітці"
+            @click="openView($event)"
+          >Вигляд ▾</button>
+          <span class="pc2-cal__spacer"></span>
+          <button type="button" class="pc2-cal__btn" :disabled="isCurrentWeek" @click="goToday">Сьогодні</button>
+          <button type="button" class="pc2-cal__icon-btn" aria-label="Попередній тиждень" @click="shift(-7)">‹</button>
+          <button type="button" class="pc2-cal__icon-btn" aria-label="Наступний тиждень" @click="shift(7)">›</button>
+          <h2 class="pc2-cal__range">{{ weekLabel }}</h2>
+        </div>
+        <div
+          class="pc2-cal__modes"
+          role="tablist"
+          aria-label="Режим календаря"
+          @keydown="onTabKeydown"
+        >
+          <button
+            v-for="option in CALENDAR_MODES"
+            :id="`pc2-cal-tab-${option}`"
+            :key="option"
+            :ref="(el) => setTabRef(option, el)"
+            type="button"
+            role="tab"
+            class="pc2-cal__mode"
+            :aria-selected="mode === option"
+            aria-controls="pc2-cal-panel"
+            :tabindex="mode === option ? 0 : -1"
+            @click="selectMode(option)"
+          >
+            {{ isMobile ? CALENDAR_MODE_SHORT_LABELS[option] : CALENDAR_MODE_LABELS[option] }}
+            <span v-if="option === 'needs_action' && actionsTotal !== null" class="pc2-cal__badge" :aria-label="`${actionsTotal} дій`">{{ actionsTotal }}</span>
+          </button>
+        </div>
+        <div class="pc2-cal__desc-row">
+          <span class="pc2-cal__desc">{{ CALENDAR_MODE_DESCRIPTIONS[mode] }}</span>
+          <button
+            v-for="deviation in deviations"
+            :key="deviation.layer"
+            type="button"
+            class="pc2-cal__deviation"
+            :aria-label="`Повернути «${CALENDAR_LAYER_CHIP_LABELS[deviation.layer]}» до режиму`"
+            @click="prefs.setLayer(deviation.layer, !deviation.visible)"
+          >
+            {{ deviation.visible ? '+' : '−' }} {{ CALENDAR_LAYER_CHIP_LABELS[deviation.layer] }}<span aria-hidden="true">×</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="pc2-cal-sr" aria-live="polite">{{ announcement }}</p>
 
     <p v-if="!prefs.synced" class="pc2-cal__note">
-      Вигляд і шари поки діють лише в цій вкладці й не синхронізуються між пристроями. Час показано за {{ state.timezone }}.
+      Тимчасово: режим і вигляд діють лише в цій вкладці й не синхронізуються між пристроями. Час показано за {{ timeZone }}.
+    </p>
+    <p v-if="mode !== 'needs_action' && feedStatus === 'ready' && feedFailed.length" class="pc2-cal__warning" role="status">
+      Не вдалося завантажити: {{ feedFailed.map((source) => CALENDAR_SOURCE_LABELS[source]).join(', ') }}. Показано решту.
+      <button type="button" class="pc2-cal__link-btn" @click="retryFeed">Повторити</button>
     </p>
 
-    <div v-if="hidden.length" class="pc2-cal__hidden" role="status">
-      <span>Приховано:</span>
-      <span v-for="entry in hidden" :key="entry.layer" class="pc2-cal__hidden-item" :class="{ 'needs-action': entry.needsAction > 0 }">
-        {{ CALENDAR_LAYER_LABELS[entry.layer] }} — {{ entry.total }}<template v-if="entry.needsAction">, потребують дії: {{ entry.needsAction }}</template>
-        <button type="button" class="pc2-cal__link-btn" @click="prefs.setLayer(entry.layer, true)">Показати</button>
-      </span>
+    <div v-if="isMobile && mode !== 'needs_action'" class="pc2-cal__mobile-nav">
+      <button type="button" class="pc2-cal__icon-btn" aria-label="Попередній тиждень" @click="shift(-7)">‹</button>
+      <span class="pc2-cal__mobile-range">{{ weekLabel }}</span>
+      <button type="button" class="pc2-cal__icon-btn" aria-label="Наступний тиждень" @click="shift(7)">›</button>
+      <button type="button" class="pc2-cal__btn" :disabled="anchor === todayKey" @click="goToday">Сьогодні</button>
     </div>
-
-    <p v-if="status === 'ready' && failedSources.length" class="pc2-cal__warning" role="status">
-      Не вдалося завантажити: {{ failedSources.map((source) => CALENDAR_SOURCE_LABELS[source]).join(', ') }}. Показано решту.
-      <button type="button" class="pc2-cal__link-btn" @click="retry">Повторити</button>
-    </p>
-
-    <div v-if="isMobile" class="pc2-cal__strip" role="group" aria-label="Дні тижня">
+    <div v-if="isMobile && mode !== 'needs_action'" class="pc2-cal__strip" role="group" aria-label="Дні тижня">
       <button
         v-for="day in stripDays"
         :key="day.key"
         type="button"
         class="pc2-cal__strip-day"
         :class="{ 'is-today': day.key === todayKey }"
-        :aria-pressed="effectiveView === 'day' && day.key === anchor"
-        :aria-label="`${day.labels.full}${day.count ? `, ${day.count}` : ''}`"
-        @click="selectDay(day.key)"
+        :aria-pressed="day.key === anchor"
+        :aria-label="`${day.labels.full}${day.sessions ? `, сесій: ${day.sessions}` : ''}${day.action ? ', є дія' : ''}`"
+        @click="anchor = day.key"
       >
         <span>{{ day.labels.short }}</span>
         <strong>{{ day.labels.day }}</strong>
-        <span class="pc2-cal__strip-dot" :class="{ 'is-on': day.count > 0 }" aria-hidden="true"></span>
+        <span class="pc2-cal__strip-dots" aria-hidden="true">
+          <span v-if="day.sessions" class="pc2-cal__strip-dot"></span>
+          <span v-if="day.action" class="pc2-cal__strip-dot is-action"></span>
+        </span>
       </button>
     </div>
 
-    <div class="pc2-cal__body" :aria-busy="status === 'loading'">
-      <div v-if="status === 'loading'" class="pc2-cal__skeleton" role="status">
-        <span class="pc2-cal-sr">Завантажуємо календар…</span>
-        <span v-for="index in 4" :key="index" aria-hidden="true"></span>
-      </div>
-      <div v-else-if="status === 'error'" class="pc2-cal__state" role="alert">
-        <p>Не вдалося завантажити календар. Дані не змінено.</p>
-        <button type="button" class="pc2-cal__btn" @click="retry">Спробувати ще раз</button>
-      </div>
+    <div id="pc2-cal-panel" class="pc2-cal__body" role="tabpanel" :aria-labelledby="`pc2-cal-tab-${mode}`" :aria-busy="mode !== 'needs_action' && feedStatus === 'loading'">
+      <template v-if="mode === 'needs_action'">
+        <div v-if="actionsStatus === 'loading'" class="pc2-cal__skeleton" role="status">
+          <span class="pc2-cal-sr">Завантажуємо дії…</span><span v-for="index in 3" :key="index" aria-hidden="true"></span>
+        </div>
+        <CalendarActionsList
+          v-else
+          :this-week="weekActions.thisWeek"
+          :elsewhere="weekActions.elsewhere"
+          :complete="actionsComplete"
+          :failed-labels="actionsFailed.map((source) => CALENDAR_ACTION_SOURCE_LABELS[source]).join(', ')"
+          :time-zone="timeZone"
+          @retry="retryActions"
+        />
+      </template>
       <template v-else>
-        <p v-if="!visible.length" class="pc2-cal__state">
-          {{ emptyText }}
-        </p>
+        <div v-if="feedStatus === 'loading'" class="pc2-cal__skeleton" role="status">
+          <span class="pc2-cal-sr">Завантажуємо календар…</span><span v-for="index in 4" :key="index" aria-hidden="true"></span>
+        </div>
+        <div v-else-if="feedStatus === 'error'" class="pc2-cal__state" role="alert">
+          <p>Не вдалося завантажити календар. Дані не змінено.</p>
+          <button type="button" class="pc2-cal__btn" @click="retryFeed">Спробувати ще раз</button>
+        </div>
+        <CalendarAgenda
+          v-else-if="isMobile"
+          :day="anchor"
+          :items="gridItems"
+          :windows="visibleWindows"
+          :summary-windows="allWindows"
+          :mode="mode"
+          :time-zone="timeZone"
+          :today-key="todayKey"
+          @open="openDetails"
+          @open-window="openWindow"
+        />
         <CalendarTimeGrid
-          v-if="visible.length && (effectiveView === 'week' || (effectiveView === 'day' && !isMobile))"
-          :days="periodDays"
-          :items="visible"
-          :time-zone="state.timezone"
+          v-else
+          :days="gridDays"
+          :weekend="isTablet ? weekendDays : undefined"
+          :items="gridItems"
+          :windows="visibleWindows"
+          :summary-items="weekItems"
+          :summary-windows="allWindows"
+          :mode="mode"
+          :time-zone="timeZone"
           :today-key="todayKey"
           :now="nowValue"
           @open="openDetails"
-        />
-        <CalendarAgenda
-          v-else-if="visible.length"
-          :days="periodDays"
-          :items="visible"
-          :time-zone="state.timezone"
-          :today-key="todayKey"
-          :skip-empty-days="effectiveView === 'list'"
-          :empty-text="emptyText"
-          @open="openDetails"
+          @open-window="openWindow"
         />
       </template>
     </div>
 
-    <ul class="pc2-cal__legend" aria-label="Легенда">
-      <li v-for="entry in LEGEND" :key="entry.label"><span class="pc2-cal__swatch" :class="entry.swatch" aria-hidden="true"></span>{{ entry.label }}</li>
-    </ul>
-    <p class="pc2-cal__legend-note">● потребує дії · ⇄ клієнт просить перенести · ⚠ можливий конфлікт часу</p>
+    <CalendarViewMenu
+      v-if="viewOpen"
+      :mode="mode"
+      :layers="state.layers"
+      :counts="layerCounts"
+      :sheet="isMobile"
+      :anchor="viewAnchor"
+      @close="closeView"
+      @reset="prefs.setMode(mode)"
+      @set-layer="(layer, visible) => prefs.setLayer(layer, visible)"
+    />
 
-    <div v-if="layersOpen" class="pc2-cal__backdrop" @click="closeLayers"></div>
-    <div
-      v-if="layersOpen"
-      id="pc2-cal-layers"
-      ref="layersPanelRef"
-      class="pc2-cal__panel"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="pc2-cal-layers-title"
-      @keydown.esc.stop="closeLayers"
-    >
-      <h2 id="pc2-cal-layers-title" class="pc2-cal__panel-title">Шари календаря</h2>
-      <fieldset class="pc2-cal__layers">
-        <legend class="pc2-cal-sr">Показувати в календарі</legend>
-        <label v-for="layer in CALENDAR_LAYERS" :key="layer" class="pc2-cal__layer">
-          <input
-            type="checkbox"
-            :checked="state.layers[layer]"
-            :disabled="state.layers[layer] && visibleLayerCount === 1"
-            @change="prefs.setLayer(layer, ($event.target as HTMLInputElement).checked)"
-          />
-          <span>{{ CALENDAR_LAYER_LABELS[layer] }}</span>
-        </label>
-      </fieldset>
-      <p class="pc2-cal__panel-note">
-        Приховані шари лише не відображаються. Записи, вікна й відсутності продовжують діяти, а зайнятість не змінюється.
-      </p>
-      <button type="button" class="pc2-cal__btn" @click="closeLayers">Готово</button>
-    </div>
-
-    <div v-if="selected" class="pc2-cal__backdrop" @click="closeDetails"></div>
-    <div
-      v-if="selected"
-      ref="detailsRef"
-      class="pc2-cal__panel pc2-cal__details"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="pc2-cal-details-title"
-      tabindex="-1"
-      @keydown.esc.stop="closeDetails"
-    >
-      <p class="pc2-cal__eyebrow">{{ KIND_TITLES[selected.kind] }}</p>
-      <h2 id="pc2-cal-details-title" class="pc2-cal__panel-title">{{ selected.title }}</h2>
-      <dl class="pc2-cal__facts">
-        <div><dt>Час</dt><dd>{{ detailsTime }}</dd></div>
-        <div><dt>Стан</dt><dd>{{ selected.statusLabel }}</dd></div>
-        <div v-if="selected.actionReasons.length"><dt>Потребує уваги</dt><dd>{{ selected.actionReasons.join('; ') }}</dd></div>
-        <div v-if="selected.conflicts.length">
-          <dt>Можливий конфлікт</dt>
-          <dd>{{ selected.conflicts.map((conflict) => CALENDAR_CONFLICT_LABELS[conflict]).join('; ') }}</dd>
+    <template v-if="details">
+      <div class="pc2-cal__backdrop" @click="closeDetails"></div>
+      <div
+        ref="detailsRef"
+        class="pc2-cal__panel pc2-cal__details"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pc2-cal-details-title"
+        tabindex="-1"
+        @keydown.esc.stop="closeDetails"
+      >
+        <p class="pc2-cal__eyebrow">{{ details.kindLabel }}</p>
+        <h2 id="pc2-cal-details-title" class="pc2-cal__panel-title">{{ details.title }}</h2>
+        <dl class="pc2-cal__facts">
+          <div v-for="fact in details.facts" :key="fact.label"><dt>{{ fact.label }}</dt><dd>{{ fact.value }}</dd></div>
+        </dl>
+        <p class="pc2-cal__panel-note">Тут лише перегляд. Змінити це можна на відповідній сторінці.</p>
+        <div class="pc2-cal__panel-actions">
+          <RouterLink v-if="details.href" :to="details.href" class="pc2-cal__btn">{{ details.linkLabel }}</RouterLink>
+          <button type="button" class="pc2-cal__btn pc2-cal__btn--quiet" @click="closeDetails">Закрити</button>
         </div>
-      </dl>
-      <p class="pc2-cal__panel-note">Тут лише перегляд. Змінити цей запис можна на його сторінці.</p>
-      <div class="pc2-cal__panel-actions">
-        <RouterLink v-if="selected.href" :to="selected.href" class="pc2-cal__btn">{{ MANAGE_LABELS[selected.kind] }}</RouterLink>
-        <button type="button" class="pc2-cal__btn pc2-cal__btn--quiet" @click="closeDetails">Закрити</button>
       </div>
-    </div>
+    </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { CALENDAR_ACTION_SOURCE_LABELS, useCalendarActions } from '../../composables/useCalendarActions'
 import { CALENDAR_SOURCE_LABELS, useCalendarFeed } from '../../composables/useCalendarFeed'
+import { pickNextAction, splitActionsByWeek } from '../../lib/calendarActions'
+import { CALENDAR_CONFLICT_LABELS, CALENDAR_LAYERS, visibleItems, type CalendarItem, type CalendarLayer } from '../../lib/calendarItems'
 import {
-  CALENDAR_CONFLICT_LABELS,
-  CALENDAR_LAYER_LABELS,
-  CALENDAR_LAYERS,
-  CALENDAR_PRESET_LABELS,
-  CALENDAR_PRESETS,
-  hiddenSummary,
-  visibleItems,
-  type CalendarItem,
-  type CalendarView,
-} from '../../lib/calendarItems'
+  CALENDAR_LAYER_CHIP_LABELS,
+  CALENDAR_MODE_DESCRIPTIONS,
+  CALENDAR_MODE_LABELS,
+  CALENDAR_MODE_SHORT_LABELS,
+  CALENDAR_MODES,
+  layerDeviations,
+  parseCalendarMode,
+  type CalendarMode,
+} from '../../lib/calendarModes'
 import { createLocalCalendarPreferences, type CalendarPreferencesSource } from '../../lib/calendarPreferencesSource'
 import { addDays, dayBounds, dayKeyOf, dayLabels, formatTime, rangeLabel, weekStartOf, type DayKey } from '../../lib/calendarTime'
+import { groupFreeWindows, slotsLabel, type FreeWindow } from '../../lib/calendarWindows'
+import CalendarActionsList from './CalendarActionsList.vue'
 import CalendarAgenda from './CalendarAgenda.vue'
+import CalendarNextAction from './CalendarNextAction.vue'
 import CalendarTimeGrid from './CalendarTimeGrid.vue'
+import CalendarViewMenu from './CalendarViewMenu.vue'
 import '../../styles/calendarV2.css'
 
 const props = defineProps<{ preferences?: CalendarPreferencesSource; now?: () => number }>()
 
 const prefs = props.preferences ?? createLocalCalendarPreferences()
 const state = prefs.state
+const mode = computed(() => state.value.mode)
+const timeZone = computed(() => state.value.timezone)
 const clock = props.now ?? (() => Date.now())
+const route = useRoute()
+const router = useRouter()
 
-const KIND_TITLES: Record<CalendarItem['kind'], string> = {
-  session: 'Сесія',
-  free_slot: 'Вільне вікно для запису',
-  guest_request: 'Заявка на час',
-  absence: 'Відсутність',
-  external_guest_session: 'Зовнішня гостьова сесія',
+// < 768px: day agenda; 768–1279px: Mon–Fri + one «Сб–Нд» column; ≥ 1280px: full week (§1, §7).
+const media = (query: string) => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(query) : null)
+const mobileMedia = media('(max-width: 767px)')
+const tabletMedia = media('(max-width: 1279px)')
+const isMobile = ref(Boolean(mobileMedia?.matches))
+const isTabletOrLess = ref(Boolean(tabletMedia?.matches))
+const isTablet = computed(() => !isMobile.value && isTabletOrLess.value)
+const syncMedia = () => {
+  isMobile.value = Boolean(mobileMedia?.matches)
+  isTabletOrLess.value = Boolean(tabletMedia?.matches)
 }
-const MANAGE_LABELS: Record<CalendarItem['kind'], string> = {
-  session: 'Відкрити сесію',
-  free_slot: 'Керувати вікнами в розкладі',
-  guest_request: 'Розглянути в запитах',
-  absence: 'Відкрити відсутності',
-  external_guest_session: 'Відкрити гостьову сесію',
-}
-const LEGEND = [
-  { label: 'Чекає підтвердження', swatch: 'is-scheduled' },
-  { label: 'Підтверджено', swatch: 'is-confirmed' },
-  { label: 'Завершено', swatch: 'is-completed' },
-  { label: 'Скасовано / Не підтверджено вчасно', swatch: 'is-cancelled' },
-  { label: 'Без реєстрації', swatch: 'is-guest' },
-  { label: 'Вільне вікно', swatch: 'is-free' },
-  { label: 'Заявка на час', swatch: 'is-request' },
-  { label: 'Відсутність', swatch: 'is-absence' },
-]
+onMounted(() => {
+  mobileMedia?.addEventListener('change', syncMedia)
+  tabletMedia?.addEventListener('change', syncMedia)
+})
+onBeforeUnmount(() => {
+  mobileMedia?.removeEventListener('change', syncMedia)
+  tabletMedia?.removeEventListener('change', syncMedia)
+})
 
-// Phones (< 768px) use Day/List without the dense week grid.
-const MOBILE_QUERY = '(max-width: 767px)'
-const media = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(MOBILE_QUERY) : null
-const isMobile = ref(Boolean(media?.matches))
-const syncMobile = () => {
-  isMobile.value = Boolean(media?.matches)
-}
-onMounted(() => media?.addEventListener('change', syncMobile))
-onBeforeUnmount(() => media?.removeEventListener('change', syncMobile))
-
+// «через N хв» and the now line refresh once a minute.
 const nowValue = ref(clock())
-const nowTimer = setInterval(() => {
+const timer = setInterval(() => {
   nowValue.value = clock()
 }, 60_000)
-onBeforeUnmount(() => clearInterval(nowTimer))
+onBeforeUnmount(() => clearInterval(timer))
 
-const todayKey = computed(() => dayKeyOf(nowValue.value, state.value.timezone))
+const todayKey = computed(() => dayKeyOf(nowValue.value, timeZone.value))
 const anchor = ref<DayKey>(todayKey.value)
-
-const effectiveView = computed<CalendarView>(() => (isMobile.value && state.value.view === 'week' ? 'day' : state.value.view))
-const viewOptions = computed(() =>
-  [
-    { view: 'week' as const, label: 'Тиждень' },
-    { view: 'day' as const, label: 'День' },
-    { view: 'list' as const, label: 'Список' },
-  ].filter((option) => !isMobile.value || option.view !== 'week')
-)
-
 const weekDays = computed(() => Array.from({ length: 7 }, (_, index) => addDays(weekStartOf(anchor.value), index)))
-const periodDays = computed(() => (effectiveView.value === 'day' ? [anchor.value] : weekDays.value))
-const firstDay = computed(() => periodDays.value[0] ?? anchor.value)
-const lastDay = computed(() => periodDays.value[periodDays.value.length - 1] ?? anchor.value)
-const periodLabel = computed(() => rangeLabel(firstDay.value, lastDay.value))
-
-// The feed always loads the whole week so the mobile day strip and day switches stay instant.
+const weekLabel = computed(() => rangeLabel(weekDays.value[0] ?? anchor.value, weekDays.value[6] ?? anchor.value))
 const range = computed(() => ({
-  start: dayBounds(weekDays.value[0] ?? anchor.value, state.value.timezone).start,
-  end: dayBounds(weekDays.value[6] ?? anchor.value, state.value.timezone).end,
+  start: dayBounds(weekDays.value[0] ?? anchor.value, timeZone.value).start,
+  end: dayBounds(weekDays.value[6] ?? anchor.value, timeZone.value).end,
 }))
-const { items, status, failedSources, retry } = useCalendarFeed(range, { now: clock })
-
-const periodBounds = computed(() => ({
-  start: dayBounds(firstDay.value, state.value.timezone).start,
-  end: dayBounds(lastDay.value, state.value.timezone).end,
-}))
-const periodItems = computed(() => items.value.filter((item) => item.start < periodBounds.value.end && item.end > periodBounds.value.start))
-const needsActionOnly = computed(() => state.value.preset === 'needs_action')
-const visible = computed(() => visibleItems(periodItems.value, state.value.layers, { needsActionOnly: needsActionOnly.value }))
-const hidden = computed(() => hiddenSummary(periodItems.value, state.value.layers))
-const hiddenNeedsAction = computed(() => hidden.value.some((entry) => entry.needsAction > 0))
-const visibleLayerCount = computed(() => CALENDAR_LAYERS.filter((layer) => state.value.layers[layer]).length)
-const emptyText = computed(() =>
-  needsActionOnly.value ? 'За цей період нічого не потребує вашої дії.' : 'За цей період у видимих шарах подій немає.'
-)
-
-const stripDays = computed(() =>
-  weekDays.value.map((key) => {
-    const bounds = dayBounds(key, state.value.timezone)
-    const count = visibleItems(items.value, state.value.layers).filter((item) => item.start < bounds.end && item.end > bounds.start).length
-    return { key, labels: dayLabels(key), count }
-  })
-)
-
-const isCurrentPeriod = computed(() => periodDays.value.includes(todayKey.value))
-
-function shift(direction: 1 | -1) {
-  anchor.value = addDays(anchor.value, (effectiveView.value === 'day' ? 1 : 7) * direction)
+const isCurrentWeek = computed(() => weekDays.value.includes(todayKey.value))
+function shift(days: number) {
+  anchor.value = addDays(anchor.value, days)
 }
 function goToday() {
   anchor.value = todayKey.value
 }
-function selectDay(key: DayKey) {
-  anchor.value = key
-  if (effectiveView.value !== 'day') prefs.setView('day')
+
+const { items, status: feedStatus, failedSources: feedFailed, retry: retryFeed } = useCalendarFeed(range, { now: clock })
+const {
+  actions,
+  upcomingSessions,
+  status: actionsStatus,
+  failedSources: actionsFailed,
+  complete: actionsComplete,
+  retry: retryActions,
+} = useCalendarActions(timeZone)
+
+const weekItems = computed(() => items.value.filter((item) => item.start < range.value.end && item.end > range.value.start))
+// Free slots are drawn as windows, never one by one.
+const gridItems = computed(() => visibleItems(weekItems.value, state.value.layers).filter((item) => item.kind !== 'free_slot'))
+const allWindows = computed(() => groupFreeWindows(weekItems.value, timeZone.value))
+const visibleWindows = computed(() => (state.value.layers.free_slots ? allWindows.value : []))
+const gridDays = computed(() => (isTablet.value ? weekDays.value.slice(0, 5) : weekDays.value))
+const weekendDays = computed(() => weekDays.value.slice(5))
+
+const weekActions = computed(() => splitActionsByWeek(actions.value, range.value))
+// The badge is the global N + M, shown only when every source loaded (never a partial guess).
+const actionsTotal = computed(() => (actionsComplete.value ? actions.value.length : null))
+const nextCard = computed(() =>
+  pickNextAction({ actions: actions.value, upcomingSessions: upcomingSessions.value, now: nowValue.value, timeZone: timeZone.value })
+)
+
+const deviations = computed(() => layerDeviations(mode.value, state.value.layers))
+const layerCounts = computed(() => {
+  const counts: Partial<Record<CalendarLayer, number>> = {}
+  for (const layer of CALENDAR_LAYERS) counts[layer] = weekItems.value.filter((item) => item.layer === layer).length
+  return counts
+})
+
+const stripDays = computed(() =>
+  weekDays.value.map((key) => {
+    const bounds = dayBounds(key, timeZone.value)
+    const dayItems = weekItems.value.filter((item) => item.start < bounds.end && item.end > bounds.start)
+    return {
+      key,
+      labels: dayLabels(key),
+      sessions: dayItems.filter((item) => item.kind === 'session' && item.status !== 'CANCELLED').length,
+      action:
+        dayItems.some((item) => item.needsAction) ||
+        actions.value.some((action) => action.when !== null && action.when >= bounds.start && action.when < bounds.end),
+    }
+  })
+)
+
+// Modes: tabs with roving tabindex (←/→/Home/End), announced via aria-live, synced to ?mode=.
+const announcement = ref('')
+const tabRefs = new Map<CalendarMode, HTMLElement>()
+function setTabRef(option: CalendarMode, el: Element | ComponentPublicInstance | null) {
+  if (el instanceof HTMLElement) tabRefs.set(option, el)
+}
+function selectMode(next: CalendarMode) {
+  // Re-selecting the active mode keeps deviations; «Скинути до режиму» resets them explicitly.
+  if (next !== mode.value) prefs.setMode(next)
+}
+function onTabKeydown(event: KeyboardEvent) {
+  const index = CALENDAR_MODES.indexOf(mode.value)
+  const keys: Record<string, number> = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: CALENDAR_MODES.length - 1 }
+  if (!(event.key in keys)) return
+  event.preventDefault()
+  const next = CALENDAR_MODES[(keys[event.key]! + CALENDAR_MODES.length) % CALENDAR_MODES.length]!
+  selectMode(next)
+  void nextTick(() => tabRefs.get(next)?.focus())
+}
+watch(mode, (next) => {
+  announcement.value = `Режим: ${CALENDAR_MODE_LABELS[next]}`
+  const query = next === 'needs_action' ? 'actions' : next
+  if (route.query.mode !== query) void router.replace({ query: { ...route.query, mode: query } })
+})
+onMounted(() => {
+  const requested = parseCalendarMode(route.query.mode)
+  if (requested && requested !== mode.value) prefs.setMode(requested)
+})
+
+// «Вигляд» menu: focus returns to the button that opened it.
+const viewOpen = ref(false)
+const viewAnchor = ref<{ top: number; left: number } | null>(null)
+let viewTrigger: HTMLElement | null = null
+function openView(event: Event) {
+  viewTrigger = event.currentTarget instanceof HTMLElement ? event.currentTarget : null
+  // The desktop popover opens under its trigger, kept inside the viewport (320px wide + 16px gutter).
+  const rect = viewTrigger?.getBoundingClientRect()
+  viewAnchor.value = rect && rect.height ? { top: rect.bottom + 8, left: Math.max(16, Math.min(rect.left, window.innerWidth - 336)) } : null
+  viewOpen.value = true
+}
+function closeView() {
+  viewOpen.value = false
+  viewTrigger?.focus()
 }
 
-const layersOpen = ref(false)
-const layersButtonRef = ref<HTMLButtonElement | null>(null)
-const layersPanelRef = ref<HTMLElement | null>(null)
-async function openLayers() {
-  layersOpen.value = true
-  await nextTick()
-  layersPanelRef.value?.querySelector<HTMLInputElement>('input:not(:disabled)')?.focus()
-}
-function closeLayers() {
-  layersOpen.value = false
-  layersButtonRef.value?.focus()
-}
-
-const selected = ref<CalendarItem | null>(null)
+// Read-only details for non-session items and availability windows.
+type Details = { kindLabel: string; title: string; facts: { label: string; value: string }[]; href: string | null; linkLabel: string }
+const details = ref<Details | null>(null)
 const detailsRef = ref<HTMLElement | null>(null)
 let detailsTrigger: HTMLElement | null = null
-async function openDetails(item: CalendarItem) {
+const KIND_TITLES: Record<CalendarItem['kind'], string> = {
+  session: 'Сесія',
+  free_slot: 'Вільний слот',
+  guest_request: 'Запит на час',
+  absence: 'Відсутність',
+  external_guest_session: 'Зовнішня гостьова сесія',
+}
+const LINK_LABELS: Record<CalendarItem['kind'], string> = {
+  session: 'Відкрити сесію',
+  free_slot: 'Керувати вікнами в розкладі',
+  guest_request: 'Відкрити запит',
+  absence: 'Відкрити відсутності',
+  external_guest_session: 'Відкрити гостьову сесію',
+}
+function timeText(start: number, end: number, allDay = false) {
+  const tz = timeZone.value
+  const startDay = dayKeyOf(start, tz)
+  const endDay = dayKeyOf(end - 1, tz)
+  if (allDay) return startDay === endDay ? `${dayLabels(startDay).full}, увесь день` : `${dayLabels(startDay).full} – ${dayLabels(endDay).full}`
+  const from = `${dayLabels(startDay).full}, ${formatTime(start, tz)}`
+  return startDay === endDay ? `${from}–${formatTime(end, tz)}` : `${from} – ${dayLabels(endDay).full}, ${formatTime(end, tz)}`
+}
+async function showDetails(next: Details) {
   detailsTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
-  selected.value = item
+  details.value = next
   await nextTick()
   detailsRef.value?.focus()
 }
+function openDetails(item: CalendarItem) {
+  void showDetails({
+    kindLabel: KIND_TITLES[item.kind],
+    title: item.title,
+    facts: [
+      { label: 'Час', value: timeText(item.start, item.end, item.allDay) },
+      { label: 'Стан', value: item.marker || item.statusLabel },
+      ...(item.actionReasons.length ? [{ label: 'Потребує уваги', value: item.actionReasons.join('; ') }] : []),
+      ...(item.conflicts.length ? [{ label: 'Можливий конфлікт', value: item.conflicts.map((conflict) => CALENDAR_CONFLICT_LABELS[conflict]).join('; ') }] : []),
+    ],
+    href: item.href,
+    linkLabel: LINK_LABELS[item.kind],
+  })
+}
+function openWindow(window: FreeWindow) {
+  void showDetails({
+    kindLabel: 'Вільне вікно',
+    title: `${formatTime(window.start, timeZone.value)}–${formatTime(window.end, timeZone.value)} · ${slotsLabel(window.slots.length)}`,
+    facts: [
+      { label: 'День', value: dayLabels(window.day).full },
+      { label: 'Слоти', value: window.slots.map((slot) => `${formatTime(slot.start, timeZone.value)}–${formatTime(slot.end, timeZone.value)}`).join(', ') },
+    ],
+    href: '/cabinet/slots?tab=availability',
+    linkLabel: LINK_LABELS.free_slot,
+  })
+}
 function closeDetails() {
-  selected.value = null
+  details.value = null
   detailsTrigger?.focus()
   detailsTrigger = null
 }
-const detailsTime = computed(() => {
-  const item = selected.value
-  if (!item) return ''
-  const tz = state.value.timezone
-  const startDay = dayKeyOf(item.start, tz)
-  const endDay = dayKeyOf(item.end - 1, tz)
-  if (item.allDay) return startDay === endDay ? `${dayLabels(startDay).full}, увесь день` : `${dayLabels(startDay).full} – ${dayLabels(endDay).full}`
-  const start = `${dayLabels(startDay).full}, ${formatTime(item.start, tz)}`
-  return startDay === endDay ? `${start}–${formatTime(item.end, tz)}` : `${start} – ${dayLabels(endDay).full}, ${formatTime(item.end, tz)}`
-})
 </script>
