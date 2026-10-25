@@ -1,0 +1,555 @@
+{
+  "problems": [],
+  "rows": [
+    {
+      "width": 375,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-375-workday.png"
+    },
+    {
+      "width": 375,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [
+        "09:00–12:50Вільно · 4 слоти",
+        "14:00–15:50Вільно · 2 слоти",
+        "17:00–18:50Вільно · 2 слоти"
+      ],
+      "mutedNames": [
+        "13:00–13:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-375-availability.png"
+    },
+    {
+      "width": 375,
+      "mode": "actions",
+      "selectedTab": "Дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-375-actions.png"
+    },
+    {
+      "width": 390,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-390-workday.png"
+    },
+    {
+      "width": 390,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [
+        "09:00–12:50Вільно · 4 слоти",
+        "14:00–15:50Вільно · 2 слоти",
+        "17:00–18:50Вільно · 2 слоти"
+      ],
+      "mutedNames": [
+        "13:00–13:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-390-availability.png"
+    },
+    {
+      "width": 390,
+      "mode": "actions",
+      "selectedTab": "Дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-390-actions.png"
+    },
+    {
+      "width": 440,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-440-workday.png"
+    },
+    {
+      "width": 440,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [
+        "09:00–12:50Вільно · 4 слоти",
+        "14:00–15:50Вільно · 2 слоти",
+        "17:00–18:50Вільно · 2 слоти"
+      ],
+      "mutedNames": [
+        "13:00–13:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-440-availability.png"
+    },
+    {
+      "width": 440,
+      "mode": "actions",
+      "selectedTab": "Дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [],
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-440-actions.png"
+    },
+    {
+      "width": 768,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": true,
+      "weekendColumn": true,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": "Показано 00:00–19:00 — поза цим часом подій немає",
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36"
+      ],
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-768-workday.png"
+    },
+    {
+      "width": 768,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": true,
+      "weekendColumn": true,
+      "windows": [
+        "Вільне вікно 09:00–12:50, 4 слоти",
+        "Вільне вікно 14:00–15:50, 2 слоти",
+        "Вільне вікно 17:00–18:50, 2 слоти",
+        "Вільне вікно 15:00–15:50, 1 слот"
+      ],
+      "mutedNames": [
+        "18:00–18:50, Зайнято",
+        "13:00–13:50, Зайнято",
+        "Сб 11:00–11:50, Зайнято",
+        "Нд 10:00–10:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": "Показано 00:00–19:00 — поза цим часом подій немає",
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36"
+      ],
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-768-availability.png"
+    },
+    {
+      "width": 768,
+      "mode": "actions",
+      "selectedTab": "Потребує дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36",
+        "Додати посилання → 158x36",
+        "Підтвердити → 120x36",
+        "Відкрити запит → 137x36",
+        "Переглянути перенесення  208x36",
+        "Підтвердити → 120x36",
+        "Відкрити запит → 137x36"
+      ],
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-768-actions.png"
+    },
+    {
+      "width": 1280,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": true,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": "Показано 00:00–19:00 — поза цим часом подій немає",
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36"
+      ],
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-1280-workday.png"
+    },
+    {
+      "width": 1280,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": true,
+      "weekendColumn": false,
+      "windows": [
+        "Вільне вікно 09:00–12:50, 4 слоти",
+        "Вільне вікно 14:00–15:50, 2 слоти",
+        "Вільне вікно 17:00–18:50, 2 слоти",
+        "Вільне вікно 15:00–15:50, 1 слот"
+      ],
+      "mutedNames": [
+        "18:00–18:50, Зайнято",
+        "13:00–13:50, Зайнято",
+        "11:00–11:50, Зайнято",
+        "10:00–10:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": "Показано 00:00–19:00 — поза цим часом подій немає",
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36"
+      ],
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-1280-availability.png"
+    },
+    {
+      "width": 1280,
+      "mode": "actions",
+      "selectedTab": "Потребує дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36",
+        "Додати посилання → 158x36",
+        "Підтвердити → 120x36",
+        "Відкрити запит → 137x36",
+        "Переглянути перенесення  208x36",
+        "Підтвердити → 120x36",
+        "Відкрити запит → 137x36"
+      ],
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-1280-actions.png"
+    },
+    {
+      "width": 1440,
+      "mode": "workday",
+      "selectedTab": "Робочий день",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": true,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [],
+      "range": "Показано 00:00–19:00 — поза цим часом подій немає",
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36"
+      ],
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-1440-workday.png"
+    },
+    {
+      "width": 1440,
+      "mode": "availability",
+      "selectedTab": "Доступність",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": true,
+      "weekendColumn": false,
+      "windows": [
+        "Вільне вікно 09:00–12:50, 4 слоти",
+        "Вільне вікно 14:00–15:50, 2 слоти",
+        "Вільне вікно 17:00–18:50, 2 слоти",
+        "Вільне вікно 15:00–15:50, 1 слот"
+      ],
+      "mutedNames": [
+        "18:00–18:50, Зайнято",
+        "13:00–13:50, Зайнято",
+        "11:00–11:50, Зайнято",
+        "10:00–10:50, Зайнято"
+      ],
+      "actionGroups": [],
+      "range": "Показано 00:00–19:00 — поза цим часом подій немає",
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36"
+      ],
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-1440-availability.png"
+    },
+    {
+      "width": 1440,
+      "mode": "actions",
+      "selectedTab": "Потребує дії 6",
+      "badge": "6",
+      "card": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хвАндрій Савчук! Посиланнянемає посилання на зустрічДодати посилання →",
+      "grid": false,
+      "weekendColumn": false,
+      "windows": [],
+      "mutedNames": [],
+      "actionGroups": [
+        "Цей тиждень 4 дії",
+        "Поза цим тижнем 2 дії"
+      ],
+      "range": null,
+      "smallTargets": [
+        "Додати посилання → 157x36",
+        "Вигляд ▾ 83x36",
+        "Сьогодні 89x36",
+        "‹ 36x36",
+        "› 36x36",
+        "Додати посилання → 158x36",
+        "Підтвердити → 120x36",
+        "Відкрити запит → 137x36",
+        "Переглянути перенесення  208x36",
+        "Підтвердити → 120x36",
+        "Відкрити запит → 137x36"
+      ],
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      },
+      "errors": [],
+      "writes": [],
+      "file": "v2-1440-actions.png"
+    },
+    {
+      "viewMenu": 1440,
+      "focusBack": "Вигляд ▾",
+      "chip": "+ зовнішні гостьові×"
+    },
+    {
+      "viewMenu": 375,
+      "focusBack": "Вигляд календаря",
+      "chip": "+ зовнішні гостьові×"
+    },
+    {
+      "v1": {
+        "h1": "Сесії",
+        "calendar": false
+      }
+    }
+  ]
+}

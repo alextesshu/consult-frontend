@@ -1,0 +1,121 @@
+{
+  "problems": [],
+  "loginRequests": 9,
+  "calendarRequests": [
+    "GET /api/booking/sessions/?upcoming",
+    "GET /api/booking/sessions/?upcoming",
+    "GET /api/chat/threads/",
+    "POST /api/auth/token/refresh/",
+    "GET /api/me/",
+    "GET /api/notifications/",
+    "GET /api/me/",
+    "GET /api/cabinet/work-queue/",
+    "GET /api/booking/sessions/?upcoming",
+    "GET /api/chat/unread-count/",
+    "GET /api/cabinet/schedule/",
+    "GET /api/booking/sessions/",
+    "GET /api/cabinet/sessions/reschedule-requests/",
+    "GET /api/cabinet/availability-exceptions/",
+    "GET /api/cabinet/external-sessions/",
+    "GET /api/booking/sessions/?upcoming",
+    "GET /api/cabinet/sessions/reschedule-requests/",
+    "GET /api/cabinet/guest-booking-requests/",
+    "GET /api/cabinet/schedule/",
+    "GET /api/booking/sessions/",
+    "GET /api/cabinet/sessions/reschedule-requests/",
+    "GET /api/cabinet/availability-exceptions/",
+    "GET /api/cabinet/external-sessions/"
+  ],
+  "writes": [],
+  "errors": [],
+  "wheel": {
+    "pageY": 240,
+    "timelineTop": 0
+  },
+  "workday": {
+    "week": "19 – 25 жовтня",
+    "range": "Показано 10:00–14:00 — поза цим часом подій немає",
+    "bodyHeight": 320,
+    "innerScroll": false,
+    "events": [
+      "11:00–11:50, Сесія, uc02-smoke-client, Завершено, Без нотатки"
+    ],
+    "windows": [],
+    "empty": [
+      "Понеділок, 19 жовтня → Порожній день",
+      "Вівторок, 20 жовтня → Порожній день",
+      "Середа, 21 жовтня → Порожній день",
+      "Четвер, 22 жовтня → Порожній день",
+      "П’ятниця, 23 жовтня → —",
+      "Субота, 24 жовтня → Порожній день",
+      "Неділя, 25 жовтня, сьогодні → Порожній день"
+    ],
+    "card": "Найближча з усіх дій · завтра 10:00 · через 18 год 8 хв · поза вибраним тижнемuc02-smoke-client! Посиланнянемає посилання на зустрічДодати посилання →",
+    "badge": "2"
+  },
+  "availability": {
+    "week": "19 – 25 жовтня",
+    "range": "Показано 09:00–18:00 — поза цим часом подій немає",
+    "bodyHeight": 630,
+    "innerScroll": false,
+    "events": [],
+    "windows": [],
+    "empty": [
+      "Понеділок, 19 жовтня → Порожній день",
+      "Вівторок, 20 жовтня → Порожній день",
+      "Середа, 21 жовтня → Порожній день",
+      "Четвер, 22 жовтня → Порожній день",
+      "П’ятниця, 23 жовтня → Немає вільних слотів · є зайняті події",
+      "Субота, 24 жовтня → Порожній день",
+      "Неділя, 25 жовтня, сьогодні → Порожній день"
+    ],
+    "card": "Найближча з усіх дій · завтра 10:00 · через 18 год 8 хв · поза вибраним тижнемuc02-smoke-client! Посиланнянемає посилання на зустрічДодати посилання →",
+    "badge": "2"
+  },
+  "nextAvailability": {
+    "week": "26 жовтня – 1 листопада",
+    "range": "Показано 09:00–16:00 — поза цим часом подій немає",
+    "bodyHeight": 560,
+    "innerScroll": false,
+    "events": [
+      "10:00–10:50, Зайнято",
+      "15:00–15:50, Зайнято"
+    ],
+    "windows": [
+      "Вільне вікно 12:00–14:50, 3 слоти"
+    ],
+    "empty": [
+      "Понеділок, 26 жовтня → —",
+      "Вівторок, 27 жовтня → —",
+      "Середа, 28 жовтня → —",
+      "Четвер, 29 жовтня → Порожній день",
+      "П’ятниця, 30 жовтня → Порожній день",
+      "Субота, 31 жовтня → Порожній день",
+      "Неділя, 1 листопада → Порожній день"
+    ],
+    "card": "Найближча з усіх дій · завтра 10:00 · через 18 год 8 хвuc02-smoke-client! Посиланнянемає посилання на зустрічДодати посилання →",
+    "badge": "2"
+  },
+  "nextWorkday": {
+    "week": "26 жовтня – 1 листопада",
+    "range": "Показано 09:00–16:00 — поза цим часом подій немає",
+    "bodyHeight": 560,
+    "innerScroll": false,
+    "events": [
+      "10:00–10:50, Сесія, uc02-smoke-client, Підтверджено, Немає посилання на зустріч",
+      "15:00–15:50, Сесія, uc02-smoke-client, Чекає підтвердження, Потрібне ваше підтвердження"
+    ],
+    "windows": [],
+    "empty": [
+      "Понеділок, 26 жовтня → —",
+      "Вівторок, 27 жовтня → —",
+      "Середа, 28 жовтня → —",
+      "Четвер, 29 жовтня → Порожній день",
+      "П’ятниця, 30 жовтня → Порожній день",
+      "Субота, 31 жовтня → Порожній день",
+      "Неділя, 1 листопада → Порожній день"
+    ],
+    "card": "Найближча з усіх дій · завтра 10:00 · через 18 год 8 хвuc02-smoke-client! Посиланнянемає посилання на зустрічДодати посилання →",
+    "badge": "2"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "pairs": 10,
+  "exact": 10,
+  "rows": [
+    {
+      "width": 375,
+      "ui": "v1",
+      "route": "/cabinet/sessions",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 375,
+      "ui": "v1",
+      "route": "/cabinet",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 375,
+      "ui": "v1",
+      "route": "/cabinet/slots",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 375,
+      "ui": "v2",
+      "route": "/cabinet",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 375,
+      "ui": "v2",
+      "route": "/cabinet/slots",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 1280,
+      "ui": "v1",
+      "route": "/cabinet/sessions",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 1280,
+      "ui": "v1",
+      "route": "/cabinet",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 1280,
+      "ui": "v1",
+      "route": "/cabinet/slots",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 1280,
+      "ui": "v2",
+      "route": "/cabinet",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    },
+    {
+      "width": 1280,
+      "ui": "v2",
+      "route": "/cabinet/slots",
+      "candidateVsBaseline": {
+        "pixels": 0
+      },
+      "candidateVsControl": {
+        "pixels": 0
+      },
+      "controlVsBaseline": {
+        "pixels": 0
+      }
+    }
+  ]
+}
