@@ -1,11 +1,11 @@
 <template>
-  <CalendarV2 v-if="uiV2" />
+  <ServerCalendarV2 v-if="uiV2" />
   <TherapistSessionsView v-else />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import CalendarV2 from '../components/calendar-v2/CalendarV2.vue'
+import ServerCalendarV2 from '../components/calendar-v2/ServerCalendarV2.vue'
 import { isUiV2 } from '../lib/uiVersion'
 import TherapistSessionsView from './TherapistSessionsView.vue'
 

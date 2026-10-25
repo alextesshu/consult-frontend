@@ -30,10 +30,10 @@
             @click="openView($event)"
           >Вигляд ▾</button>
           <span class="pc2-cal__spacer"></span>
-          <button type="button" class="pc2-cal__btn" :disabled="isCurrentWeek" @click="goToday">Сьогодні</button>
-          <button type="button" class="pc2-cal__icon-btn" aria-label="Попередній тиждень" @click="shift(-7)">‹</button>
-          <button type="button" class="pc2-cal__icon-btn" aria-label="Наступний тиждень" @click="shift(7)">›</button>
-          <h2 class="pc2-cal__range">{{ weekLabel }}</h2>
+          <button type="button" class="pc2-cal__btn" :disabled="effectiveView === 'day' ? anchor === todayKey : isCurrentWeek" @click="goToday">Сьогодні</button>
+          <button type="button" class="pc2-cal__icon-btn" :aria-label="effectiveView === 'day' ? 'Попередній день' : 'Попередній тиждень'" @click="shift(effectiveView === 'day' ? -1 : -7)">‹</button>
+          <button type="button" class="pc2-cal__icon-btn" :aria-label="effectiveView === 'day' ? 'Наступний день' : 'Наступний тиждень'" @click="shift(effectiveView === 'day' ? 1 : 7)">›</button>
+          <h2 class="pc2-cal__range">{{ effectiveView === 'day' ? dayLabels(anchor).full : weekLabel }}</h2>
         </div>
         <div
           class="pc2-cal__modes"
@@ -50,6 +50,7 @@
             role="tab"
             class="pc2-cal__mode"
             :aria-selected="mode === option"
+            :aria-disabled="prefs.canWrite === false || prefs.saving || undefined"
             aria-controls="pc2-cal-panel"
             :tabindex="mode === option ? 0 : -1"
             @click="selectMode(option)"
@@ -65,8 +66,9 @@
             :key="deviation.layer"
             type="button"
             class="pc2-cal__deviation"
+            :disabled="!canEdit"
             :aria-label="`Повернути «${CALENDAR_LAYER_CHIP_LABELS[deviation.layer]}» до режиму`"
-            @click="prefs.setLayer(deviation.layer, !deviation.visible)"
+            @click="setLayer(deviation.layer, !deviation.visible)"
           >
             {{ deviation.visible ? '+' : '−' }} {{ CALENDAR_LAYER_CHIP_LABELS[deviation.layer] }}<span aria-hidden="true">×</span>
           </button>
@@ -75,7 +77,13 @@
     </div>
     <p class="pc2-cal-sr" aria-live="polite">{{ announcement }}</p>
 
-    <p v-if="!prefs.synced" class="pc2-cal__note">
+    <div v-if="isPreview" class="pc2-cal__warning" role="status" data-testid="calendar-mode-preview">
+      <p>Тимчасовий перегляд за посиланням. Збережені налаштування не змінено.</p>
+      <button type="button" class="pc2-cal__btn" :disabled="prefs.canWrite === false || prefs.saving" @click="adoptPreview">Зберегти цей режим</button>
+      <button type="button" class="pc2-cal__btn pc2-cal__btn--quiet" @click="clearPreview">Повернути збережений</button>
+    </div>
+
+    <p v-if="prefs.timezoneSource !== 'server'" class="pc2-cal__note">
       Тимчасово: режим і вигляд діють лише в цій вкладці й не синхронізуються між пристроями. Час показано за {{ timeZone }}.
     </p>
     <p v-if="mode !== 'needs_action' && feedStatus === 'ready' && feedFailed.length" class="pc2-cal__warning" role="status">
@@ -132,9 +140,12 @@
           <p>Не вдалося завантажити календар. Дані не змінено.</p>
           <button type="button" class="pc2-cal__btn" @click="retryFeed">Спробувати ще раз</button>
         </div>
+        <div v-else-if="effectiveView === 'list' && !agendaDays.length" class="pc2-cal__state" role="status">У цьому тижні подій немає.</div>
+        <template v-else-if="isMobile || effectiveView === 'list'">
         <CalendarAgenda
-          v-else-if="isMobile"
-          :day="anchor"
+          v-for="day in agendaDays"
+          :key="day"
+          :day="day"
           :items="gridItems"
           :summary-items="weekItems"
           :windows="visibleWindows"
@@ -145,10 +156,11 @@
           @open="openDetails"
           @open-window="openWindow"
         />
+        </template>
         <CalendarTimeGrid
           v-else
           :days="gridDays"
-          :weekend="isTablet ? weekendDays : undefined"
+          :weekend="isTablet && effectiveView === 'week' ? weekendDays : undefined"
           :items="gridItems"
           :windows="visibleWindows"
           :summary-items="weekItems"
@@ -170,9 +182,12 @@
       :counts="layerCounts"
       :sheet="isMobile"
       :anchor="viewAnchor"
+      :view="state.view"
+      :disabled="!canEdit"
       @close="closeView"
-      @reset="prefs.setMode(mode)"
-      @set-layer="(layer, visible) => prefs.setLayer(layer, visible)"
+      @reset="reset"
+      @set-view="setView"
+      @set-layer="setLayer"
     />
 
     <template v-if="details">
@@ -216,6 +231,7 @@ import {
   CALENDAR_MODES,
   layerDeviations,
   parseCalendarMode,
+  modeLayers,
   type CalendarMode,
 } from '../../lib/calendarModes'
 import { createLocalCalendarPreferences, type CalendarPreferencesSource } from '../../lib/calendarPreferencesSource'
@@ -231,12 +247,18 @@ import '../../styles/calendarV2.css'
 const props = defineProps<{ preferences?: CalendarPreferencesSource; now?: () => number }>()
 
 const prefs = props.preferences ?? createLocalCalendarPreferences()
-const state = prefs.state
+const persistedState = prefs.state
+const route = useRoute()
+const router = useRouter()
+const requestedMode = computed(() => parseCalendarMode(route.query.mode))
+const isPreview = computed(() => requestedMode.value !== null && requestedMode.value !== persistedState.value.mode)
+const state = computed(() => isPreview.value && requestedMode.value
+  ? { ...persistedState.value, mode: requestedMode.value, preset: requestedMode.value, layers: modeLayers(requestedMode.value) }
+  : persistedState.value)
+const canEdit = computed(() => prefs.canWrite !== false && !prefs.saving && !isPreview.value)
 const mode = computed(() => state.value.mode)
 const timeZone = computed(() => state.value.timezone)
 const clock = props.now ?? (() => Date.now())
-const route = useRoute()
-const router = useRouter()
 
 // < 768px: day agenda; 768–1279px: Mon–Fri + one «Сб–Нд» column; ≥ 1280px: full week (§1, §7).
 const media = (query: string) => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(query) : null)
@@ -245,6 +267,8 @@ const tabletMedia = media('(max-width: 1279px)')
 const isMobile = ref(Boolean(mobileMedia?.matches))
 const isTabletOrLess = ref(Boolean(tabletMedia?.matches))
 const isTablet = computed(() => !isMobile.value && isTabletOrLess.value)
+// Phone projection never persists a different view on behalf of the viewport.
+const effectiveView = computed(() => isMobile.value && state.value.view === 'week' ? 'day' : state.value.view)
 const syncMedia = () => {
   isMobile.value = Boolean(mobileMedia?.matches)
   isTabletOrLess.value = Boolean(tabletMedia?.matches)
@@ -296,8 +320,12 @@ const weekItems = computed(() => items.value.filter((item) => item.start < range
 const gridItems = computed(() => visibleItems(weekItems.value, state.value.layers).filter((item) => item.kind !== 'free_slot'))
 const allWindows = computed(() => groupFreeWindows(weekItems.value, timeZone.value))
 const visibleWindows = computed(() => (state.value.layers.free_slots ? allWindows.value : []))
-const gridDays = computed(() => (isTablet.value ? weekDays.value.slice(0, 5) : weekDays.value))
+const gridDays = computed(() => effectiveView.value === 'day' ? [anchor.value] : isTablet.value ? weekDays.value.slice(0, 5) : weekDays.value)
 const weekendDays = computed(() => weekDays.value.slice(5))
+const agendaDays = computed(() => effectiveView.value !== 'list' ? [anchor.value] : weekDays.value.filter((day) => {
+  const bounds = dayBounds(day, timeZone.value)
+  return weekItems.value.some((item) => item.start < bounds.end && item.end > bounds.start)
+}))
 
 const weekActions = computed(() => splitActionsByWeek(actions.value, range.value))
 // The badge is the global N + M, shown only when every source loaded (never a partial guess).
@@ -328,33 +356,58 @@ const stripDays = computed(() =>
   })
 )
 
-// Modes: tabs with roving tabindex (←/→/Home/End), announced via aria-live, synced to ?mode=.
+// URL modes are temporary projections. Only explicit user commands may write preferences.
 const announcement = ref('')
 const tabRefs = new Map<CalendarMode, HTMLElement>()
 function setTabRef(option: CalendarMode, el: Element | ComponentPublicInstance | null) {
   if (el instanceof HTMLElement) tabRefs.set(option, el)
 }
-function selectMode(next: CalendarMode) {
-  // Re-selecting the active mode keeps deviations; «Скинути до режиму» resets them explicitly.
-  if (next !== mode.value) prefs.setMode(next)
+function clearPreview() {
+  const query = { ...route.query }
+  delete query.mode
+  return router.replace({ path: route.path, query, hash: route.hash })
 }
-function onTabKeydown(event: KeyboardEvent) {
+async function saveMode(next: CalendarMode) {
+  if (prefs.canWrite === false || prefs.saving) return
+  const navigation = route.fullPath
+  if (next !== persistedState.value.mode) {
+    const result = await prefs.setMode(next)
+    if (result === false || persistedState.value.mode !== next) return
+  }
+  // A completed save must not rewrite a newer Back/Forward/navigation destination.
+  if (route.fullPath === navigation) await clearPreview()
+}
+function selectMode(next: CalendarMode) {
+  if (isPreview.value && next === requestedMode.value) return
+  return saveMode(next)
+}
+function adoptPreview() {
+  if (isPreview.value && requestedMode.value) return saveMode(requestedMode.value)
+}
+function setLayer(layer: CalendarLayer, visible: boolean) {
+  if (canEdit.value) void prefs.setLayer(layer, visible)
+}
+function setView(view: typeof state.value.view) {
+  // The displayed view decides a no-op: a phone shows a saved Week as Day, and pressing
+  // that Day must not overwrite the Week other devices use.
+  if (view === effectiveView.value) return
+  if (canEdit.value && mode.value !== 'needs_action') void prefs.setView(view)
+}
+function reset() {
+  if (canEdit.value) void (prefs.reset ? prefs.reset() : prefs.setMode(persistedState.value.mode))
+}
+async function onTabKeydown(event: KeyboardEvent) {
   const index = CALENDAR_MODES.indexOf(mode.value)
   const keys: Record<string, number> = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: CALENDAR_MODES.length - 1 }
   if (!(event.key in keys)) return
   event.preventDefault()
   const next = CALENDAR_MODES[(keys[event.key]! + CALENDAR_MODES.length) % CALENDAR_MODES.length]!
-  selectMode(next)
-  void nextTick(() => tabRefs.get(next)?.focus())
+  await selectMode(next)
+  await nextTick()
+  tabRefs.get(mode.value)?.focus()
 }
 watch(mode, (next) => {
   announcement.value = `Режим: ${CALENDAR_MODE_LABELS[next]}`
-  const query = next === 'needs_action' ? 'actions' : next
-  if (route.query.mode !== query) void router.replace({ query: { ...route.query, mode: query } })
-})
-onMounted(() => {
-  const requested = parseCalendarMode(route.query.mode)
-  if (requested && requested !== mode.value) prefs.setMode(requested)
 })
 
 // «Вигляд» menu: focus returns to the button that opened it.

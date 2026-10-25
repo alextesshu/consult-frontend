@@ -134,13 +134,13 @@ describe('CalendarV2 3a on desktop', () => {
     expect(screen.getByText('Показано 00:00–24:00')).toBeInTheDocument()
   })
 
-  it('switches to «Доступність»: windows of adjacent slots, sessions only as «Зайнято», announced and in the URL', async () => {
+  it('switches explicitly to «Доступність» without creating a preview URL', async () => {
     const { router } = await renderCalendar()
     await screen.findByRole('link', { name: /Ірина Ткаченко/ })
     await fireEvent.click(screen.getByRole('tab', { name: 'Доступність' }))
 
     expect(screen.getByText('Режим: Доступність')).toBeInTheDocument()
-    await waitFor(() => expect(router.currentRoute.value.query.mode).toBe('availability'))
+    await waitFor(() => expect(router.currentRoute.value.query.mode).toBeUndefined())
     expect(screen.getByRole('button', { name: 'Вільне вікно 13:00–14:50, 2 слоти' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Вільне вікно 17:00–17:50, 1 слот' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '10:00–10:50, Зайнято' })).toBeInTheDocument()
@@ -159,6 +159,7 @@ describe('CalendarV2 3a on desktop', () => {
     expect(within(screen.getByRole('region', { name: /П’ятниця, 23 жовтня/ })).queryByText(/Порожній|Немає вільних/)).toBeNull()
 
     await fireEvent.click(screen.getByRole('tab', { name: 'Робочий день' }))
+    await waitFor(() => expect(screen.queryByTestId('calendar-mode-preview')).toBeNull())
     await fireEvent.click(screen.getByRole('button', { name: 'Вигляд ▾' }))
     await fireEvent.click(within(screen.getByRole('dialog')).getByRole('checkbox', { name: /Минулі сесії/ }))
     expect(within(screen.getByRole('region', { name: /Середа, 21 жовтня/ })).getByText('Є зайняті події — приховані у «Вигляді»')).toBeInTheDocument()

@@ -24,20 +24,24 @@ export type CalendarPreferencesState = {
 }
 
 /**
- * What the calendar needs from preferences. UC-00 (`/cabinet/settings/calendar/`, PR #71)
- * will provide a server-backed implementation; until it is deployed the calendar uses
- * `createLocalCalendarPreferences()` and says so (`synced === false`).
+ * Injected display source. The production entry supplies the UC-00 server adapter.
+ * The local factory is retained for isolated component fixtures, never as an API-error fallback.
  */
 export interface CalendarPreferencesSource {
   readonly state: ComputedRef<CalendarPreferencesState>
   /** True only when values come from and are saved to the server. */
   readonly synced: boolean
   readonly timezoneSource: 'server' | 'default'
-  setView(view: CalendarView): void
-  setPreset(preset: CalendarSelectablePreset): void
+  readonly canWrite?: boolean
+  readonly saving?: boolean
+  readonly error?: string
+  readonly errorCode?: string | null
+  setView(view: CalendarView): void | Promise<unknown>
+  setPreset(preset: CalendarSelectablePreset): void | Promise<unknown>
   /** Selects a 3a mode: applies its preset collection and clears deviations. */
-  setMode(mode: CalendarMode): void
-  setLayer(layer: CalendarLayer, visible: boolean): void
+  setMode(mode: CalendarMode): void | Promise<unknown>
+  setLayer(layer: CalendarLayer, visible: boolean): void | Promise<unknown>
+  reset?(): void | Promise<unknown>
 }
 
 /** Documented backend default timezone (TherapistProfile.timezone default). */
@@ -54,7 +58,7 @@ export function modeForPreset(preset: CalendarPreset): CalendarMode {
 }
 
 /**
- * TEMPORARY fallback until UC-00 is deployed: in-memory preferences with the UC-00 rules
+ * Isolated in-memory component fixture with the original UC-00 display rules
  * (a preset sets its layer collection, `needs_action` also the list view, an individual layer
  * change makes the preset `custom`, at least one layer stays visible). Nothing is stored in
  * the browser; a reload returns to the defaults.

@@ -16,8 +16,14 @@
       <button type="button" class="pc2-cal__icon-btn pc2-cal-view__close" aria-label="Закрити вигляд" @click="$emit('close')">×</button>
     </div>
     <div class="pc2-cal-view__body">
-    <fieldset class="pc2-cal-view__layers">
-      <legend class="pc2-cal-sr">Що показувати</legend>
+    <fieldset v-if="view && mode !== 'needs_action'" class="pc2-cal-view__layers" :disabled="disabled">
+      <legend>Звичайний вигляд</legend>
+      <div class="pc2-cal__views">
+        <button v-for="option in viewOptions" :key="option.value" type="button" class="pc2-cal__btn pc2-cal__btn--quiet" :aria-pressed="displayView === option.value" @click="$emit('set-view', option.value)">{{ option.label }}</button>
+      </div>
+    </fieldset>
+    <fieldset class="pc2-cal-view__layers" :disabled="disabled">
+      <legend class="pc2-cal-sr">Видимість шарів</legend>
       <label v-for="layer in CALENDAR_LAYERS" :key="layer" class="pc2-cal-view__layer">
         <input
           type="checkbox"
@@ -31,7 +37,7 @@
       </label>
     </fieldset>
     <p class="pc2-cal-view__note">Видимість не змінює доступність і правила запису. Лічильники — за вибраний період.</p>
-    <button type="button" class="pc2-cal__btn" :disabled="!deviated.size" @click="$emit('reset')">Скинути до режиму</button>
+    <button type="button" class="pc2-cal__btn" :disabled="disabled || !deviated.size" @click="$emit('reset')">Скинути до режиму</button>
     <details class="pc2-cal-view__legend">
       <summary>Що означають позначки</summary>
       <dl>
@@ -45,11 +51,14 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { CALENDAR_LAYER_LABELS, CALENDAR_LAYERS, type CalendarLayer, type CalendarLayers } from '../../lib/calendarItems'
+import { CALENDAR_LAYER_LABELS, CALENDAR_LAYERS, type CalendarLayer, type CalendarLayers, type CalendarView } from '../../lib/calendarItems'
 import { CALENDAR_MODE_LABELS, layerDeviations, type CalendarMode } from '../../lib/calendarModes'
 
-const props = defineProps<{ mode: CalendarMode; layers: CalendarLayers; counts: Partial<Record<CalendarLayer, number>>; sheet: boolean; anchor?: { top: number; left: number } | null }>()
-defineEmits<{ close: []; reset: []; 'set-layer': [layer: CalendarLayer, visible: boolean] }>()
+const props = defineProps<{ mode: CalendarMode; layers: CalendarLayers; counts: Partial<Record<CalendarLayer, number>>; sheet: boolean; anchor?: { top: number; left: number } | null; view?: CalendarView; disabled?: boolean }>()
+defineEmits<{ close: []; reset: []; 'set-layer': [layer: CalendarLayer, visible: boolean]; 'set-view': [view: CalendarView] }>()
+const allViewOptions = [{ value: 'week', label: 'Тиждень' }, { value: 'day', label: 'День' }, { value: 'list', label: 'Список' }] as const
+const viewOptions = computed(() => allViewOptions.filter(option => !props.sheet || option.value !== 'week'))
+const displayView = computed(() => props.sheet && props.view === 'week' ? 'day' : props.view)
 
 const MARKER_LEGEND = [
   { marker: '? Підтвердити', meaning: 'Сесія чекає вашого підтвердження.' },
@@ -74,7 +83,9 @@ onMounted(async () => {
     document.documentElement.style.overflow = 'hidden'
   }
   await nextTick()
-  panelRef.value?.querySelector<HTMLInputElement>('input:not(:disabled)')?.focus()
+  const firstInput = panelRef.value?.querySelector<HTMLInputElement>('input:not(:disabled)')
+  const closeButton = panelRef.value?.querySelector<HTMLButtonElement>('button:not(:disabled)')
+  ;(firstInput ?? closeButton)?.focus()
 })
 onBeforeUnmount(() => {
   if (restoreOverflow !== null) document.documentElement.style.overflow = restoreOverflow
