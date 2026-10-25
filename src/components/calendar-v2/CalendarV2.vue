@@ -79,7 +79,7 @@
 
     <div v-if="isPreview" class="pc2-cal__warning" role="status" data-testid="calendar-mode-preview">
       <p>Тимчасовий перегляд за посиланням. Збережені налаштування не змінено.</p>
-      <button type="button" class="pc2-cal__btn" :disabled="prefs.canWrite === false || prefs.saving" @click="selectMode(mode)">Зберегти цей режим</button>
+      <button type="button" class="pc2-cal__btn" :disabled="prefs.canWrite === false || prefs.saving" @click="adoptPreview">Зберегти цей режим</button>
       <button type="button" class="pc2-cal__btn pc2-cal__btn--quiet" @click="clearPreview">Повернути збережений</button>
     </div>
 
@@ -365,15 +365,24 @@ function setTabRef(option: CalendarMode, el: Element | ComponentPublicInstance |
 function clearPreview() {
   const query = { ...route.query }
   delete query.mode
-  return router.replace({ query })
+  return router.replace({ path: route.path, query, hash: route.hash })
 }
-async function selectMode(next: CalendarMode) {
+async function saveMode(next: CalendarMode) {
   if (prefs.canWrite === false || prefs.saving) return
+  const navigation = route.fullPath
   if (next !== persistedState.value.mode) {
     const result = await prefs.setMode(next)
     if (result === false || persistedState.value.mode !== next) return
   }
-  await clearPreview()
+  // A completed save must not rewrite a newer Back/Forward/navigation destination.
+  if (route.fullPath === navigation) await clearPreview()
+}
+function selectMode(next: CalendarMode) {
+  if (isPreview.value && next === requestedMode.value) return
+  return saveMode(next)
+}
+function adoptPreview() {
+  if (isPreview.value && requestedMode.value) return saveMode(requestedMode.value)
 }
 function setLayer(layer: CalendarLayer, visible: boolean) {
   if (canEdit.value) void prefs.setLayer(layer, visible)

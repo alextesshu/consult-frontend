@@ -58,6 +58,60 @@ function httpError(status: number, code?: string) {
 }
 
 describe('calendar preferences store', () => {
+  it('ignores a pre-write GET failure after a confirmed PATCH', async () => {
+    setActivePinia(createPinia())
+    const background = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs()).mockReturnValueOnce(background.promise)
+    mockedUpdate.mockResolvedValueOnce(prefs({ mode: 'availability', revision: 1 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const read = store.reload()
+    await store.update({ mode: 'availability' })
+    background.reject(httpError(503))
+    await expect(read).resolves.toMatchObject({ mode: 'availability', revision: 1 })
+    expect(store.error).toBe('')
+    expect(store.requiresReload).toBe(false)
+  })
+
+  it('does not let an old GET clear requiresReload while 409 recovery is pending', async () => {
+    setActivePinia(createPinia())
+    const background = deferred<CalendarPreferences>(), recovery = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs()).mockReturnValueOnce(background.promise).mockReturnValueOnce(recovery.promise)
+    mockedUpdate.mockRejectedValueOnce(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const read = store.reload()
+    const rejected = expect(store.update({ mode: 'availability' })).rejects.toThrow()
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(3))
+    expect(store.requiresReload).toBe(true)
+    background.resolve(prefs())
+    await read
+    expect(store.requiresReload).toBe(true)
+    recovery.resolve(prefs({ mode: 'needs_action', revision: 1 }))
+    await rejected
+    expect(store.requiresReload).toBe(false)
+    expect(store.errorCode).toBe('CALENDAR_PREFERENCES_STALE')
+    expect(mockedUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('fences a GET started during PATCH before applying the confirmed write', async () => {
+    setActivePinia(createPinia())
+    const write = deferred<CalendarPreferences>(), background = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs()).mockReturnValueOnce(background.promise)
+    mockedUpdate.mockReturnValueOnce(write.promise)
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const update = store.update({ mode: 'availability' })
+    await vi.waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1))
+    const read = store.reload()
+    write.resolve(prefs({ mode: 'availability', revision: 1 }))
+    await update
+    background.resolve(prefs())
+    await read
+    expect(store.preferences).toMatchObject({ mode: 'availability', revision: 1 })
+    expect(store.error).toBe('')
+  })
+
   beforeEach(() => {
     setActivePinia(createPinia())
     mockedFetch.mockReset()

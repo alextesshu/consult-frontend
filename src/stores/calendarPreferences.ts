@@ -41,6 +41,8 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
     errorCode: null as string | null,
     savingCount: 0 as number,
     requiresReload: false,
+    // A write boundary invalidates callbacks from reads begun before it.
+    readGeneration: 0,
     epoch: -1 as number,
   }),
   getters: {
@@ -63,6 +65,7 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
         this.epoch = epoch
         this.savingCount = 0
         this.requiresReload = false
+        this.readGeneration += 1
       }
       return epoch
     },
@@ -82,14 +85,18 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
     },
     reload(): Promise<CalendarPreferences | null> {
       const epoch = this.syncEpoch()
+      const generation = this.readGeneration
+      const active = () => epoch === this.epoch && useAuthStore().isEpochActive(epoch) && generation === this.readGeneration
       if (!this.preferences) this.status = 'loading'
       const promise = fetchCalendarPreferences()
         .then((data) => {
+          if (!active()) return this.epoch === epoch ? this.preferences : null
           if (this.applyServer(epoch, data)) this.requiresReload = false
           return this.epoch === epoch ? this.preferences : null
         })
         .catch((err) => {
-          if (epoch === this.epoch && useAuthStore().isEpochActive(epoch)) {
+          if (!active()) return this.epoch === epoch ? this.preferences : null
+          if (active()) {
             this.error = getApiErrorMessage(err, LOAD_ERROR)
             this.errorCode = calendarPreferencesErrorCode(err)
             if (!this.preferences) this.status = 'error'
@@ -130,8 +137,10 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
           if ('regular_view' in intent && this.preferences.regular_view === null) {
             throw new CalendarRegularViewUnsupportedError()
           }
+          this.readGeneration += 1
           const data = await updateCalendarPreferences({ ...intent, expected_revision: this.preferences.revision })
           if (!active()) return null
+          this.readGeneration += 1
           this.error = ''
           this.errorCode = null
           this.applyServer(epoch, data)
@@ -146,6 +155,7 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
             throw err
           }
           if (active()) {
+            this.readGeneration += 1
             this.requiresReload = true
             const code = calendarPreferencesErrorCode(err)
             const message = code === 'CALENDAR_PREFERENCES_STALE' ? CONFLICT_ERROR : getApiErrorMessage(err, SAVE_ERROR)

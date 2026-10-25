@@ -19,6 +19,7 @@ export function useServerCalendarPreferencesSource() {
   const api = useCalendarPreferences({ autoload: false })
   const online = ref(typeof navigator === 'undefined' || navigator.onLine)
   const refreshing = ref(false)
+  const blockingRefresh = ref(false)
   const readError = ref('')
   const forbiddenRead = ref(false)
   const forbiddenWrite = ref(false)
@@ -26,13 +27,19 @@ export function useServerCalendarPreferencesSource() {
   const instance = shallowRef<CalendarPreferencesSource | null>(null)
   let inFlight: { epoch: number; promise: Promise<void> } | null = null
   let disposed = false
+  let operation = 0
   const current = computed(() => auth.user !== null && store.epoch === auth.authEpoch)
   const error = computed(() => !online.value ? 'Немає з’єднання. Показано останні завантажені налаштування без можливості збереження.' : readError.value || (api.error.value !== dismissedError.value ? api.error.value : ''))
   const status = computed(() => readError.value || forbiddenRead.value ? 'error' : api.status.value)
-  const canWrite = computed(() => current.value && api.status.value === 'ready' && api.canWriteRegularView.value && online.value && !refreshing.value && !api.saving.value && !readError.value && !forbiddenRead.value && !forbiddenWrite.value && !store.requiresReload)
+  const canWrite = computed(() => current.value && api.status.value === 'ready' && api.canWriteRegularView.value && online.value && !blockingRefresh.value && !api.saving.value && !readError.value && !forbiddenRead.value && !forbiddenWrite.value && !store.requiresReload)
 
   async function execute(write: () => Promise<CalendarPreferences | null>): Promise<boolean> {
     if (!canWrite.value) return false
+    // Invalidate adapter callbacks too: an old GET must not dismiss a PATCH conflict.
+    operation += 1
+    // Retire background ownership, so explicit recovery can start a fresh GET.
+    inFlight = null
+    refreshing.value = false
     dismissedError.value = null
     const epoch = auth.authEpoch
     try {
@@ -48,6 +55,10 @@ export function useServerCalendarPreferencesSource() {
   }
 
   watch(() => auth.authEpoch, (epoch) => {
+    operation += 1
+    inFlight = null
+    refreshing.value = false
+    blockingRefresh.value = false
     if (feedEpochs.get(auth) !== epoch) {
       clearCalendarFeedShare()
       feedEpochs.set(auth, epoch)
@@ -70,7 +81,7 @@ export function useServerCalendarPreferencesSource() {
       get synced() { return canWrite.value && !api.error.value },
       timezoneSource: 'server',
       get canWrite() { return canWrite.value },
-      get saving() { return api.saving.value || refreshing.value },
+      get saving() { return api.saving.value || blockingRefresh.value },
       get error() { return error.value },
       get errorCode() { return api.errorCode.value },
       setMode: (mode) => execute(() => api.update({ mode })),
@@ -85,19 +96,24 @@ export function useServerCalendarPreferencesSource() {
     }
   }, { immediate: true, flush: 'sync' })
 
-  function reload(): Promise<void> {
+  function refresh(kind: 'background' | 'blocking'): Promise<void> {
     const epoch = auth.authEpoch
     if (disposed || !auth.user || !online.value || api.saving.value) return Promise.resolve()
-    if (inFlight?.epoch === epoch) return inFlight.promise
+    if (inFlight?.epoch === epoch) {
+      if (kind === 'blocking') blockingRefresh.value = true
+      return inFlight.promise
+    }
+    const ticket = ++operation
     refreshing.value = true
+    blockingRefresh.value = kind === 'blocking' || !api.preferences.value
     const promise = api.reload().then(() => {
-      if (!auth.isEpochActive(epoch) || disposed) return
+      if (!auth.isEpochActive(epoch) || disposed || ticket !== operation) return
       readError.value = ''
       forbiddenRead.value = false
       forbiddenWrite.value = false
       dismissedError.value = api.error.value
     }).catch((err) => {
-      if (!auth.isEpochActive(epoch) || disposed) return
+      if (!auth.isEpochActive(epoch) || disposed || ticket !== operation) return
       readError.value = 'Не вдалося оновити налаштування календаря. Збереження вимкнено. Спробуйте ще раз.'
       const httpStatus = (err as { response?: { status?: number } }).response?.status
       forbiddenRead.value = httpStatus === 401 || httpStatus === 403
@@ -105,24 +121,26 @@ export function useServerCalendarPreferencesSource() {
       if (inFlight?.promise === promise) {
         inFlight = null
         refreshing.value = false
+        blockingRefresh.value = false
       }
     })
     inFlight = { epoch, promise }
     return promise
   }
+  const reload = () => refresh('blocking')
   const source = computed(() => current.value && !forbiddenRead.value ? instance.value : null)
-  const visibility = () => { if (document.visibilityState === 'visible') void reload() }
+  const visibility = () => { if (document.visibilityState === 'visible') void refresh('background') }
   const reconnect = () => { online.value = navigator.onLine; if (online.value) void reload() }
-  const focus = () => { if (document.visibilityState === 'visible') void reload() }
-  watch(() => auth.user, (user) => { if (user) void reload() })
+  const focus = () => { if (document.visibilityState === 'visible') void refresh('background') }
+  watch(() => auth.user, (user) => { if (user) void refresh('background') })
   onMounted(() => {
     window.addEventListener('focus', focus)
     window.addEventListener('online', reconnect)
     window.addEventListener('offline', reconnect)
     document.addEventListener('visibilitychange', visibility)
-    void reload()
+    void refresh('background')
   })
-  onActivated(() => void reload())
+  onActivated(() => void refresh('background'))
   onScopeDispose(() => {
     disposed = true
     window.removeEventListener('focus', focus)

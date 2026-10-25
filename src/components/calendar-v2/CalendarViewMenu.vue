@@ -16,14 +16,14 @@
       <button type="button" class="pc2-cal__icon-btn pc2-cal-view__close" aria-label="Закрити вигляд" @click="$emit('close')">×</button>
     </div>
     <div class="pc2-cal-view__body">
-    <fieldset v-if="view && mode !== 'needs_action'" class="pc2-cal-view__layers" :disabled="disabled" aria-label="Звичайний вигляд">
+    <fieldset v-if="view && mode !== 'needs_action'" class="pc2-cal-view__layers" :disabled="disabled">
       <legend>Звичайний вигляд</legend>
       <div class="pc2-cal__views">
-        <button v-for="option in viewOptions" :key="option.value" type="button" class="pc2-cal__btn pc2-cal__btn--quiet" :aria-pressed="view === option.value" @click="$emit('set-view', option.value)">{{ option.label }}</button>
+        <button v-for="option in viewOptions" :key="option.value" type="button" class="pc2-cal__btn pc2-cal__btn--quiet" :aria-pressed="displayView === option.value" @click="$emit('set-view', option.value)">{{ option.label }}</button>
       </div>
     </fieldset>
     <fieldset class="pc2-cal-view__layers" :disabled="disabled">
-      <legend class="pc2-cal-sr">Що показувати</legend>
+      <legend class="pc2-cal-sr">Видимість шарів</legend>
       <label v-for="layer in CALENDAR_LAYERS" :key="layer" class="pc2-cal-view__layer">
         <input
           type="checkbox"
@@ -56,7 +56,9 @@ import { CALENDAR_MODE_LABELS, layerDeviations, type CalendarMode } from '../../
 
 const props = defineProps<{ mode: CalendarMode; layers: CalendarLayers; counts: Partial<Record<CalendarLayer, number>>; sheet: boolean; anchor?: { top: number; left: number } | null; view?: CalendarView; disabled?: boolean }>()
 defineEmits<{ close: []; reset: []; 'set-layer': [layer: CalendarLayer, visible: boolean]; 'set-view': [view: CalendarView] }>()
-const viewOptions = [{ value: 'week', label: 'Тиждень' }, { value: 'day', label: 'День' }, { value: 'list', label: 'Список' }] as const
+const allViewOptions = [{ value: 'week', label: 'Тиждень' }, { value: 'day', label: 'День' }, { value: 'list', label: 'Список' }] as const
+const viewOptions = computed(() => allViewOptions.filter(option => !props.sheet || option.value !== 'week'))
+const displayView = computed(() => props.sheet && props.view === 'week' ? 'day' : props.view)
 
 const MARKER_LEGEND = [
   { marker: '? Підтвердити', meaning: 'Сесія чекає вашого підтвердження.' },

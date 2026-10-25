@@ -10,7 +10,7 @@
         <button type="button" class="pc2-cal__btn pc2-cal__btn--quiet" :disabled="refreshing" @click="reload">Оновити налаштування</button>
       </div>
       <p v-if="!regularViewSupported" class="pc2-cal__note">Сервер ще не підтримує збереження звичайного вигляду. Показано сумісний вигляд лише для читання.</p>
-      <p v-if="saving || refreshing" role="status" class="pc2-cal__note">{{ saving ? 'Зберігаємо налаштування…' : 'Оновлюємо налаштування…' }}</p>
+      <p role="status" class="pc2-cal-sr" aria-live="polite" aria-atomic="true">{{ saving ? 'Зберігаємо налаштування…' : refreshing ? 'Оновлюємо налаштування…' : '' }}</p>
       <CalendarV2 :key="auth.authEpoch" :preferences="source" />
     </template>
   </div>
