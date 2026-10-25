@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import type { CalendarLayerKey, CalendarPreferencesPatch } from '../lib/calendarPreferences'
+import type { CalendarLayerKey, CalendarPreferencesChange } from '../lib/calendarPreferences'
 import { useCalendarPreferencesStore } from '../stores/calendarPreferences'
 
 /**
@@ -13,6 +13,7 @@ export function useCalendarPreferences({ autoload = true }: { autoload?: boolean
   const preferences = computed(() => store.preferences)
   return {
     preferences,
+    mode: computed(() => preferences.value?.mode ?? null),
     view: computed(() => preferences.value?.view ?? null),
     preset: computed(() => preferences.value?.preset ?? null),
     layers: computed(() => preferences.value?.layers ?? null),
@@ -23,7 +24,7 @@ export function useCalendarPreferences({ autoload = true }: { autoload?: boolean
     errorCode: computed(() => store.errorCode),
     /** Unknown until the server answers; callers decide how to render that state. */
     isLayerVisible: (key: CalendarLayerKey) => preferences.value?.layers[key] ?? null,
-    update: (patch: CalendarPreferencesPatch) => store.update(patch),
+    update: (patch: CalendarPreferencesChange) => store.update(patch),
     reload: () => store.reload(),
   }
 }

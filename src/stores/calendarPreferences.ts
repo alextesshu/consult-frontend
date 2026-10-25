@@ -5,7 +5,7 @@ import {
   fetchCalendarPreferences,
   updateCalendarPreferences,
   type CalendarPreferences,
-  type CalendarPreferencesPatch,
+  type CalendarPreferencesChange,
 } from '../lib/calendarPreferences'
 import { useAuthStore } from './auth'
 
@@ -13,9 +13,12 @@ type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 
 // One GET in flight per auth epoch, shared by every calendar component.
 let loadInFlight: { epoch: number; promise: Promise<CalendarPreferences | null> } | null = null
+// Per-store and per-login queues: an old account's request never blocks a new login.
+const updateQueues = new WeakMap<object, { epoch: number; tail: Promise<void> }>()
 
 const LOAD_ERROR = 'Не вдалося завантажити налаштування календаря.'
 const SAVE_ERROR = 'Не вдалося зберегти налаштування календаря.'
+const CONFLICT_ERROR = 'Налаштування календаря змінилися на іншому пристрої. Перевірте актуальний стан і повторіть зміну.'
 
 /**
  * Server-authoritative calendar preferences (UC-00).
@@ -32,6 +35,7 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
     error: '' as string,
     errorCode: null as string | null,
     savingCount: 0 as number,
+    requiresReload: false,
     epoch: -1 as number,
   }),
   getters: {
@@ -46,6 +50,8 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
         this.error = ''
         this.errorCode = null
         this.epoch = epoch
+        this.savingCount = 0
+        this.requiresReload = false
       }
       return epoch
     },
@@ -68,7 +74,7 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
       if (!this.preferences) this.status = 'loading'
       const promise = fetchCalendarPreferences()
         .then((data) => {
-          this.applyServer(epoch, data)
+          if (this.applyServer(epoch, data)) this.requiresReload = false
           return this.epoch === epoch ? this.preferences : null
         })
         .catch((err) => {
@@ -85,26 +91,46 @@ export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
       loadInFlight = { epoch, promise }
       return promise
     },
-    async update(patch: CalendarPreferencesPatch): Promise<CalendarPreferences | null> {
+    update(patch: CalendarPreferencesChange): Promise<CalendarPreferences | null> {
       const epoch = this.syncEpoch()
+      // Snapshot the intent now; callers must not mutate an enqueued layer object.
+      const intent = { ...patch, ...('layers' in patch && patch.layers ? { layers: { ...patch.layers } } : {}) } as CalendarPreferencesChange
+      const previous = updateQueues.get(this)
+      const tail = previous?.epoch === epoch ? previous.tail : Promise.resolve()
       this.savingCount += 1
-      try {
-        const data = await updateCalendarPreferences(patch)
-        this.error = ''
-        this.errorCode = null
-        this.applyServer(epoch, data)
-        return this.epoch === epoch ? this.preferences : null
-      } catch (err) {
-        if (epoch === this.epoch && useAuthStore().isEpochActive(epoch)) {
-          this.error = getApiErrorMessage(err, SAVE_ERROR)
-          this.errorCode = calendarPreferencesErrorCode(err)
-          // The outcome of a failed request is unknown on the client: re-read the server.
-          void this.reload().catch(() => undefined)
+      const active = () => epoch === this.epoch && useAuthStore().isEpochActive(epoch)
+      const request = tail.then(async () => {
+        if (!active()) return null
+        try {
+          // Revision is captured at dispatch, after preceding writes and recovery GETs.
+          if (this.requiresReload) await this.reload()
+          else if (!this.preferences) await this.ensureLoaded()
+          if (!active() || !this.preferences) return null
+          const data = await updateCalendarPreferences({ ...intent, expected_revision: this.preferences.revision })
+          if (!active()) return null
+          this.error = ''
+          this.errorCode = null
+          this.applyServer(epoch, data)
+          return this.preferences
+        } catch (err) {
+          if (active()) {
+            this.requiresReload = true
+            const code = calendarPreferencesErrorCode(err)
+            const message = code === 'CALENDAR_PREFERENCES_STALE' ? CONFLICT_ERROR : getApiErrorMessage(err, SAVE_ERROR)
+            // Await recovery before releasing the queue; never replay the rejected intent.
+            await this.reload().catch(() => undefined)
+            if (active()) {
+              this.error = message
+              this.errorCode = code
+            }
+          }
+          throw err
+        } finally {
+          if (active()) this.savingCount = Math.max(0, this.savingCount - 1)
         }
-        throw err
-      } finally {
-        this.savingCount = Math.max(0, this.savingCount - 1)
-      }
+      })
+      updateQueues.set(this, { epoch, tail: request.then(() => undefined, () => undefined) })
+      return request
     },
   },
 })

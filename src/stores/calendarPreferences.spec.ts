@@ -15,6 +15,7 @@ const mockedUpdate = vi.mocked(updateCalendarPreferences)
 
 function prefs(overrides: Partial<CalendarPreferences> = {}): CalendarPreferences {
   return {
+    mode: 'workday',
     view: 'week',
     preset: 'all',
     layers: {
@@ -102,7 +103,7 @@ describe('calendar preferences store', () => {
     await store.update({ view: 'day' })
 
     expect(store.preferences).toMatchObject({ view: 'day', revision: 1 })
-    expect(mockedUpdate).toHaveBeenCalledWith({ view: 'day' })
+    expect(mockedUpdate).toHaveBeenCalledWith({ view: 'day', expected_revision: 0 })
     expect(setItem).not.toHaveBeenCalled()
     expect(getItem).not.toHaveBeenCalled()
     setItem.mockRestore()
@@ -127,7 +128,7 @@ describe('calendar preferences store', () => {
     expect(store.preferences?.layers.free_slots).toBe(false)
   })
 
-  it('keeps the newest revision when rapid update responses arrive out of order', async () => {
+  it('serializes rapid updates and captures each latest revision at dispatch', async () => {
     mockedFetch.mockResolvedValue(prefs())
     const firstReply = deferred<CalendarPreferences>()
     const secondReply = deferred<CalendarPreferences>()
@@ -137,21 +138,26 @@ describe('calendar preferences store', () => {
 
     const first = store.update({ layers: { free_slots: false } })
     const second = store.update({ view: 'day' })
-    secondReply.resolve(prefs({ view: 'day', preset: 'custom', revision: 2 }))
-    await second
+    await vi.waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1))
+    expect(mockedUpdate).toHaveBeenNthCalledWith(1, { layers: { free_slots: false }, expected_revision: 0 })
     firstReply.resolve(prefs({ view: 'week', preset: 'custom', revision: 1 }))
     await first
+    await vi.waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(2))
+    expect(mockedUpdate).toHaveBeenNthCalledWith(2, { view: 'day', expected_revision: 1 })
+    secondReply.resolve(prefs({ view: 'day', preset: 'custom', revision: 2 }))
+    await second
 
     expect(store.preferences).toMatchObject({ view: 'day', revision: 2 })
   })
 
-  it('drops a slow initial read that resolves after a newer update', async () => {
+  it('drops a slow reload that resolves after a newer update', async () => {
     const slowRead = deferred<CalendarPreferences>()
-    mockedFetch.mockReturnValue(slowRead.promise)
+    mockedFetch.mockResolvedValueOnce(prefs({ revision: 2 })).mockReturnValueOnce(slowRead.promise)
     mockedUpdate.mockResolvedValue(prefs({ view: 'list', revision: 4 }))
     const store = useCalendarPreferencesStore()
 
-    const loading = store.ensureLoaded()
+    await store.ensureLoaded()
+    const loading = store.reload()
     await store.update({ view: 'list' })
     slowRead.resolve(prefs({ view: 'week', revision: 3 }))
     await loading
@@ -191,5 +197,126 @@ describe('calendar preferences store', () => {
     mockedFetch.mockResolvedValueOnce(prefs({ view: 'day', revision: 1 }))
     await store.ensureLoaded()
     expect(store.preferences).toMatchObject({ view: 'day', revision: 1 })
+  })
+
+  it('loads the server revision before the first write', async () => {
+    const read = deferred<CalendarPreferences>()
+    mockedFetch.mockReturnValue(read.promise)
+    mockedUpdate.mockResolvedValue(prefs({ mode: 'availability', revision: 9 }))
+    const store = useCalendarPreferencesStore()
+    const update = store.update({ mode: 'availability' })
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(1))
+    expect(mockedUpdate).not.toHaveBeenCalled()
+    read.resolve(prefs({ revision: 8 }))
+    await update
+    expect(mockedUpdate).toHaveBeenCalledWith({ mode: 'availability', expected_revision: 8 })
+    expect(useCalendarPreferences({ autoload: false }).mode.value).toBe('availability')
+  })
+
+  it('preserves a custom mode, resets it explicitly, and leaves no-op revisions to the server', async () => {
+    mockedFetch.mockResolvedValue(prefs({ mode: 'availability', preset: 'availability', revision: 2 }))
+    mockedUpdate
+      .mockResolvedValueOnce(prefs({ mode: 'availability', preset: 'custom', revision: 3 }))
+      .mockResolvedValueOnce(prefs({ mode: 'availability', preset: 'availability', revision: 4 }))
+      .mockResolvedValueOnce(prefs({ mode: 'availability', preset: 'availability', revision: 4 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    await store.update({ layers: { past: true } })
+    expect(store.preferences).toMatchObject({ mode: 'availability', preset: 'custom' })
+    await store.update({ mode: 'availability' })
+    await store.update({ mode: 'availability' })
+    expect(mockedUpdate).toHaveBeenLastCalledWith({ mode: 'availability', expected_revision: 4 })
+    expect(store.preferences?.revision).toBe(4)
+  })
+
+  it('awaits 409 recovery, reports the conflict, and never replays the rejected intent', async () => {
+    const refresh = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs({ revision: 2 })).mockReturnValueOnce(refresh.promise)
+    mockedUpdate.mockRejectedValue(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const rejected = expect(store.update({ mode: 'availability' })).rejects.toThrow()
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(2))
+    expect(store.saving).toBe(true)
+    refresh.resolve(prefs({ mode: 'needs_action', preset: 'custom', revision: 5 }))
+    await rejected
+    expect(store.preferences).toMatchObject({ mode: 'needs_action', revision: 5 })
+    expect(store.errorCode).toBe('CALENDAR_PREFERENCES_STALE')
+    expect(store.error).toContain('іншому пристрої')
+    expect(store.saving).toBe(false)
+    expect(mockedUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('releases the queue after recovery and uses the recovered revision for a distinct intent', async () => {
+    const refresh = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs({ revision: 2 })).mockReturnValueOnce(refresh.promise)
+    mockedUpdate
+      .mockRejectedValueOnce(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
+      .mockResolvedValueOnce(prefs({ view: 'day', revision: 7 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const rejected = expect(store.update({ mode: 'availability' })).rejects.toThrow()
+    const second = store.update({ view: 'day' })
+    await vi.waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(2))
+    expect(mockedUpdate).toHaveBeenCalledTimes(1)
+    refresh.resolve(prefs({ revision: 6 }))
+    await rejected
+    await second
+    expect(mockedUpdate).toHaveBeenNthCalledWith(2, { view: 'day', expected_revision: 6 })
+    expect(mockedUpdate).toHaveBeenCalledTimes(2)
+  })
+
+  it('requires a successful refresh before writing again after recovery fails', async () => {
+    mockedFetch
+      .mockResolvedValueOnce(prefs({ revision: 2 }))
+      .mockRejectedValueOnce(httpError(503))
+      .mockResolvedValueOnce(prefs({ revision: 8 }))
+    mockedUpdate
+      .mockRejectedValueOnce(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
+      .mockResolvedValueOnce(prefs({ revision: 9 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    await expect(store.update({ mode: 'availability' })).rejects.toThrow()
+    expect(store.preferences?.revision).toBe(2)
+    await store.update({ view: 'day' })
+    expect(mockedFetch).toHaveBeenCalledTimes(3)
+    expect(mockedUpdate).toHaveBeenLastCalledWith({ view: 'day', expected_revision: 8 })
+  })
+
+  it.each([false, true])('isolates active and queued writes across login changes (reject=%s)', async (reject) => {
+    const oldReply = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs({ revision: 2 })).mockResolvedValueOnce(prefs({ revision: 0 }))
+    mockedUpdate.mockReturnValueOnce(oldReply.promise).mockResolvedValueOnce(prefs({ view: 'day', revision: 1 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const old = store.update({ mode: 'availability' })
+    const oldOutcome = reject ? expect(old).rejects.toThrow() : expect(old).resolves.toBeNull()
+    const queued = store.update({ mode: 'needs_action' })
+    await vi.waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1))
+    useAuthStore().beginAuthEpoch()
+    await store.ensureLoaded()
+    await store.update({ view: 'day' })
+    if (reject) oldReply.reject(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
+    else oldReply.resolve(prefs({ mode: 'availability', revision: 90 }))
+    await oldOutcome
+    await expect(queued).resolves.toBeNull()
+    expect(mockedUpdate).toHaveBeenCalledTimes(2)
+    expect(store.preferences).toMatchObject({ mode: 'workday', view: 'day', revision: 1 })
+    expect(store.error).toBe('')
+    expect(store.saving).toBe(false)
+    expect(mockedFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('snapshots queued layers and drops late server revisions', async () => {
+    mockedFetch.mockResolvedValue(prefs({ revision: 3 }))
+    mockedUpdate.mockResolvedValue(prefs({ revision: 2, mode: 'needs_action' }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const layers = { past: false }
+    const update = store.update({ layers })
+    layers.past = true
+    await update
+    expect(mockedUpdate).toHaveBeenCalledWith({ layers: { past: false }, expected_revision: 3 })
+    expect(store.preferences).toMatchObject({ mode: 'workday', revision: 3 })
   })
 })

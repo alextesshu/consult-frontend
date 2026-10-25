@@ -5,6 +5,8 @@ import {
   CALENDAR_PREFERENCES_URL,
   CALENDAR_SELECTABLE_PRESETS,
   CALENDAR_VIEWS,
+  normalizeCalendarPreferences,
+  type CalendarPreferencesResponse,
   calendarPreferencesErrorCode,
   fetchCalendarPreferences,
   updateCalendarPreferences,
@@ -29,13 +31,13 @@ describe('calendar preferences API client (UC-00 contract)', () => {
     mockedPatch.mockResolvedValue({ revision: 1 })
 
     await fetchCalendarPreferences()
-    await updateCalendarPreferences({ layers: { free_slots: false } })
-    await updateCalendarPreferences({ preset: 'needs_action' })
+    await updateCalendarPreferences({ layers: { free_slots: false }, expected_revision: 0 })
+    await updateCalendarPreferences({ preset: 'needs_action', expected_revision: 1 })
 
     expect(CALENDAR_PREFERENCES_URL).toBe('/cabinet/settings/calendar/')
     expect(mockedGet).toHaveBeenCalledWith('/cabinet/settings/calendar/')
-    expect(mockedPatch).toHaveBeenNthCalledWith(1, '/cabinet/settings/calendar/', { layers: { free_slots: false } })
-    expect(mockedPatch).toHaveBeenNthCalledWith(2, '/cabinet/settings/calendar/', { preset: 'needs_action' })
+    expect(mockedPatch).toHaveBeenNthCalledWith(1, '/cabinet/settings/calendar/', { layers: { free_slots: false }, expected_revision: 0 })
+    expect(mockedPatch).toHaveBeenNthCalledWith(2, '/cabinet/settings/calendar/', { preset: 'needs_action', expected_revision: 1 })
   })
 
   it('mirrors the documented backend vocabulary', () => {
@@ -57,5 +59,24 @@ describe('calendar preferences API client (UC-00 contract)', () => {
     )
     expect(calendarPreferencesErrorCode(new Error('Network Error'))).toBeNull()
     expect(calendarPreferencesErrorCode({ response: { data: { code: 7 } } })).toBeNull()
+  })
+
+  it.each(['workday', 'availability', 'needs_action', 'all', 'custom'] as const)(
+    'normalizes legacy preset %s without modifying layers', (preset) => {
+      const legacy = { preset, layers: { free_slots: true }, revision: 3 } as CalendarPreferencesResponse
+      const normalized = normalizeCalendarPreferences(legacy)
+      expect(normalized.mode).toBe(preset === 'all' || preset === 'custom' ? 'workday' : preset)
+      expect(normalized.layers).toBe(legacy.layers)
+      expect(legacy).not.toHaveProperty('mode')
+    },
+  )
+
+  it('keeps explicit mode independently of custom preset in GET and PATCH replies', async () => {
+    const reply = { mode: 'availability', preset: 'custom', revision: 5 }
+    mockedGet.mockResolvedValue(reply)
+    mockedPatch.mockResolvedValue(reply)
+    expect(await fetchCalendarPreferences()).toMatchObject(reply)
+    expect(await updateCalendarPreferences({ mode: 'availability', expected_revision: 4 })).toMatchObject(reply)
+    expect(mockedPatch).toHaveBeenCalledWith(CALENDAR_PREFERENCES_URL, { mode: 'availability', expected_revision: 4 })
   })
 })
