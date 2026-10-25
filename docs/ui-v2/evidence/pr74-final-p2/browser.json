@@ -1,0 +1,278 @@
+{
+  "fixtures": true,
+  "problems": [],
+  "rows": [
+    {
+      "width": 375,
+      "saved": "week",
+      "shown": "День",
+      "pressed": "День",
+      "expectedWrite": null,
+      "patches": [],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        },
+        {
+          "name": "Список",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "true"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 375,
+      "saved": "day",
+      "shown": "День",
+      "pressed": "День",
+      "expectedWrite": null,
+      "patches": [],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        },
+        {
+          "name": "Список",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "true"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 375,
+      "saved": "list",
+      "shown": "Список",
+      "pressed": "День",
+      "expectedWrite": "day",
+      "patches": [
+        {
+          "regular_view": "day",
+          "expected_revision": 3
+        }
+      ],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        },
+        {
+          "name": "Список",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "false"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 375,
+      "saved": "week",
+      "shown": "День",
+      "pressed": "Список",
+      "expectedWrite": "list",
+      "patches": [
+        {
+          "regular_view": "list",
+          "expected_revision": 3
+        }
+      ],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        },
+        {
+          "name": "Список",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "true"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "saved": "week",
+      "shown": "День",
+      "pressed": "День",
+      "expectedWrite": null,
+      "patches": [],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        },
+        {
+          "name": "Список",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "true"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "saved": "day",
+      "shown": "День",
+      "pressed": "День",
+      "expectedWrite": null,
+      "patches": [],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        },
+        {
+          "name": "Список",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "true"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "saved": "list",
+      "shown": "Список",
+      "pressed": "День",
+      "expectedWrite": "day",
+      "patches": [
+        {
+          "regular_view": "day",
+          "expected_revision": 3
+        }
+      ],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        },
+        {
+          "name": "Список",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "false"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "saved": "week",
+      "shown": "День",
+      "pressed": "Список",
+      "expectedWrite": "list",
+      "patches": [
+        {
+          "regular_view": "list",
+          "expected_revision": 3
+        }
+      ],
+      "buttons": [
+        {
+          "name": "День",
+          "pressed": "true",
+          "background": "rgb(18, 52, 90)",
+          "color": "rgb(255, 255, 255)"
+        },
+        {
+          "name": "Список",
+          "pressed": "false",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(18, 35, 58)"
+        }
+      ],
+      "focus": {
+        "name": "День",
+        "outline": "solid",
+        "pressed": "true"
+      },
+      "overflow": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "buttons": [
+        "Тиждень",
+        "День",
+        "Список"
+      ],
+      "afterWeekClick": 0,
+      "patches": [
+        {
+          "regular_view": "day",
+          "expected_revision": 3
+        }
+      ],
+      "errors": []
+    },
+    {
+      "check": "url-preview",
+      "patches": []
+    }
+  ]
+}

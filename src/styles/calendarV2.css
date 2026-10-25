@@ -21,6 +21,9 @@ html[data-ui="v2"] .pc2-cal__link-btn { min-height: 28px; padding: 0 var(--pc-sp
 html[data-ui="v2"] .pc2-cal__note { margin: 0; font-size: var(--pc-fs-meta); color: var(--pc-text-muted); }
 html[data-ui="v2"] .pc2-cal__views { display: flex; flex-wrap: wrap; gap: var(--pc-space-2); }
 html[data-ui="v2"] .pc2-cal__views > button { flex: 1; }
+/* Selected view: the same navy fill as the selected strip day; stays visible on hover and when disabled. */
+html[data-ui="v2"] .pc2-cal__views > button[aria-pressed="true"] { border-color: var(--pc-navy-900); background: var(--pc-navy-900); color: var(--pc-bg-card); font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-cal__views > button:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
 html[data-ui="v2"] .pc2-cal__warning { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pc-space-2); margin: 0; padding: var(--pc-space-2) var(--pc-space-4); border-radius: var(--pc-radius-sm); background: var(--pc-peach-100); color: var(--pc-peach-ink); font-size: var(--pc-fs-small); }
 
 /* Header 3a: next-action card | navigation + mode tabs */

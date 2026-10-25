@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
@@ -358,5 +359,61 @@ describe('server-backed calendar integration (isolated API fixtures)', () => {
     expect(controls.getByRole('group', { name: 'Звичайний вигляд' })).toBeInTheDocument()
     expect(controls.getByRole('group', { name: 'Видимість шарів' })).toBeInTheDocument()
     expect(patch).not.toHaveBeenCalled()
+  })
+})
+
+describe('regular view controls (final P2)', () => {
+  const phone = (width: number) => vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: width <= Number(/max-width:\s*(\d+)px/.exec(query)?.[1] ?? 0), addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+  async function viewButton(name: string) {
+    await fireEvent.click(screen.getByRole('button', { name: /^Вигляд/ }))
+    return within(screen.getByRole('dialog')).getByRole('button', { name })
+  }
+
+  describe.each([375, 390])('%spx phone', (width) => {
+    it.each([
+      ['week', 'День', 'День', null],
+      ['day', 'День', 'День', null],
+      ['list', 'Список', 'День', 'day'],
+      ['week', 'День', 'Список', 'list'],
+    ] as const)('saved %s shows %s; pressing %s writes %s', async (saved, shown, pressed, written) => {
+      phone(width)
+      get.mockResolvedValue(prefs({ regular_view: saved, view: saved }))
+      patch.mockImplementation(async (change) => prefs({ regular_view: change.regular_view!, view: change.regular_view!, revision: 4 }))
+      await open(); await ready()
+      const button = await viewButton(pressed)
+      expect(within(screen.getByRole('dialog')).getByRole('button', { name: shown })).toHaveAttribute('aria-pressed', 'true')
+      await fireEvent.click(button)
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      if (written) {
+        await waitFor(() => expect(patch).toHaveBeenCalledTimes(1))
+        expect(patch).toHaveBeenCalledWith({ regular_view: written, expected_revision: 3 })
+      } else {
+        expect(patch).not.toHaveBeenCalled()
+      }
+    })
+  })
+
+  it('keeps desktop Week/Day/List: the selected view is a no-op, another view writes once', async () => {
+    patch.mockImplementation(async (change) => prefs({ regular_view: change.regular_view!, view: change.regular_view!, revision: 4 }))
+    await open(); await ready()
+    const week = await viewButton('Тиждень')
+    expect(week).toHaveAttribute('aria-pressed', 'true')
+    await fireEvent.click(week)
+    expect(patch).not.toHaveBeenCalled()
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'День' }))
+    await waitFor(() => expect(patch).toHaveBeenCalledTimes(1))
+    expect(patch).toHaveBeenCalledWith({ regular_view: 'day', expected_revision: 3 })
+  })
+
+  it('styles the selected view with its own fill that hover and disabled states do not remove', () => {
+    const css = readFileSync('src/styles/calendarV2.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector: string) => [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+      .filter((match) => match[1]!.split(',').some((part) => part.trim() === selector)).map((match) => match[2]).join(';')
+    const pressed = rule('html[data-ui="v2"] .pc2-cal__views > button[aria-pressed="true"]')
+    expect(pressed).toMatch(/background:\s*var\(--pc-navy-900\)/)
+    expect(pressed).toMatch(/color:\s*var\(--pc-bg-card\)/)
+    // Specificity (0,3,2) beats .pc2-cal__btn:hover / :disabled and the quiet transparent background (0,3,1)/(0,2,1).
+    expect(rule('html[data-ui="v2"] .pc2-cal__btn:hover')).toMatch(/background/)
+    expect(rule('html[data-ui="v2"] .pc2-cal__views > button:focus-visible')).toMatch(/outline:\s*var\(--pc-focus-width\)/)
   })
 })

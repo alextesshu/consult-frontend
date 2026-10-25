@@ -388,6 +388,9 @@ function setLayer(layer: CalendarLayer, visible: boolean) {
   if (canEdit.value) void prefs.setLayer(layer, visible)
 }
 function setView(view: typeof state.value.view) {
+  // The displayed view decides a no-op: a phone shows a saved Week as Day, and pressing
+  // that Day must not overwrite the Week other devices use.
+  if (view === effectiveView.value) return
   if (canEdit.value && mode.value !== 'needs_action') void prefs.setView(view)
 }
 function reset() {
