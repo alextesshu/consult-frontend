@@ -1,0 +1,2091 @@
+{
+  "fixtureOnly": true,
+  "rows": [
+    {
+      "mode": "direct",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "cardHeight": 1356.765625,
+      "cardClientHeight": 1357,
+      "cardScrollHeight": 1357,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": null,
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 122.890625,
+          "rowWidth": 287,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 120.875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 99.640625,
+          "rowWidth": 287,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 99.25
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 123.421875,
+          "rowWidth": 287,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 100.6875,
+          "rowWidth": 287,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 21.171875,
+          "rowWidth": 287,
+          "rowHeight": 174.734375,
+          "lineCount": 7,
+          "widestTextLine": 17.125
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 91.625,
+          "rowWidth": 287,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 85.046875
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 37.84375,
+          "rowWidth": 287,
+          "rowHeight": 689.71875,
+          "lineCount": 30,
+          "widestTextLine": 34.78125
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 122.890625",
+        "TELEGRAM: narrow value 99.640625",
+        "TELEGRAM: text squeezed",
+        "VIBER: narrow value 123.421875",
+        "PHONE: narrow value 100.6875",
+        "SECONDARY_PHONE: narrow value 21.171875",
+        "SECONDARY_PHONE: phone wraps into 7 lines",
+        "WHATSAPP: narrow value 91.625",
+        "WHATSAPP: phone wraps into 2 lines",
+        "MESSENGER: narrow value 37.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 390,
+      "height": 812,
+      "scrollWidth": 390,
+      "cardHeight": 1006.125,
+      "cardClientHeight": 1006,
+      "cardScrollHeight": 1006,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": null,
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 137.890625,
+          "rowWidth": 302,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 134.953125
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 114.640625,
+          "rowWidth": 302,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 113.046875
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 138.421875,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 115.6875,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 36.171875,
+          "rowWidth": 302,
+          "rowHeight": 107.5625,
+          "lineCount": 4,
+          "widestTextLine": 32.21875
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 106.625,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 52.84375,
+          "rowWidth": 302,
+          "rowHeight": 443.421875,
+          "lineCount": 19,
+          "widestTextLine": 51.453125
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 137.890625",
+        "TELEGRAM: narrow value 114.640625",
+        "TELEGRAM: text squeezed",
+        "VIBER: narrow value 138.421875",
+        "PHONE: narrow value 115.6875",
+        "SECONDARY_PHONE: narrow value 36.171875",
+        "SECONDARY_PHONE: phone wraps into 4 lines",
+        "WHATSAPP: narrow value 106.625",
+        "MESSENGER: narrow value 52.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 768,
+      "height": 900,
+      "scrollWidth": 768,
+      "cardHeight": 516.859375,
+      "cardClientHeight": 517,
+      "cardScrollHeight": 517,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 479.890625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 346.15625
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 456.640625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 199.28125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 480.421875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 457.6875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 378.171875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 448.625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 394.84375,
+          "rowWidth": 644,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 391.984375
+        }
+      ],
+      "failures": [],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 820,
+      "height": 900,
+      "scrollWidth": 820,
+      "cardHeight": 516.859375,
+      "cardClientHeight": 517,
+      "cardScrollHeight": 517,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 531.890625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 346.15625
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 508.640625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 199.28125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 532.421875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 509.6875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 430.171875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 500.625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 446.84375,
+          "rowWidth": 696,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 443.390625
+        }
+      ],
+      "failures": [],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 1100,
+      "height": 900,
+      "scrollWidth": 1100,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1440,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "direct",
+      "width": 1280,
+      "height": 600,
+      "scrollWidth": 1280,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "cardHeight": 1356.765625,
+      "cardClientHeight": 1357,
+      "cardScrollHeight": 1357,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": null,
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 122.890625,
+          "rowWidth": 287,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 120.875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 99.640625,
+          "rowWidth": 287,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 99.25
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 123.421875,
+          "rowWidth": 287,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 100.6875,
+          "rowWidth": 287,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 21.171875,
+          "rowWidth": 287,
+          "rowHeight": 174.734375,
+          "lineCount": 7,
+          "widestTextLine": 17.125
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 91.625,
+          "rowWidth": 287,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 85.046875
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 37.84375,
+          "rowWidth": 287,
+          "rowHeight": 689.71875,
+          "lineCount": 30,
+          "widestTextLine": 34.78125
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 122.890625",
+        "TELEGRAM: narrow value 99.640625",
+        "TELEGRAM: text squeezed",
+        "VIBER: narrow value 123.421875",
+        "PHONE: narrow value 100.6875",
+        "SECONDARY_PHONE: narrow value 21.171875",
+        "SECONDARY_PHONE: phone wraps into 7 lines",
+        "WHATSAPP: narrow value 91.625",
+        "WHATSAPP: phone wraps into 2 lines",
+        "MESSENGER: narrow value 37.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 390,
+      "height": 812,
+      "scrollWidth": 390,
+      "cardHeight": 1006.125,
+      "cardClientHeight": 1006,
+      "cardScrollHeight": 1006,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": null,
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 137.890625,
+          "rowWidth": 302,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 134.953125
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 114.640625,
+          "rowWidth": 302,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 113.046875
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 138.421875,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 115.6875,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 36.171875,
+          "rowWidth": 302,
+          "rowHeight": 107.5625,
+          "lineCount": 4,
+          "widestTextLine": 32.21875
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 106.625,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 52.84375,
+          "rowWidth": 302,
+          "rowHeight": 443.421875,
+          "lineCount": 19,
+          "widestTextLine": 51.453125
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 137.890625",
+        "TELEGRAM: narrow value 114.640625",
+        "TELEGRAM: text squeezed",
+        "VIBER: narrow value 138.421875",
+        "PHONE: narrow value 115.6875",
+        "SECONDARY_PHONE: narrow value 36.171875",
+        "SECONDARY_PHONE: phone wraps into 4 lines",
+        "WHATSAPP: narrow value 106.625",
+        "MESSENGER: narrow value 52.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 768,
+      "height": 900,
+      "scrollWidth": 768,
+      "cardHeight": 516.859375,
+      "cardClientHeight": 517,
+      "cardScrollHeight": 517,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 479.890625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 346.15625
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 456.640625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 199.28125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 480.421875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 457.6875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 378.171875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 448.625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 394.84375,
+          "rowWidth": 644,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 391.984375
+        }
+      ],
+      "failures": [],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 820,
+      "height": 900,
+      "scrollWidth": 820,
+      "cardHeight": 516.859375,
+      "cardClientHeight": 517,
+      "cardScrollHeight": 517,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 531.890625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 346.15625
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 508.640625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 199.28125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 532.421875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 509.6875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 430.171875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 500.625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 446.84375,
+          "rowWidth": 696,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 443.390625
+        }
+      ],
+      "failures": [],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 1100,
+      "height": 900,
+      "scrollWidth": 1100,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1440,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "empty",
+      "width": 1280,
+      "height": 600,
+      "scrollWidth": 1280,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 375,
+      "height": 812,
+      "scrollWidth": 375,
+      "cardHeight": 1356.765625,
+      "cardClientHeight": 1357,
+      "cardScrollHeight": 1357,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": null,
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 122.890625,
+          "rowWidth": 287,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 120.875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 99.640625,
+          "rowWidth": 287,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 99.25
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 123.421875,
+          "rowWidth": 287,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 100.6875,
+          "rowWidth": 287,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 21.171875,
+          "rowWidth": 287,
+          "rowHeight": 174.734375,
+          "lineCount": 7,
+          "widestTextLine": 17.125
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 91.625,
+          "rowWidth": 287,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 85.046875
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 37.84375,
+          "rowWidth": 287,
+          "rowHeight": 689.71875,
+          "lineCount": 30,
+          "widestTextLine": 34.78125
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 122.890625",
+        "TELEGRAM: narrow value 99.640625",
+        "TELEGRAM: text squeezed",
+        "VIBER: narrow value 123.421875",
+        "PHONE: narrow value 100.6875",
+        "SECONDARY_PHONE: narrow value 21.171875",
+        "SECONDARY_PHONE: phone wraps into 7 lines",
+        "WHATSAPP: narrow value 91.625",
+        "WHATSAPP: phone wraps into 2 lines",
+        "MESSENGER: narrow value 37.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 390,
+      "height": 812,
+      "scrollWidth": 390,
+      "cardHeight": 1006.125,
+      "cardClientHeight": 1006,
+      "cardScrollHeight": 1006,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": null,
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 137.890625,
+          "rowWidth": 302,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 134.953125
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 114.640625,
+          "rowWidth": 302,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 113.046875
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 138.421875,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 115.6875,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 36.171875,
+          "rowWidth": 302,
+          "rowHeight": 107.5625,
+          "lineCount": 4,
+          "widestTextLine": 32.21875
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 106.625,
+          "rowWidth": 302,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 52.84375,
+          "rowWidth": 302,
+          "rowHeight": 443.421875,
+          "lineCount": 19,
+          "widestTextLine": 51.453125
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 137.890625",
+        "TELEGRAM: narrow value 114.640625",
+        "TELEGRAM: text squeezed",
+        "VIBER: narrow value 138.421875",
+        "PHONE: narrow value 115.6875",
+        "SECONDARY_PHONE: narrow value 36.171875",
+        "SECONDARY_PHONE: phone wraps into 4 lines",
+        "WHATSAPP: narrow value 106.625",
+        "MESSENGER: narrow value 52.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 768,
+      "height": 900,
+      "scrollWidth": 768,
+      "cardHeight": 516.859375,
+      "cardClientHeight": 517,
+      "cardScrollHeight": 517,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 479.890625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 346.15625
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 456.640625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 199.28125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 480.421875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 457.6875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 378.171875,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 448.625,
+          "rowWidth": 644,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 394.84375,
+          "rowWidth": 644,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 391.984375
+        }
+      ],
+      "failures": [],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 820,
+      "height": 900,
+      "scrollWidth": 820,
+      "cardHeight": 516.859375,
+      "cardClientHeight": 517,
+      "cardScrollHeight": 517,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 531.890625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 346.15625
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 508.640625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 199.28125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 532.421875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 509.6875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 430.171875,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 500.625,
+          "rowWidth": 696,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 446.84375,
+          "rowWidth": 696,
+          "rowHeight": 85.171875,
+          "lineCount": 3,
+          "widestTextLine": 443.390625
+        }
+      ],
+      "failures": [],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 1100,
+      "height": 900,
+      "scrollWidth": 1100,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1440,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "sticky",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    },
+    {
+      "mode": "request",
+      "width": 1280,
+      "height": 600,
+      "scrollWidth": 1280,
+      "cardHeight": 715.046875,
+      "cardClientHeight": 715,
+      "cardScrollHeight": 715,
+      "cardOverflow": "visible",
+      "inBookingPanel": false,
+      "columnPosition": "static",
+      "rows": [
+        {
+          "label": "Email",
+          "text": "consultation.specialist.long.public.contact@example.test",
+          "valueWidth": 195.890625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 193.171875
+        },
+        {
+          "label": "Telegram",
+          "text": "@proconsult_specialist_calendar",
+          "valueWidth": 172.640625,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 171.125
+        },
+        {
+          "label": "Viber",
+          "text": "+380931234567",
+          "valueWidth": 196.421875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Телефон",
+          "text": "+380501234567",
+          "valueWidth": 173.6875,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Додатковий телефон",
+          "text": "+380671234567",
+          "valueWidth": 94.171875,
+          "rowWidth": 360,
+          "rowHeight": 62.78125,
+          "lineCount": 2,
+          "widestTextLine": 92.59375
+        },
+        {
+          "label": "WhatsApp",
+          "text": "+380951234567",
+          "valueWidth": 164.625,
+          "rowWidth": 360,
+          "rowHeight": 48,
+          "lineCount": 1,
+          "widestTextLine": 100.140625
+        },
+        {
+          "label": "Messenger / Signal",
+          "text": "syntheticxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "valueWidth": 110.84375,
+          "rowWidth": 360,
+          "rowHeight": 219.515625,
+          "lineCount": 9,
+          "widestTextLine": 109.25
+        }
+      ],
+      "failures": [
+        "EMAIL: narrow value 195.890625",
+        "TELEGRAM: narrow value 172.640625",
+        "VIBER: narrow value 196.421875",
+        "PHONE: narrow value 173.6875",
+        "SECONDARY_PHONE: narrow value 94.171875",
+        "SECONDARY_PHONE: phone wraps into 2 lines",
+        "WHATSAPP: narrow value 164.625",
+        "MESSENGER: narrow value 110.84375",
+        "MESSENGER: text squeezed"
+      ],
+      "allCopyButtonsReachable": false
+    }
+  ],
+  "parity": []
+}

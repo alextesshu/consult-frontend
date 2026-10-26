@@ -18,6 +18,20 @@ function buildProps(heroRoleLine: string) {
 }
 
 describe('PublicProfileHeroSection', () => {
+  it.each([28, 40, 56])('uses the local responsive %ipx source size without changing v1', async size => {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400)
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ width: 100 } as DOMRect)
+    const view = render(PublicProfileHeroSection, { props: { ...buildProps(''), uiV2: true } })
+    try {
+      const title = screen.getByRole('heading', { level: 1 })
+      title.style.setProperty('--pc-profile-title-size', `${size}px`)
+      window.dispatchEvent(new Event('resize'))
+      await nextTick()
+      expect(title.style.fontSize).toBe(`${size}px`)
+      await view.rerender({ uiV2: false })
+      expect(title.style.fontSize).toBe('')
+    } finally { view.unmount(); width.mockRestore(); rect.mockRestore() }
+  })
   it('fits a complete long word, restores source sizing, and releases resize observation', async () => {
     const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300)
     const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {

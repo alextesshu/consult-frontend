@@ -6,17 +6,17 @@
     </div>
     <p class="pc2-profile-contacts__note">Звернення поза Pro Consult не зберігатимуться у вашій історії запитів на платформі.</p>
     <ul class="pc2-profile-contacts__list">
-      <li v-for="item in contactActions" :key="item.id">
+      <li v-for="item in contactActions" :key="item.id" class="pc2-profile-contacts__row" :class="{ 'is-copied': copiedContactId === item.id }">
+        <span class="pc2-profile-contacts__label">{{ item.channelLabel }}</span>
+        <span class="pc2-profile-contacts__value">{{ item.valueText }}</span>
         <button
-          class="pc2-profile-contacts__row"
-          :class="{ 'is-copied': copiedContactId === item.id }"
+          class="pc2-profile-contacts__action"
           type="button"
           :aria-label="`Скопіювати ${item.channelLabel}: ${item.valueText}`"
+          aria-live="polite"
           @click="$emit('copy-contact-action', item)"
         >
-          <span class="pc2-profile-contacts__label">{{ item.channelLabel }}</span>
-          <span class="pc2-profile-contacts__value">{{ item.valueText }}</span>
-          <span class="pc2-profile-contacts__action" aria-live="polite">{{ copiedContactId === item.id ? 'Скопійовано' : 'Скопіювати' }}</span>
+          {{ copiedContactId === item.id ? 'Скопійовано' : 'Скопіювати' }}
         </button>
       </li>
     </ul>

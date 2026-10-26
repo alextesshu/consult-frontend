@@ -58,8 +58,9 @@
         </PublicProfileHeroSection>
       </section>
 
-      <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (compactProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep" @keydown="handleProfileRequestKeydown">
+      <div ref="profileBookingColumnRef" class="public__booking-column" :class="{ 'pc2-profile-booking-column': uiV2, 'pc2-profile-booking-column--flow': uiV2 && profileContactsNeedFlow }">
+      <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
+      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (phoneProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep" @keydown="handleProfileRequestKeydown">
         <ol v-if="uiV2" class="pc2-profile-steps" aria-label="Кроки запиту">
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'offer' ? 'step' : undefined">1. Послуга</li>
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'time' ? 'step' : undefined">2. Час</li>
@@ -120,14 +121,15 @@
         </PublicProfileIdentityRail>
         <div v-show="uiV2" id="pc2-profile-time"></div>
         <div v-show="uiV2" id="pc2-profile-contact"></div>
+      </aside>
+      </Teleport>
         <PublicProfileExternalContacts
-          v-if="uiV2 && !compactProfile && showDirectContactActions"
+          v-if="uiV2 && !phoneProfile && showDirectContactActions"
           :contact-actions="contactActions"
           :copied-contact-id="copiedContactId"
           @copy-contact-action="copyPublicContactValue"
         />
-      </aside>
-      </Teleport>
+      </div>
 
       <section class="public__grid">
         <nav v-if="uiV2" class="pc2-profile-nav" aria-label="Розділи профілю">
@@ -525,7 +527,7 @@
       />
 
       <PublicProfileExternalContacts
-        v-if="uiV2 && compactProfile && showDirectContactActions"
+        v-if="uiV2 && phoneProfile && showDirectContactActions"
         :contact-actions="contactActions"
         :copied-contact-id="copiedContactId"
         @copy-contact-action="copyPublicContactValue"
@@ -556,7 +558,7 @@
     </section>
 
     <template v-if="uiV2 && profile && !loading && !error && !ownerUnpublishedProfile">
-      <div v-if="compactProfile" ref="profileBottomBarRef" class="pc2-profile-bottom-bar">
+      <div v-if="phoneProfile" ref="profileBottomBarRef" class="pc2-profile-bottom-bar">
         <div><span v-if="mobileProfileContext">{{ mobileProfileContext }}</span><strong v-if="mobileProfileHeadline">{{ mobileProfileHeadline }}</strong></div>
         <button class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">{{ profilePrimaryLabel }}</button>
       </div>
@@ -938,8 +940,8 @@
 
     </Teleport>
 
-    <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-    <div v-if="showClientBookingConfirmModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && compactProfile }">
+    <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
+    <div v-if="showClientBookingConfirmModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && phoneProfile }">
       <div class="setting-modal__backdrop" @click="closeClientBookingConfirmModal"></div>
       <div class="setting-modal__content booking-confirm-modal">
         <div class="setting-modal__header">
@@ -997,8 +999,8 @@
     </div>
     </Teleport>
 
-    <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-    <div v-if="showBookingModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && compactProfile }">
+    <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
+    <div v-if="showBookingModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && phoneProfile }">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
         <div class="setting-modal__header">
@@ -1154,16 +1156,19 @@ const { highlighted: profileHighlighted, highlight: highlightProfilePanel } = us
 let requestAfterAbout = false
 let profileShareAttempt = 0
 const compactProfile = ref(false)
+// Booking presentation is phone-only; retain the 860px compact contract elsewhere.
+const phoneProfile = ref(false)
 const profileTargetsReady = ref(false)
 const profileSheetOpen = ref(false)
 const profileCalendarOpen = ref(false)
 const profileRulesOpen = ref(false)
 const profilePickStep = ref<'offer' | 'time'>('offer')
 let profileMedia: MediaQueryList | undefined
+let profilePhoneMedia: MediaQueryList | undefined
 
 function syncProfileRequestStep(event: FocusEvent) {
   if (!uiV2.value || !(event.target instanceof HTMLElement)) return
-  if (!compactProfile.value && event.target.closest('.pc2-profile-inline')) {
+  if (!phoneProfile.value && event.target.closest('.pc2-profile-inline')) {
     const panel = event.target.closest<HTMLElement>('.pc2-request-panel')
     if (panel) revealProfilePanelTarget(panel, event.target)
   }
@@ -1171,7 +1176,7 @@ function syncProfileRequestStep(event: FocusEvent) {
   else if (event.target.closest('.identity-rail__services')) profilePickStep.value = 'offer'
 }
 function handleProfileRequestKeydown(event: KeyboardEvent) {
-  if (!uiV2.value || compactProfile.value || !(event.currentTarget instanceof HTMLElement)) return
+  if (!uiV2.value || phoneProfile.value || !(event.currentTarget instanceof HTMLElement)) return
   handleProfilePanelTab(event.currentTarget, event)
 }
 function profileTeleportTarget(id: string) {
@@ -1180,22 +1185,25 @@ function profileTeleportTarget(id: string) {
 function syncProfileViewport() {
   requestAfterAbout = false
   compactProfile.value = profileMedia?.matches ?? false
+  phoneProfile.value = profilePhoneMedia?.matches ?? false
   closeProfileRequestSheet()
   showAboutModal.value = false
   profileShareDialogOpen.value = false
 }
 function openProfileRequestSheet() {
-  if (!uiV2.value || !compactProfile.value) return
+  if (!uiV2.value || !phoneProfile.value) return
   profileSheetOpen.value = true
 }
 function closeProfileRequestSheet() { profileSheetOpen.value = false }
 function handleProfileBookingClick(slotId: number) {
-  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (uiV2.value && phoneProfile.value) openProfileRequestSheet()
   return handleBookingClick(slotId)
 }
 onMounted(() => {
   profileMedia = window.matchMedia?.('(max-width: 859px)')
   profileMedia?.addEventListener('change', syncProfileViewport)
+  profilePhoneMedia = window.matchMedia?.('(max-width: 767px)')
+  profilePhoneMedia?.addEventListener('change', syncProfileViewport)
   syncProfileViewport()
 })
 
@@ -3086,6 +3094,31 @@ const faqItems = computed<PublicFaqItemView[]>(() => resolveSectionFaqItems())
 const mediaItems = computed<PublicMediaItemView[]>(() => resolveSectionMediaItems())
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
+const profileBookingColumnRef = ref<HTMLElement | null>(null)
+const profileContactsNeedFlow = ref(false)
+let profileContactsObserver: ResizeObserver | null = null
+function syncProfileContactsFlow() {
+  const card = profileBookingColumnRef.value?.querySelector<HTMLElement>('.pc2-profile-contacts')
+  // Reserve at least half the usable desktop viewport for booking. Taller contact
+  // cards grow naturally in document flow, never in a second scroll container.
+  profileContactsNeedFlow.value = Boolean(uiV2.value && window.innerWidth >= 1100 && card &&
+    card.getBoundingClientRect().height > Math.max(0, (window.innerHeight - 112) / 2))
+}
+watch([profileBookingColumnRef, uiV2, phoneProfile, contactActions], () => {
+  profileContactsObserver?.disconnect()
+  profileContactsObserver = null
+  const card = profileBookingColumnRef.value?.querySelector<HTMLElement>('.pc2-profile-contacts')
+  if (uiV2.value && card && typeof ResizeObserver !== 'undefined') {
+    profileContactsObserver = new ResizeObserver(syncProfileContactsFlow)
+    profileContactsObserver.observe(card)
+  }
+  syncProfileContactsFlow()
+}, { flush: 'post' })
+onMounted(() => window.addEventListener('resize', syncProfileContactsFlow))
+onBeforeUnmount(() => {
+  profileContactsObserver?.disconnect()
+  window.removeEventListener('resize', syncProfileContactsFlow)
+})
 const hasPublicContactCta = computed(
   () => !canMessageSpecialist.value && !showInquiryEntry.value && contactActions.value.length > 0
 )
@@ -3544,7 +3577,7 @@ async function changeVisibleMonth(amount: number) {
 }
 
 function scrollToSlots() {
-  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (uiV2.value && phoneProfile.value) openProfileRequestSheet()
   window.location.hash = '#slots'
   focusSlotsSection()
 }
@@ -3564,7 +3597,7 @@ function focusInquirySection() {
 
 function focusSlotsSection() {
   if (uiV2.value) highlightProfilePanel()
-  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (uiV2.value && phoneProfile.value) openProfileRequestSheet()
   void nextTick(() => { document.getElementById('slots')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' }) })
 }
 
@@ -4962,27 +4995,27 @@ watch(
 watch([uiV2, profile, loading, error, ownerUnpublishedProfile], () => {
   profileTargetsReady.value = Boolean(uiV2.value && !loading.value && !error.value && !ownerUnpublishedProfile.value && document.getElementById('pc2-profile-time') && document.getElementById('pc2-profile-contact'))
 }, { flush: 'post' })
-watch([uiV2, compactProfile, profile, loading, error, ownerUnpublishedProfile], () => {
-  if (!uiV2.value || !compactProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
+watch([uiV2, phoneProfile, profile, loading, error, ownerUnpublishedProfile], () => {
+  if (!uiV2.value || !phoneProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
 })
 function focusGuestRequestField(target: HTMLElement) {
-  const panel = uiV2.value && !compactProfile.value ? target.closest<HTMLElement>('.pc2-request-panel') : null
+  const panel = uiV2.value && !phoneProfile.value ? target.closest<HTMLElement>('.pc2-request-panel') : null
   if (panel) focusProfilePanelTarget(panel, target)
   else target.focus()
 }
 watch(guestBookingError, message => {
-  if (!message || !uiV2.value || compactProfile.value) return
+  if (!message || !uiV2.value || phoneProfile.value) return
   const target = guestBookingModalRef.value?.querySelector<HTMLElement>('.form-error')
   const panel = target?.closest<HTMLElement>('.pc2-request-panel')
   if (panel && target) revealProfilePanelTarget(panel, target)
 }, { flush: 'post' })
 watch(showGuestBookingModal, open => {
-  if (open && uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (open && uiV2.value && phoneProfile.value) openProfileRequestSheet()
 })
-watch([showGuestBookingModal, compactProfile, uiV2], async ([open, compact, v2], [wasOpen]) => {
+watch([showGuestBookingModal, phoneProfile, uiV2], async ([open, compact, v2], [wasOpen]) => {
   if (!v2 || compact) return
   await nextTick()
-  if (!uiV2.value || compactProfile.value || showGuestBookingModal.value !== open) return
+  if (!uiV2.value || phoneProfile.value || showGuestBookingModal.value !== open) return
   const form = guestBookingModalRef.value
   const panel = (form ?? document.getElementById('pc2-profile-contact'))?.closest<HTMLElement>('.pc2-request-panel')
   if (!panel?.isConnected) return
@@ -5006,6 +5039,7 @@ watch(uiV2, value => {
 onBeforeUnmount(() => {
   profileShareAttempt++
   profileMedia?.removeEventListener('change', syncProfileViewport)
+  profilePhoneMedia?.removeEventListener('change', syncProfileViewport)
   profileLoadSequence += 1
   resetPublicPageMetadata()
   clearContactActionFallbackTimer()
@@ -5036,6 +5070,9 @@ onBeforeUnmount(() => {
   row-gap: 8px;
   align-items: start;
 }
+
+/* An inert box for v1; only v2 turns this into a separate booking/contact rail. */
+.public__booking-column { display: contents; }
 
 .public__error {
   display: grid;

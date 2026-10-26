@@ -29,7 +29,8 @@ describe('public profile v6.6 presentation boundaries', () => {
     expect.objectContaining({ prop: '-webkit-line-clamp', value: 'unset' }),
     expect.objectContaining({ prop: 'overflow', value: 'visible' }),
   ]))
-  expect(text).toContain('html[data-ui="v2"] .pc2-public-profile .pc2-request-panel--contact > .pc2-profile-contacts { display: none; }')
+  expect(text).not.toContain('.pc2-request-panel--contact > .pc2-profile-contacts')
+  expect(text).toContain('.pc2-profile-booking-column > .pc2-profile-contacts')
  })
  it('preserves the independently scrolling desktop request panel and source highlight', () => {
   expect(text).toContain('max-height: calc(100dvh - 112px)')
