@@ -5033,6 +5033,99 @@ describe('PublicProfileView', () => {
     ).toBeInTheDocument()
   })
 
+  describe('UI v2 visual layer (KAN-158 phase 2, PR A)', () => {
+    const requestOnly = () => buildProfile({ public_booking_mode: 'request_only', show_public_availability: false, public_direct_booking_enabled: false })
+    beforeEach(() => { applyUiVersion('v2'); mockCommonPublicData() })
+
+    it('direct booking with slots: timezone label, separate contacts card, neutral final CTA', async () => {
+      mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      const panel = view.container.querySelector<HTMLElement>('.pc2-request-panel')!
+      await waitFor(() => expect(panel.querySelector('#slots')).toBeInTheDocument())
+      expect(within(panel).getByText('Час за Києвом')).toBeInTheDocument()
+      expect(panel.querySelector('.identity-rail__contacts')).toBeNull()
+      const card = within(panel).getByRole('region', { name: 'Написати напряму' })
+      expect(within(card).getByText('Звернення поза Pro Consult не зберігатимуться у вашій історії запитів на платформі.')).toBeInTheDocument()
+      await fireEvent.click(within(card).getByRole('button', { name: 'Скопіювати Telegram: @olena_help' }))
+      expect(clipboardWriteTextSpy).toHaveBeenCalledWith('@olena_help')
+      expect(await screen.findByRole('heading', { name: 'Оберіть час для консультації' })).toBeInTheDocument()
+      expect(screen.getByText(/^2 формати · від /)).toBeInTheDocument()
+      expect(screen.queryByText(/Марії|вона|він/)).toBeNull()
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('direct booking without slots keeps the no-windows fallback and a request-led final CTA', async () => {
+      mockedApiGet.mockImplementation(async (url) => {
+        if (url === '/booking/slots/') return []
+        if (url === '/public/specialists/olena/reviews/') return []
+        throw new Error(`Unexpected apiGet call: ${url}`)
+      })
+      const view = renderView()
+      const card = within(await screen.findByTestId('public-profile-booking-card'))
+      await waitFor(() => expect(card.getByText(/Наразі немає доступних вікон/)).toBeInTheDocument())
+      expect(await screen.findByRole('heading', { name: 'Залиште запит' })).toBeInTheDocument()
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('request_only: no slots, no timezone label, contacts card and request-led final CTA', async () => {
+      mockedFetchPublicSpecialistProfile.mockResolvedValue(requestOnly())
+      mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      expect(await screen.findByRole('heading', { name: 'Залиште запит' })).toBeInTheDocument()
+      expect(screen.queryByText('Час за Києвом')).toBeNull()
+      expect(screen.queryByText(/Наразі немає доступних вікон/)).toBeNull()
+      expect(screen.getByRole('region', { name: 'Написати напряму' })).toBeInTheDocument()
+      expect(mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')).toHaveLength(0)
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it.each([
+      ['direct booking with slots', () => mockBookingPageDataWithSingleSlot(), null, /^Консультації/, 'від 600 грн'],
+      ['direct booking without slots', () => mockClientPageData(), null, 'від 600 грн', 'Вільного часу зараз немає'],
+      ['request_only', () => mockBookingPageDataWithSingleSlot(), 'request', 'від 600 грн', 'Час — після запиту'],
+    ] as const)('phone sticky bar for %s, contacts in the page flow and footer clearance', async (_name, mockSlots, mode, context, headline) => {
+      if (mode === 'request') mockedFetchPublicSpecialistProfile.mockResolvedValue(requestOnly())
+      mockSlots()
+      const original = window.matchMedia
+      window.matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })
+      const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+        return { height: this.classList.contains('pc2-profile-bottom-bar') ? 76 : 0, width: 0, top: 0, left: 0, right: 0, bottom: 0, x: 0, y: 0, toJSON: () => ({}) } as DOMRect
+      })
+      const previousPadding = document.body.style.paddingBottom
+      const view = renderView()
+      try {
+        await waitFor(() => expect(view.container.querySelector('.pc2-profile-bottom-bar')).toBeInTheDocument())
+        const bar = view.container.querySelector<HTMLElement>('.pc2-profile-bottom-bar')!
+        await waitFor(() => expect(bar.querySelector('strong')).toHaveTextContent(headline))
+        expect(bar.querySelector('span')!.textContent).toMatch(context)
+        await waitFor(() => expect(document.body.style.paddingBottom).toBe('76px'))
+        const contacts = screen.getByRole('region', { name: 'Написати напряму' })
+        expect(contacts.closest('.pc2-request-panel')).toBeNull()
+        expect(mockedApiPost).not.toHaveBeenCalled()
+      } finally {
+        view.unmount(); window.matchMedia = original; rect.mockRestore()
+      }
+      expect(document.body.style.paddingBottom).toBe(previousPadding)
+    })
+
+    it('leaves UI v1 contacts, headings and timezone presentation unchanged', async () => {
+      applyUiVersion('v1')
+      mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      expect(screen.getByText('Мої контакти')).toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'Написати напряму' })).toBeNull()
+      expect(screen.queryByText('Час за Києвом')).toBeNull()
+      expect(screen.queryByRole('heading', { name: 'Оберіть час для консультації' })).toBeNull()
+      view.unmount()
+    })
+  })
+
   describe('UI v2 profile isolation and requests', () => {
     beforeEach(() => { applyUiVersion('v2'); mockCommonPublicData(); mockBookingPageDataWithSingleSlot() })
 

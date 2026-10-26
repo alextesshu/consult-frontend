@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import PublicProfileHeroSection from './PublicProfileHeroSection.vue'
@@ -46,6 +46,32 @@ describe('PublicProfileHeroSection', () => {
       globalThis.ResizeObserver = OriginalObserver
     }
   })
+  it('shows an initials tile for a missing or broken photo in UI v2 only', async () => {
+    const v2 = render(PublicProfileHeroSection, {
+      props: { ...buildProps(''), uiV2: true, publicName: 'Олена Коваль', profile: { photo_url: 'https://example.test/broken.jpg' } },
+    })
+    const photo = screen.getByRole('img', { name: 'Фото спеціаліста' })
+    await fireEvent.error(photo)
+    const fallback = screen.getByRole('img', { name: 'Фото спеціаліста не завантажилося' })
+    expect(fallback).toHaveTextContent('ОК')
+    expect(screen.queryByRole('img', { name: 'Фото спеціаліста' })).toBeNull()
+    await v2.rerender({ profile: { photo_url: 'https://example.test/new.jpg' } })
+    expect(screen.getByRole('img', { name: 'Фото спеціаліста' })).toHaveAttribute('src', 'https://example.test/new.jpg')
+    await v2.rerender({ profile: {} })
+    expect(screen.getByRole('img', { name: 'Фото спеціаліста не додано' })).toHaveTextContent('ОК')
+    v2.unmount()
+
+    const v1 = render(PublicProfileHeroSection, {
+      props: { ...buildProps(''), publicName: 'Олена Коваль', profile: { photo_url: 'https://example.test/broken.jpg' } },
+    })
+    await fireEvent.error(screen.getByRole('img', { name: 'Фото спеціаліста' }))
+    expect(screen.getByRole('img', { name: 'Фото спеціаліста' })).toBeInTheDocument()
+    await v1.rerender({ profile: {} })
+    expect(screen.getByText('Фото спеціаліста')).toHaveClass('hero-photo-placeholder')
+    expect(document.querySelector('.pc2-profile-photo-fallback')).toBeNull()
+    v1.unmount()
+  })
+
   it('hides a subtitle generated only from specializations and location', () => {
     render(PublicProfileHeroSection, {
       props: buildProps('Командний коучинг, Коучинг цілей · Київ'),

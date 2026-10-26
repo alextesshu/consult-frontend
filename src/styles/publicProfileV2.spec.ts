@@ -22,6 +22,15 @@ describe('public profile v6.6 presentation boundaries', () => {
   })
   expect(readFileSync('src/styles/components-v2.css', 'utf8')).not.toContain('.pc2-public-profile')
  })
+ it('shows the full short description and keeps the contacts card out of the contact step in UI v2', () => {
+  const sheet = postcss.parse(text)
+  const lead = sheet.nodes.find((node): node is Rule => node.type === 'rule' && node.selector === 'html[data-ui="v2"] .pc2-public-profile .hero-main__lead--teaser')!
+  expect(lead.nodes).toEqual(expect.arrayContaining([
+    expect.objectContaining({ prop: '-webkit-line-clamp', value: 'unset' }),
+    expect.objectContaining({ prop: 'overflow', value: 'visible' }),
+  ]))
+  expect(text).toContain('html[data-ui="v2"] .pc2-public-profile .pc2-request-panel--contact > .pc2-profile-contacts { display: none; }')
+ })
  it('preserves the independently scrolling desktop request panel and source highlight', () => {
   expect(text).toContain('max-height: calc(100dvh - 112px)')
   expect(text).toContain('overscroll-behavior: contain')
