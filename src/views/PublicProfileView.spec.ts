@@ -5126,6 +5126,117 @@ describe('PublicProfileView', () => {
     })
   })
 
+  describe('UI v2 offer selection and pricing (KAN-158 phase 2, PR B)', () => {
+    beforeEach(() => { applyUiVersion('v2'); mockCommonPublicData() })
+    const railOffer = (container: Element, name: string) =>
+      container.querySelector<HTMLButtonElement>(`.identity-rail__service[aria-label^="${name}:"]`)!
+    const finalSummary = (container: Element) => container.querySelector('.pc2-final-cta__summary')?.textContent?.trim()
+
+    it('starts without a selected offer and shows the chosen price after an explicit choice', async () => {
+      mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      await waitFor(() => expect(finalSummary(view.container)).toBe('2 формати · від 600 грн'))
+      for (const name of ['Консультація', 'Ознайомча сесія']) expect(railOffer(view.container, name)).toHaveAttribute('aria-pressed', 'false')
+
+      await fireEvent.click(railOffer(view.container, 'Ознайомча сесія'))
+      expect(railOffer(view.container, 'Ознайомча сесія')).toHaveAttribute('aria-pressed', 'true')
+      expect(finalSummary(view.container)).toMatch(/^Ознайомча сесія · .+ · 600 грн$/)
+
+      await fireEvent.click(railOffer(view.container, 'Консультація'))
+      expect(railOffer(view.container, 'Ознайомча сесія')).toHaveAttribute('aria-pressed', 'false')
+      expect(finalSummary(view.container)).toMatch(/^Консультація · .+ · 1500 грн$/)
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
+    it('sends the explicitly chosen offer with the slot request', async () => {
+      mockBookingPageDataWithSingleSlot()
+      mockedApiPost.mockResolvedValue({ request: { id: 901, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
+      const view = renderView()
+      await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+      await fireEvent.click(railOffer(view.container, 'Ознайомча сесія'))
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      const form = view.container.querySelector<HTMLFormElement>('#pc2-profile-contact form')!
+      expect(within(form).getByText('Обраний варіант')).toBeInTheDocument()
+      expect(form.querySelector('.guest-offer-summary')).toHaveTextContent('Ознайомча сесія')
+      await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+      await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.test')
+      await fireEvent.submit(form)
+      await waitFor(() => expect(mockedApiPost).toHaveBeenCalledWith('/public/specialists/olena/guest-booking-requests/', expect.objectContaining({ slot_id: 100, offer_type: 'intro' })))
+      view.unmount()
+    })
+
+    it('without a choice the form asks for one, and the answer drives both the screen and the request', async () => {
+      mockBookingPageDataWithSingleSlot()
+      mockedApiPost.mockResolvedValue({ request: { id: 902, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
+      const view = renderView()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      const form = view.container.querySelector<HTMLFormElement>('#pc2-profile-contact form')!
+      expect(within(form).queryByText('Обраний варіант')).toBeNull()
+      const options = [...form.querySelectorAll<HTMLButtonElement>('.guest-offer-option')]
+      expect(options.length).toBeGreaterThan(1)
+      await fireEvent.click(options.find((option) => option.textContent?.includes('Ознайомча'))!)
+      expect(finalSummary(view.container)).toMatch(/^Ознайомча сесія · .+ · 600 грн$/)
+      expect(railOffer(view.container, 'Ознайомча сесія')).toHaveAttribute('aria-pressed', 'true')
+      await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+      await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.test')
+      await fireEvent.submit(form)
+      await waitFor(() => expect(mockedApiPost).toHaveBeenCalledWith('/public/specialists/olena/guest-booking-requests/', expect.objectContaining({ slot_id: 100, offer_type: 'intro' })))
+      view.unmount()
+    })
+
+    it('filters slots by the first offer before a choice and by the chosen offer after it', async () => {
+      mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({
+        couple_session_enabled: true, couple_session_price: '2000', couple_session_price_currency: 'UAH', couple_session_duration_minutes: 80,
+      }))
+      mockBookingPageDataWithSlots([buildTodayLocalSlotWithDuration(100, 12, 50)])
+      const view = renderView()
+      expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+      expect(railOffer(view.container, 'Парна консультація')).toHaveAttribute('aria-pressed', 'false')
+      await fireEvent.click(railOffer(view.container, 'Парна консультація'))
+      await waitFor(() => expect(screen.queryByRole('button', { name: 'Надіслати запит на цей час' })).toBeNull())
+      expect(finalSummary(view.container)).toMatch(/^Парна консультація · .+ · 2000 грн$/)
+      await fireEvent.click(railOffer(view.container, 'Консультація'))
+      expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+      view.unmount()
+    })
+
+    it.each([
+      ['direct booking with slots', () => mockBookingPageDataWithSingleSlot(), null, ['Консультації', 'від 600 грн'], ['Ознайомча сесія · ', '600 грн']],
+      ['request_only', () => mockBookingPageDataWithSingleSlot(), 'request', ['від 600 грн', 'Час — після запиту'], ['600 грн · Ознайомча сесія', 'Час — після запиту']],
+    ] as const)('phone sticky bar for %s follows the explicit choice', async (_name, mockSlots, mode, before, after) => {
+      if (mode === 'request') mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ public_booking_mode: 'request_only', show_public_availability: false, public_direct_booking_enabled: false }))
+      mockSlots()
+      const original = window.matchMedia
+      window.matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })
+      const view = renderView()
+      try {
+        await waitFor(() => expect(view.container.querySelector('.pc2-profile-bottom-bar strong')).toBeInTheDocument())
+        const bar = view.container.querySelector<HTMLElement>('.pc2-profile-bottom-bar')!
+        await waitFor(() => expect(bar.querySelector('strong')).toHaveTextContent(before[1]))
+        expect(bar.querySelector('span')!.textContent).toContain(before[0])
+        await fireEvent.click(railOffer(view.container, 'Ознайомча сесія'))
+        expect(bar.querySelector('strong')).toHaveTextContent(after[1])
+        expect(bar.querySelector('span')!.textContent).toContain(after[0])
+        if (mode === 'request') expect(mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')).toHaveLength(0)
+        expect(mockedApiPost).not.toHaveBeenCalled()
+      } finally {
+        view.unmount(); window.matchMedia = original
+      }
+    })
+
+    it('keeps the UI v1 default offer highlight unchanged', async () => {
+      applyUiVersion('v1')
+      mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      const standard = view.container.querySelector('.identity-rail__service:not(.identity-rail__service--intro):not(.identity-rail__service--couple)')!
+      expect(standard).toHaveAttribute('aria-pressed', 'true')
+      view.unmount()
+    })
+  })
+
   describe('UI v2 profile isolation and requests', () => {
     beforeEach(() => { applyUiVersion('v2'); mockCommonPublicData(); mockBookingPageDataWithSingleSlot() })
 

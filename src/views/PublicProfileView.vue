@@ -79,7 +79,7 @@
           :standard-session-duration-label="standardSessionDurationLabel"
           :couple-price-display="couplePriceDisplay"
           :couple-duration-label="coupleDurationLabel"
-          :selected-offer-type="selectedPublicOfferType || defaultGuestBookingOfferType"
+          :selected-offer-type="uiV2 ? selectedPublicOfferType : selectedPublicOfferType || defaultGuestBookingOfferType"
           :show-contact-actions="uiV2 ? false : showDirectContactActions"
           :contact-actions="contactActions"
           :copied-contact-id="copiedContactId"
@@ -2582,9 +2582,16 @@ const profileMinPriceLabel = computed(() => {
   if (!mobileProfilePrice.value) return ''
   return new Set(profileOfferPrices.value).size > 1 ? `від ${mobileProfilePrice.value}` : mobileProfilePrice.value
 })
+// Only an explicit choice counts as selected. Before it, slot compatibility still follows the
+// first offer (selectedPublicOffer), but nothing on screen presents that as the visitor's choice.
+const explicitPublicOffer = computed(() =>
+  availableGuestRequestOffers.value.find((offer) => offer.type === selectedPublicOfferType.value) || null
+)
 const profileOffersSummary = computed(() => {
   const offers = availableGuestRequestOffers.value
   if (!offers.length) return ''
+  const chosen = explicitPublicOffer.value
+  if (chosen) return [chosen.label, chosen.durationLabel, chosen.priceDisplay].filter(Boolean).join(' · ')
   if (offers.length === 1) {
     return [offers[0]!.label, offers[0]!.priceDisplay, offers[0]!.durationLabel].filter(Boolean).join(' · ')
   }
@@ -2594,6 +2601,13 @@ const profileOffersSummary = computed(() => {
 })
 const profileTimeIsBookable = computed(() => publicDirectBookingEnabled.value && !usesPublicRequestFlow.value)
 const mobileProfileContext = computed(() => {
+  const chosen = explicitPublicOffer.value
+  if (chosen) {
+    // The price leads when the headline does not carry it, so a narrow bar truncates the label, not the price.
+    return profileTimeIsBookable.value
+      ? [chosen.label, chosen.durationLabel].filter(Boolean).join(' · ')
+      : [chosen.priceDisplay, chosen.label].filter(Boolean).join(' · ')
+  }
   if (profileTimeIsBookable.value) {
     const format = meetingFormatLabel.value ? meetingFormatLabel.value.toLocaleLowerCase('uk-UA') : ''
     return format ? `Консультації ${format}` : 'Консультації'
@@ -2601,7 +2615,7 @@ const mobileProfileContext = computed(() => {
   return profileMinPriceLabel.value
 })
 const mobileProfileHeadline = computed(() => {
-  if (profileTimeIsBookable.value) return profileMinPriceLabel.value
+  if (profileTimeIsBookable.value) return explicitPublicOffer.value?.priceDisplay || profileMinPriceLabel.value
   if (showAvailabilityErrorRequestFallback.value) return 'Вільний час не завантажився'
   if (publicDirectBookingEnabled.value) return 'Вільного часу зараз немає'
   return 'Час — після запиту'
@@ -4301,9 +4315,11 @@ function openGuestBookingModal(slotId?: number) {
   guestBookingSubmitSlotId.value = selectedSlot?.id || null
   guestBookingRulesAccepted.value = false
   guestOfferSelectionEditing.value = false
-  guestOfferSelectionConfirmed.value = Boolean(selectedPublicOfferType.value)
   resetGuestBookingFieldErrors()
   resetGuestBookingForm()
+  guestOfferSelectionConfirmed.value = uiV2.value
+    ? Boolean(selectedPublicOfferType.value) && guestBookingForm.value.offer_type === selectedPublicOfferType.value
+    : Boolean(selectedPublicOfferType.value)
   showGuestBookingModal.value = true
 }
 
