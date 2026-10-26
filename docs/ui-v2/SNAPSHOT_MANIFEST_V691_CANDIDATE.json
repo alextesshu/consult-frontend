@@ -1,8 +1,15 @@
 {
   "schema_version": 5,
   "snapshot_id": "claude-design-2026-10-26-1dbb9008",
-  "status": "CANDIDATE — NOT ACTIVE",
-  "activation": "Not activated. SNAPSHOT_CURRENT.json still points to claude-design-2026-10-23-4ff7cedd. See SNAPSHOT_ACTIVATION_PROPOSAL_V691.md.",
+  "status": "ACTIVE SCOPED OVERLAY",
+  "activation": {
+    "activated": "2026-10-26",
+    "pointer": "docs/ui-v2/SNAPSHOT_CURRENT.json#scoped_overlays",
+    "activation_base_sha": "31a4488e95e70b83b921f8bdcd17955cfdbfc094",
+    "approval": "Product owner instruction 'KAN-158 Design Snapshot Activation v6.9.1' (2026-10-26)",
+    "base_snapshot_remains": "claude-design-2026-10-23-4ff7cedd",
+    "note": "Scoped overlay for KAN-158 only. The source status text (PENDING REVIEW) is preserved unchanged; acceptance is recorded here and in IMPLEMENTATION_MATRIX_V691_KAN158.json."
+  },
   "design_status_in_source": "v6.9.1-candidate / PENDING REVIEW (source MANIFEST.md); approved for KAN-158 phase 2 implementation by the product owner outside the archive",
   "scope": "KAN-158 public specialist profile (UI v2) and the profile-editor short-description limit only. Scoped overlay on claude-design-2026-10-23-4ff7cedd; not a full UI v2 handoff.",
   "archive_label": "v6.9.1-candidate",

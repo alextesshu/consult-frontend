@@ -1,5 +1,7 @@
 # KAN-158 design synchronization: v6.9.1 candidate (NOT ACTIVE)
 
+> **Activated 2026-10-26** as a scoped overlay in [`SNAPSHOT_CURRENT.json`](SNAPSHOT_CURRENT.json); see the [changelog](CHANGELOG.md) and the [acceptance matrix](IMPLEMENTATION_MATRIX_V691_KAN158.json). The text below records the state at registration (#81) and is kept unchanged.
+
 | Field | Value |
 | --- | --- |
 | Candidate | `claude-design-2026-10-26-1dbb9008` |

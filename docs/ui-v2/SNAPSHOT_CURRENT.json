@@ -5,5 +5,22 @@
   "archive_label": "v6.6",
   "content_changelog_latest": "v6.7",
   "previous_manifest": "SNAPSHOT_MANIFEST_V5.json",
-  "scope": "Design documentation only; runtime and active legacy mockup mirror unchanged"
+  "scope": "Design documentation only; runtime and active legacy mockup mirror unchanged",
+  "scoped_overlays": [
+    {
+      "snapshot_id": "claude-design-2026-10-26-1dbb9008",
+      "manifest": "SNAPSHOT_MANIFEST_V691_CANDIDATE.json",
+      "sha256": "1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d",
+      "archive_label": "v6.9.1",
+      "scope": "KAN-158: UI v2 public specialist profile (Specialist-Profile, Specialist-Profile-Mobile) and the profile-editor short-description field only",
+      "supersedes": [
+        "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile.dc.html",
+        "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile-Mobile.dc.html",
+        "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Profile-Edit.dc.html#short-description"
+      ],
+      "matrix": "IMPLEMENTATION_MATRIX_V691_KAN158.json",
+      "activated": "2026-10-26",
+      "approval": "Product owner instruction 'KAN-158 Design Snapshot Activation v6.9.1' (2026-10-26) on origin/dev 31a4488; accepted differences recorded in IMPLEMENTATION_MATRIX_V691_KAN158.json"
+    }
+  ]
 }
