@@ -355,6 +355,9 @@ async function clickClientBookingConfirmButton() {
 }
 
 beforeAll(() => {
+  // jsdom has no native dialog lifecycle; browser tests cover modal containment.
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, writable: true, value() { this.open = true } })
+  Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, writable: true, value() { this.open = false; this.dispatchEvent(new Event('close')) } })
   Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
     value: scrollIntoViewSpy,
     configurable: true,
@@ -895,6 +898,27 @@ describe('PublicProfileView', () => {
 
     await screen.findByText('Загальна інформація')
     expect(screen.queryByRole('button', { name: 'Відеовізитка' })).not.toBeInTheDocument()
+  })
+
+  it('opens the v2 video in the shared labelled modal without changing its player', async () => {
+    const scrollSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    applyUiVersion('v2')
+    mockCommonPublicData()
+    mockBookingPageDataWithSlots([])
+    renderView()
+    const trigger = await screen.findByRole('button', { name: 'Відеовізитка' })
+    trigger.focus()
+    await fireEvent.click(trigger)
+    const dialog = await screen.findByRole('dialog', { name: 'Відеовізитка' })
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.com/video.mp4')
+    expect(dialog.querySelector('video')).toHaveAttribute('controls')
+    expect(dialog.querySelector('video')).toHaveAttribute('autoplay')
+    await waitFor(() => expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: 'Закрити' })))
+    await fireEvent(dialog, new Event('cancel', { cancelable: true }))
+    await waitFor(() => expect(dialog).not.toHaveAttribute('open'))
+    expect(document.activeElement).toBe(trigger)
+    scrollSpy.mockRestore()
   })
 
   it('shows back-to-top button only after scroll and scrolls to top on click', async () => {
