@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import PublicProfileIdentityRail from './PublicProfileIdentityRail.vue'
 
@@ -7,19 +7,24 @@ function renderRail({
   showOwnerReviewsCta = false,
   showContacts = false,
   withShare = false,
+  uiV2 = false,
+  prices = { standard: '', intro: '', couple: '' },
+  selectedOfferType = null as 'standard' | 'intro' | 'couple' | null,
 } = {}) {
   return render(PublicProfileIdentityRail, {
     props: {
+      uiV2,
+      selectedOfferType,
       profile: {},
       heroCtaTitle: 'Звернутися до мене',
       heroPrimaryLabel: 'Записатися на сесію',
       showClientSessionsCta: false,
       primaryActionNextStepCopy: '',
-      introPriceDisplay: '',
+      introPriceDisplay: prices.intro,
       introDurationLabel: '',
-      priceDisplay: '',
+      priceDisplay: prices.standard,
       standardSessionDurationLabel: '',
-      couplePriceDisplay: '',
+      couplePriceDisplay: prices.couple,
       coupleDurationLabel: '',
       showContactActions: showContacts,
       contactActions: showContacts
@@ -55,6 +60,37 @@ function renderRail({
 }
 
 describe('PublicProfileIdentityRail', () => {
+  it('exposes named native toggle buttons in consultation order with one controlled pressed state', async () => {
+    const view = renderRail({ uiV2: true, prices: { standard: '1500 грн', intro: '600 грн', couple: '2000 грн' } })
+    const buttons = screen.getAllByRole('button', { pressed: false })
+    expect(buttons.map(button => button.getAttribute('aria-label'))).toEqual([
+      'Консультація: 1500 грн', 'Ознайомча сесія: 600 грн', 'Парна консультація: 2000 грн',
+    ])
+    for (const button of buttons) {
+      expect(button.tagName).toBe('BUTTON')
+      expect(button).toHaveAttribute('type', 'button')
+      expect(button).not.toHaveAttribute('tabindex', '-1')
+      expect(button).toBeEnabled()
+    }
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument()
+    // jsdom does not activate native buttons from keyboard events; Chromium
+    // covers Enter/Space and actual forward/reverse Tab navigation.
+    for (const [index, type] of ['standard', 'intro', 'couple'].entries()) {
+      await fireEvent.click(buttons[index]!)
+      expect(view.emitted()['select-offer']?.at(-1)).toEqual([type])
+      await view.rerender({ selectedOfferType: type })
+      expect(screen.getAllByRole('button', { pressed: true })).toEqual([buttons[index]])
+      expect(screen.getAllByRole('button', { pressed: false })).toHaveLength(2)
+    }
+  })
+
+  it('omits unavailable offers from the accessible and focusable controls', () => {
+    renderRail({ uiV2: true, prices: { standard: '1500 грн', intro: '', couple: '' } })
+    expect(screen.getAllByRole('button', { pressed: false })).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: /Ознайомча сесія/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Парна консультація/ })).not.toBeInTheDocument()
+  })
+
   it('shows the specialist blog CTA only when public posts are available', () => {
     renderRail({ showBlogCta: true })
 
