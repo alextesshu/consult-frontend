@@ -1,5 +1,7 @@
 # Proposal: activate v6.9.1 as a scoped overlay (KAN-158) — NOT APPLIED
 
+> **Activated 2026-10-26** as a scoped overlay in [`SNAPSHOT_CURRENT.json`](SNAPSHOT_CURRENT.json); see the [changelog](CHANGELOG.md) and the [acceptance matrix](IMPLEMENTATION_MATRIX_V691_KAN158.json). The text below records the state at registration (#81) and is kept unchanged.
+
 Status: **proposal only**. Nothing in this branch changes [`SNAPSHOT_CURRENT.json`](SNAPSHOT_CURRENT.json). Activation is a separate, explicitly approved change made after:
 - the Codex UX audit is complete;
 - the decisions listed below are taken.

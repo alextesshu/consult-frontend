@@ -322,7 +322,12 @@
         "CONTRACT GATE"
       ],
       "delta_and_next_action": "psychiatrist to psychoanalyst requires taxonomy/migration decision; preserve public contact opt-ins and dirty/save semantics.",
-      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Profile-Edit.dc.html"
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Profile-Edit.dc.html",
+      "kan158_overlay": {
+        "snapshot_id": "claude-design-2026-10-26-1dbb9008",
+        "activated": "2026-10-26",
+        "note": "Short-description field only: KAN-158 scope superseded by overlay `claude-design-2026-10-26-1dbb9008` (2026-10-26); the rest of this row is unchanged."
+      }
     },
     {
       "reference": "Public-Content.dc.html",
@@ -457,7 +462,12 @@
         "CONTRACT GATE"
       ],
       "delta_and_next_action": "Desktop composition, single request form, real channels/rules/inquiry, About/share/navigation/motion implemented within existing contracts. See KAN_158_PUBLIC_PROFILE.md. No private owner preview, anonymous inquiry API or OG renderer invented.",
-      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile.dc.html"
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile.dc.html",
+      "kan158_overlay": {
+        "snapshot_id": "claude-design-2026-10-26-1dbb9008",
+        "activated": "2026-10-26",
+        "note": "KAN-158 scope superseded by overlay `claude-design-2026-10-26-1dbb9008` (2026-10-26)."
+      }
     },
     {
       "reference": "Specialist-Profile-Mobile.dc.html",
@@ -471,7 +481,12 @@
         "CONTRACT GATE"
       ],
       "delta_and_next_action": "86dvh native request sheet, full-screen About, native-share/fallback, scroll/focus/lifecycle and authenticated confirmation top-layer mapping. Keep contract gates and review visuals; see KAN_158_PUBLIC_PROFILE.md.",
-      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile-Mobile.dc.html"
+      "source_path": "snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile-Mobile.dc.html",
+      "kan158_overlay": {
+        "snapshot_id": "claude-design-2026-10-26-1dbb9008",
+        "activated": "2026-10-26",
+        "note": "KAN-158 scope superseded by overlay `claude-design-2026-10-26-1dbb9008` (2026-10-26)."
+      }
     },
     {
       "reference": "Specialist-Tools.dc.html",
