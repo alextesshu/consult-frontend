@@ -132,8 +132,9 @@ let titleDisposed = false
 function fitTitleWords() {
   const title = titleRef.value
   if (titleDisposed || !props.uiV2 || !title || !title.clientWidth) return
-  const sourceSize = window.innerWidth < 860 ? 34 : Math.min(60, Math.max(40, window.innerWidth * .046))
   const style = getComputedStyle(title)
+  const sourceSize = parseFloat(style.getPropertyValue('--pc-profile-title-size')) ||
+    (window.innerWidth < 860 ? 34 : Math.min(60, Math.max(40, window.innerWidth * .046)))
   const probe = document.createElement('span')
   Object.assign(probe.style, {
     position: 'fixed', visibility: 'hidden', whiteSpace: 'nowrap',

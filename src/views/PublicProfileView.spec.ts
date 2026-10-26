@@ -5045,7 +5045,10 @@ describe('PublicProfileView', () => {
       await waitFor(() => expect(panel.querySelector('#slots')).toBeInTheDocument())
       expect(within(panel).getByText('Час за Києвом')).toBeInTheDocument()
       expect(panel.querySelector('.identity-rail__contacts')).toBeNull()
-      const card = within(panel).getByRole('region', { name: 'Написати напряму' })
+      const card = screen.getByRole('region', { name: 'Написати напряму' })
+      expect(card.closest('.pc2-request-panel')).toBeNull()
+      expect(card.parentElement).toBe(panel.parentElement)
+      expect(screen.getAllByRole('region', { name: 'Написати напряму' })).toHaveLength(1)
       expect(within(card).getByText('Звернення поза Pro Consult не зберігатимуться у вашій історії запитів на платформі.')).toBeInTheDocument()
       await fireEvent.click(within(card).getByRole('button', { name: 'Скопіювати Telegram: @olena_help' }))
       expect(clipboardWriteTextSpy).toHaveBeenCalledWith('@olena_help')
@@ -5123,6 +5126,42 @@ describe('PublicProfileView', () => {
       expect(screen.queryByText('Час за Києвом')).toBeNull()
       expect(screen.queryByRole('heading', { name: 'Оберіть час для консультації' })).toBeNull()
       view.unmount()
+    })
+  })
+
+  describe('UI v2 responsive booking and contacts (PR C)', () => {
+    it.each([767, 768, 820, 859, 860, 1099, 1100])('keeps booking presentation and contacts coherent at %ipx', async width => {
+      const original = window.matchMedia
+      const remove = vi.fn()
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('max-width: 767px') ? width < 768 : query.includes('max-width: 859px') ? width < 860 : false,
+        addEventListener: vi.fn(), removeEventListener: remove,
+      }))
+      applyUiVersion('v2'); mockCommonPublicData(); mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      try {
+        await screen.findByRole('heading', { name: 'Олена', level: 1 })
+        await nextTick()
+        const contacts = screen.getByRole('region', { name: 'Написати напряму' })
+        expect(screen.getAllByRole('region', { name: 'Написати напряму' })).toHaveLength(1)
+        expect(contacts.closest('.pc2-request-panel')).toBeNull()
+        expect(Boolean(view.container.querySelector('.pc2-profile-bottom-bar'))).toBe(width < 768)
+        if (width >= 768) {
+          expect(contacts.parentElement).toHaveClass('pc2-profile-booking-column')
+          const panel = view.container.querySelector('.pc2-request-panel')!
+          expect(panel.parentElement).toBe(contacts.parentElement)
+          await fireEvent.click(await within(panel as HTMLElement).findByRole('button', { name: 'Надіслати запит на цей час' }))
+          expect(document.querySelector('.pc2-profile-overlay--request[open]')).toBeNull()
+          expect(panel.querySelector('.guest-booking-modal')).toBeInTheDocument()
+          expect(contacts).toBeVisible()
+        } else {
+          expect(contacts.closest('.public__grid')).not.toBeNull()
+        }
+        expect(mockedApiPost).not.toHaveBeenCalled()
+      } finally {
+        view.unmount(); window.matchMedia = original
+      }
+      expect(remove.mock.calls.filter(call => call[1]?.name === 'syncProfileViewport')).toHaveLength(2)
     })
   })
 
