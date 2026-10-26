@@ -631,7 +631,21 @@
       </div>
     </div>
 
-    <div v-if="showProfileVideoModal && profileVideoUrl" class="setting-modal">
+    <PublicProfileOverlay v-if="uiV2 && profileVideoUrl" v-model:open="showProfileVideoModal" kind="video" title="Відеовізитка" title-id="pc2-profile-video-title" :anchor="profileVideoTrigger" class="setting-modal">
+      <template v-if="showProfileVideoModal">
+        <div class="setting-modal__backdrop" @click="closeProfileVideoModal"></div>
+        <div class="setting-modal__content profile-video-modal">
+          <div class="setting-modal__header">
+            <h3 id="pc2-profile-video-title">Відеовізитка</h3>
+            <button class="btn btn--ghost btn--sm" type="button" data-video-initial-focus @click="closeProfileVideoModal">Закрити</button>
+          </div>
+          <div class="setting-modal__body">
+            <video class="profile-video-modal__player" :src="profileVideoUrl" controls autoplay preload="metadata"></video>
+          </div>
+        </div>
+      </template>
+    </PublicProfileOverlay>
+    <div v-if="!uiV2 && showProfileVideoModal && profileVideoUrl" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeProfileVideoModal"></div>
       <div class="setting-modal__content profile-video-modal">
         <div class="setting-modal__header">
@@ -1433,6 +1447,7 @@ const guestBookingRulesAccepted = ref(false)
 const showContactChooserModal = ref(false)
 const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
 const showProfileVideoModal = ref(false)
+const profileVideoTrigger = ref<HTMLElement | null>(null)
 const showAboutModal = ref(false)
 const copiedContactId = ref('')
 let contactActionFallbackTimer: number | null = null
@@ -1912,6 +1927,7 @@ const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: strin
 })
 
 const profileVideoUrl = computed(() => heroMediaProfile.value?.video_url || '')
+watch(profileVideoUrl, url => { if (!url) closeProfileVideoModal() })
 
 function firstFilledText(...values: Array<string | null | undefined>) {
   return values
@@ -3603,6 +3619,7 @@ function focusSlotsSection() {
 
 function openProfileVideoModal() {
   if (!profileVideoUrl.value) return
+  if (uiV2.value) profileVideoTrigger.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   showProfileVideoModal.value = true
 }
 
