@@ -5244,6 +5244,29 @@ describe('PublicProfileView', () => {
       view.unmount()
     })
 
+    it('keeps exactly one rail offer pressed and synchronizes every available offer with the final summary', async () => {
+      mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({
+        couple_session_enabled: true, couple_session_price: '2000', couple_session_price_currency: 'UAH', couple_session_duration_minutes: 80,
+      }))
+      mockBookingPageDataWithSlots([])
+      const view = renderView()
+      await screen.findByRole('heading', { name: 'Олена', level: 1 })
+      const pressed = () => view.container.querySelectorAll('.identity-rail__service[aria-pressed="true"]')
+      expect(pressed()).toHaveLength(0)
+      for (const [name, price] of [['Консультація', '1500 грн'], ['Ознайомча сесія', '600 грн'], ['Парна консультація', '2000 грн']] as const) {
+        const button = railOffer(view.container, name)
+        await fireEvent.click(button)
+        expect([...pressed()]).toEqual([button])
+        expect(finalSummary(view.container)).toContain(name)
+        expect(finalSummary(view.container)).toContain(price)
+        // Native toggle semantics must not accidentally deselect the sole choice.
+        await fireEvent.click(button)
+        expect([...pressed()]).toEqual([button])
+      }
+      expect(mockedApiPost).not.toHaveBeenCalled()
+      view.unmount()
+    })
+
     it('sends the explicitly chosen offer with the slot request', async () => {
       mockBookingPageDataWithSingleSlot()
       mockedApiPost.mockResolvedValue({ request: { id: 901, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
