@@ -1,0 +1,32 @@
+[
+  {
+    "page": "direct-1280",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "direct-375",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "directEmpty-1280",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "directEmpty-375",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "request-1280",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "request-375",
+    "changedPixels": 0,
+    "bbox": null
+  }
+]
