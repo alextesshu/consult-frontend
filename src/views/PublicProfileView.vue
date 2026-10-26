@@ -1734,10 +1734,12 @@ const railRequestCtaLabel = computed(() =>
     ? REQUEST_WITHOUT_SLOT_CTA_LABEL
     : REQUEST_GENERIC_CTA_LABEL
 )
+// The recovery resolver also returns `request` for request_only profiles, where availability
+// is not public by configuration: only a direct-booking profile without slots has "no windows".
 const railRequestHelperText = computed(() =>
   showAvailabilityErrorRequestFallback.value
     ? AVAILABILITY_ERROR_REQUEST_HELPER_TEXT
-    : showDirectBookingRequestFallback.value
+    : showDirectBookingRequestFallback.value && publicDirectBookingEnabled.value
       ? NO_SLOTS_REQUEST_HELPER_TEXT
       : REQUEST_CTA_HELPER_TEXT
 )

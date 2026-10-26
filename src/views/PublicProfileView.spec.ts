@@ -3998,6 +3998,42 @@ describe('PublicProfileView', () => {
     expect(mockedApiPost).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['v1', false],
+    ['v1', true],
+    ['v2', false],
+    ['v2', true],
+  ] as const)('request_only in %s (public availability %s) uses the request helper, never "no windows"', async (version, showAvailability) => {
+    applyUiVersion(version)
+    mockCommonPublicData()
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: showAvailability,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchChatThreads.mockResolvedValue([])
+    // The specialist does have a slot; request_only must neither fetch nor disclose it.
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
+    expect(
+      bookingCard.getByText(
+        'Опишіть коротко, з чим хочете звернутися. Спеціаліст відповість у кабінеті й допоможе узгодити формат та час.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Наразі немає доступних вікон/)).not.toBeInTheDocument()
+    expect(bookingCard.getByRole('button', { name: 'Залишити запит' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Обрати час' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: version === 'v2' ? 'Вільні вікна' : 'Оберіть час для запиту' })).not.toBeInTheDocument()
+    expect(document.querySelector('.slot-time')).toBeNull()
+    expect(mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')).toHaveLength(0)
+    expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
   it('keeps the availability error distinct from an empty direct-booking horizon', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])

@@ -1,0 +1,27 @@
+{
+  "now": "2026-10-26T08:00:00.000Z",
+  "files": [
+    "fixed-baseline-1.png",
+    "fixed-baseline-2.png",
+    "fixed-candidate-1.png",
+    "fixed-candidate-2.png"
+  ],
+  "results": {
+    "baseline1_vs_baseline2": {
+      "changedPixels": 0,
+      "bbox": null
+    },
+    "candidate1_vs_candidate2": {
+      "changedPixels": 0,
+      "bbox": null
+    },
+    "baseline1_vs_candidate1": {
+      "changedPixels": 0,
+      "bbox": null
+    },
+    "baseline2_vs_candidate2": {
+      "changedPixels": 0,
+      "bbox": null
+    }
+  }
+}
