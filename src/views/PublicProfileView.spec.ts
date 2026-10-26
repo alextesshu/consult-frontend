@@ -5130,6 +5130,37 @@ describe('PublicProfileView', () => {
   })
 
   describe('UI v2 responsive booking and contacts (PR C)', () => {
+    it('moves a tall desktop contacts card into document flow and removes its resize listener', async () => {
+      const originalWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth')!
+      const originalHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight')!
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 })
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: 900 })
+      let cardHeight = 700
+      const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
+        return { height: this.classList.contains('pc2-profile-contacts') ? cardHeight : 0, width: 400 } as DOMRect
+      })
+      const remove = vi.spyOn(window, 'removeEventListener')
+      applyUiVersion('v2'); mockCommonPublicData(); mockBookingPageDataWithSingleSlot()
+      const view = renderView()
+      try {
+        await screen.findByRole('heading', { name: 'Олена', level: 1 })
+        await nextTick()
+        window.dispatchEvent(new Event('resize'))
+        await nextTick()
+        const column = view.container.querySelector('.pc2-profile-booking-column')!
+        expect(column).toHaveClass('pc2-profile-booking-column--flow')
+        cardHeight = 150
+        window.dispatchEvent(new Event('resize'))
+        await nextTick()
+        expect(column).not.toHaveClass('pc2-profile-booking-column--flow')
+      } finally {
+        view.unmount(); rect.mockRestore()
+        Object.defineProperty(window, 'innerWidth', originalWidth)
+        Object.defineProperty(window, 'innerHeight', originalHeight)
+      }
+      expect(remove.mock.calls.some(([event, listener]) => event === 'resize' && typeof listener === 'function' && listener.name === 'syncProfileContactsFlow')).toBe(true)
+      remove.mockRestore()
+    })
     it.each([767, 768, 820, 859, 860, 1099, 1100])('keeps booking presentation and contacts coherent at %ipx', async width => {
       const original = window.matchMedia
       const remove = vi.fn()

@@ -58,7 +58,7 @@
         </PublicProfileHeroSection>
       </section>
 
-      <div class="public__booking-column" :class="{ 'pc2-profile-booking-column': uiV2 }">
+      <div ref="profileBookingColumnRef" class="public__booking-column" :class="{ 'pc2-profile-booking-column': uiV2, 'pc2-profile-booking-column--flow': uiV2 && profileContactsNeedFlow }">
       <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
       <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (phoneProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep" @keydown="handleProfileRequestKeydown">
         <ol v-if="uiV2" class="pc2-profile-steps" aria-label="Кроки запиту">
@@ -3094,6 +3094,31 @@ const faqItems = computed<PublicFaqItemView[]>(() => resolveSectionFaqItems())
 const mediaItems = computed<PublicMediaItemView[]>(() => resolveSectionMediaItems())
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
+const profileBookingColumnRef = ref<HTMLElement | null>(null)
+const profileContactsNeedFlow = ref(false)
+let profileContactsObserver: ResizeObserver | null = null
+function syncProfileContactsFlow() {
+  const card = profileBookingColumnRef.value?.querySelector<HTMLElement>('.pc2-profile-contacts')
+  // Reserve at least half the usable desktop viewport for booking. Taller contact
+  // cards grow naturally in document flow, never in a second scroll container.
+  profileContactsNeedFlow.value = Boolean(uiV2.value && window.innerWidth >= 1100 && card &&
+    card.getBoundingClientRect().height > Math.max(0, (window.innerHeight - 112) / 2))
+}
+watch([profileBookingColumnRef, uiV2, phoneProfile, contactActions], () => {
+  profileContactsObserver?.disconnect()
+  profileContactsObserver = null
+  const card = profileBookingColumnRef.value?.querySelector<HTMLElement>('.pc2-profile-contacts')
+  if (uiV2.value && card && typeof ResizeObserver !== 'undefined') {
+    profileContactsObserver = new ResizeObserver(syncProfileContactsFlow)
+    profileContactsObserver.observe(card)
+  }
+  syncProfileContactsFlow()
+}, { flush: 'post' })
+onMounted(() => window.addEventListener('resize', syncProfileContactsFlow))
+onBeforeUnmount(() => {
+  profileContactsObserver?.disconnect()
+  window.removeEventListener('resize', syncProfileContactsFlow)
+})
 const hasPublicContactCta = computed(
   () => !canMessageSpecialist.value && !showInquiryEntry.value && contactActions.value.length > 0
 )

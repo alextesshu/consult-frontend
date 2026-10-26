@@ -9,7 +9,9 @@ const base = new Function(`return ({${literal}})`)()
 const widths = [375, 390, 767, 768, 820, 859, 860, 1099, 1100, 1280]
 const modes = ['direct', 'empty', 'request']
 const now = new Date('2026-10-26T09:00:00Z')
-const output = __dirname, shots = path.join(output, 'screenshots')
+const candidatePort = Number(process.env.PRC_CANDIDATE_PORT || 5470)
+const baselinePort = Number(process.env.PRC_BASELINE_PORT || 5471)
+const output = process.env.PRC_EVIDENCE_OUT || __dirname, shots = path.join(output, 'screenshots')
 const parityDir = path.join(process.env.TEMP, 'prc-parity-c1a77a3')
 fs.mkdirSync(shots, { recursive: true }); fs.mkdirSync(parityDir, { recursive: true })
 const results = { fixtureOnly: true, rows: [], interactions: [], shortDesktop: [], parity: [] }
@@ -134,7 +136,7 @@ async function interaction(p, mode, width, posts) {
   const browser = await chromium.launch()
   try {
     for (const mode of modes) for (const width of widths) {
-      const { p, context, gets, posts, errors } = await load(browser, 5470, 'v2', mode, width)
+      const { p, context, gets, posts, errors } = await load(browser, candidatePort, 'v2', mode, width)
       const info = await inspect(p)
       assert.ok(info.scrollWidth <= width)
       assert.equal(info.contactsCount, 1); assert.equal(info.contactsInPanel, false)
@@ -151,7 +153,7 @@ async function interaction(p, mode, width, posts) {
         await p.evaluate(() => scrollTo(0, 0))
         await p.screenshot({ path: path.join(shots, `${mode}-${width}.png`) })
       }
-      await p.locator('.pc2-profile-contacts__row').first().click()
+      await p.locator('.pc2-profile-contacts__action').first().click()
       assert.equal(await p.evaluate(() => window.__copied), 'hello@example.com')
       await p.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
       const bottom = await inspect(p)
@@ -174,7 +176,7 @@ async function interaction(p, mode, width, posts) {
       await context.close()
     }
     for (const mode of modes) {
-      const { p, context } = await load(browser, 5470, 'v2', mode, 1280, 600)
+      const { p, context } = await load(browser, candidatePort, 'v2', mode, 1280, 600)
       await p.locator('.pc2-profile-contacts').scrollIntoViewIfNeeded()
       // Native scrolling rounds scrollTop to CSS pixels; allow subpixel border clipping.
       const visible = await p.locator('.pc2-profile-contacts').evaluate(el => { const r = el.getBoundingClientRect(); return r.top >= -1 && r.bottom <= innerHeight + 1 && document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest('.pc2-profile-contacts') === el })
@@ -186,7 +188,7 @@ async function interaction(p, mode, width, posts) {
     // All requested widths and modes: exact v1 candidate/baseline viewport parity.
     for (const mode of modes) for (const width of widths) {
       const files = []
-      for (const [label, port] of [['baseline', 5471], ['candidate', 5470]]) {
+      for (const [label, port] of [['baseline', baselinePort], ['candidate', candidatePort]]) {
         const { p, context } = await load(browser, port, 'v1', mode, width)
         const file = path.join(parityDir, `${mode}-${width}-${label}.png`)
         await p.screenshot({ path: file }); files.push(file)

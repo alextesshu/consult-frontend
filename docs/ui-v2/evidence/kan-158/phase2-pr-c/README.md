@@ -1,5 +1,12 @@
 # KAN-158 Phase 2 / PR C — responsive profile and external contacts
 
+## Contact-card follow-up
+
+The initial evidence below describes `11d12cce` validation. The subsequent
+[long-contact regression report](contact-layout/README.md) records the row-layout
+fix, full-contact geometry tests, updated validation and preservation of prior
+acceptance. Existing screenshots/JSON below are retained as historical evidence.
+
 Base: `origin/dev` `c1a77a393639865d039a4875aec5ee83ea320a51`, including PR A/B/D.
 Branch: `feat/kan-158-responsive-contacts`; isolated `_kan158_phase2_responsive`.
 
