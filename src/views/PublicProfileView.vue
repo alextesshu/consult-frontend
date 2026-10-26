@@ -80,7 +80,7 @@
           :couple-price-display="couplePriceDisplay"
           :couple-duration-label="coupleDurationLabel"
           :selected-offer-type="selectedPublicOfferType || defaultGuestBookingOfferType"
-          :show-contact-actions="showDirectContactActions"
+          :show-contact-actions="uiV2 ? false : showDirectContactActions"
           :contact-actions="contactActions"
           :copied-contact-id="copiedContactId"
           :show-chat-cta="canMessageSpecialist"
@@ -120,6 +120,12 @@
         </PublicProfileIdentityRail>
         <div v-show="uiV2" id="pc2-profile-time"></div>
         <div v-show="uiV2" id="pc2-profile-contact"></div>
+        <PublicProfileExternalContacts
+          v-if="uiV2 && !compactProfile && showDirectContactActions"
+          :contact-actions="contactActions"
+          :copied-contact-id="copiedContactId"
+          @copy-contact-action="copyPublicContactValue"
+        />
       </aside>
       </Teleport>
 
@@ -217,6 +223,7 @@
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
             <h2 class="panel__title">{{ uiV2 ? 'Вільні вікна' : 'Оберіть час для запиту' }}</h2>
+            <p v-if="uiV2" class="pc2-profile-timezone">{{ slotTimeZoneLabel }}</p>
             <p class="panel__lead">Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.</p>
           </div>
           <div v-if="showSlotHeaderActions" class="slot-request-actions">
@@ -517,9 +524,19 @@
         :faq-items="faqItems"
       />
 
+      <PublicProfileExternalContacts
+        v-if="uiV2 && compactProfile && showDirectContactActions"
+        :contact-actions="contactActions"
+        :copied-contact-id="copiedContactId"
+        @copy-contact-action="copyPublicContactValue"
+      />
+
       <PublicProfileFinalCtaSection
         v-if="showFinalCta"
         class="public__final-cta"
+        :ui-v2="uiV2"
+        :title="profileFinalCtaTitle"
+        :offers-summary="profileOffersSummary"
         :closing-cta-support-line="closingCtaSupportLine"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
         :closing-primary-label="uiV2 ? profilePrimaryLabel : closingPrimaryLabel"
@@ -539,8 +556,8 @@
     </section>
 
     <template v-if="uiV2 && profile && !loading && !error && !ownerUnpublishedProfile">
-      <div v-if="compactProfile" class="pc2-profile-bottom-bar">
-        <div><strong v-if="mobileProfilePrice">{{ mobileProfilePrice }}</strong><span>{{ mobileProfileAvailability }}</span></div>
+      <div v-if="compactProfile" ref="profileBottomBarRef" class="pc2-profile-bottom-bar">
+        <div><span v-if="mobileProfileContext">{{ mobileProfileContext }}</span><strong v-if="mobileProfileHeadline">{{ mobileProfileHeadline }}</strong></div>
         <button class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">{{ profilePrimaryLabel }}</button>
       </div>
     </template>
@@ -1044,6 +1061,8 @@ import { useRoute, useRouter } from 'vue-router'
 import PublicProfileAboutSection from '../components/public-profile/PublicProfileAboutSection.vue'
 import PublicProfileFaqSection from '../components/public-profile/PublicProfileFaqSection.vue'
 import PublicProfileFinalCtaSection from '../components/public-profile/PublicProfileFinalCtaSection.vue'
+import PublicProfileExternalContacts from '../components/public-profile/PublicProfileExternalContacts.vue'
+import { displayTimeZoneLabel } from '../lib/displayTimezone'
 import PublicProfileHeroSection from '../components/public-profile/PublicProfileHeroSection.vue'
 import PublicProfileIdentityRail from '../components/public-profile/PublicProfileIdentityRail.vue'
 import PublicProfileJournalPreviewSection from '../components/public-profile/PublicProfileJournalPreviewSection.vue'
@@ -2556,9 +2575,72 @@ const mobileProfilePrice = computed(() => {
   const currencies = new Set(prices.map(price => price.replace(/[\d\s.,]/g, '')))
   return currencies.size === 1 ? prices.slice().sort((a, b) => Number(a.replace(/[^\d.]/g, '')) - Number(b.replace(/[^\d.]/g, '')))[0] : priceDisplay.value
 })
-const mobileProfileAvailability = computed(() => {
-  const slot = publicDirectBookingEnabled.value ? slots.value[0] : null
-  return slot ? `Доступне вікно: ${formatDate(slot.start_at)}` : 'Час узгодимо'
+// UI v2 copy around the unchanged booking state. Prices never imply a selection: with several
+// different prices the minimum is shown as «від …». Wording is neutral (no name forms or pronouns).
+const profileOfferPrices = computed(() => availableGuestRequestOffers.value.map((offer) => offer.priceDisplay).filter(Boolean))
+const profileMinPriceLabel = computed(() => {
+  if (!mobileProfilePrice.value) return ''
+  return new Set(profileOfferPrices.value).size > 1 ? `від ${mobileProfilePrice.value}` : mobileProfilePrice.value
+})
+const profileOffersSummary = computed(() => {
+  const offers = availableGuestRequestOffers.value
+  if (!offers.length) return ''
+  if (offers.length === 1) {
+    return [offers[0]!.label, offers[0]!.priceDisplay, offers[0]!.durationLabel].filter(Boolean).join(' · ')
+  }
+  const count = offers.length
+  const noun = count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20) ? 'формати' : 'форматів'
+  return [`${count} ${noun}`, profileMinPriceLabel.value].filter(Boolean).join(' · ')
+})
+const profileTimeIsBookable = computed(() => publicDirectBookingEnabled.value && !usesPublicRequestFlow.value)
+const mobileProfileContext = computed(() => {
+  if (profileTimeIsBookable.value) {
+    const format = meetingFormatLabel.value ? meetingFormatLabel.value.toLocaleLowerCase('uk-UA') : ''
+    return format ? `Консультації ${format}` : 'Консультації'
+  }
+  return profileMinPriceLabel.value
+})
+const mobileProfileHeadline = computed(() => {
+  if (profileTimeIsBookable.value) return profileMinPriceLabel.value
+  if (showAvailabilityErrorRequestFallback.value) return 'Вільний час не завантажився'
+  if (publicDirectBookingEnabled.value) return 'Вільного часу зараз немає'
+  return 'Час — після запиту'
+})
+const profileFinalCtaTitle = computed(() => {
+  if (canMessageSpecialist.value) return ''
+  return profileTimeIsBookable.value ? 'Оберіть час для консультації' : 'Залиште запит'
+})
+const slotTimeZoneLabel = displayTimeZoneLabel()
+
+// The fixed phone bar must not cover the shared footer at the end of the page: while it is shown,
+// the body gets bottom clearance equal to the bar's height (page-scoped; the previous inline value
+// is restored when the bar goes away or the page unmounts).
+const profileBottomBarRef = ref<HTMLElement | null>(null)
+let profileBottomBarObserver: ResizeObserver | null = null
+let bodyPaddingBeforeBar: string | null = null
+function releaseProfileBottomBarClearance() {
+  if (bodyPaddingBeforeBar === null) return
+  document.body.style.paddingBottom = bodyPaddingBeforeBar
+  bodyPaddingBeforeBar = null
+}
+function syncProfileBottomBarClearance() {
+  const bar = profileBottomBarRef.value
+  if (!bar) return releaseProfileBottomBarClearance()
+  if (bodyPaddingBeforeBar === null) bodyPaddingBeforeBar = document.body.style.paddingBottom
+  document.body.style.paddingBottom = `${Math.ceil(bar.getBoundingClientRect().height)}px`
+}
+watch(profileBottomBarRef, (bar) => {
+  profileBottomBarObserver?.disconnect()
+  profileBottomBarObserver = null
+  if (bar && typeof ResizeObserver !== 'undefined') {
+    profileBottomBarObserver = new ResizeObserver(syncProfileBottomBarClearance)
+    profileBottomBarObserver.observe(bar)
+  }
+  syncProfileBottomBarClearance()
+}, { flush: 'post' })
+onBeforeUnmount(() => {
+  profileBottomBarObserver?.disconnect()
+  releaseProfileBottomBarClearance()
 })
 
 function slotDurationMinutes(slot: PublicSlot | null) {
