@@ -5,6 +5,19 @@ const text = readFileSync('src/styles/publicProfileV2.css', 'utf8')
 const overlay = readFileSync('src/components/public-profile/PublicProfileOverlay.vue', 'utf8').split('<style>')[1]!.split('</style>')[0]!
 
 describe('public profile v6.6 presentation boundaries', () => {
+ it('uses list separators and retains 44px copy targets plus a narrow-card full-value fallback', () => {
+  const sheet = postcss.parse(text)
+  const row = sheet.nodes.find((node): node is Rule => node.type === 'rule' && node.selector.endsWith(' .pc2-profile-contacts__row'))!
+  expect(row.nodes).toEqual(expect.arrayContaining([
+    expect.objectContaining({ prop: 'border', value: '0' }),
+    expect.objectContaining({ prop: 'border-radius', value: '0' }),
+    expect.objectContaining({ prop: 'background', value: 'transparent' }),
+  ]))
+  const action = sheet.nodes.find((node): node is Rule => node.type === 'rule' && node.selector === 'html[data-ui="v2"] .pc2-public-profile .pc2-profile-contacts__action')!
+  expect(action.nodes).toContainEqual(expect.objectContaining({ prop: 'min-height', value: '44px' }))
+  expect(text).toContain('.pc2-profile-contacts__row + .pc2-profile-contacts__row { border-top: 1px solid')
+  expect(text).toContain('@container pc2-profile-contacts (max-width: 340px)')
+ })
  it('keeps selected offer text readable independently of legacy child colors and disabled opacity', () => {
   const sheet = postcss.parse(text)
   const activeText = sheet.nodes.filter((node): node is Rule => node.type === 'rule' && node.selector.includes('.guest-offer-option--active') && node.selector.includes('.guest-offer-option__label'))
