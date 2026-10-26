@@ -1,0 +1,241 @@
+{
+  "schema_version": 5,
+  "snapshot_id": "claude-design-2026-10-26-1dbb9008",
+  "status": "CANDIDATE — NOT ACTIVE",
+  "activation": "Not activated. SNAPSHOT_CURRENT.json still points to claude-design-2026-10-23-4ff7cedd. See SNAPSHOT_ACTIVATION_PROPOSAL_V691.md.",
+  "design_status_in_source": "v6.9.1-candidate / PENDING REVIEW (source MANIFEST.md); approved for KAN-158 phase 2 implementation by the product owner outside the archive",
+  "scope": "KAN-158 public specialist profile (UI v2) and the profile-editor short-description limit only. Scoped overlay on claude-design-2026-10-23-4ff7cedd; not a full UI v2 handoff.",
+  "archive_label": "v6.9.1-candidate",
+  "source": "C:\\Users\\admin\\dev\\portfolio\\consult\\design-sources\\Модернізація дизайну сайту ProConsult (v6.9.1).zip",
+  "sha256": "1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d",
+  "archive_bytes": 5171139,
+  "archive_entry_count": 21,
+  "archive_root": "proconsult-kan158-phase2-v6.9.1-candidate/",
+  "import_date": "2026-10-26",
+  "design_source_date": "2026-10-26",
+  "base_sha": "535940ffeedb108038992e93cd2cb27c0aa916be",
+  "overlay_base_snapshot_id": "claude-design-2026-10-23-4ff7cedd",
+  "overlay_base_manifest": "docs/ui-v2/SNAPSHOT_MANIFEST_V66_V67.json",
+  "overlay_base_manifest_sha256": "9a778a18b68765ec9a6dab39e3802c947a6a6266aa2512c4c1e788fb6a2f194d",
+  "exact_archive_copy": "docs/ui-v2/snapshots/2026-10-26-1dbb9008/source.zip",
+  "normalization": "Whitespace only: line 26 of each HTML payload is a blank line of trailing ASCII spaces, stripped so ordinary git diff --check passes (existing import convention). All payloads already use LF. Markdown and PNG payloads are byte-exact. Exact original bytes for every file remain in source.zip. No content, chronology or status corrections.",
+  "unavailable_comparisons": [
+    "handoff v6.8 (Specialist Profile 2.1) and v6.9-candidate named as predecessors in the source MANIFEST/CHANGELOG were not supplied; v6.6 -> v6.9.1 is compared directly and intermediate chronology is not inferred."
+  ],
+  "supersedes_for_scope": [
+    {
+      "v66_reference": "docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile.dc.html",
+      "v691_reference": "proconsult-kan158-phase2-v6.9.1-candidate/Specialist-Profile-Phase2-v6.9.1.html",
+      "scope": "UI v2 public profile, desktop and tablet (D1, T768/T820, T1)"
+    },
+    {
+      "v66_reference": "docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/Specialist-Profile-Mobile.dc.html",
+      "v691_reference": "proconsult-kan158-phase2-v6.9.1-candidate/Specialist-Profile-Phase2-v6.9.1.html",
+      "scope": "UI v2 public profile, phone (M1-M4)"
+    },
+    {
+      "v66_reference": "docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/Profile-Edit.dc.html",
+      "v691_reference": "proconsult-kan158-phase2-v6.9.1-candidate/Profile-Edit-summary-limit-160.html",
+      "scope": "Short-description field only; the rest of Profile-Edit stays on v6.6"
+    }
+  ],
+  "inert_bundled_scripts": [
+    "Specialist-Profile-Phase2-v6.9.1.html",
+    "Profile-Edit-summary-limit-160.html"
+  ],
+  "files": [
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/CHANGELOG.md",
+      "source_bytes": 2840,
+      "source_sha256": "48427e4b70a699d211c5ca3ddcb9140b9116ad01fb5945c51308066d43764b54",
+      "imported_bytes": 2840,
+      "imported_sha256": "48427e4b70a699d211c5ca3ddcb9140b9116ad01fb5945c51308066d43764b54",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/IMPLEMENTATION_SPEC.md",
+      "source_bytes": 5668,
+      "source_sha256": "39c41ae3dbee5279e96f780dd8793b5df2b4dd99335a40ff34c03474e0b12cf3",
+      "imported_bytes": 5668,
+      "imported_sha256": "39c41ae3dbee5279e96f780dd8793b5df2b4dd99335a40ff34c03474e0b12cf3",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/MANIFEST.md",
+      "source_bytes": 2300,
+      "source_sha256": "3f6f048bca25b7e3020deb51512684324334d6be85784535acefeb859c547ee6",
+      "imported_bytes": 2300,
+      "imported_sha256": "3f6f048bca25b7e3020deb51512684324334d6be85784535acefeb859c547ee6",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/PRODUCT_DECISIONS.md",
+      "source_bytes": 1638,
+      "source_sha256": "4027f3d35cb51c9e769b7f7a59ed10e29fa6ce516b1f58f631111d67d46c3a82",
+      "imported_bytes": 1638,
+      "imported_sha256": "4027f3d35cb51c9e769b7f7a59ed10e29fa6ce516b1f58f631111d67d46c3a82",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/Profile-Edit-summary-limit-160.html",
+      "source_bytes": 476756,
+      "source_sha256": "e1c67b3f1ed599565d7cd0279800ab0dd40a499d580daa02686b93c5c4d9deb0",
+      "imported_bytes": 476752,
+      "imported_sha256": "410ab598510e68d9162a641a4804a663d4d45714b242113f713093e4d81f0ef4",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": [
+        26
+      ]
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/Specialist-Profile-Phase2-v6.9.1.html",
+      "source_bytes": 611012,
+      "source_sha256": "25c2b8021bd66702a25263a275e419ca9e98ce4469f718c9e074d09b69342cae",
+      "imported_bytes": 611008,
+      "imported_sha256": "f07654154c6ee03135b4bb1d49c5b17903ac08433bcf0e551440717420fc643f",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": [
+        26
+      ]
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/01-desktop-1280-direct-slots-no-selection.png",
+      "source_bytes": 446616,
+      "source_sha256": "444c009f616d63ed8273adc0601b2cede8652cfdc8b571e89f7657aa04b48a87",
+      "imported_bytes": 446616,
+      "imported_sha256": "444c009f616d63ed8273adc0601b2cede8652cfdc8b571e89f7657aa04b48a87",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/02-desktop-1280-selected-2000-with-time.png",
+      "source_bytes": 447572,
+      "source_sha256": "9005b2bc99ec23de050445ac63a6fdd69e690418e654a5c9648876c63cc1b1fd",
+      "imported_bytes": 447572,
+      "imported_sha256": "9005b2bc99ec23de050445ac63a6fdd69e690418e654a5c9648876c63cc1b1fd",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/03a-desktop-1280-direct-no-slots.png",
+      "source_bytes": 442225,
+      "source_sha256": "6ec273d9eb1298d4231edb837774271e3a3e6b6f84c0a7efc939744e81c0409c",
+      "imported_bytes": 442225,
+      "imported_sha256": "6ec273d9eb1298d4231edb837774271e3a3e6b6f84c0a7efc939744e81c0409c",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/03b-desktop-1280-request-only.png",
+      "source_bytes": 435552,
+      "source_sha256": "75f3ef8cd4d1e5c8acd703bd6038001f6d09af5f5a0c09b5331a21564f327a56",
+      "imported_bytes": 435552,
+      "imported_sha256": "75f3ef8cd4d1e5c8acd703bd6038001f6d09af5f5a0c09b5331a21564f327a56",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/04-mobile-375-first-screen-min-price.png",
+      "source_bytes": 241804,
+      "source_sha256": "667dacd5206480ebb299df6ab570ecca9e61f5be84bf0e03952e31d062b4e435",
+      "imported_bytes": 241804,
+      "imported_sha256": "667dacd5206480ebb299df6ab570ecca9e61f5be84bf0e03952e31d062b4e435",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/05-mobile-390-no-selection.png",
+      "source_bytes": 163012,
+      "source_sha256": "36206e01e803d8c4f97d6b6bb563f18fff9af7fb9c99e8210c6744a79de9cb2a",
+      "imported_bytes": 163012,
+      "imported_sha256": "36206e01e803d8c4f97d6b6bb563f18fff9af7fb9c99e8210c6744a79de9cb2a",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/06-mobile-390-selected-2000-with-time.png",
+      "source_bytes": 168376,
+      "source_sha256": "0e3b11fbadf06a91c24a9a9042ad3cfae596871e9b821a8a6f0c9ac9b51afbf2",
+      "imported_bytes": 168376,
+      "imported_sha256": "0e3b11fbadf06a91c24a9a9042ad3cfae596871e9b821a8a6f0c9ac9b51afbf2",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/07-mobile-390-direct-no-slots.png",
+      "source_bytes": 160487,
+      "source_sha256": "6d0bef5e71c2b0b12fa78b39ff026c528dad53419e1420e16bf4966a5ddbda0c",
+      "imported_bytes": 160487,
+      "imported_sha256": "6d0bef5e71c2b0b12fa78b39ff026c528dad53419e1420e16bf4966a5ddbda0c",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/08-mobile-390-request-only.png",
+      "source_bytes": 153868,
+      "source_sha256": "3af488fea17d61ff4693ff07dc60c63dfed9915de373d7a987f5eb3b4fd0f373",
+      "imported_bytes": 153868,
+      "imported_sha256": "3af488fea17d61ff4693ff07dc60c63dfed9915de373d7a987f5eb3b4fd0f373",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/09-mobile-sticky-bar-all-states.png",
+      "source_bytes": 202770,
+      "source_sha256": "3fbacaa459f0d5446a97fad1dc8089bf2d035e99dc14e6a0181aa9ec08ae1644",
+      "imported_bytes": 202770,
+      "imported_sha256": "3fbacaa459f0d5446a97fad1dc8089bf2d035e99dc14e6a0181aa9ec08ae1644",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/10-mobile-375-full-page-footer.png",
+      "source_bytes": 589246,
+      "source_sha256": "21201ff4e665d002d7663450429a7e5d1f56affcc09fbe7a86b2cbdde0ff0adc",
+      "imported_bytes": 589246,
+      "imported_sha256": "21201ff4e665d002d7663450429a7e5d1f56affcc09fbe7a86b2cbdde0ff0adc",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/11-tablet-768-direct-slots.png",
+      "source_bytes": 212228,
+      "source_sha256": "158b621c81b95656ca111ea86bc4837514a2a559049abf8dc20a42477c6ba887",
+      "imported_bytes": 212228,
+      "imported_sha256": "158b621c81b95656ca111ea86bc4837514a2a559049abf8dc20a42477c6ba887",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/12-tablet-820-direct-slots.png",
+      "source_bytes": 230080,
+      "source_sha256": "e040e392f022292c680f26ced5c28f3d3d6e1e0452eeccfe25fd81eda684d914",
+      "imported_bytes": 230080,
+      "imported_sha256": "e040e392f022292c680f26ced5c28f3d3d6e1e0452eeccfe25fd81eda684d914",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/13-tablet-768-request-only.png",
+      "source_bytes": 212757,
+      "source_sha256": "642cd04c9c85fa791b8e9a546f9803cc6cfa91dd46e1a2f7be4d3b8767997c89",
+      "imported_bytes": 212757,
+      "imported_sha256": "642cd04c9c85fa791b8e9a546f9803cc6cfa91dd46e1a2f7be4d3b8767997c89",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    },
+    {
+      "path": "proconsult-kan158-phase2-v6.9.1-candidate/screenshots/14-timezone-label.png",
+      "source_bytes": 152687,
+      "source_sha256": "3173472f95fe5fae7244e45ce33cf00ed67730d4a4ebfb05b12a79440056263d",
+      "imported_bytes": 152687,
+      "imported_sha256": "3173472f95fe5fae7244e45ce33cf00ed67730d4a4ebfb05b12a79440056263d",
+      "crlf_lines_normalized": 0,
+      "trailing_whitespace_normalized_lines": []
+    }
+  ]
+}

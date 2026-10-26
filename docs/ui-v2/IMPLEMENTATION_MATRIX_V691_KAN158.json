@@ -1,0 +1,52 @@
+{
+  "snapshot_id": "claude-design-2026-10-26-1dbb9008",
+  "sha256": "1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d",
+  "status": "CANDIDATE — NOT ACTIVE",
+  "scope": "KAN-158 UI v2 public specialist profile and profile-editor short description only",
+  "base_sha": "535940ffeedb108038992e93cd2cb27c0aa916be",
+  "observed_date": "2026-10-26",
+  "status_vocabulary": {
+    "IMPLEMENTED": "Runtime matches the v6.9.1 decision; covered by the cited PR evidence.",
+    "IMPLEMENTED WITH APPROVED DIFFERENCE": "Implemented; the runtime deliberately differs from the prototype. The difference is recorded in the cited PR's evidence or requirement and was accepted when that PR was reviewed and merged. Activation should confirm these as the design's accepted runtime deviations.",
+    "NOT IMPLEMENTED": "Present in the prototype, absent from runtime. Must not be presented as ready.",
+    "CONSISTENT (HIDDEN)": "The design hides the item without data; runtime also renders nothing without data.",
+    "CONTRACT RESOLVED DIFFERENCE": "The design hid the item pending API confirmation; the public API already provides it and runtime shows it. Needs design acknowledgement.",
+    "FUTURE / NOT APPROVED": "Concept or explicitly not approved; correctly absent.",
+    "OPEN DIFFERENCE": "Runtime differs from the v6.9.1 decision and no approval of the difference is recorded; needs a decision before or at activation.",
+    "NOT RE-AUDITED": "Not measured in this documentation task; left to the separate UX audit."
+  },
+  "merged_prs": [
+    {"pr": 76, "merge": "041a705", "title": "Phase 2 PR A: v6.9.1 visual layer", "evidence": "docs/ui-v2/evidence/kan-158/phase2-pr-a/README.md"},
+    {"pr": 78, "merge": "ade6ca6", "title": "Phase 2 PR B: consultation selection and pricing", "evidence": "docs/ui-v2/evidence/kan-158/phase2-pr-b/README.md"},
+    {"pr": 77, "merge": "c1a77a3", "title": "Phase 2 PR D: summary limit 160", "evidence": "docs/ui-v2/evidence/kan-158/summary-160/README.md"},
+    {"pr": 79, "merge": "15505c4", "title": "Phase 2 PR C: responsive layout and separate external contacts", "evidence": "docs/ui-v2/evidence/kan-158/phase2-pr-c/README.md"},
+    {"pr": 80, "merge": "535940f", "title": "Post-merge polish: compact external contacts", "evidence": "docs/ui-v2/evidence/kan-158/compact-contacts/README.md"}
+  ],
+  "rows": [
+    {"id": "offer-no-preselection", "design": "CHANGELOG v6.9.1 §1; IMPLEMENTATION_SPEC «Ціна й вибір»", "status": "IMPLEMENTED", "prs": [78], "note": "No format is selected on load in UI v2; UI v1 keeps its default highlight."},
+    {"id": "price-from-before-choice", "design": "IMPLEMENTATION_SPEC «Ціна й вибір»", "status": "IMPLEMENTED", "prs": [76, 78], "note": "Prices beside each format in the panel; «від <мін.>» in the sticky bar and «N формати · від <мін.>» in the final CTA. «від» only when prices differ."},
+    {"id": "price-after-choice", "design": "IMPLEMENTATION_SPEC «Ціна й вибір»", "status": "IMPLEMENTED WITH APPROVED DIFFERENCE", "prs": [78], "note": "The chosen price is shown in the panel, sticky bar and final CTA. Without bookable time the sticky-bar context puts the price first («<ціна> · <формат>») so a 375px bar truncates the name, not the price. The offer_type sent equals the visible choice."},
+    {"id": "final-cta-choose-format-link", "design": "IMPLEMENTATION_SPEC «Ціна й вибір»: «Обрати формат»; «Змінити» → focus BookingPanel", "status": "NOT IMPLEMENTED", "prs": [], "note": "The final CTA has no «Обрати формат» / «Змінити» links. The form's own «Змінити» for the chosen offer is pre-existing and is not this design element."},
+    {"id": "continue-step-and-two-line-summary", "design": "IMPLEMENTATION_SPEC «Режими»: «Продовжити · <дата>»; «Ціна й вибір»: format + time two-line summary", "status": "IMPLEMENTED WITH APPROVED DIFFERENCE", "prs": [78, 79], "note": "Deliberately not introduced: selecting a slot opens the existing request form directly (approved booking contract). The form's selected-slot block replaces the two-line summary."},
+    {"id": "choose-time-active", "design": "CHANGELOG v6.9.1 §2 (implementation contract verification)", "status": "IMPLEMENTED", "prs": [78], "note": "Verified and preserved: «Обрати час» without a slot is active and scrolls to the slots (desktop) or opens the request sheet (phone). No disabled state was added."},
+    {"id": "mode-texts", "design": "IMPLEMENTATION_SPEC «Режими»", "status": "IMPLEMENTED", "prs": [76], "note": "Sticky bar: «Вільного часу зараз немає» for direct without slots, «Час — після запиту» for request_only. request_only never says «немає доступних вікон» (#75 fix preserved). The panel copy is neutral and has no specialist name forms."},
+    {"id": "timezone-label", "design": "CHANGELOG v6.9.1 §3; IMPLEMENTATION_SPEC «Часовий пояс»", "status": "IMPLEMENTED", "prs": [76], "note": "Europe/Kyiv and legacy Europe/Kiev give «Час за Києвом»; other zones give «Ваш місцевий час · <IANA>». No Kyiv offset and no switcher."},
+    {"id": "external-contacts-card", "design": "IMPLEMENTATION_SPEC ExternalContactsCard; screenshots 01–03b, 10", "status": "IMPLEMENTED WITH APPROVED DIFFERENCE", "prs": [76, 79, 80], "note": "A separate tinted card outside the booking panel at ≥1100 and in the page flow below that. #80 replaces per-row tinted 44px rows with one compact list. The copy targets stay ≥44px and the full values wrap naturally. The same contact data, visibility rules and actions are used."},
+    {"id": "final-cta", "design": "IMPLEMENTATION_SPEC FinalCta", "status": "IMPLEMENTED", "prs": [76], "note": "Navy block with one primary action; existing secondary actions render as text links. The heading follows the mode, and the offers line follows the choice (#78)."},
+    {"id": "mobile-sticky-bar", "design": "IMPLEMENTATION_SPEC MobileStickyBar; M3/M4", "status": "IMPLEMENTED WITH APPROVED DIFFERENCE", "prs": [76, 79], "note": "Bar with safe-area padding below 768px. Body padding equals the measured bar height and is restored on removal; the design's extra +24px reserve is not added. In the browser the footer ends above the bar at 375/390 (PR A evidence)."},
+    {"id": "photo-fallback", "design": "CHANGELOG v6.9 PhotoFallback", "status": "IMPLEMENTED", "prs": [76], "note": "An initials tile with role=img for a missing or broken photo; a new URL retries."},
+    {"id": "full-short-description", "design": "CHANGELOG v6.9.1 §4", "status": "IMPLEMENTED", "prs": [76], "note": "The profile shows the full text without line-clamp in UI v2."},
+    {"id": "responsive-breakpoints", "design": "IMPLEMENTATION_SPEC «Breakpoints»", "status": "IMPLEMENTED WITH APPROVED DIFFERENCE", "prs": [79], "note": "Two columns at ≥1100; one column with an inline panel at 768–1099; compact hero and sticky bar below 768. Differences: the existing 860px compactProfile stays for FAQ/native share; at viewport heights ≤700px the rail becomes static; real calendar controls may extend below the first tablet viewport."},
+    {"id": "hero-sizes", "design": "IMPLEMENTATION_SPEC «Розміри», «Breakpoints»", "status": "IMPLEMENTED", "prs": [79], "note": "Per PR C evidence: photo 88×110 (<768), 180×225 (768–799), 200×250 (800–1099); 56px source title at ≥1100 with long-word fitting, 40px on tablet."},
+    {"id": "component-tokens", "design": "IMPLEMENTATION_SPEC «Розміри» (panel r28/padding 24, format 13/16 r16, slot grid, button 54px, FinalCta paddings)", "status": "NOT RE-AUDITED", "prs": [76, 79], "note": "Not individually measured in this documentation task; left to the separate UX audit."},
+    {"id": "section-nav", "design": "IMPLEMENTATION_SPEC SectionNav", "status": "NOT RE-AUDITED", "prs": [], "note": "The UI v2 section navigation (pc2-profile-nav) predates phase 2 and was not changed or re-measured against v6.9.1."},
+    {"id": "accessibility-offers-radiogroup", "design": "IMPLEMENTATION_SPEC «Доступність»: «Формати — radiogroup»", "status": "OPEN DIFFERENCE", "prs": [], "note": "Consultation offers in the profile rail are toggle buttons with aria-pressed (PublicProfileIdentityRail.vue). role=radiogroup exists only for the online/offline session-format choice in the slot filter. Needs a decision: accept the toggle-button pattern, or schedule a separate accessibility change."},
+    {"id": "accessibility-slots-focus-motion", "design": "IMPLEMENTATION_SPEC «Доступність»", "status": "NOT RE-AUDITED", "prs": [76, 78, 79], "note": "Days and slots use aria-pressed; focus-visible and reduced-motion handling exist. Not re-measured against the v6.9.1 values (2px #12345A) in this documentation task."},
+    {"id": "summary-limit-160", "design": "Profile-Edit-summary-limit-160.html; CHANGELOG v6.9.1 §4", "status": "IMPLEMENTED WITH APPROVED DIFFERENCE", "prs": [77], "note": "«N / 160» counter; new or changed text over 160 cannot save. Differences: no native maxlength (no silent truncation of pasted text); Unicode code points are counted; unchanged legacy text over 160 is allowed and omitted from PATCH; no orange counter state after 140. Backend max_length stays 240, so 160 is enforced by this editor only."},
+    {"id": "faq", "design": "CHANGELOG v6.9.1 §6; PRODUCT_DECISIONS «Потребують backend»", "status": "CONSISTENT (HIDDEN)", "prs": [], "note": "Runtime renders FAQ only from existing profile section data; nothing is shown without data. FAQ as structured profile data remains a backend gate."},
+    {"id": "experience-languages", "design": "CHANGELOG v6.9.1 §6 (hidden until confirmed in the public API)", "status": "CONTRACT RESOLVED DIFFERENCE", "prs": [], "note": "The public profile API already returns experience_years and languages (src/lib/api.ts), and runtime shows «Досвід» and «Мови» when they are present. Needs design acknowledgement at activation."},
+    {"id": "video-duration", "design": "CHANGELOG v6.9.1 §6", "status": "CONSISTENT (HIDDEN)", "prs": [], "note": "The video card shows no duration."},
+    {"id": "timezone-switcher-kyiv-offset", "design": "PRODUCT_DECISIONS «Лише концепції»", "status": "FUTURE / NOT APPROVED", "prs": [], "note": "Correctly absent."},
+    {"id": "not-approved-features", "design": "PRODUCT_DECISIONS «Не реалізовувати без окремого погодження»", "status": "FUTURE / NOT APPROVED", "prs": [], "note": "Anonymous questions, response SLA, structured education fields, direct payment, semantic search and booking/contact-visibility/header/UI v1 logic changes are all absent."}
+  ]
+}
