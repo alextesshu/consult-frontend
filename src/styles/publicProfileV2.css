@@ -159,6 +159,10 @@ html[data-ui="v2"] .pc2-public-profile .slot-info, html[data-ui="v2"] .pc2-publi
 html[data-ui="v2"] .pc2-public-profile .slot-list { display: flex; flex-wrap: wrap; gap: 8px; }
 html[data-ui="v2"] .pc2-public-profile .slot-card { min-height: 44px; padding: 10px 14px; border: 1px solid #EDE7DE; border-radius: 12px; background: #fff; text-align: center; box-shadow: none; }
 html[data-ui="v2"] .pc2-public-profile .slot-card:hover { border-color: #12345A; background: #FBF9F5; transform: none; }
+/* The label must inherit the chip state, including hover retained after touch. */
+html[data-ui="v2"] .pc2-public-profile .slot-card .slot-time { color: inherit; }
+html[data-ui="v2"] .pc2-public-profile .slot-card:is(:hover, :focus-visible, :active):not(:disabled) { background: #12345A; color: #fff; border-color: #12345A; }
+html[data-ui="v2"] .pc2-public-profile .slot-card:focus-visible { outline: 2px solid #12345A; outline-offset: 3px; }
 html[data-ui="v2"] .pc2-public-profile .slot-duration { display: none; }
 html[data-ui="v2"] .pc2-public-profile .slot-list-heading { font-size: 13px; color: #5A6578; }
 html[data-ui="v2"] .pc2-public-profile .pc2-profile-no-time { width: 100%; min-height: 44px; border: 1px dashed #D4CCC2; border-radius: 12px; background: transparent; color: #5A6578; font: inherit; font-size: 14px; cursor: pointer; }
@@ -343,6 +347,11 @@ html[data-ui="v2"] .pc2-public-profile .pc2-profile-booking-column > .public__si
  html[data-ui="v2"] .pc2-public-profile.public { --pc-profile-title-size: 28px; }
  html[data-ui="v2"] .pc2-public-profile .hero-main__lead { font-size: 15px; line-height: 1.55; }
  html[data-ui="v2"] .pc2-profile-hero-share { padding: 8px 4px; font-size: 12px; flex-wrap: wrap; gap: 4px; }
+ html[data-ui="v2"] .pc2-public-profile .hero-video-button { position: static; display: flex; flex-direction: column; gap: 2px; width: 100%; min-height: 44px; margin-top: 8px; padding: 6px 2px; font-size: 12px; line-height: 1.25; white-space: normal; }
+ html[data-ui="v2"] .pc2-public-profile .hero-video-button__icon { width: 16px; height: 16px; flex-shrink: 0; }
+ html[data-ui="v2"] .pc2-public-profile .panel--journal > .panel__header { flex-wrap: wrap; }
+ html[data-ui="v2"] .pc2-public-profile .panel--journal > .panel__header > div { min-width: 0; flex: 1 1 100%; }
+ html[data-ui="v2"] .pc2-public-profile .panel--journal > .panel__header .btn { justify-self: start; max-width: 100%; min-height: 44px; flex-shrink: 0; white-space: normal; word-break: normal; overflow-wrap: normal; }
 }
 /* Short desktop viewports keep both cards reachable by document scrolling. */
 html[data-ui="v2"] .pc2-public-profile .pc2-profile-booking-column.pc2-profile-booking-column--flow { position: static; max-height: none; grid-template-rows: auto auto; }

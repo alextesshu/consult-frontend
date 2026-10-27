@@ -30,6 +30,18 @@ describe('profile overlay, sharing and accordions', () => {
   await fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }))
   expect(view.emitted()['update:open']).toBeUndefined(); view.unmount()
  })
+ it.each(['<button class="slot-card">12:00</button>', '<div class="slot-empty"><button>Залишити запит</button></div>'])('reveals the requested availability control without scrolling the document', async content => {
+  const trigger = document.createElement('button'); document.body.append(trigger); trigger.focus()
+  const rects = vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList)
+  const view = render(PublicProfileOverlay, { props: { open: true, title: 'Запит', titleId: 'availability-test', kind: 'request', initialFocusSelector: '.slot-card:not(:disabled), .slot-empty button' }, slots: { default: content } })
+  await nextTick(); await nextTick(); await nextTick()
+  const dialog = screen.getByRole('dialog')
+  expect(document.activeElement).toBe(dialog.querySelector('.slot-card, .slot-empty button'))
+  expect(window.scrollTo).not.toHaveBeenCalled()
+  await view.rerender({ open: false })
+  expect(document.activeElement).toBe(trigger)
+  view.unmount(); trigger.remove(); rects.mockRestore()
+ })
  it('focuses the video close control and restores both overflow values and focus after Escape and reopening', async () => {
   const trigger = document.createElement('button'); document.body.append(trigger); trigger.focus()
   document.body.style.overflow = 'clip'; document.documentElement.style.overflow = 'auto'
