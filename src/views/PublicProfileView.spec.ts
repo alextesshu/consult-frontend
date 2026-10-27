@@ -23,6 +23,9 @@ import {
 } from '../lib/api'
 import { productAnalytics } from '../lib/productAnalytics'
 
+// UI v1 keeps the action-only name; UI v2 prefixes its visible local time.
+const slotActionName = /^(?:\d{2}:\d{2} — )?Надіслати запит на цей час$/
+
 const mockRoute = reactive({
   params: { slug: 'olena' },
   query: {},
@@ -351,7 +354,7 @@ async function findClientBookingConfirmModal() {
 
 async function clickClientBookingConfirmButton() {
   const modal = await findClientBookingConfirmModal()
-  await fireEvent.click(within(modal).getByRole('button', { name: 'Надіслати запит на цей час' }))
+  await fireEvent.click(within(modal).getByRole('button', { name: slotActionName }))
 }
 
 beforeAll(() => {
@@ -2324,7 +2327,7 @@ describe('PublicProfileView', () => {
 
     const { container } = renderView()
 
-    const slotButton = await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+    const slotButton = await screen.findByRole('button', { name: slotActionName })
     await fireEvent.click(slotButton)
 
     const modal = container.querySelector('.guest-booking-modal')
@@ -2356,7 +2359,7 @@ describe('PublicProfileView', () => {
 
     const { container } = renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
     const modal = container.querySelector('.guest-booking-modal') as HTMLElement
     const standardOffer = within(modal).getByRole('button', { name: /^Консультація/i })
@@ -2544,7 +2547,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
 
     expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Парна консультація/i })).not.toBeInTheDocument()
@@ -2573,7 +2576,7 @@ describe('PublicProfileView', () => {
 
     const { container } = renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
 
     const modal = container.querySelector('.guest-booking-modal') as HTMLElement
     expect(await within(modal).findByText('Тип консультації')).toBeInTheDocument()
@@ -2618,24 +2621,24 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByRole('button', { name: /^Консультація/i })).toHaveAttribute('aria-pressed', 'true')
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(2)
+      expect(screen.getAllByRole('button', { name: slotActionName })).toHaveLength(2)
     })
 
     await fireEvent.click(screen.getByRole('button', { name: /^Ознайомча сесія/i }))
     expect(screen.getByRole('button', { name: /^Ознайомча сесія/i })).toHaveAttribute('aria-pressed', 'true')
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(4)
+      expect(screen.getAllByRole('button', { name: slotActionName })).toHaveLength(4)
     })
 
     await fireEvent.click(screen.getByRole('button', { name: /^Парна консультація/i }))
     expect(screen.getByRole('button', { name: /^Парна консультація/i })).toHaveAttribute('aria-pressed', 'true')
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: slotActionName })).toHaveLength(1)
     })
 
     await fireEvent.click(screen.getByRole('button', { name: /^Консультація/i }))
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(2)
+      expect(screen.getAllByRole('button', { name: slotActionName })).toHaveLength(2)
     })
   })
 
@@ -2654,11 +2657,11 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: slotActionName })).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: /^Парна консультація/i }))
 
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: 'Надіслати запит на цей час' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: slotActionName })).not.toBeInTheDocument()
     })
     expect(mockedApiPost).not.toHaveBeenCalled()
   })
@@ -2678,7 +2681,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -2696,7 +2699,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
 
     const submitButton = screen.getByRole('button', { name: 'Надіслати запит' })
     const form = submitButton.closest('form')
@@ -2725,7 +2728,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     expect(await screen.findByText('Що хочете обговорити?')).toBeInTheDocument()
     const expectedTopicLabels = [
       'Тривога',
@@ -2795,7 +2798,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.click(await screen.findByRole('button', { name: 'Інше' }))
 
     expect(screen.queryByText('Опишіть свій запит у полі нижче.')).not.toBeInTheDocument()
@@ -2827,7 +2830,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
 
     expect(screen.getAllByRole('heading', { name: 'Перед надсиланням' })).toHaveLength(1)
     expect(
@@ -2866,7 +2869,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -2919,7 +2922,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'telegram')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), '@iryna_help')
@@ -2948,7 +2951,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'phone')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), '+380501112233')
@@ -2977,7 +2980,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -3000,7 +3003,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -3023,7 +3026,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     const fields = screen.getAllByRole('textbox')
     const nameField = fields[0] as HTMLInputElement
     const contactField = fields[1] as HTMLInputElement
@@ -3049,7 +3052,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -3075,7 +3078,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
 
     const confirmHeading = await screen.findByRole('heading', { name: 'Запит на час' })
     expect(confirmHeading).toBeInTheDocument()
@@ -3111,7 +3114,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
 
     expect(await screen.findByText('Спочатку підтвердьте email акаунта, щоб забронювати консультацію.')).toBeInTheDocument()
     expect(mockedApiPost).not.toHaveBeenCalledWith('/booking/sessions/', expect.anything())
@@ -3139,9 +3142,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     const confirmModal = await findClientBookingConfirmModal()
-    const confirmButton = within(confirmModal).getByRole('button', { name: 'Надіслати запит на цей час' })
+    const confirmButton = within(confirmModal).getByRole('button', { name: slotActionName })
     await fireEvent.click(confirmButton)
     await fireEvent.click(confirmButton)
 
@@ -3169,7 +3172,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     expect(await screen.findByText('Обраний слот уже недоступний. Будь ласка, виберіть інший час.')).toBeInTheDocument()
@@ -3269,7 +3272,7 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('Загальні правила платформи')).toBeInTheDocument()
     expect(within(screen.getByLabelText('Правила перед запитом на час')).getByText('Умови спеціаліста')).toBeInTheDocument()
 
-    const bookButton = await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+    const bookButton = await screen.findByRole('button', { name: slotActionName })
     await fireEvent.click(bookButton)
     expect(await screen.findByRole('heading', { name: 'Запит на час' })).toBeInTheDocument()
     await clickClientBookingConfirmButton()
@@ -3312,7 +3315,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(screen.queryByText('Підтвердіть правила перед запитом на час')).not.toBeInTheDocument()
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -3453,11 +3456,11 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити правила перед запитом' }))
     expect(mockedAcceptBookingRules).toHaveBeenCalledWith({ specialist_id: 12 })
 
-    const slotButtons = await screen.findAllByRole('button', { name: 'Надіслати запит на цей час' })
+    const slotButtons = await screen.findAllByRole('button', { name: slotActionName })
     await fireEvent.click(slotButtons[0]!)
     await clickClientBookingConfirmButton()
     await fireEvent.click(screen.getAllByRole('button', { name: 'Закрити' })[0]!)
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Надіслати запит на цей час' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: slotActionName }))[0]!)
     await clickClientBookingConfirmButton()
 
     const acceptCalls = mockedAcceptBookingRules.mock.calls
@@ -3486,7 +3489,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     expect(await screen.findByText('Правила Pro Consult')).toBeInTheDocument()
     expect(screen.getByText('Правила спеціаліста')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Перед надсиланням' })).toBeInTheDocument()
@@ -3526,7 +3529,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     expect(
       screen.queryByRole('checkbox', {
         name: 'Погоджуюся з правилами платформи та правилами спеціаліста',
@@ -3554,7 +3557,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByLabelText('Онлайн')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -3592,7 +3595,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByLabelText('Онлайн')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -3635,7 +3638,7 @@ describe('PublicProfileView', () => {
 
     const onlineOption = await screen.findByLabelText('Онлайн')
     await fireEvent.click(onlineOption)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -3662,7 +3665,7 @@ describe('PublicProfileView', () => {
 
     const offlineOption = await screen.findByLabelText('Офлайн')
     await fireEvent.click(offlineOption)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -3694,7 +3697,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     await screen.findByText('Загальна інформація')
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
     await clickClientBookingConfirmButton()
 
     const formatErrors = await screen.findAllByText('Оберіть формат сесії перед надсиланням запиту.')
@@ -3937,7 +3940,7 @@ describe('PublicProfileView', () => {
       expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
 
       expect(await screen.findByText(/Липень 2026/)).toBeInTheDocument()
-      expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: slotActionName })).toBeInTheDocument()
       expect(screen.getByText('10:00')).toBeInTheDocument()
 
       await waitFor(() => {
@@ -5153,6 +5156,28 @@ describe('PublicProfileView', () => {
     })
   })
 
+  it.each(['v1', 'v2'] as const)('preserves %s time-slot names and includes each visible time once in v2', async ui => {
+    applyUiVersion(ui)
+    mockCommonPublicData()
+    mockBookingPageDataWithSlots([
+      buildTodayLocalSlotWithDuration(101, 9, 80),
+      buildTodayLocalSlotWithDuration(102, 14, 80),
+    ])
+    const view = renderView()
+    await screen.findByRole('heading', { name: 'Олена', level: 1 })
+    await waitFor(() => expect(view.container.querySelectorAll('.slot-card')).toHaveLength(2))
+    const labels = Array.from(view.container.querySelectorAll('.slot-card')).map(button => {
+      const time = button.querySelector('.slot-time')!.textContent!.trim()
+      const name = ui === 'v2' ? `${time} — Надіслати запит на цей час` : 'Надіслати запит на цей час'
+      expect(button).toHaveAccessibleName(name)
+      if (ui === 'v2') expect(name.split(time)).toHaveLength(2)
+      return name
+    })
+    if (ui === 'v2') expect(new Set(labels).size).toBe(2)
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    view.unmount()
+  })
+
   describe('UI v2 responsive booking and contacts (PR C)', () => {
     it('moves a tall desktop contacts card into document flow and removes its resize listener', async () => {
       const originalWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth')!
@@ -5205,7 +5230,7 @@ describe('PublicProfileView', () => {
           expect(contacts.parentElement).toHaveClass('pc2-profile-booking-column')
           const panel = view.container.querySelector('.pc2-request-panel')!
           expect(panel.parentElement).toBe(contacts.parentElement)
-          await fireEvent.click(await within(panel as HTMLElement).findByRole('button', { name: 'Надіслати запит на цей час' }))
+          await fireEvent.click(await within(panel as HTMLElement).findByRole('button', { name: slotActionName }))
           expect(document.querySelector('.pc2-profile-overlay--request[open]')).toBeNull()
           expect(panel.querySelector('.guest-booking-modal')).toBeInTheDocument()
           expect(contacts).toBeVisible()
@@ -5271,9 +5296,9 @@ describe('PublicProfileView', () => {
       mockBookingPageDataWithSingleSlot()
       mockedApiPost.mockResolvedValue({ request: { id: 901, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
       const view = renderView()
-      await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+      await screen.findByRole('button', { name: slotActionName })
       await fireEvent.click(railOffer(view.container, 'Ознайомча сесія'))
-      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
       const form = view.container.querySelector<HTMLFormElement>('#pc2-profile-contact form')!
       expect(within(form).getByText('Обраний варіант')).toBeInTheDocument()
       expect(form.querySelector('.guest-offer-summary')).toHaveTextContent('Ознайомча сесія')
@@ -5288,7 +5313,7 @@ describe('PublicProfileView', () => {
       mockBookingPageDataWithSingleSlot()
       mockedApiPost.mockResolvedValue({ request: { id: 902, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
       const view = renderView()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
       const form = view.container.querySelector<HTMLFormElement>('#pc2-profile-contact form')!
       expect(within(form).queryByText('Обраний варіант')).toBeNull()
       const options = [...form.querySelectorAll<HTMLButtonElement>('.guest-offer-option')]
@@ -5309,13 +5334,13 @@ describe('PublicProfileView', () => {
       }))
       mockBookingPageDataWithSlots([buildTodayLocalSlotWithDuration(100, 12, 50)])
       const view = renderView()
-      expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: slotActionName })).toBeInTheDocument()
       expect(railOffer(view.container, 'Парна консультація')).toHaveAttribute('aria-pressed', 'false')
       await fireEvent.click(railOffer(view.container, 'Парна консультація'))
-      await waitFor(() => expect(screen.queryByRole('button', { name: 'Надіслати запит на цей час' })).toBeNull())
+      await waitFor(() => expect(screen.queryByRole('button', { name: slotActionName })).toBeNull())
       expect(finalSummary(view.container)).toMatch(/^Парна консультація · .+ · 2000 грн$/)
       await fireEvent.click(railOffer(view.container, 'Консультація'))
-      expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: slotActionName })).toBeInTheDocument()
       view.unmount()
     })
 
@@ -5376,7 +5401,7 @@ describe('PublicProfileView', () => {
     it('resets only the desktop panel when opening, closing and reopening the form', async () => {
       const documentScroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
       const view = renderView()
-      const slotAction = await screen.findByRole('button', { name: 'Надіслати запит на цей час' })
+      const slotAction = await screen.findByRole('button', { name: slotActionName })
       const panel = view.container.querySelector<HTMLElement>('.pc2-request-panel')!
       try {
         for (let cycle = 0; cycle < 2; cycle++) {
@@ -5403,7 +5428,7 @@ describe('PublicProfileView', () => {
     it('reuses the guest request form inline and sends the existing request contract only after submission', async () => {
       mockedApiPost.mockResolvedValue({ request: { id: 900, status: 'PENDING', created_at: new Date().toISOString(), next_step: null } })
       const view = renderView()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
       const form = view.container.querySelector('#pc2-profile-contact form')!
       expect(form).toBeInTheDocument()
       expect(view.container.querySelector('.pc2-profile-inline')).toHaveAttribute('role', 'region')
@@ -5424,7 +5449,7 @@ describe('PublicProfileView', () => {
         { scope: 'SPECIALIST', version: 'specialist-v2', text: 'Умови з API', accepted: false, specialist_id: 12 },
       ] } }))
       const view = renderView()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
       const toggle = screen.getByRole('button', { name: /Умови перед запитом/ })
       expect(toggle).toHaveAttribute('aria-expanded', 'false')
       expect(view.container.querySelector('#pc2-profile-rules-content')).toHaveAttribute('inert')
@@ -5451,7 +5476,7 @@ describe('PublicProfileView', () => {
 
     it('restores the original calendar and preserves entered values through v2/v1 switches', async () => {
       const view = renderView()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
       await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
       applyUiVersion('v1'); await nextTick()
       expect(view.container.querySelector('.pc2-public-profile')).toBeNull()
@@ -5472,7 +5497,7 @@ describe('PublicProfileView', () => {
       mockAuth.user = { id: 77, roles: ['CLIENT'] }
       mockAuth.me = { user: { id: 77, roles: ['CLIENT'] } }
       const view = renderView()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+      await fireEvent.click(await screen.findByRole('button', { name: slotActionName }))
       await findClientBookingConfirmModal()
       expect(view.container.querySelector('.guest-booking-form')).toBeNull()
       expect(mockedApiPost).not.toHaveBeenCalled()

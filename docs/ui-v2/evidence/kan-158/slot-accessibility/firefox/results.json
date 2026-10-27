@@ -1,0 +1,1852 @@
+{
+  "engine": "firefox",
+  "environment": "Windows 11 Pro x64; headless; Firefox via native WebDriver BiDi",
+  "rows": [
+    {
+      "build": "baseline",
+      "reduced": false,
+      "width": 375,
+      "height": 667,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 1,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 14,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 29,
+            "background": "rgb(216, 222, 228)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1.355837335661321
+          },
+          {
+            "time": 46,
+            "background": "rgb(144, 160, 178)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 2.6727584392738906
+          },
+          {
+            "time": 63,
+            "background": "rgb(88, 112, 139)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 5.115182175665958
+          },
+          {
+            "time": 78,
+            "background": "rgb(53, 82, 114)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 8.07296380158783
+          },
+          {
+            "time": 93,
+            "background": "rgb(33, 65, 100)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 10.47483259687498
+          },
+          {
+            "time": 110,
+            "background": "rgb(22, 55, 93)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.078318173848098
+          },
+          {
+            "time": 125,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 142,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 158,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 173,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 193,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 1,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 10,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 27,
+            "background": "rgb(216, 222, 228)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1.355837335661321
+          },
+          {
+            "time": 43,
+            "background": "rgb(144, 160, 178)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 2.6727584392738906
+          },
+          {
+            "time": 58,
+            "background": "rgb(88, 112, 139)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 5.115182175665958
+          },
+          {
+            "time": 74,
+            "background": "rgb(53, 82, 114)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 8.07296380158783
+          },
+          {
+            "time": 91,
+            "background": "rgb(33, 65, 100)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 10.47483259687498
+          },
+          {
+            "time": 106,
+            "background": "rgb(22, 55, 93)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.078318173848098
+          },
+          {
+            "time": 123,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 140,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 155,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 170,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 187,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "candidate",
+      "reduced": false,
+      "width": 375,
+      "height": 667,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "12:00 — Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "14:00 — Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 13,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 29,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 45,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 60,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 77,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 93,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 108,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 125,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 142,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 157,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 172,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 188,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 6,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 23,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 38,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 54,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 70,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 87,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 103,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 119,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 136,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 151,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 166,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 183,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "baseline",
+      "reduced": false,
+      "width": 390,
+      "height": 844,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 1,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 13,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 27,
+            "background": "rgb(216, 222, 228)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1.355837335661321
+          },
+          {
+            "time": 44,
+            "background": "rgb(144, 160, 178)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 2.6727584392738906
+          },
+          {
+            "time": 59,
+            "background": "rgb(88, 112, 139)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 5.115182175665958
+          },
+          {
+            "time": 75,
+            "background": "rgb(53, 82, 114)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 8.07296380158783
+          },
+          {
+            "time": 91,
+            "background": "rgb(33, 65, 100)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 10.47483259687498
+          },
+          {
+            "time": 108,
+            "background": "rgb(22, 55, 93)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.078318173848098
+          },
+          {
+            "time": 123,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 140,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 155,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 172,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 187,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 1,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 3,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 18,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 35,
+            "background": "rgb(216, 222, 228)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1.355837335661321
+          },
+          {
+            "time": 50,
+            "background": "rgb(144, 160, 178)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 2.6727584392738906
+          },
+          {
+            "time": 67,
+            "background": "rgb(88, 112, 139)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 5.115182175665958
+          },
+          {
+            "time": 82,
+            "background": "rgb(53, 82, 114)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 8.07296380158783
+          },
+          {
+            "time": 99,
+            "background": "rgb(33, 65, 100)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 10.47483259687498
+          },
+          {
+            "time": 114,
+            "background": "rgb(22, 55, 93)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.078318173848098
+          },
+          {
+            "time": 130,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 146,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 162,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 179,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 194,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "candidate",
+      "reduced": false,
+      "width": 390,
+      "height": 844,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "12:00 — Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "14:00 — Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 17,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 33,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 48,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 65,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 84,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 96,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 113,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 129,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 145,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 161,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 177,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 193,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 15,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 31,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 47,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 66,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 79,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 94,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 111,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 126,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 143,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 158,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 175,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 190,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "baseline",
+      "reduced": false,
+      "width": 1280,
+      "height": 900,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 1,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 13,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 29,
+            "background": "rgb(216, 222, 228)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1.355837335661321
+          },
+          {
+            "time": 44,
+            "background": "rgb(144, 160, 178)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 2.6727584392738906
+          },
+          {
+            "time": 61,
+            "background": "rgb(88, 112, 139)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 5.115182175665958
+          },
+          {
+            "time": 77,
+            "background": "rgb(53, 82, 114)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 8.07296380158783
+          },
+          {
+            "time": 92,
+            "background": "rgb(33, 65, 100)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 10.47483259687498
+          },
+          {
+            "time": 109,
+            "background": "rgb(22, 55, 93)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.078318173848098
+          },
+          {
+            "time": 124,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 141,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 156,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 172,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 191,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 1,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 9,
+            "background": "rgb(255, 255, 255)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1
+          },
+          {
+            "time": 26,
+            "background": "rgb(230, 234, 238)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 1.209096857895472
+          },
+          {
+            "time": 42,
+            "background": "rgb(161, 175, 190)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 2.2361970611943267
+          },
+          {
+            "time": 57,
+            "background": "rgb(99, 121, 146)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 4.486658720441895
+          },
+          {
+            "time": 74,
+            "background": "rgb(60, 88, 119)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 7.357054927768316
+          },
+          {
+            "time": 89,
+            "background": "rgb(37, 68, 103)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 9.99349786166907
+          },
+          {
+            "time": 106,
+            "background": "rgb(24, 57, 94)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 11.7599661880484
+          },
+          {
+            "time": 121,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 137,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 154,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 169,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 186,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "candidate",
+      "reduced": false,
+      "width": 1280,
+      "height": 900,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "12:00 — Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "14:00 — Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 17,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 31,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 48,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 64,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 79,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 95,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 112,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 129,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 143,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 159,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 176,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 192,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 2,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 19,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 35,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 50,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 67,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 82,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 99,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 114,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 131,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 147,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 162,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 178,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 195,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "mode": "empty",
+      "noFabricatedSlots": true,
+      "slotGets": 2
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "mode": "request",
+      "noFabricatedSlots": true,
+      "slotGets": 0
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "empty",
+      "noFabricatedSlots": true,
+      "slotGets": 2
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "request",
+      "noFabricatedSlots": true,
+      "slotGets": 0
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "mode": "empty",
+      "noFabricatedSlots": true,
+      "slotGets": 2
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "mode": "request",
+      "noFabricatedSlots": true,
+      "slotGets": 0
+    },
+    {
+      "engine": "firefox",
+      "version": "158.0",
+      "reduced": false,
+      "browserClosed": true
+    },
+    {
+      "build": "candidate",
+      "reduced": true,
+      "width": 375,
+      "height": 667,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "12:00 — Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "14:00 — Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 6,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 20,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 36,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 51,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 67,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 83,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 99,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 115,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 131,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 148,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 163,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 179,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 195,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 16,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 32,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 49,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 65,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 80,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 96,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 112,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 128,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 145,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 161,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 176,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 192,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "candidate",
+      "reduced": true,
+      "width": 390,
+      "height": 844,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "12:00 — Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "14:00 — Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 7,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 21,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 37,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 57,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 69,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 85,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 103,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 117,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 134,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 150,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 168,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 181,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 11,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 26,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 42,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 58,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 75,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 90,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 107,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 122,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 138,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 154,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 170,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 187,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "build": "candidate",
+      "reduced": true,
+      "width": 1280,
+      "height": 900,
+      "names": [
+        {
+          "time": "12:00",
+          "name": "12:00 — Надіслати запит на цей час"
+        },
+        {
+          "time": "14:00",
+          "name": "14:00 — Надіслати запит на цей час"
+        }
+      ],
+      "normal": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)"
+      },
+      "hover": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 16,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 33,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 49,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 66,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 81,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 97,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 117,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 128,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 144,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 160,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 176,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 192,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focus": {
+        "minimum": 12.615997358287789,
+        "values": [
+          {
+            "time": 0,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 14,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 29,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 45,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 62,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 78,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 94,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 109,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 126,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 142,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 157,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 173,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          },
+          {
+            "time": 190,
+            "background": "rgb(18, 52, 90)",
+            "text": "rgb(255, 255, 255)",
+            "contrast": 12.615997358287789
+          }
+        ]
+      },
+      "focusStyle": {
+        "visible": true,
+        "width": "2px"
+      },
+      "disabled": {
+        "disabled": true,
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(18, 52, 90)",
+        "opacity": "0.45"
+      },
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "version": "158.0",
+      "reduced": true,
+      "browserClosed": true
+    }
+  ],
+  "failures": []
+}

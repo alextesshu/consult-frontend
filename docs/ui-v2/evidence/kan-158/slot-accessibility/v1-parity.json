@@ -1,0 +1,62 @@
+[
+  {
+    "engine": "chromium",
+    "width": 375,
+    "size": [
+      375,
+      4275
+    ],
+    "pixelIdentical": true,
+    "changedPixels": 0
+  },
+  {
+    "engine": "chromium",
+    "width": 390,
+    "size": [
+      390,
+      4235
+    ],
+    "pixelIdentical": true,
+    "changedPixels": 0
+  },
+  {
+    "engine": "chromium",
+    "width": 1280,
+    "size": [
+      1280,
+      2319
+    ],
+    "pixelIdentical": true,
+    "changedPixels": 0
+  },
+  {
+    "engine": "firefox",
+    "width": 375,
+    "size": [
+      375,
+      4278
+    ],
+    "pixelIdentical": true,
+    "changedPixels": 0
+  },
+  {
+    "engine": "firefox",
+    "width": 390,
+    "size": [
+      390,
+      4238
+    ],
+    "pixelIdentical": true,
+    "changedPixels": 0
+  },
+  {
+    "engine": "firefox",
+    "width": 1280,
+    "size": [
+      1280,
+      2320
+    ],
+    "pixelIdentical": true,
+    "changedPixels": 0
+  }
+]

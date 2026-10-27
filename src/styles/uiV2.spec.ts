@@ -207,6 +207,21 @@ describe('UI v2 CSS contract', () => {
     expect(read('.env.example')).toMatch(/^VITE_UI_V2=$/m)
   })
 
+  it('changes slot foreground and background atomically instead of animating contrast', () => {
+    const profile = postcss.parse(read('src/styles/publicProfileV2.css'))
+    let properties: string[] = []
+    profile.walkRules(rule => {
+      if (rule.selector === `${gate} .pc2-public-profile .slot-card`) {
+        rule.walkDecls('transition-property', decl => { properties = decl.value.split(',').map(value => value.trim()) })
+      }
+    })
+    expect(properties).toContain('border-color')
+    expect(properties).not.toContain('all')
+    expect(properties).not.toContain('background')
+    expect(properties).not.toContain('background-color')
+    expect(properties).not.toContain('color')
+  })
+
   it('keeps the specialist-owned footer above the fixed mobile booking bar only while that bar exists', () => {
     const rules: Rule[] = []
     components.walkRules((rule) => { if (rule.selector.includes(':has(.pc2-profile-bottom-bar)')) rules.push(rule) })

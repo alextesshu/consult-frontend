@@ -1,0 +1,32 @@
+{
+  "engine": "Firefox",
+  "version": "158.0",
+  "noVue": true,
+  "noProConsultCode": true,
+  "rows": [
+    {
+      "fullNativeVideoSequence": false,
+      "before": {
+        "hasFocus": true,
+        "active": "target",
+        "disabled": false
+      },
+      "after": {
+        "hasFocus": true,
+        "clicks": 1
+      }
+    },
+    {
+      "fullNativeVideoSequence": true,
+      "before": {
+        "hasFocus": false,
+        "active": "target",
+        "disabled": false
+      },
+      "after": {
+        "hasFocus": false,
+        "clicks": 0
+      }
+    }
+  ]
+}
