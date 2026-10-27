@@ -1,0 +1,597 @@
+[
+  {
+    "variant": "isolated",
+    "engine": "158.0",
+    "beforeEnter": {
+      "hasFocus": true,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 183.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "afterEnter": {
+      "hasFocus": true,
+      "active": "identity-rail__service identity-rail__service--active",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 183.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "true",
+        "false",
+        "false"
+      ]
+    },
+    "enter": "PASS",
+    "events": [
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "hero-main__about-action",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "hero-main__about-action",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "ASIDE",
+        "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "ASIDE",
+        "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "keydown",
+        "key": "Enter",
+        "code": "NumpadEnter",
+        "keyCode": 13,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "click",
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service identity-rail__service--active",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      },
+      {
+        "type": "keyup",
+        "key": "Enter",
+        "code": "NumpadEnter",
+        "keyCode": 13,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service identity-rail__service--active",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": true
+      }
+    ]
+  },
+  {
+    "variant": "full",
+    "engine": "158.0",
+    "videoFocusReturned": true,
+    "beforeEnter": {
+      "hasFocus": false,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 183.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "afterEnter": {
+      "hasFocus": false,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 183.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "enter": "NO SELECTION",
+    "events": [
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "pc2-profile-hero-share",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "hero-main__about-action",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "hero-main__about-action",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "ASIDE",
+        "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "ASIDE",
+        "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keydown",
+        "key": "Enter",
+        "code": "NumpadEnter",
+        "keyCode": 13,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Enter",
+        "code": "NumpadEnter",
+        "keyCode": 13,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      }
+    ],
+    "nativeProbeClicks": 0,
+    "afterActivate": {
+      "hasFocus": false,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 151.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    }
+  },
+  {
+    "variant": "full-with-screenshot",
+    "engine": "158.0",
+    "videoFocusReturned": true,
+    "beforeScreenshot": {
+      "hasFocus": true,
+      "active": "slot-card",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 320.2166748046875,
+        "width": 70.18333435058594,
+        "height": 44
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "afterScreenshot": {
+      "hasFocus": true,
+      "active": "slot-card",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 320.2166748046875,
+        "width": 70.18333435058594,
+        "height": 44
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "beforeEnter": {
+      "hasFocus": false,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 183.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "afterEnter": {
+      "hasFocus": false,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 183.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    },
+    "enter": "NO SELECTION",
+    "events": [
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "pc2-profile-hero-share",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "hero-main__about-action",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "hero-main__about-action",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "ASIDE",
+        "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keydown",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "ASIDE",
+        "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Tab",
+        "code": "Tab",
+        "keyCode": 9,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keydown",
+        "key": "Enter",
+        "code": "NumpadEnter",
+        "keyCode": 13,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      },
+      {
+        "type": "keyup",
+        "key": "Enter",
+        "code": "NumpadEnter",
+        "keyCode": 13,
+        "repeat": false,
+        "trusted": true,
+        "tag": "BUTTON",
+        "class": "identity-rail__service",
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "meta": false,
+        "defaultPrevented": false,
+        "hasFocus": false
+      }
+    ],
+    "nativeProbeClicks": 0,
+    "afterActivate": {
+      "hasFocus": false,
+      "active": "identity-rail__service",
+      "tag": "BUTTON",
+      "disabled": false,
+      "inert": false,
+      "modal": false,
+      "rect": {
+        "x": 841.6500244140625,
+        "y": 151.25,
+        "width": 270.9666748046875,
+        "height": 74.39999389648438
+      },
+      "pressed": [
+        "false",
+        "false",
+        "false"
+      ]
+    }
+  }
+]

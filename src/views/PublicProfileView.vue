@@ -384,7 +384,7 @@
             class="slot-card"
             :class="{ 'slot-card--busy': isSlotBusy(slot.id) }"
             type="button"
-            :aria-label="slotActionLabel(slot.id)"
+            :aria-label="uiV2 ? `${formatSlotTime(slot.start_at)} — ${slotActionLabel(slot.id)}` : slotActionLabel(slot.id)"
             :disabled="isSlotBusy(slot.id)"
             @click="handleProfileBookingClick(slot.id)"
           >

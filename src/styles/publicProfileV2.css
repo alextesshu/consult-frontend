@@ -157,7 +157,7 @@ html[data-ui="v2"] .pc2-public-profile .slot-filter__calendar { padding: 0; bord
 html[data-ui="v2"] .pc2-public-profile .slot-top { display: block; }
 html[data-ui="v2"] .pc2-public-profile .slot-info, html[data-ui="v2"] .pc2-public-profile .slot-request-actions { display: none; }
 html[data-ui="v2"] .pc2-public-profile .slot-list { display: flex; flex-wrap: wrap; gap: 8px; }
-html[data-ui="v2"] .pc2-public-profile .slot-card { min-height: 44px; padding: 10px 14px; border: 1px solid #EDE7DE; border-radius: 12px; background: #fff; text-align: center; box-shadow: none; }
+html[data-ui="v2"] .pc2-public-profile .slot-card { min-height: 44px; padding: 10px 14px; border: 1px solid #EDE7DE; border-radius: 12px; background: #fff; text-align: center; box-shadow: none; transition-property: transform, border-color, box-shadow; }
 html[data-ui="v2"] .pc2-public-profile .slot-card:hover { border-color: #12345A; background: #FBF9F5; transform: none; }
 /* The label must inherit the chip state, including hover retained after touch. */
 html[data-ui="v2"] .pc2-public-profile .slot-card .slot-time { color: inherit; }
