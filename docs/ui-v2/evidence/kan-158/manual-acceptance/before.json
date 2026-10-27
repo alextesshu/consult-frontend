@@ -1,0 +1,232 @@
+{
+  "fixtureOnly": true,
+  "rows": [
+    {
+      "width": 375,
+      "height": 667,
+      "geometry": {
+        "width": 375,
+        "scrollWidth": 375,
+        "photo": {
+          "x": 24,
+          "y": 90,
+          "width": 88,
+          "height": 110,
+          "bottom": 200,
+          "right": 112
+        },
+        "video": {
+          "x": 36,
+          "y": 130,
+          "width": 130.78125,
+          "height": 40,
+          "bottom": 170,
+          "right": 166.78125
+        },
+        "name": {
+          "x": 128,
+          "y": 90,
+          "width": 223,
+          "height": 62.71875,
+          "bottom": 152.71875,
+          "right": 351
+        },
+        "blog": {
+          "x": 285.21875,
+          "y": 1564.421875,
+          "width": 40.78125,
+          "height": 74,
+          "bottom": 1638.421875,
+          "right": 326
+        }
+      },
+      "slotBeforeManualScroll": {
+        "x": 16,
+        "y": 873.703125,
+        "width": 63.234375,
+        "height": 44
+      },
+      "focusBeforeManualScroll": "pc2-profile-overlay__close",
+      "scrollContainers": [
+        {
+          "class": "pc2-profile-overlay pc2-profile-overlay--request is-shown is-reduced",
+          "height": 574,
+          "scrollHeight": 956
+        }
+      ],
+      "slotColors": {
+        "background": "rgb(18, 52, 90)",
+        "text": "rgb(18, 52, 90)"
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "photo": {
+          "x": 24,
+          "y": 90,
+          "width": 88,
+          "height": 110,
+          "bottom": 200,
+          "right": 112
+        },
+        "video": {
+          "x": 36,
+          "y": 130,
+          "width": 130.78125,
+          "height": 40,
+          "bottom": 170,
+          "right": 166.78125
+        },
+        "name": {
+          "x": 128,
+          "y": 90,
+          "width": 238,
+          "height": 62.71875,
+          "bottom": 152.71875,
+          "right": 366
+        },
+        "blog": {
+          "x": 297.875,
+          "y": 1489.625,
+          "width": 43.125,
+          "height": 74,
+          "bottom": 1563.625,
+          "right": 341
+        }
+      },
+      "slotBeforeManualScroll": {
+        "x": 16,
+        "y": 898.484375,
+        "width": 63.234375,
+        "height": 44
+      },
+      "focusBeforeManualScroll": "pc2-profile-overlay__close",
+      "scrollContainers": [
+        {
+          "class": "pc2-profile-overlay pc2-profile-overlay--request is-shown is-reduced",
+          "height": 726,
+          "scrollHeight": 956
+        }
+      ],
+      "slotColors": {
+        "background": "rgb(18, 52, 90)",
+        "text": "rgb(18, 52, 90)"
+      }
+    },
+    {
+      "width": 820,
+      "height": 900,
+      "geometry": {
+        "width": 820,
+        "scrollWidth": 820,
+        "photo": {
+          "x": 42,
+          "y": 116,
+          "width": 200,
+          "height": 250,
+          "bottom": 366,
+          "right": 242
+        },
+        "video": {
+          "x": 54,
+          "y": 268,
+          "width": 130.78125,
+          "height": 40,
+          "bottom": 308,
+          "right": 184.78125
+        },
+        "name": {
+          "x": 266,
+          "y": 116,
+          "width": 512,
+          "height": 42,
+          "bottom": 158,
+          "right": 778
+        },
+        "blog": {
+          "x": 656.546875,
+          "y": 2395.140625,
+          "width": 96.453125,
+          "height": 50,
+          "bottom": 2445.140625,
+          "right": 753
+        }
+      },
+      "slotBeforeManualScroll": {
+        "x": 67,
+        "y": -957.6875,
+        "width": 63.234375,
+        "height": 44
+      },
+      "focusBeforeManualScroll": "",
+      "scrollContainers": [],
+      "slotColors": {
+        "background": "rgb(18, 52, 90)",
+        "text": "rgb(18, 52, 90)"
+      }
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "geometry": {
+        "width": 1280,
+        "scrollWidth": 1280,
+        "photo": {
+          "x": 63.359375,
+          "y": 128,
+          "width": 296.203125,
+          "height": 370.25,
+          "bottom": 498.25,
+          "right": 359.5625
+        },
+        "video": {
+          "x": 75.359375,
+          "y": 450.25,
+          "width": 130.78125,
+          "height": 40,
+          "bottom": 490.25,
+          "right": 206.140625
+        },
+        "name": {
+          "x": 383.5625,
+          "y": 128,
+          "width": 385.078125,
+          "height": 114.21875,
+          "bottom": 242.21875,
+          "right": 768.640625
+        },
+        "blog": {
+          "x": 647.1875,
+          "y": 1583.171875,
+          "width": 96.453125,
+          "height": 50,
+          "bottom": 1633.171875,
+          "right": 743.640625
+        }
+      },
+      "slotBeforeManualScroll": {
+        "x": 841.640625,
+        "y": 833.3125,
+        "width": 63.234375,
+        "height": 44
+      },
+      "focusBeforeManualScroll": "",
+      "scrollContainers": [
+        {
+          "class": "public__sidebar pc2-request-panel pc2-request-panel--guest-slots",
+          "height": 558,
+          "scrollHeight": 920
+        }
+      ],
+      "slotColors": {
+        "background": "rgb(18, 52, 90)",
+        "text": "rgb(18, 52, 90)"
+      }
+    }
+  ],
+  "failures": []
+}
