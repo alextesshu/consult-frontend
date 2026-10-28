@@ -120,4 +120,11 @@ describe('Signup v2 CSS contract', () => {
     expect(text).toContain('outline: var(--pc-focus-width) solid var(--pc-navy-900)')
   })
 
+
+  it('keeps wizard choices and progress page-scoped with native radio focus', () => {
+    expect(cssText).toContain(root + ' .pc2-practices__option')
+    expect(declarations(root + ' .pc2-practices__option')['min-height']).toBe('var(--pc-control-h-lg)')
+    expect(declarations(root + ' .pc2-steps li[aria-current="step"]')['border-color']).toBe('var(--pc-navy-900)')
+    expect(declarations(root + ' .pc2-wizard-back').color).toBe('var(--pc-navy-900)')
+  })
 })
