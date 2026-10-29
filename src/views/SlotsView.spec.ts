@@ -421,7 +421,7 @@ describe('SlotsView', () => {
     expect(emptyState).toBeInTheDocument()
     expect(emptyState.closest('.calendar-panel')).toBeInTheDocument()
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
-    expect(within(emptyState).getByText('Створіть кілька вікон за робочим графіком або додайте окремий час вручну.')).toBeInTheDocument()
+    expect(within(emptyState).getByText('Робочі години — лише шаблон. Створіть вікна за графіком або додайте час вручну.')).toBeInTheDocument()
     expect(within(emptyState).getAllByRole('button')).toHaveLength(1)
     expect(within(emptyState).queryByRole('button', { name: 'Додати одне вікно' })).not.toBeInTheDocument()
     expect(screen.queryByText('На цьому тижні ще немає вікон для запису.')).not.toBeInTheDocument()
@@ -486,7 +486,7 @@ describe('SlotsView', () => {
 
     renderView()
     await flushAsyncUpdates()
-    await fireEvent.click(screen.getByRole('button', { name: 'Доступно' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Незайняті' }))
 
     expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
     expect(screen.getByText('За обраним фільтром вікон немає.')).toBeInTheDocument()
@@ -954,6 +954,97 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['request_only', false, 'Клієнти залишають запит без вибору часу. Вікна не показуються у публічному профілі.'],
+    ['direct_booking', false, 'Показ вікон у публічному профілі вимкнено. Клієнти не можуть обрати час.'],
+    ['direct_booking', true, 'Вікна в календарі — збережені записи. Робочі години та попередній розрахунок не створюють їх автоматично. Доступність клієнтам визначають правила публічного запису.'],
+  ] as const)('explains private persisted windows without claiming public bookability (%s, %s)', async (mode, visible, message) => {
+    openCalendarRoute()
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(visible, mode))
+    mockScheduleApi([{
+      id: 91,
+      start_at: '2026-03-12T11:00:00Z',
+      end_at: '2026-03-12T11:50:00Z',
+      is_booked: false,
+    }])
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByLabelText('Вікна та публічний запис')).toHaveTextContent(message)
+    expect(container.querySelector('.week-calendar button[aria-label="Вікно для запису · 13:00–13:50"]')).toBeInTheDocument()
+    expect(within(container.querySelector('.mobile-day-schedule') as HTMLElement).getByRole('button', {
+      name: 'Вікно для запису · 13:00–13:50',
+    })).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(mockedApiGet.mock.calls.every(([url]) => url === '/cabinet/slots/')).toBe(true)
+  })
+
+  it('does not turn working hours or generation examples into calendar events', async () => {
+    openCalendarRoute()
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(true))
+    mockScheduleApi()
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByLabelText('Вікна та публічний запис')).toHaveTextContent('Майбутніх незайнятих вікон ще немає.')
+    expect(container.querySelectorAll('.schedule-event')).toHaveLength(0)
+    const manage = screen.getByRole('link', { name: 'Керувати вікнами' })
+    expect(manage).toHaveAttribute('href', '/cabinet/slots?tab=availability')
+    await fireEvent.click(manage)
+    await flushAsyncUpdates()
+    expect(screen.getByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
+  it('navigates from the calendar to booking settings without creating windows', async () => {
+    openCalendarRoute()
+    mockScheduleApi()
+    renderView()
+    await flushAsyncUpdates()
+
+    const settings = screen.getByRole('link', { name: 'Налаштування запису' })
+    expect(settings).toHaveAttribute('href', '/cabinet/slots?tab=settings')
+    await fireEvent.click(settings)
+    await flushAsyncUpdates()
+    expect(screen.getByRole('heading', { name: 'Запис і запити' })).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
+  it('keeps generation preview separate until explicit creation succeeds and slots reload', async () => {
+    openAvailabilityRoute()
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(true))
+    const pending = createDeferred<any>()
+    let created = false
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return (created ? [{
+        id: 91, start_at: '2026-03-12T11:00:00Z', end_at: '2026-03-12T11:50:00Z', is_booked: false,
+      }] : []) as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockReturnValueOnce(pending.promise)
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    const empty = screen.getByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })
+    await fireEvent.click(within(empty).getByRole('button', { name: 'Створити вікна для запису' }))
+    await flushAsyncUpdates()
+    const dialog = screen.getByRole('dialog', { name: 'Створити вікна для запису' })
+    expect(within(dialog).getByTestId('fill-availability-preview')).toHaveTextContent('Це попередній розрахунок, а не створені вікна.')
+    await fireEvent.update(within(dialog).getByLabelText('Кількість тижнів'), '2')
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(container.querySelectorAll('.availability-slot')).toHaveLength(0)
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити вікна для запису' }))
+    await flushAsyncUpdates()
+    expect(mockedApiPost).toHaveBeenCalledTimes(1)
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/slots/fill/', expect.any(Object))
+    expect(container.querySelectorAll('.availability-slot')).toHaveLength(0)
+    created = true
+    pending.resolve({ created_count: 1, skipped_count: 0 })
+    await waitFor(() => {
+      expect(container.querySelector('.availability-slot[aria-label="Вікно для запису 13:00–13:50"]')).toBeInTheDocument()
+    })
+    expect(mockedApiGet).toHaveBeenCalledTimes(2)
+  })
+
   it('shows request-only guidance with a contextual booking settings entry point', async () => {
     mockedFetchSpecialistProfile.mockResolvedValueOnce({
       standard_session_duration_minutes: 50,
@@ -971,7 +1062,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
     expect(
-      screen.getByText('Клієнти бачать ці вікна лише коли прямий запис увімкнено.')
+      screen.getByText('Клієнти залишають запит без вибору часу. Вікна не показуються у публічному профілі.')
     ).toBeInTheDocument()
     expect(
       screen.getByText('Клієнти можуть залишати запити без вибору конкретного часу. Вікна для запису необов’язкові.')
@@ -1028,7 +1119,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    expect(screen.getByText('Запис за вільним часом увімкнено')).toBeInTheDocument()
+    expect(screen.getByText('Майбутніх незайнятих вікон немає')).toBeInTheDocument()
     expect(screen.getByText('Щоб клієнти могли обирати час, створіть доступні вікна.')).toBeInTheDocument()
     expect(getAvailabilityActionPanel().getByRole('button', { name: 'Створити вікна для запису' })).not.toHaveClass('btn--ghost')
     expect(getAvailabilityActionPanel().getByRole('button', { name: 'Додати одне вікно' })).toBeInTheDocument()
@@ -1062,8 +1153,8 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    expect(screen.getByText('Зараз доступні: запис у вільне вікно та запит без вибору часу')).toBeInTheDocument()
-    expect(screen.getByText('Клієнти можуть обирати доступні вікна у публічному профілі або залишати запит без вибору часу.')).toBeInTheDocument()
+    expect(screen.getByText('Вікна створені; показ у публічному профілі увімкнено')).toBeInTheDocument()
+    expect(screen.getByText('Можливість обрати конкретне вікно залежить від правил публічного запису. Клієнти також можуть залишити запит без вибору часу.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Створити вікна для запису' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Додати вікна для запису' })).toHaveClass('btn--ghost')
     expect(screen.getByRole('link', { name: 'Змінити налаштування' })).toBeInTheDocument()
@@ -2129,7 +2220,7 @@ describe('SlotsView', () => {
     expect(mobileSchedule).toBeInstanceOf(HTMLElement)
     expect(within(mobileSchedule as HTMLElement).getByText('Події тижня')).toBeInTheDocument()
     expect((mobileSchedule as HTMLElement).querySelectorAll('.mobile-schedule-event')).toHaveLength(4)
-    expect(within(mobileSchedule as HTMLElement).getAllByText(/Доступно/).length).toBeGreaterThan(0)
+    expect(within(mobileSchedule as HTMLElement).getAllByText(/Вікно для запису/).length).toBeGreaterThan(0)
     expect(within(mobileSchedule as HTMLElement).getAllByText(/Сесія/).length).toBeGreaterThan(0)
     expect(within(mobileSchedule as HTMLElement).getAllByText(/Запит/).length).toBeGreaterThan(0)
     expect(within(mobileSchedule as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
@@ -2213,7 +2304,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
     expect(within(detailPanel).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/503')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Доступно' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Незайняті' }))
     await flushAsyncUpdates()
     expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(1)
     expect(container.querySelector('.week-calendar .schedule-event--available')).toBeInTheDocument()
@@ -2278,6 +2369,35 @@ describe('SlotsView', () => {
     expect(screen.queryByText('Private room')).not.toBeInTheDocument()
   })
 
+  it.each([
+    [0, 'незайнятих'],
+    [1, 'незайняте'],
+    [2, 'незайняті'],
+    [3, 'незайняті'],
+    [4, 'незайняті'],
+    [5, 'незайнятих'],
+    [11, 'незайнятих'],
+    [21, 'незайняте'],
+    [22, 'незайняті'],
+    [25, 'незайнятих'],
+  ] as const)('uses the Ukrainian summary form for %i unoccupied windows', async (count, form) => {
+    openAvailabilityRoute()
+    const start = Date.parse('2026-03-12T09:00:00Z')
+    mockScheduleApi([
+      ...Array.from({ length: count }, (_, index) => ({
+        id: index + 1,
+        start_at: new Date(start + index * 30 * 60_000).toISOString(),
+        end_at: new Date(start + (index * 30 + 20) * 60_000).toISOString(),
+        is_booked: false,
+      })),
+      { id: 100, start_at: '2026-03-13T09:00:00Z', end_at: '2026-03-13T09:50:00Z', is_booked: true },
+    ])
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByText(`${count} ${form} · 1 заброньовано`)).toBeInTheDocument()
+  })
+
   it('renders slot/session summary with updated human copy', async () => {
     mockScheduleApi(
       [
@@ -2302,7 +2422,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    expect(screen.getByText('1 доступно · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
   })
 
   it('renders duration-based free-time blocks without repeated visible status labels', async () => {
@@ -2326,8 +2446,8 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    const shortBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]') as HTMLElement | null
-    const longBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–15:00"]') as HTMLElement | null
+    const shortBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 11:00–11:50"]') as HTMLElement | null
+    const longBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 13:00–15:00"]') as HTMLElement | null
 
     expect(shortBlock).toBeInstanceOf(HTMLElement)
     expect(longBlock).toBeInstanceOf(HTMLElement)
@@ -2412,7 +2532,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    await fireEvent.click(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]') as HTMLElement)
+    await fireEvent.click(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 11:00–11:50"]') as HTMLElement)
     await fireEvent.click(screen.getByRole('button', { name: 'Видалити вікно' }))
     const confirmOptions = mockConfirmModal.openConfirm.mock.calls.at(-1)?.[0]
     await confirmOptions?.onConfirm?.()
@@ -2421,7 +2541,7 @@ describe('SlotsView', () => {
     expect(mockedApiDelete).toHaveBeenCalledWith('/cabinet/slots/34/')
     expect(mockedApiDelete).not.toHaveBeenCalledWith('/cabinet/slots/35/')
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 11:00–11:50"]')).not.toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 12:00–12:50"]')).toBeInTheDocument()
   })
 
@@ -2524,8 +2644,8 @@ describe('SlotsView', () => {
     expect(mockedApiDelete).toHaveBeenCalledWith('/cabinet/slots/51/')
     expect(mockedApiDelete).toHaveBeenCalledWith('/cabinet/slots/52/')
     expect(mockedApiDelete).not.toHaveBeenCalledWith('/cabinet/slots/53/')
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]')).not.toBeInTheDocument()
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 12:00–12:50"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 11:00–11:50"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 12:00–12:50"]')).not.toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 13:00–13:50"]')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
     expect(screen.queryByText('Вибрано: 2')).not.toBeInTheDocument()
@@ -2612,7 +2732,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    expect(screen.getByText('1 доступно · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Очистити тиждень' }))
     const confirmOptions = mockConfirmModal.openConfirm.mock.calls.at(-1)?.[0]
@@ -2622,8 +2742,8 @@ describe('SlotsView', () => {
     expect(mockedApiDelete).toHaveBeenCalledWith('/cabinet/slots/64/')
     expect(mockedApiDelete).not.toHaveBeenCalledWith('/cabinet/slots/65/')
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    expect(screen.getByText('0 доступно · 1 заброньовано')).toBeInTheDocument()
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]')).not.toBeInTheDocument()
+    expect(screen.getByText('0 незайнятих · 1 заброньовано')).toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 11:00–11:50"]')).not.toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 12:00–12:50"]')).toBeInTheDocument()
   })
 
@@ -2829,7 +2949,7 @@ describe('SlotsView', () => {
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 09:00–09:50"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 09:00–09:50"]')).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
     expect(screen.getByText('Усі вікна цього тижня вже минули.')).toBeInTheDocument()
     expect(screen.queryByText('На цьому тижні ще немає вікон для запису.')).not.toBeInTheDocument()
@@ -2888,7 +3008,7 @@ describe('SlotsView', () => {
     expect(dateInput).toHaveAttribute('type', 'text')
     expect(dateInput).toHaveAttribute('placeholder', 'дд.мм.рррр')
     expect(dateInput.value).toBe('12.03.2026')
-    expect(screen.getByText('Буде доступно: 12.03.2026, 09:00–09:50')).toBeInTheDocument()
+    expect(screen.getByText('Буде створено вікно: 12.03.2026, 09:00–09:50')).toBeInTheDocument()
     expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
 
     const calendarButton = container.querySelector('.slot-form .date-picker-trigger') as HTMLButtonElement | null
@@ -2915,7 +3035,7 @@ describe('SlotsView', () => {
     await fireEvent.update(dateInput, '15.05.2026')
     await fireEvent.update(timeInput, '09:30')
     await fireEvent.update(durationInput, '45')
-    expect(screen.getByText('Буде доступно: 15.05.2026, 09:30–10:15')).toBeInTheDocument()
+    expect(screen.getByText('Буде створено вікно: 15.05.2026, 09:30–10:15')).toBeInTheDocument()
     await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
@@ -3009,13 +3129,13 @@ describe('SlotsView', () => {
     await fireEvent.update(dateInput, '14.05.2026')
     await fireEvent.update(timeInput, '09:00')
     await fireEvent.update(durationInput, '50')
-    expect(screen.getByText('Буде доступно: 14.05.2026, 09:00–09:50')).toBeInTheDocument()
+    expect(screen.getByText('Буде створено вікно: 14.05.2026, 09:00–09:50')).toBeInTheDocument()
 
     await fireEvent.update(timeInput, '10:15')
-    expect(screen.getByText('Буде доступно: 14.05.2026, 10:15–11:05')).toBeInTheDocument()
+    expect(screen.getByText('Буде створено вікно: 14.05.2026, 10:15–11:05')).toBeInTheDocument()
 
     await fireEvent.update(durationInput, '30')
-    expect(screen.getByText('Буде доступно: 14.05.2026, 10:15–10:45')).toBeInTheDocument()
+    expect(screen.getByText('Буде створено вікно: 14.05.2026, 10:15–10:45')).toBeInTheDocument()
   })
 
   it('does not submit malformed slash date input', async () => {
@@ -3142,7 +3262,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–13:50"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 13:00–13:50"]')).not.toBeInTheDocument()
 
     await fireEvent.click(getAvailabilityPrimaryAction())
     await flushAsyncUpdates()
@@ -3183,10 +3303,10 @@ describe('SlotsView', () => {
     expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    expect(screen.getByRole('button', { name: 'Доступно' })).not.toHaveClass('btn--active')
+    expect(screen.getByRole('button', { name: 'Незайняті' })).not.toHaveClass('btn--active')
     expect(screen.getByRole('button', { name: 'Заброньовано' })).not.toHaveClass('btn--active')
-    expect(screen.getByText('1 доступно · 1 заброньовано')).toBeInTheDocument()
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–13:50"]')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 13:00–13:50"]')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 11:00–11:50"]')).toBeInTheDocument()
     expect(mockToast.success).toHaveBeenCalledWith('Створено 1 вікон для запису. Пропущено 2.')
   })
@@ -3326,9 +3446,9 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('button', { name: 'Заброньовано' })).toHaveClass('btn--active')
-    expect(screen.getByText('1 доступно · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 11:00–11:50"]')).toBeInTheDocument()
-    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–13:50"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 13:00–13:50"]')).not.toBeInTheDocument()
   })
 
   it('navigates calendar weeks and returns to today', async () => {
