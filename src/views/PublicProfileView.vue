@@ -1,6 +1,6 @@
 <template>
   <section class="public" :class="{ 'pc2-public-profile': uiV2 }">
-    <PublicProfileOverlay v-if="uiV2" v-model:open="profileSheetOpen" kind="request" title="Запит до спеціаліста" title-id="pc2-profile-sheet-title" :locked="guestBookingSubmitting || bookingSlotId !== null" :initial-focus-selector="publicDirectBookingEnabled && !showGuestBookingModal && !showClientBookingConfirmModal && !showBookingModal ? '.slot-card:not(:disabled), .slot-empty button' : undefined">
+    <PublicProfileOverlay v-if="uiV2" v-model:open="profileSheetOpen" kind="request" title="Запит до спеціаліста" title-id="pc2-profile-sheet-title" :locked="guestBookingSubmitting || bookingSlotId !== null">
       <div id="pc2-profile-mobile-content"></div>
     </PublicProfileOverlay>
     <PublicProfileOverlay v-if="uiV2" v-model:open="showAboutModal" kind="about" title="Про мене" title-id="pc2-profile-about-title" @closed="afterProfileAboutClosed">
@@ -3612,8 +3612,12 @@ function focusInquirySection() {
 }
 
 function focusSlotsSection() {
+  if (uiV2.value && phoneProfile.value) {
+    // Opening the sheet must reveal the consultation before availability.
+    openProfileRequestSheet()
+    return
+  }
   if (uiV2.value) highlightProfilePanel()
-  if (uiV2.value && phoneProfile.value) openProfileRequestSheet()
   void nextTick(() => { document.getElementById('slots')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' }) })
 }
 

@@ -5537,7 +5537,11 @@ describe('PublicProfileView', () => {
         expect(view.container.querySelector('#pc2-profile-mobile-content .pc2-request-panel')).toBeInTheDocument()
         await fireEvent.click(screen.getByRole('button', { name: 'Закрити' }))
         expect(document.body.style.overflow).toBe(previous)
-        await fireEvent.click(view.container.querySelector('.pc2-profile-mobile-cta')!)
+        scrollIntoViewSpy.mockClear()
+        mockRoute.hash = '#slots'
+        await waitFor(() => expect(show).toHaveBeenCalledTimes(2))
+        expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+        expect(view.container.querySelector<HTMLDialogElement>('.pc2-profile-overlay--request')?.scrollTop).toBe(0)
       } finally {
         view.unmount(); window.matchMedia = original
         if (originalShow) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShow)
