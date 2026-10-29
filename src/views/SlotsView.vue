@@ -133,6 +133,11 @@
       <p v-if="isAvailabilityTab" class="muted schedule-toolbar__hint">
         {{ availabilityTabHelperText }}
       </p>
+      <p v-if="isCalendarTab" class="muted schedule-toolbar__hint" role="note" aria-label="Вікна та публічний запис">
+        {{ availabilityTabHelperText }}
+        <RouterLink to="/cabinet/slots?tab=availability" @click="setScheduleTab('AVAILABILITY')">Керувати вікнами</RouterLink>
+        · <RouterLink :to="BOOKING_SETTINGS_ROUTE" @click="setScheduleTab('SETTINGS')">Налаштування запису</RouterLink>
+      </p>
 
       <div v-if="isCalendarTab && publicGuestRequestContext" class="request-scheduling-banner">
         <div class="request-scheduling-banner__content">
@@ -181,7 +186,7 @@
             :class="{ 'btn--active': slotStatusFilter === 'FREE' }"
             @click="slotStatusFilter = 'FREE'"
           >
-            Доступно
+            Незайняті
           </button>
           <button
             class="btn btn--ghost btn--sm"
@@ -193,10 +198,10 @@
           </button>
         </div>
         <div class="muted slot-summary">
-          {{ weekStatusSummary.free }} доступно · {{ weekStatusSummary.booked }} заброньовано
+          {{ weekStatusSummary.free }} незайнятих · {{ weekStatusSummary.booked }} заброньовано
         </div>
         <div class="calendar-legend" aria-label="Позначення вікон для запису">
-          <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
+          <span><i class="legend-dot legend-dot--available"></i>Вікно для запису</span>
           <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
           <span><i class="legend-dot legend-dot--past"></i>Минуло</span>
         </div>
@@ -263,7 +268,7 @@
             :class="{ 'btn--active': calendarEventFilter === 'AVAILABLE' }"
             @click="calendarEventFilter = 'AVAILABLE'"
           >
-            Доступно
+            Незайняті
           </button>
           <button
             class="btn btn--ghost btn--sm"
@@ -276,7 +281,7 @@
         </div>
         <div class="calendar-legend" aria-label="Позначення подій календаря">
           <span><i class="legend-dot legend-dot--session"></i>Сесія</span>
-          <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
+          <span><i class="legend-dot legend-dot--available"></i>Вікно для запису</span>
           <span><i class="legend-dot legend-dot--booked"></i>Запит</span>
         </div>
       </div>
@@ -297,7 +302,7 @@
               На цьому тижні ще немає вікон для запису
             </h2>
             <p class="availability-empty-state__helper">
-              Створіть кілька вікон за робочим графіком або додайте окремий час вручну.
+              Робочі години — лише шаблон. Створіть вікна за графіком або додайте час вручну.
             </p>
           </div>
           <div class="availability-empty-state__actions">
@@ -1016,7 +1021,7 @@
           <option v-for="option in timeOptions" :key="option" :value="option" />
         </datalist>
         <div v-if="newSlotPreview" class="slot-form__preview">
-          <strong>Буде доступно: {{ newSlotPreview }}</strong>
+          <strong>Буде створено вікно: {{ newSlotPreview }}</strong>
         </div>
         <div class="slot-form__actions">
           <button class="btn btn--ghost" type="button" @click="closeCreateForm">
@@ -1149,7 +1154,7 @@
               {{ pluralizeUk(fillAvailabilityRequestedCount, 'вікна для запису', 'вікон для запису', 'вікон для запису') }}.
             </strong>
             <strong v-else>Оберіть дні тижня, щоб розрахувати кількість вікон.</strong>
-            <span>Це орієнтовний максимум. Перетини буде пропущено, точну кількість покаже результат після створення.</span>
+            <span>Це попередній розрахунок, а не створені вікна. Перетини буде пропущено, точну кількість покаже результат після створення.</span>
           </div>
 
           <div class="slot-form__actions">
@@ -2142,7 +2147,7 @@ function canCreateSessionFromGuestRequest(event: ScheduleSession | null | undefi
 }
 
 function scheduleEventTypeLabel(event: ScheduleSession) {
-  if (event.type === 'available_slot') return 'Доступно'
+  if (event.type === 'available_slot') return 'Вікно для запису'
   if (isArchivedScheduleSession(event)) return 'Завершена сесія'
   if (isSessionBackedBookedEvent(event)) return 'Сесія'
   if (isPendingScheduleRequestEvent(event)) return pendingScheduleRequestLabel(event)
@@ -2155,7 +2160,7 @@ function scheduleEventCardLabel(event: ScheduleSession) {
 }
 
 function scheduleEventDetailTitle(event: ScheduleSession) {
-  if (event.type === 'available_slot') return 'Деталі доступного часу'
+  if (event.type === 'available_slot') return 'Деталі вікна для запису'
   if (isPendingScheduleRequestEvent(event)) return pendingScheduleRequestLabel(event)
   return 'Деталі сесії'
 }
@@ -2167,7 +2172,7 @@ function scheduleEventClientKindLabel(event: ScheduleSession) {
 }
 
 function sessionClientLabel(session: ScheduleSession) {
-  if (session.type === 'available_slot') return 'Доступно'
+  if (session.type === 'available_slot') return 'Вікно для запису'
   return session.client_display_name || scheduleEventClientKindLabel(session)
 }
 
@@ -2595,9 +2600,9 @@ const availabilityGuidanceDirectWithoutWindows = computed(() => (
 const availabilityGuidanceStatus = computed(() => {
   if (availabilityGuidanceNeedsSetup.value) return ''
   if (availabilityGuidanceIsRequestOnly.value) return 'Зараз: запит без вибору часу'
-  if (availabilityGuidanceDirectWithoutWindows.value) return 'Запис за вільним часом увімкнено'
+  if (availabilityGuidanceDirectWithoutWindows.value) return 'Майбутніх незайнятих вікон немає'
   if (persistedDirectBookingEnabled.value) {
-    return 'Зараз доступні: запис у вільне вікно та запит без вибору часу'
+    return 'Вікна створені; показ у публічному профілі увімкнено'
   }
   return 'Зараз: запис за вільним часом налаштовано, але показ вікон вимкнено'
 })
@@ -2612,7 +2617,7 @@ const availabilityGuidanceText = computed(() => {
     return 'Щоб клієнти могли обирати час, створіть доступні вікна.'
   }
   if (persistedDirectBookingEnabled.value) {
-    return 'Клієнти можуть обирати доступні вікна у публічному профілі або залишати запит без вибору часу.'
+    return 'Можливість обрати конкретне вікно залежить від правил публічного запису. Клієнти також можуть залишити запит без вибору часу.'
   }
   return 'Увімкніть показ доступних вікон або перейдіть на запити без вибору часу.'
 })
@@ -2640,12 +2645,15 @@ const availabilityTabHelperText = computed(() => {
     return 'Спочатку налаштуйте, чи клієнти залишають запит, обирають час або використовують обидва варіанти.'
   }
   if (persistedPublicBookingMode.value === 'request_only') {
-    return 'Клієнти бачать ці вікна лише коли прямий запис увімкнено.'
+    return 'Клієнти залишають запит без вибору часу. Вікна не показуються у публічному профілі.'
   }
-  if (persistedShowPublicAvailability.value) {
-    return 'Клієнти бачать ці вікна у публічному профілі.'
+  if (!persistedShowPublicAvailability.value) {
+    return 'Показ вікон у публічному профілі вимкнено. Клієнти не можуть обрати час.'
   }
-  return 'Показ доступних вікон вимкнено у публічному профілі.'
+  if (!loading.value && !hasFutureAvailabilityWindows.value) {
+    return 'Майбутніх незайнятих вікон ще немає. Створіть вікна для запису.'
+  }
+  return 'Вікна в календарі — збережені записи. Робочі години та попередній розрахунок не створюють їх автоматично. Доступність клієнтам визначають правила публічного запису.'
 })
 
 function matchesSlotStatusFilter(slot: Slot) {
@@ -3213,7 +3221,7 @@ function formatSlotTimeRange(slot: Slot) {
 
 function slotStatusLabel(slot: Slot) {
   if (!isFutureSlot(slot)) return 'Минуло'
-  return slot.is_booked ? 'Заброньовано' : 'Доступно'
+  return slot.is_booked ? 'Заброньовано' : 'Вікно для запису'
 }
 
 function slotStatusClass(slot: Slot) {
