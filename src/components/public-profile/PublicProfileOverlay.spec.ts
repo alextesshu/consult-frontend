@@ -30,17 +30,23 @@ describe('profile overlay, sharing and accordions', () => {
   await fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }))
   expect(view.emitted()['update:open']).toBeUndefined(); view.unmount()
  })
- it.each(['<button class="slot-card">12:00</button>', '<div class="slot-empty"><button>Залишити запит</button></div>'])('reveals the requested availability control without scrolling the document', async content => {
+ it.each(['<button class="slot-card">12:00</button>', '<div class="slot-empty"><button>Leave request</button></div>'])('starts every request opening above availability and resets retained internal scroll', async content => {
   const trigger = document.createElement('button'); document.body.append(trigger); trigger.focus()
-  const rects = vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList)
-  const view = render(PublicProfileOverlay, { props: { open: true, title: 'Запит', titleId: 'availability-test', kind: 'request', initialFocusSelector: '.slot-card:not(:disabled), .slot-empty button' }, slots: { default: content } })
-  await nextTick(); await nextTick(); await nextTick()
-  const dialog = screen.getByRole('dialog')
-  expect(document.activeElement).toBe(dialog.querySelector('.slot-card, .slot-empty button'))
+  const view = render(PublicProfileOverlay, { props: { open: false, title: 'Request', titleId: 'request-position', kind: 'request' }, slots: { default: `<button class="identity-rail__service" aria-pressed="true">Consultation</button>${content}` } })
+  const dialog = view.container.querySelector('dialog')!
+  dialog.scrollTop = 250
+  await view.rerender({ open: true }); await nextTick(); await nextTick()
+  expect(dialog.scrollTop).toBe(0)
+  expect(document.activeElement).toBe(dialog.querySelector('.pc2-profile-overlay__close'))
   expect(window.scrollTo).not.toHaveBeenCalled()
+  dialog.scrollTop = 400
   await view.rerender({ open: false })
   expect(document.activeElement).toBe(trigger)
-  view.unmount(); trigger.remove(); rects.mockRestore()
+  await view.rerender({ open: true }); await nextTick(); await nextTick()
+  expect(dialog.scrollTop).toBe(0)
+  expect(document.activeElement).toBe(dialog.querySelector('.pc2-profile-overlay__close'))
+  expect(dialog.querySelector('.identity-rail__service')).toHaveAttribute('aria-pressed', 'true')
+  view.unmount(); trigger.remove()
  })
  it('focuses the video close control and restores both overflow values and focus after Escape and reopening', async () => {
   const trigger = document.createElement('button'); document.body.append(trigger); trigger.focus()

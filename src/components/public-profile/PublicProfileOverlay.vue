@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useProfileMotion } from '../../composables/useProfileMotion'
-const props = defineProps<{ open: boolean; title: string; titleId: string; kind: 'request' | 'about' | 'share' | 'video'; locked?: boolean; anchor?: HTMLElement | null; initialFocusSelector?: string }>()
+const props = defineProps<{ open: boolean; title: string; titleId: string; kind: 'request' | 'about' | 'share' | 'video'; locked?: boolean; anchor?: HTMLElement | null }>()
 const emit = defineEmits<{ 'update:open': [value: boolean]; closed: [] }>()
 const dialog = ref<HTMLDialogElement | null>(null)
 const shown = ref(false)
@@ -116,17 +116,14 @@ watch(() => props.open, async open => {
   // Commit the initial transform before starting the exact source transition.
   void dialog.value.offsetHeight
   shown.value = true
-  if (props.kind === 'request' && props.initialFocusSelector) {
-    // Reveal availability in the sheet's own scroller after its transform resets.
+  if (props.kind === 'request') {
+    // Teleported content is ready here. Start each opening with consultation
+    // context visible, including when a previously scrolled sheet is reopened.
     await nextTick()
     const sheet = dialog.value
     if (token !== generation || !props.open || !sheet?.open) return
-    const target = Array.from(sheet.querySelectorAll<HTMLElement>(props.initialFocusSelector)).find(el => el.getClientRects().length && !el.closest('[hidden],[inert]'))
-    if (target) {
-      target.focus({ preventScroll: true })
-      const top = target.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop
-      sheet.scrollTop = Math.max(0, top - (sheet.clientHeight - target.offsetHeight) / 2)
-    }
+    sheet.querySelector<HTMLButtonElement>('.pc2-profile-overlay__close')?.focus({ preventScroll: true })
+    sheet.scrollTop = 0
   }
 }, { immediate: true, flush: 'post' })
 onBeforeUnmount(() => { document.removeEventListener('visibilitychange', visibility); pausedAnimations.forEach(animation => animation.cancel()); pausedAnimations = []; generation++; cancel(); if (dialog.value?.open) dialog.value.close(); restore() })
