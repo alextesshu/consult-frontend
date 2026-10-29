@@ -2369,6 +2369,35 @@ describe('SlotsView', () => {
     expect(screen.queryByText('Private room')).not.toBeInTheDocument()
   })
 
+  it.each([
+    [0, 'незайнятих'],
+    [1, 'незайняте'],
+    [2, 'незайняті'],
+    [3, 'незайняті'],
+    [4, 'незайняті'],
+    [5, 'незайнятих'],
+    [11, 'незайнятих'],
+    [21, 'незайняте'],
+    [22, 'незайняті'],
+    [25, 'незайнятих'],
+  ] as const)('uses the Ukrainian summary form for %i unoccupied windows', async (count, form) => {
+    openAvailabilityRoute()
+    const start = Date.parse('2026-03-12T09:00:00Z')
+    mockScheduleApi([
+      ...Array.from({ length: count }, (_, index) => ({
+        id: index + 1,
+        start_at: new Date(start + index * 30 * 60_000).toISOString(),
+        end_at: new Date(start + (index * 30 + 20) * 60_000).toISOString(),
+        is_booked: false,
+      })),
+      { id: 100, start_at: '2026-03-13T09:00:00Z', end_at: '2026-03-13T09:50:00Z', is_booked: true },
+    ])
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByText(`${count} ${form} · 1 заброньовано`)).toBeInTheDocument()
+  })
+
   it('renders slot/session summary with updated human copy', async () => {
     mockScheduleApi(
       [
@@ -2393,7 +2422,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
     await flushAsyncUpdates()
 
-    expect(screen.getByText('1 незайнятих · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
   })
 
   it('renders duration-based free-time blocks without repeated visible status labels', async () => {
@@ -2703,7 +2732,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
-    expect(screen.getByText('1 незайнятих · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Очистити тиждень' }))
     const confirmOptions = mockConfirmModal.openConfirm.mock.calls.at(-1)?.[0]
@@ -3276,7 +3305,7 @@ describe('SlotsView', () => {
     expect(screen.getByRole('button', { name: 'Усі' })).toHaveClass('btn--active')
     expect(screen.getByRole('button', { name: 'Незайняті' })).not.toHaveClass('btn--active')
     expect(screen.getByRole('button', { name: 'Заброньовано' })).not.toHaveClass('btn--active')
-    expect(screen.getByText('1 незайнятих · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 13:00–13:50"]')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 11:00–11:50"]')).toBeInTheDocument()
     expect(mockToast.success).toHaveBeenCalledWith('Створено 1 вікон для запису. Пропущено 2.')
@@ -3417,7 +3446,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('button', { name: 'Заброньовано' })).toHaveClass('btn--active')
-    expect(screen.getByText('1 незайнятих · 1 заброньовано')).toBeInTheDocument()
+    expect(screen.getByText('1 незайняте · 1 заброньовано')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Заброньовано 11:00–11:50"]')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Вікно для запису 13:00–13:50"]')).not.toBeInTheDocument()
   })

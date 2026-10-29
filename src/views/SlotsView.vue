@@ -198,7 +198,7 @@
           </button>
         </div>
         <div class="muted slot-summary">
-          {{ weekStatusSummary.free }} незайнятих · {{ weekStatusSummary.booked }} заброньовано
+          {{ weekStatusSummary.free }} {{ pluralizeUk(weekStatusSummary.free, 'незайняте', 'незайняті', 'незайнятих') }} · {{ weekStatusSummary.booked }} заброньовано
         </div>
         <div class="calendar-legend" aria-label="Позначення вікон для запису">
           <span><i class="legend-dot legend-dot--available"></i>Вікно для запису</span>
