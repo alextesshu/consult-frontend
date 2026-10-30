@@ -1,6 +1,10 @@
 ﻿<template>
-  <section class="slots">
-    <header class="slots__header">
+  <section class="slots" :class="{ 'pc2-schedule': uiV2 }">
+    <ScheduleHeroV2 v-if="uiV2" ref="scheduleHeroRef" :active="isAvailabilityTab ? 'slots' : isSettingsTab ? 'settings' : 'calendar'"
+      :title="isAvailabilityTab ? 'Вікна для запису' : isSettingsTab ? 'Запис і запити' : 'Календар сесій'"
+      :subtitle="isAvailabilityTab ? weekRangeLabel : 'Сесії, вікна та налаштування запису залишаються окремими діями.'"
+      :busy="loading || deleteActionLoading" @fill="requestFillWeek" />
+    <header v-if="!uiV2" class="slots__header">
       <div>
         <h1 class="title slots__title">Розклад</h1>
         <p class="muted slots__subtitle">
@@ -10,7 +14,7 @@
       <RouterLink class="btn btn--ghost btn--sm" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
-    <div class="slots__subnav">
+    <div v-if="!uiV2" class="slots__subnav">
       <div class="schedule-tabs" role="tablist" aria-label="Режими розкладу">
         <RouterLink
           class="btn btn--ghost btn--sm schedule-tabs__item"
@@ -44,7 +48,7 @@
     </div>
 
     <section
-      v-if="isAvailabilityTab"
+      v-if="isAvailabilityTab && !uiV2"
       ref="availabilityActionBlockRef"
       class="panel availability-action-panel"
       :class="{ 'availability-action-panel--attention': availabilityActionAttention }"
@@ -94,7 +98,7 @@
     </section>
 
     <section
-      v-if="!isSettingsTab"
+      v-if="!isSettingsTab && !isV2Slots"
       class="panel schedule-toolbar"
       :class="{ 'schedule-toolbar--availability': isAvailabilityTab }"
     >
@@ -287,11 +291,24 @@
       </div>
     </section>
 
-    <div v-if="loading" class="muted" style="margin-top: 8px;">Завантаження...</div>
-    <div v-if="error && !createFormOpen" class="form-error form-error--inline">{{ error }}</div>
+    <div v-if="loading && !isV2Slots" class="muted" style="margin-top: 8px;">Завантаження...</div>
+    <div v-if="error && !createFormOpen && !isV2Slots" class="form-error form-error--inline">{{ error }}</div>
 
-    <div v-if="!isSettingsTab" class="schedule-workspace">
-      <section class="panel calendar-panel" aria-label="Календар">
+    <div v-if="!isSettingsTab" class="schedule-workspace" :class="{ 'schedule-workspace--v2': isV2Slots }">
+      <ScheduleSlotsV2 v-if="isV2Slots" :days="weekDays" :slots="visibleWeekSlots" :week-label="weekRangeLabel"
+        :selected-date="selectedDate" :selected-ids="selectedAvailabilitySlotIds" :filter="slotStatusFilter"
+        :free="weekStatusSummary.free" :booked="weekStatusSummary.booked"
+        :busy="loading || deleteActionLoading" :loading="loading" :error="createFormOpen ? '' : error"
+        :status="availabilityGuidanceStatus" :guidance="availabilityTabHelperText"
+        :empty="showAvailabilityEmptyState" :filtered-empty="availabilityCalendarEmptyMessage"
+        :show-past="showPastSlots" :past-count="hiddenPastWeekSlotsCount" :can-clear="unbookedVisibleWeekSlots.length > 0"
+        :format-time="formatSlotTimeRange" :date-key="toLocalDateKey" :is-past="slot => !isFutureSlot(slot)"
+        :free-label="pluralizeUk(weekStatusSummary.free, 'незайняте', 'незайняті', 'незайнятих')"
+        @shift="shiftWeek" @today="goToToday" @day="selectDay" @create="openV2CreateForm" @select="selectSlot"
+        @toggle="toggleV2AvailabilitySlot" @filter="slotStatusFilter = $event" @past="showPastSlots = !showPastSlots"
+        @clear-selection="clearSelectedAvailabilitySlots" @delete-selection="requestDeleteSelectedAvailabilitySlots"
+        @clear-week="requestClearVisibleWeekAvailabilitySlots" @reload="loadSlots" />
+      <section v-if="!isV2Slots" class="panel calendar-panel" aria-label="Календар">
         <section
           v-if="showAvailabilityEmptyState"
           class="availability-empty-state"
@@ -570,11 +587,13 @@
         </div>
       </section>
 
-      <aside
+      <component :is="isV2Slots ? ScheduleSlotDialogV2 : 'aside'" v-if="!isV2Slots || selectedSlot"
+        v-bind="isV2Slots ? { label: 'Деталі вікна для запису' } : {}" @close="closeV2SlotDetails"
         class="panel slot-detail-panel"
         :class="{ 'slot-detail-panel--calendar': isCalendarTab }"
         aria-label="Деталі вибраного елемента розкладу"
       >
+        <button v-if="isV2Slots" class="pc2-schedule-dialog__close" type="button" aria-label="Закрити" @click="closeV2SlotDetails">×</button>
         <template v-if="isCalendarTab && !selectedScheduleSession">
           <h2 class="panel__title">Деталі події</h2>
           <p class="muted">Оберіть подію в календарі, щоб переглянути деталі.</p>
@@ -781,7 +800,7 @@
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="selectedSlot.is_booked || loading || deleteActionLoading"
-              @click="requestDeleteSlot(selectedSlot.id)"
+              @click="isV2Slots ? requestV2DeleteSlot(selectedSlot.id) : requestDeleteSlot(selectedSlot.id)"
             >
               {{ isSlotDeleting(selectedSlot.id) ? 'Видалення...' : 'Видалити вікно' }}
             </button>
@@ -797,7 +816,7 @@
             Це вікно вже заброньовано - редагування та видалення недоступні.
           </div>
         </template>
-      </aside>
+      </component>
     </div>
 
     <section v-else class="panel settings-panel">
@@ -932,11 +951,13 @@
       />
     </section>
 
-    <section v-if="isAvailabilityTab && createFormOpen" class="panel create-slot-panel">
+    <component :is="isV2Slots ? ScheduleSlotDialogV2 : 'section'" v-if="isAvailabilityTab && createFormOpen"
+      v-bind="isV2Slots ? { label: 'Додати вікно для запису' } : {}" @close="closeCreateForm" class="panel create-slot-panel">
+      <button v-if="isV2Slots" class="pc2-schedule-dialog__close" type="button" aria-label="Закрити" @click="closeCreateForm">×</button>
       <div class="create-slot-panel__intro">
         <h2 class="panel__title">Додати вікно для запису</h2>
         <p class="muted" style="margin: 6px 0 0;">
-          Цей проміжок клієнти зможуть обрати для прямого запису у вашому публічному профілі.
+          {{ isV2Slots ? 'Вікно буде створено після збереження. Публічну доступність визначають налаштування та правила запису.' : 'Цей проміжок клієнти зможуть обрати для прямого запису у вашому публічному профілі.' }}
         </p>
       </div>
       <form ref="createFormRef" class="slot-form slot-form--create" @submit.prevent="createSlot">
@@ -1027,22 +1048,23 @@
           <button class="btn btn--ghost" type="button" @click="closeCreateForm">
             Скасувати
           </button>
-          <button class="btn" type="submit">
+          <button class="btn" type="submit" :disabled="isV2Slots && loading">
             Додати
           </button>
         </div>
         <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
       </form>
-    </section>
+    </component>
 
-    <div
+    <component :is="uiV2 ? ScheduleSlotDialogV2 : 'div'"
+      v-bind="uiV2 ? { label: 'Створити вікна для запису' } : {}" @close="closeFillAvailabilityModal"
       v-if="fillAvailabilityModalOpen"
       class="regular-sessions-modal regular-sessions-modal--smart-fill"
       role="dialog"
       aria-modal="true"
       aria-labelledby="fill-availability-modal-title"
     >
-      <button
+      <button v-if="!uiV2"
         class="regular-sessions-modal__backdrop"
         type="button"
         aria-label="Закрити"
@@ -1167,7 +1189,7 @@
           </div>
         </form>
       </div>
-    </div>
+    </component>
 
     <div
       v-if="regularSessionsModalOpen"
@@ -1628,6 +1650,10 @@ import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
+import { isUiV2 } from '../lib/uiVersion'
+import ScheduleHeroV2 from '../components/schedule/ScheduleHeroV2.vue'
+import ScheduleSlotsV2 from '../components/schedule/ScheduleSlotsV2.vue'
+import ScheduleSlotDialogV2 from '../components/schedule/ScheduleSlotDialogV2.vue'
 
 type Slot = {
   id: number
@@ -1749,6 +1775,7 @@ const router = useRouter()
 const toast = useToast()
 const confirmModal = useConfirmModal()
 const availabilityActionBlockRef = ref<HTMLElement | null>(null)
+const scheduleHeroRef = ref<InstanceType<typeof ScheduleHeroV2> | null>(null)
 const availabilityPrimaryActionRef = ref<HTMLButtonElement | null>(null)
 const availabilityActionAttention = ref(false)
 const availabilityFocusHandled = ref(false)
@@ -1808,12 +1835,12 @@ async function focusAvailabilityActionFromQuery() {
   if (loading.value) return
 
   await nextTick()
-  const actionBlock = availabilityActionBlockRef.value
-  const primaryAction = availabilityPrimaryActionRef.value
+  const actionBlock = isV2Slots.value ? scheduleHeroRef.value?.root : availabilityActionBlockRef.value
+  const primaryAction = isV2Slots.value ? scheduleHeroRef.value?.primaryAction : availabilityPrimaryActionRef.value
   if (!actionBlock || !primaryAction || primaryAction.disabled) return
 
   availabilityFocusHandled.value = true
-  actionBlock.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+  actionBlock.scrollIntoView?.({ behavior: uiV2.value && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' })
   primaryAction.focus()
   availabilityActionAttention.value = true
   clearAvailabilityAttentionTimer()
@@ -2579,6 +2606,8 @@ function isSameWeekRange(left: WeekRange | null, right: WeekRange | null) {
 const weekDateKeys = computed(() => new Set(weekDays.value.map((day) => day.key)))
 const isCalendarTab = computed(() => scheduleTab.value === 'CALENDAR')
 const isAvailabilityTab = computed(() => scheduleTab.value === 'AVAILABILITY')
+const uiV2 = computed(isUiV2)
+const isV2Slots = computed(() => uiV2.value && isAvailabilityTab.value)
 const isSettingsTab = computed(() => scheduleTab.value === 'SETTINGS')
 const bookingModeHelperText = computed(() => (
   publicBookingMode.value === 'direct_booking'
@@ -3327,11 +3356,36 @@ function selectSession(session: ScheduleSession) {
   selectedDate.value = toLocalDateKey(sessionStartAt(session))
 }
 
+function closeV2SlotDetails() {
+  closeDatePicker()
+  cancelEdit()
+  selectedSlotId.value = null
+}
+
+async function requestV2DeleteSlot(id: number) {
+  closeV2SlotDetails()
+  await nextTick()
+  requestDeleteSlot(id)
+}
+
+function toggleV2AvailabilitySlot(slot: Slot) {
+  toggleAvailabilitySlotSelection(slot)
+  selectedSlotId.value = null
+}
+
+function openV2CreateForm(date: string) {
+  selectedDate.value = date
+  newStartDate.value = isoDateToDisplay(date)
+  selectedSlotId.value = null
+  void openCreateForm()
+}
+
 async function openCreateForm() {
   createFormOpen.value = true
   if (!newStartDate.value) newStartDate.value = isoDateToDisplay(selectedDate.value || todayKey)
   if (!newStartTime.value) newStartTime.value = '09:00'
   await nextTick()
+  if (isV2Slots.value) return
   if (typeof createFormRef.value?.scrollIntoView === 'function') {
     createFormRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -4467,6 +4521,10 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.pc2-schedule { gap: 16px; font-family: var(--pc-font); }
+.schedule-workspace.schedule-workspace--v2 { display: block; min-width: 0; }
+@media (max-width: 767px) { .pc2-schedule { margin-inline: -16px; } }
+
 .slots {
   display: flex;
   flex-direction: column;
