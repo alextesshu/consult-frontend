@@ -12,6 +12,7 @@ import {
   updateSpecialistProfile,
 } from '../lib/api'
 import SlotsView from './SlotsView.vue'
+import { applyUiVersion } from '../lib/uiVersion'
 
 const mockRoute = {
   path: '/cabinet/slots',
@@ -113,6 +114,10 @@ function renderView() {
         },
         ConfirmModal: {
           template: '<div data-testid="confirm-modal" />',
+        },
+        ScheduleSlotDialogV2: {
+          props: ['label'],
+          template: '<section role="dialog" :aria-label="label"><slot /></section>',
         },
       },
     },
@@ -274,6 +279,7 @@ function openAvailabilityRoute(query: Record<string, unknown> = { tab: 'availabi
 
 describe('SlotsView', () => {
   beforeEach(() => {
+    applyUiVersion('v1')
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
     mockRoute.path = '/cabinet/slots'
@@ -321,7 +327,104 @@ describe('SlotsView', () => {
   })
 
   afterEach(() => {
+    applyUiVersion('v1')
     vi.useRealTimers()
+  })
+
+  it.each([
+    ['request_only', false, 'Вікна не показуються у публічному профілі.'],
+    ['direct_booking', false, 'Показ вікон у публічному профілі вимкнено.'],
+    ['direct_booking', true, 'Доступність клієнтам визначають правила публічного запису.'],
+  ] as const)('renders v2 persisted windows and truthful guidance for %s / %s', async (mode, visible, copy) => {
+    applyUiVersion('v2')
+    openAvailabilityRoute()
+    mockedFetchSpecialistProfile.mockResolvedValueOnce(publicBookingProfile(visible, mode))
+    mockScheduleApi([
+      { id: 1, start_at: '2026-03-12T11:00:00Z', end_at: '2026-03-12T11:50:00Z', is_booked: false },
+      { id: 2, start_at: '2026-03-12T12:00:00Z', end_at: '2026-03-12T12:50:00Z', is_booked: true },
+    ])
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    expect(container.querySelector('.pc2-schedule-slots')).toBeInTheDocument()
+    expect(container.querySelector('.calendar-panel')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('.pc2-schedule-slots__row')).toHaveLength(2)
+    expect(container.querySelectorAll('.pc2-schedule-slots__choose')).toHaveLength(1)
+    expect(screen.getByRole('note')).toHaveTextContent(copy)
+    expect(screen.getByRole('button', { name: 'Робочі години' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Календар сесій →' })).toHaveAttribute('href', '/cabinet/schedule')
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(mockedApiGet).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses existing v2 creation handler and retains accurate windows after a failed POST', async () => {
+    applyUiVersion('v2')
+    openAvailabilityRoute()
+    mockScheduleApi()
+    const pending = createDeferred<any>()
+    mockedApiPost.mockReturnValueOnce(pending.promise)
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати одне вікно' }))
+    await flushAsyncUpdates()
+    const dialog = screen.getByRole('dialog', { name: 'Додати вікно для запису' })
+    await fireEvent.update(within(dialog).getByLabelText('Дата'), '13.03.2026')
+    await fireEvent.update(within(dialog).getByLabelText('Час початку'), '14:00')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати' }))
+    await flushAsyncUpdates()
+    expect(within(dialog).getByRole('button', { name: 'Додати' })).toBeDisabled()
+    expect(mockedApiPost).toHaveBeenCalledTimes(1)
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/slots/', {
+      start_at: '2026-03-13T12:00:00.000Z', end_at: '2026-03-13T12:50:00.000Z',
+    })
+    pending.reject(new Error('Synthetic create error'))
+    await flushAsyncUpdates()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(container.querySelectorAll('.pc2-schedule-slots__row')).toHaveLength(0)
+    expect(within(dialog).getByText('Synthetic create error')).toBeInTheDocument()
+  })
+
+  it('uses existing bulk confirmation and keeps windows after a rejected DELETE in v2', async () => {
+    applyUiVersion('v2')
+    openAvailabilityRoute()
+    mockScheduleApi([{ id: 1, start_at: '2026-03-12T11:00:00Z', end_at: '2026-03-12T11:50:00Z', is_booked: false }])
+    mockedApiDelete.mockRejectedValueOnce(new Error('Synthetic delete error'))
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Вибрати вікно 13:00–13:50' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Видалити вибрані' }))
+    expect(mockedApiDelete).not.toHaveBeenCalled()
+    await mockConfirmModal.openConfirm.mock.calls.at(-1)?.[0].onConfirm()
+    expect(mockedApiDelete).toHaveBeenCalledWith('/cabinet/slots/1/')
+    expect(container.querySelectorAll('.pc2-schedule-slots__row')).toHaveLength(1)
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+
+  it('distinguishes empty v2 filters from no persisted windows and does not generate on navigation', async () => {
+    applyUiVersion('v2')
+    openAvailabilityRoute()
+    mockScheduleApi([{ id: 1, start_at: '2026-03-12T11:00:00Z', end_at: '2026-03-12T11:50:00Z', is_booked: true }])
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Незайняті' }))
+    expect(screen.getByText('За обраним фільтром вікон немає.')).toBeInTheDocument()
+    expect(screen.queryByText('На цьому тижні ще немає вікон для запису')).not.toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(mockedApiDelete).not.toHaveBeenCalled()
+  })
+
+  it('preserves the v2 focus=create-availability deep link without creating slots', async () => {
+    applyUiVersion('v2')
+    openAvailabilityRoute({ tab: 'availability', focus: 'create-availability', ui: 'v2' })
+    mockScheduleApi()
+    renderView()
+    await vi.waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Створити вікна' })).toHaveFocus()
+    })
+    expect(mockRouter.replace).toHaveBeenCalledWith({ path: '/cabinet/slots', query: { tab: 'availability', ui: 'v2' } })
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('renders schedule as a practice calendar with free-time copy', async () => {
