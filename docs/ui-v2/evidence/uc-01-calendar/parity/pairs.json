@@ -1,0 +1,82 @@
+[
+  {
+    "width": 375,
+    "ui": "v1",
+    "route": "/cabinet/sessions",
+    "baseline": "parity\\baseline-v1-375-cabinet-sessions.png",
+    "control": "parity\\control-v1-375-cabinet-sessions.png",
+    "candidate": "parity\\candidate-v1-375-cabinet-sessions.png"
+  },
+  {
+    "width": 375,
+    "ui": "v1",
+    "route": "/cabinet",
+    "baseline": "parity\\baseline-v1-375-cabinet.png",
+    "control": "parity\\control-v1-375-cabinet.png",
+    "candidate": "parity\\candidate-v1-375-cabinet.png"
+  },
+  {
+    "width": 375,
+    "ui": "v1",
+    "route": "/cabinet/slots",
+    "baseline": "parity\\baseline-v1-375-cabinet-slots.png",
+    "control": "parity\\control-v1-375-cabinet-slots.png",
+    "candidate": "parity\\candidate-v1-375-cabinet-slots.png"
+  },
+  {
+    "width": 375,
+    "ui": "v2",
+    "route": "/cabinet",
+    "baseline": "parity\\baseline-v2-375-cabinet.png",
+    "control": "parity\\control-v2-375-cabinet.png",
+    "candidate": "parity\\candidate-v2-375-cabinet.png"
+  },
+  {
+    "width": 375,
+    "ui": "v2",
+    "route": "/cabinet/slots",
+    "baseline": "parity\\baseline-v2-375-cabinet-slots.png",
+    "control": "parity\\control-v2-375-cabinet-slots.png",
+    "candidate": "parity\\candidate-v2-375-cabinet-slots.png"
+  },
+  {
+    "width": 1280,
+    "ui": "v1",
+    "route": "/cabinet/sessions",
+    "baseline": "parity\\baseline-v1-1280-cabinet-sessions.png",
+    "control": "parity\\control-v1-1280-cabinet-sessions.png",
+    "candidate": "parity\\candidate-v1-1280-cabinet-sessions.png"
+  },
+  {
+    "width": 1280,
+    "ui": "v1",
+    "route": "/cabinet",
+    "baseline": "parity\\baseline-v1-1280-cabinet.png",
+    "control": "parity\\control-v1-1280-cabinet.png",
+    "candidate": "parity\\candidate-v1-1280-cabinet.png"
+  },
+  {
+    "width": 1280,
+    "ui": "v1",
+    "route": "/cabinet/slots",
+    "baseline": "parity\\baseline-v1-1280-cabinet-slots.png",
+    "control": "parity\\control-v1-1280-cabinet-slots.png",
+    "candidate": "parity\\candidate-v1-1280-cabinet-slots.png"
+  },
+  {
+    "width": 1280,
+    "ui": "v2",
+    "route": "/cabinet",
+    "baseline": "parity\\baseline-v2-1280-cabinet.png",
+    "control": "parity\\control-v2-1280-cabinet.png",
+    "candidate": "parity\\candidate-v2-1280-cabinet.png"
+  },
+  {
+    "width": 1280,
+    "ui": "v2",
+    "route": "/cabinet/slots",
+    "baseline": "parity\\baseline-v2-1280-cabinet-slots.png",
+    "control": "parity\\control-v2-1280-cabinet-slots.png",
+    "candidate": "parity\\candidate-v2-1280-cabinet-slots.png"
+  }
+]

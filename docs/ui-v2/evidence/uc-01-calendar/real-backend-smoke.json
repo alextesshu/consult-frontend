@@ -1,0 +1,38 @@
+{
+  "result": {
+    "title": "19 – 25 жовтня",
+    "events": [
+      "22:00–22:50, Сесія, uc01-smoke-client, Завершено, Без нотатки",
+      "02:00–02:50, Сесія, uc01-smoke-client, Підтверджено, Перетинається із зовнішньою гостьовою сесією — система це не блокує",
+      "03:00–03:50, Вільне вікно, Вільне вікно"
+    ],
+    "sessionLinks": [
+      "/cabinet/sessions/2",
+      "/cabinet/sessions/1"
+    ],
+    "hidden": "Приховано:Зовнішні гостьові сесії — 1Показати",
+    "warning": null,
+    "error": null
+  },
+  "externalShown": 1,
+  "conflicts": 2,
+  "calendarRequests": [
+    "GET /api/booking/sessions/",
+    "GET /api/booking/sessions/",
+    "GET /api/chat/threads/",
+    "POST /api/auth/token/refresh/",
+    "GET /api/me/",
+    "GET /api/notifications/",
+    "GET /api/me/",
+    "GET /api/cabinet/work-queue/",
+    "GET /api/booking/sessions/",
+    "GET /api/chat/unread-count/",
+    "GET /api/cabinet/schedule/",
+    "GET /api/booking/sessions/",
+    "GET /api/cabinet/sessions/reschedule-requests/",
+    "GET /api/cabinet/availability-exceptions/",
+    "GET /api/cabinet/external-sessions/"
+  ],
+  "writes": [],
+  "errors": []
+}
