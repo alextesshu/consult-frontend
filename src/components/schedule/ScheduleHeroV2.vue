@@ -14,16 +14,15 @@
     </div>
     <nav class="pc2-schedule-hero__nav" aria-label="Керування розкладом">
       <RouterLink to="/cabinet/slots?tab=availability" aria-label="Вікна для запису" :aria-current="active === 'slots' ? 'page' : undefined"><span class="pc2-schedule-hero__wide">Вікна для запису</span><span class="pc2-schedule-hero__compact">Вікна</span></RouterLink>
-      <button type="button" disabled aria-label="Робочі години" aria-describedby="schedule-rules-deferred"><span class="pc2-schedule-hero__wide">Робочі години</span><span class="pc2-schedule-hero__compact">Години</span></button>
-      <RouterLink to="/cabinet/availability-exceptions">Відпустка</RouterLink>
+      <RouterLink to="/cabinet/slots?tab=rules" aria-label="Робочі години" :aria-current="active === 'rules' ? 'page' : undefined"><span class="pc2-schedule-hero__wide">Робочі години</span><span class="pc2-schedule-hero__compact">Години</span></RouterLink>
+      <RouterLink to="/cabinet/availability-exceptions" :aria-current="active === 'vacation' ? 'page' : undefined">Відпустка</RouterLink>
     </nav>
-    <p id="schedule-rules-deferred" class="pc2-schedule-hero__deferred">Редактор робочих годин поки недоступний у цьому інтерфейсі.</p>
   </header>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-defineProps<{ active: 'slots' | 'calendar' | 'settings'; title: string; subtitle: string; busy: boolean }>()
+defineProps<{ active: 'slots' | 'calendar' | 'settings' | 'rules' | 'vacation'; title: string; subtitle: string; busy: boolean }>()
 defineEmits<{ fill: [] }>()
 const root = ref<HTMLElement | null>(null)
 const primaryAction = ref<HTMLButtonElement | null>(null)

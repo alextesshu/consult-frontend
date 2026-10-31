@@ -1,5 +1,6 @@
 ﻿<template>
-  <section class="slots" :class="{ 'pc2-schedule': uiV2 }">
+  <AvailabilityRulesView v-if="uiV2 && route.query.tab === 'rules'" />
+  <section v-else class="slots" :class="{ 'pc2-schedule': uiV2 }">
     <ScheduleHeroV2 v-if="uiV2" ref="scheduleHeroRef" :active="isAvailabilityTab ? 'slots' : isSettingsTab ? 'settings' : 'calendar'"
       :title="isAvailabilityTab ? 'Вікна для запису' : isSettingsTab ? 'Запис і запити' : 'Календар сесій'"
       :subtitle="isAvailabilityTab ? weekRangeLabel : 'Сесії, вікна та налаштування запису залишаються окремими діями.'"
@@ -1623,6 +1624,7 @@
 </template>
 
 <script setup lang="ts">
+import AvailabilityRulesView from './AvailabilityRulesView.vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -2929,6 +2931,14 @@ watch(
   () => [route.path, route.query.tab],
   () => {
     setScheduleTab(scheduleTabFromRoute())
+    if (uiV2.value && route.query.tab === 'rules') {
+      scheduleLoadRequestId++
+      createFormOpen.value = false
+      selectedSlotId.value = null
+    } else if (uiV2.value) {
+      void loadSlots()
+      void loadPublicBookingSettings()
+    }
   }
 )
 
@@ -4507,6 +4517,7 @@ function requestClearVisibleWeekAvailabilitySlots() {
 onMounted(() => {
   document.addEventListener('pointerdown', handleDocumentPointerDown)
   document.addEventListener('keydown', handleDocumentKeydown)
+  if (uiV2.value && route.query.tab === 'rules') return
   void loadSlots()
   void loadPublicBookingSettings()
   openOneOffSessionFromRouteAction()

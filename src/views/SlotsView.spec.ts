@@ -350,7 +350,7 @@ describe('SlotsView', () => {
     expect(container.querySelectorAll('.pc2-schedule-slots__row')).toHaveLength(2)
     expect(container.querySelectorAll('.pc2-schedule-slots__choose')).toHaveLength(1)
     expect(screen.getByRole('note')).toHaveTextContent(copy)
-    expect(screen.getByRole('button', { name: 'Робочі години' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Робочі години' })).toHaveAttribute('href', '/cabinet/slots?tab=rules')
     expect(screen.getByRole('link', { name: 'Календар сесій →' })).toHaveAttribute('href', '/cabinet/schedule')
     expect(mockedApiPost).not.toHaveBeenCalled()
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
