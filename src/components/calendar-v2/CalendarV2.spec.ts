@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { defineComponent } from 'vue'
+import { defineComponent, nextTick } from 'vue'
+import { createPinia, getActivePinia, setActivePinia } from 'pinia'
+import { useAuthStore } from '../../stores/auth'
 import { apiGet, fetchAvailabilityExceptions, fetchExternalSessions, getCabinetSchedule } from '../../lib/api'
 import { fetchSpecialistRescheduleRequests } from '../../lib/specialistSessions'
 import * as api from '../../lib/api'
@@ -61,12 +63,14 @@ function makeRouter() {
 async function renderCalendar() {
   const router = makeRouter()
   await router.push('/cabinet/sessions')
-  const result = render(CalendarV2, { props: { now: () => NOW }, global: { plugins: [router] } })
+  const result = render(CalendarV2, { props: { now: () => NOW }, global: { plugins: [getActivePinia()!, router] } })
   return { ...result, router }
 }
 
 describe('CalendarV2 (read-only unified calendar)', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
+    useAuthStore().$patch({ accessToken: 'synthetic-token', authResolved: true, user: { id: 101, username: 'synthetic-specialist', email: null } })
     clearCalendarFeedShare()
     Object.values(mocked).forEach((mock) => mock.mockReset())
     mocked.schedule.mockResolvedValue({ events: SCHEDULE as never })
@@ -175,6 +179,24 @@ describe('CalendarV2 (read-only unified calendar)', () => {
     expect(slot).toHaveFocus()
   })
 
+  it('clears sensitive chips and open details on logout while remaining mounted', async () => {
+    await renderCalendar()
+    await screen.findByRole('link', { name: /Ірина Ткаченко/ })
+    await fireEvent.click(screen.getByRole('button', { name: /Заявка на час/ }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    useAuthStore().logout()
+    await nextTick()
+    expect(screen.queryByRole('link', { name: /Ірина Ткаченко/ })).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByText('Завантажуємо календар…')).toBeNull()
+    mocked.schedule.mockResolvedValue({ events: [] })
+    mocked.apiGet.mockResolvedValue([{ ...SESSIONS[0], id: 20, client_display_name: 'Synthetic B' }])
+    useAuthStore().$patch({ accessToken: 'synthetic-b', authResolved: true, user: { id: 202, username: 'specialist-b', email: null } })
+    expect(await screen.findByRole('link', { name: /Synthetic B/ })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Ірина Ткаченко/ })).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   it('never offers mutations and only reads data', async () => {
     await renderCalendar()
     await screen.findByRole('link', { name: /Ірина Ткаченко/ })
@@ -210,6 +232,8 @@ describe('CalendarV2 (read-only unified calendar)', () => {
 
 describe('CalendarV2 on phones', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
+    useAuthStore().$patch({ accessToken: 'synthetic-token', authResolved: true, user: { id: 101, username: 'synthetic-specialist', email: null } })
     clearCalendarFeedShare()
     Object.values(mocked).forEach((mock) => mock.mockReset())
     mocked.schedule.mockResolvedValue({ events: SCHEDULE as never })

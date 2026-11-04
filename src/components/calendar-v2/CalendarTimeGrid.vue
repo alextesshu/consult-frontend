@@ -92,11 +92,11 @@ const segments = computed(() =>
 )
 
 const startHour = computed(() => {
-  const earliest = Math.min(...segments.value.flatMap((day) => day.timed.map((entry) => entry.startMinute)), 8 * 60)
+  const earliest = Math.min(...segments.value.flatMap((day) => [...day.timed, ...day.absences.filter((entry) => !entry.item.allDay)].map((entry) => entry.startMinute)), 8 * 60)
   return Math.max(0, Math.floor(earliest / 60))
 })
 const endHour = computed(() => {
-  const latest = Math.max(...segments.value.flatMap((day) => day.timed.map((entry) => entry.endMinute)), 20 * 60)
+  const latest = Math.max(...segments.value.flatMap((day) => [...day.timed, ...day.absences.filter((entry) => !entry.item.allDay)].map((entry) => entry.endMinute)), 20 * 60)
   return Math.min(24, Math.ceil(latest / 60))
 })
 const hours = computed(() => Array.from({ length: endHour.value - startHour.value + 1 }, (_, index) => startHour.value + index))

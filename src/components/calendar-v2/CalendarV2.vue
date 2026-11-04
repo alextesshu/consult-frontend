@@ -185,7 +185,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { CALENDAR_SOURCE_LABELS, useCalendarFeed } from '../../composables/useCalendarFeed'
 import {
@@ -339,6 +339,13 @@ function closeDetails() {
   detailsTrigger?.focus()
   detailsTrigger = null
 }
+// Details must not retain a snapshot after its authenticated feed has been cleared.
+watch(items, (current) => {
+  if (selected.value && !current.some((item) => item.key === selected.value?.key)) {
+    selected.value = null
+    detailsTrigger = null
+  }
+}, { flush: 'sync' })
 const detailsTime = computed(() => {
   const item = selected.value
   if (!item) return ''

@@ -1,4 +1,5 @@
-import { ref, shallowRef, watch, type Ref } from 'vue'
+import { computed, getCurrentScope, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
+import { useAuthStore } from '../stores/auth'
 import { apiGet, fetchAvailabilityExceptions, fetchExternalSessions, getCabinetSchedule } from '../lib/api'
 import { buildCalendarItems, type CalendarItem, type CalendarSessionRow, type CalendarSources } from '../lib/calendarItems'
 import { fetchSpecialistRescheduleRequests } from '../lib/specialistSessions'
@@ -20,23 +21,37 @@ const CORE_SOURCES: CalendarFeedSource[] = ['schedule', 'sessions']
 
 type Range = { start: number; end: number }
 
-// Loads of the same range within a few seconds share one set of requests, e.g. when the cabinet
-// shell remounts the route view right after /me/ resolves. Retry always goes to the network.
+// Request sharing belongs to one Pinia auth store and one authenticated session.
+// Replacing a scope also makes pending promises from that scope ineligible for publication.
 const SHARE_WINDOW_MS = 5000
-const recent = new Map<string, { promise: Promise<PromiseSettledResult<unknown>[]>; startedAt: number }>()
+type SharedScope = {
+  identity: string | null
+  recent: Map<string, { promise: Promise<PromiseSettledResult<unknown>[]>; startedAt: number }>
+}
+let sharedScopes = new WeakMap<ReturnType<typeof useAuthStore>, SharedScope>()
 
-function loadSources(range: Range, force: boolean): Promise<PromiseSettledResult<unknown>[]> {
+function getSharedScope(auth: ReturnType<typeof useAuthStore>, identity: string | null) {
+  let scope = sharedScopes.get(auth)
+  if (!scope || scope.identity !== identity) {
+    scope?.recent.clear()
+    scope = { identity, recent: new Map() }
+    sharedScopes.set(auth, scope)
+  }
+  return scope
+}
+
+function loadSources(scope: SharedScope, range: Range, force: boolean): Promise<PromiseSettledResult<unknown>[]> {
   const key = `${range.start}:${range.end}`
-  const entry = recent.get(key)
+  const entry = scope.recent.get(key)
   if (!force && entry && Date.now() - entry.startedAt < SHARE_WINDOW_MS) return entry.promise
   const promise = requestSources(range)
-  recent.set(key, { promise, startedAt: Date.now() })
+  scope.recent.set(key, { promise, startedAt: Date.now() })
   return promise
 }
 
-/** Forget shared results (tests, or after an explicit sign-out). */
+/** Invalidate request sharing, including pending results, without retaining auth stores. */
 export function clearCalendarFeedShare() {
-  recent.clear()
+  sharedScopes = new WeakMap()
 }
 
 function requestSources(range: Range): Promise<PromiseSettledResult<unknown>[]> {
@@ -60,6 +75,12 @@ const SOURCE_ORDER: CalendarFeedSource[] = ['schedule', 'sessions', 'rescheduleR
  * loaded before is shown from memory while it refreshes. No writes of any kind.
  */
 export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number } = {}) {
+  const auth = useAuthStore()
+  const identity = computed(() => {
+    const id = auth.user?.id
+    if (!auth.authResolved || !auth.accessToken || !Number.isSafeInteger(id) || !id || id <= 0) return null
+    return `${auth.authEpoch}:${id}`
+  })
   const now = options.now ?? (() => Date.now())
   const items = shallowRef<CalendarItem[]>([])
   const status = ref<CalendarFeedStatus>('idle')
@@ -68,6 +89,9 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
   let sequence = 0
 
   async function load({ force = false } = {}) {
+    const account = identity.value
+    const scope = getSharedScope(auth, account)
+    if (!account) return
     const current = range.value
     const key = `${current.start}:${current.end}`
     const request = ++sequence
@@ -81,8 +105,8 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
       status.value = 'loading'
     }
 
-    const results = await loadSources(current, force)
-    if (request !== sequence) return
+    const results = await loadSources(scope, current, force)
+    if (request !== sequence || identity.value !== account || sharedScopes.get(auth) !== scope) return
 
     const sources: Partial<CalendarSources> = {}
     const failed: CalendarFeedSource[] = []
@@ -103,7 +127,27 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
     status.value = 'ready'
   }
 
-  watch(range, () => void load(), { immediate: true })
+  const stop = watch([identity, range], ([account], previous) => {
+    const invalidation = ++sequence
+    if (!previous || account !== previous[0]) {
+      cache.clear()
+      items.value = []
+      failedSources.value = []
+      status.value = 'idle'
+      getSharedScope(auth, account)
+    }
+    // Clear synchronously, then start only the latest request after a multi-field auth action.
+    // beginAuthEpoch() changes the epoch before clearing authResolved. A generation check
+    // also handles A -> B -> A or a range round-trip within the same synchronous action.
+    if (!previous?.length) void load()
+    else queueMicrotask(() => {
+      if (invalidation === sequence) void load()
+    })
+  }, { immediate: true, flush: 'sync' })
+  if (getCurrentScope()) onScopeDispose(() => {
+    sequence += 1
+    stop()
+  })
 
   return { items, status, failedSources, retry: () => load({ force: true }) }
 }
