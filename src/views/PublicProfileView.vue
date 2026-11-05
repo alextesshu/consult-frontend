@@ -58,8 +58,9 @@
         </PublicProfileHeroSection>
       </section>
 
-      <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (compactProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep" @keydown="handleProfileRequestKeydown">
+      <div ref="profileBookingColumnRef" class="public__booking-column" :class="{ 'pc2-profile-booking-column': uiV2, 'pc2-profile-booking-column--flow': uiV2 && profileContactsNeedFlow }">
+      <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-mobile-content') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
+      <aside class="public__sidebar" :class="{ 'pc2-request-panel': uiV2, 'pc2-request-panel--contact': uiV2 && (showGuestBookingModal || (phoneProfile && (showClientBookingConfirmModal || showBookingModal))), 'is-highlighted': uiV2 && profileHighlighted, 'pc2-request-panel--guest-slots': uiV2 && publicDirectBookingEnabled && !canMessageSpecialist && !showClientSessionsCta }" :aria-label="uiV2 ? 'Запит до спеціаліста' : undefined" @focusin="syncProfileRequestStep" @keydown="handleProfileRequestKeydown">
         <ol v-if="uiV2" class="pc2-profile-steps" aria-label="Кроки запиту">
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'offer' ? 'step' : undefined">1. Послуга</li>
           <li :aria-current="!showGuestBookingModal && profilePickStep === 'time' ? 'step' : undefined">2. Час</li>
@@ -79,8 +80,8 @@
           :standard-session-duration-label="standardSessionDurationLabel"
           :couple-price-display="couplePriceDisplay"
           :couple-duration-label="coupleDurationLabel"
-          :selected-offer-type="selectedPublicOfferType || defaultGuestBookingOfferType"
-          :show-contact-actions="showDirectContactActions"
+          :selected-offer-type="uiV2 ? selectedPublicOfferType : selectedPublicOfferType || defaultGuestBookingOfferType"
+          :show-contact-actions="uiV2 ? false : showDirectContactActions"
           :contact-actions="contactActions"
           :copied-contact-id="copiedContactId"
           :show-chat-cta="canMessageSpecialist"
@@ -122,6 +123,13 @@
         <div v-show="uiV2" id="pc2-profile-contact"></div>
       </aside>
       </Teleport>
+        <PublicProfileExternalContacts
+          v-if="uiV2 && !phoneProfile && showDirectContactActions"
+          :contact-actions="contactActions"
+          :copied-contact-id="copiedContactId"
+          @copy-contact-action="copyPublicContactValue"
+        />
+      </div>
 
       <section class="public__grid">
         <nav v-if="uiV2" class="pc2-profile-nav" aria-label="Розділи профілю">
@@ -217,6 +225,7 @@
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
             <h2 class="panel__title">{{ uiV2 ? 'Вільні вікна' : 'Оберіть час для запиту' }}</h2>
+            <p v-if="uiV2" class="pc2-profile-timezone">{{ slotTimeZoneLabel }}</p>
             <p class="panel__lead">Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.</p>
           </div>
           <div v-if="showSlotHeaderActions" class="slot-request-actions">
@@ -375,7 +384,7 @@
             class="slot-card"
             :class="{ 'slot-card--busy': isSlotBusy(slot.id) }"
             type="button"
-            :aria-label="slotActionLabel(slot.id)"
+            :aria-label="uiV2 ? `${formatSlotTime(slot.start_at)} — ${slotActionLabel(slot.id)}` : slotActionLabel(slot.id)"
             :disabled="isSlotBusy(slot.id)"
             @click="handleProfileBookingClick(slot.id)"
           >
@@ -517,9 +526,19 @@
         :faq-items="faqItems"
       />
 
+      <PublicProfileExternalContacts
+        v-if="uiV2 && phoneProfile && showDirectContactActions"
+        :contact-actions="contactActions"
+        :copied-contact-id="copiedContactId"
+        @copy-contact-action="copyPublicContactValue"
+      />
+
       <PublicProfileFinalCtaSection
         v-if="showFinalCta"
         class="public__final-cta"
+        :ui-v2="uiV2"
+        :title="profileFinalCtaTitle"
+        :offers-summary="profileOffersSummary"
         :closing-cta-support-line="closingCtaSupportLine"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
         :closing-primary-label="uiV2 ? profilePrimaryLabel : closingPrimaryLabel"
@@ -539,8 +558,8 @@
     </section>
 
     <template v-if="uiV2 && profile && !loading && !error && !ownerUnpublishedProfile">
-      <div v-if="compactProfile" class="pc2-profile-bottom-bar">
-        <div><strong v-if="mobileProfilePrice">{{ mobileProfilePrice }}</strong><span>{{ mobileProfileAvailability }}</span></div>
+      <div v-if="phoneProfile" ref="profileBottomBarRef" class="pc2-profile-bottom-bar">
+        <div><span v-if="mobileProfileContext">{{ mobileProfileContext }}</span><strong v-if="mobileProfileHeadline">{{ mobileProfileHeadline }}</strong></div>
         <button class="pc2-profile-mobile-cta pc2-btn pc2-btn--primary" type="button" aria-haspopup="dialog" :aria-expanded="profileSheetOpen" @click="openProfileRequestSheet">{{ profilePrimaryLabel }}</button>
       </div>
     </template>
@@ -612,7 +631,21 @@
       </div>
     </div>
 
-    <div v-if="showProfileVideoModal && profileVideoUrl" class="setting-modal">
+    <PublicProfileOverlay v-if="uiV2 && profileVideoUrl" v-model:open="showProfileVideoModal" kind="video" title="Відеовізитка" title-id="pc2-profile-video-title" :anchor="profileVideoTrigger" class="setting-modal">
+      <template v-if="showProfileVideoModal">
+        <div class="setting-modal__backdrop" @click="closeProfileVideoModal"></div>
+        <div class="setting-modal__content profile-video-modal">
+          <div class="setting-modal__header">
+            <h3 id="pc2-profile-video-title">Відеовізитка</h3>
+            <button class="btn btn--ghost btn--sm" type="button" data-video-initial-focus @click="closeProfileVideoModal">Закрити</button>
+          </div>
+          <div class="setting-modal__body">
+            <video class="profile-video-modal__player" :src="profileVideoUrl" controls autoplay preload="metadata"></video>
+          </div>
+        </div>
+      </template>
+    </PublicProfileOverlay>
+    <div v-if="!uiV2 && showProfileVideoModal && profileVideoUrl" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeProfileVideoModal"></div>
       <div class="setting-modal__content profile-video-modal">
         <div class="setting-modal__header">
@@ -921,8 +954,8 @@
 
     </Teleport>
 
-    <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-    <div v-if="showClientBookingConfirmModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && compactProfile }">
+    <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
+    <div v-if="showClientBookingConfirmModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && phoneProfile }">
       <div class="setting-modal__backdrop" @click="closeClientBookingConfirmModal"></div>
       <div class="setting-modal__content booking-confirm-modal">
         <div class="setting-modal__header">
@@ -980,8 +1013,8 @@
     </div>
     </Teleport>
 
-    <Teleport :to="uiV2 && compactProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !compactProfile || !profileTargetsReady">
-    <div v-if="showBookingModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && compactProfile }">
+    <Teleport :to="uiV2 && phoneProfile && profileTargetsReady ? profileTeleportTarget('pc2-profile-contact') : 'body'" :disabled="!uiV2 || !phoneProfile || !profileTargetsReady">
+    <div v-if="showBookingModal" class="setting-modal" :class="{ 'pc2-profile-inline': uiV2 && phoneProfile }">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
         <div class="setting-modal__header">
@@ -1044,6 +1077,8 @@ import { useRoute, useRouter } from 'vue-router'
 import PublicProfileAboutSection from '../components/public-profile/PublicProfileAboutSection.vue'
 import PublicProfileFaqSection from '../components/public-profile/PublicProfileFaqSection.vue'
 import PublicProfileFinalCtaSection from '../components/public-profile/PublicProfileFinalCtaSection.vue'
+import PublicProfileExternalContacts from '../components/public-profile/PublicProfileExternalContacts.vue'
+import { displayTimeZoneLabel } from '../lib/displayTimezone'
 import PublicProfileHeroSection from '../components/public-profile/PublicProfileHeroSection.vue'
 import PublicProfileIdentityRail from '../components/public-profile/PublicProfileIdentityRail.vue'
 import PublicProfileJournalPreviewSection from '../components/public-profile/PublicProfileJournalPreviewSection.vue'
@@ -1135,16 +1170,19 @@ const { highlighted: profileHighlighted, highlight: highlightProfilePanel } = us
 let requestAfterAbout = false
 let profileShareAttempt = 0
 const compactProfile = ref(false)
+// Booking presentation is phone-only; retain the 860px compact contract elsewhere.
+const phoneProfile = ref(false)
 const profileTargetsReady = ref(false)
 const profileSheetOpen = ref(false)
 const profileCalendarOpen = ref(false)
 const profileRulesOpen = ref(false)
 const profilePickStep = ref<'offer' | 'time'>('offer')
 let profileMedia: MediaQueryList | undefined
+let profilePhoneMedia: MediaQueryList | undefined
 
 function syncProfileRequestStep(event: FocusEvent) {
   if (!uiV2.value || !(event.target instanceof HTMLElement)) return
-  if (!compactProfile.value && event.target.closest('.pc2-profile-inline')) {
+  if (!phoneProfile.value && event.target.closest('.pc2-profile-inline')) {
     const panel = event.target.closest<HTMLElement>('.pc2-request-panel')
     if (panel) revealProfilePanelTarget(panel, event.target)
   }
@@ -1152,7 +1190,7 @@ function syncProfileRequestStep(event: FocusEvent) {
   else if (event.target.closest('.identity-rail__services')) profilePickStep.value = 'offer'
 }
 function handleProfileRequestKeydown(event: KeyboardEvent) {
-  if (!uiV2.value || compactProfile.value || !(event.currentTarget instanceof HTMLElement)) return
+  if (!uiV2.value || phoneProfile.value || !(event.currentTarget instanceof HTMLElement)) return
   handleProfilePanelTab(event.currentTarget, event)
 }
 function profileTeleportTarget(id: string) {
@@ -1161,22 +1199,25 @@ function profileTeleportTarget(id: string) {
 function syncProfileViewport() {
   requestAfterAbout = false
   compactProfile.value = profileMedia?.matches ?? false
+  phoneProfile.value = profilePhoneMedia?.matches ?? false
   closeProfileRequestSheet()
   showAboutModal.value = false
   profileShareDialogOpen.value = false
 }
 function openProfileRequestSheet() {
-  if (!uiV2.value || !compactProfile.value) return
+  if (!uiV2.value || !phoneProfile.value) return
   profileSheetOpen.value = true
 }
 function closeProfileRequestSheet() { profileSheetOpen.value = false }
 function handleProfileBookingClick(slotId: number) {
-  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (uiV2.value && phoneProfile.value) openProfileRequestSheet()
   return handleBookingClick(slotId)
 }
 onMounted(() => {
   profileMedia = window.matchMedia?.('(max-width: 859px)')
   profileMedia?.addEventListener('change', syncProfileViewport)
+  profilePhoneMedia = window.matchMedia?.('(max-width: 767px)')
+  profilePhoneMedia?.addEventListener('change', syncProfileViewport)
   syncProfileViewport()
 })
 
@@ -1406,6 +1447,7 @@ const guestBookingRulesAccepted = ref(false)
 const showContactChooserModal = ref(false)
 const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
 const showProfileVideoModal = ref(false)
+const profileVideoTrigger = ref<HTMLElement | null>(null)
 const showAboutModal = ref(false)
 const copiedContactId = ref('')
 let contactActionFallbackTimer: number | null = null
@@ -1734,10 +1776,12 @@ const railRequestCtaLabel = computed(() =>
     ? REQUEST_WITHOUT_SLOT_CTA_LABEL
     : REQUEST_GENERIC_CTA_LABEL
 )
+// The recovery resolver also returns `request` for request_only profiles, where availability
+// is not public by configuration: only a direct-booking profile without slots has "no windows".
 const railRequestHelperText = computed(() =>
   showAvailabilityErrorRequestFallback.value
     ? AVAILABILITY_ERROR_REQUEST_HELPER_TEXT
-    : showDirectBookingRequestFallback.value
+    : showDirectBookingRequestFallback.value && publicDirectBookingEnabled.value
       ? NO_SLOTS_REQUEST_HELPER_TEXT
       : REQUEST_CTA_HELPER_TEXT
 )
@@ -1883,6 +1927,7 @@ const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: strin
 })
 
 const profileVideoUrl = computed(() => heroMediaProfile.value?.video_url || '')
+watch(profileVideoUrl, url => { if (!url) closeProfileVideoModal() })
 
 function firstFilledText(...values: Array<string | null | undefined>) {
   return values
@@ -2554,9 +2599,86 @@ const mobileProfilePrice = computed(() => {
   const currencies = new Set(prices.map(price => price.replace(/[\d\s.,]/g, '')))
   return currencies.size === 1 ? prices.slice().sort((a, b) => Number(a.replace(/[^\d.]/g, '')) - Number(b.replace(/[^\d.]/g, '')))[0] : priceDisplay.value
 })
-const mobileProfileAvailability = computed(() => {
-  const slot = publicDirectBookingEnabled.value ? slots.value[0] : null
-  return slot ? `Доступне вікно: ${formatDate(slot.start_at)}` : 'Час узгодимо'
+// UI v2 copy around the unchanged booking state. Prices never imply a selection: with several
+// different prices the minimum is shown as «від …». Wording is neutral (no name forms or pronouns).
+const profileOfferPrices = computed(() => availableGuestRequestOffers.value.map((offer) => offer.priceDisplay).filter(Boolean))
+const profileMinPriceLabel = computed(() => {
+  if (!mobileProfilePrice.value) return ''
+  return new Set(profileOfferPrices.value).size > 1 ? `від ${mobileProfilePrice.value}` : mobileProfilePrice.value
+})
+// Only an explicit choice counts as selected. Before it, slot compatibility still follows the
+// first offer (selectedPublicOffer), but nothing on screen presents that as the visitor's choice.
+const explicitPublicOffer = computed(() =>
+  availableGuestRequestOffers.value.find((offer) => offer.type === selectedPublicOfferType.value) || null
+)
+const profileOffersSummary = computed(() => {
+  const offers = availableGuestRequestOffers.value
+  if (!offers.length) return ''
+  const chosen = explicitPublicOffer.value
+  if (chosen) return [chosen.label, chosen.durationLabel, chosen.priceDisplay].filter(Boolean).join(' · ')
+  if (offers.length === 1) {
+    return [offers[0]!.label, offers[0]!.priceDisplay, offers[0]!.durationLabel].filter(Boolean).join(' · ')
+  }
+  const count = offers.length
+  const noun = count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20) ? 'формати' : 'форматів'
+  return [`${count} ${noun}`, profileMinPriceLabel.value].filter(Boolean).join(' · ')
+})
+const profileTimeIsBookable = computed(() => publicDirectBookingEnabled.value && !usesPublicRequestFlow.value)
+const mobileProfileContext = computed(() => {
+  const chosen = explicitPublicOffer.value
+  if (chosen) {
+    // The price leads when the headline does not carry it, so a narrow bar truncates the label, not the price.
+    return profileTimeIsBookable.value
+      ? [chosen.label, chosen.durationLabel].filter(Boolean).join(' · ')
+      : [chosen.priceDisplay, chosen.label].filter(Boolean).join(' · ')
+  }
+  if (profileTimeIsBookable.value) {
+    const format = meetingFormatLabel.value ? meetingFormatLabel.value.toLocaleLowerCase('uk-UA') : ''
+    return format ? `Консультації ${format}` : 'Консультації'
+  }
+  return profileMinPriceLabel.value
+})
+const mobileProfileHeadline = computed(() => {
+  if (profileTimeIsBookable.value) return explicitPublicOffer.value?.priceDisplay || profileMinPriceLabel.value
+  if (showAvailabilityErrorRequestFallback.value) return 'Вільний час не завантажився'
+  if (publicDirectBookingEnabled.value) return 'Вільного часу зараз немає'
+  return 'Час — після запиту'
+})
+const profileFinalCtaTitle = computed(() => {
+  if (canMessageSpecialist.value) return ''
+  return profileTimeIsBookable.value ? 'Оберіть час для консультації' : 'Залиште запит'
+})
+const slotTimeZoneLabel = displayTimeZoneLabel()
+
+// The fixed phone bar must not cover the shared footer at the end of the page: while it is shown,
+// the body gets bottom clearance equal to the bar's height (page-scoped; the previous inline value
+// is restored when the bar goes away or the page unmounts).
+const profileBottomBarRef = ref<HTMLElement | null>(null)
+let profileBottomBarObserver: ResizeObserver | null = null
+let bodyPaddingBeforeBar: string | null = null
+function releaseProfileBottomBarClearance() {
+  if (bodyPaddingBeforeBar === null) return
+  document.body.style.paddingBottom = bodyPaddingBeforeBar
+  bodyPaddingBeforeBar = null
+}
+function syncProfileBottomBarClearance() {
+  const bar = profileBottomBarRef.value
+  if (!bar) return releaseProfileBottomBarClearance()
+  if (bodyPaddingBeforeBar === null) bodyPaddingBeforeBar = document.body.style.paddingBottom
+  document.body.style.paddingBottom = `${Math.ceil(bar.getBoundingClientRect().height)}px`
+}
+watch(profileBottomBarRef, (bar) => {
+  profileBottomBarObserver?.disconnect()
+  profileBottomBarObserver = null
+  if (bar && typeof ResizeObserver !== 'undefined') {
+    profileBottomBarObserver = new ResizeObserver(syncProfileBottomBarClearance)
+    profileBottomBarObserver.observe(bar)
+  }
+  syncProfileBottomBarClearance()
+}, { flush: 'post' })
+onBeforeUnmount(() => {
+  profileBottomBarObserver?.disconnect()
+  releaseProfileBottomBarClearance()
 })
 
 function slotDurationMinutes(slot: PublicSlot | null) {
@@ -2988,6 +3110,31 @@ const faqItems = computed<PublicFaqItemView[]>(() => resolveSectionFaqItems())
 const mediaItems = computed<PublicMediaItemView[]>(() => resolveSectionMediaItems())
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
+const profileBookingColumnRef = ref<HTMLElement | null>(null)
+const profileContactsNeedFlow = ref(false)
+let profileContactsObserver: ResizeObserver | null = null
+function syncProfileContactsFlow() {
+  const card = profileBookingColumnRef.value?.querySelector<HTMLElement>('.pc2-profile-contacts')
+  // Reserve at least half the usable desktop viewport for booking. Taller contact
+  // cards grow naturally in document flow, never in a second scroll container.
+  profileContactsNeedFlow.value = Boolean(uiV2.value && window.innerWidth >= 1100 && card &&
+    card.getBoundingClientRect().height > Math.max(0, (window.innerHeight - 112) / 2))
+}
+watch([profileBookingColumnRef, uiV2, phoneProfile, contactActions], () => {
+  profileContactsObserver?.disconnect()
+  profileContactsObserver = null
+  const card = profileBookingColumnRef.value?.querySelector<HTMLElement>('.pc2-profile-contacts')
+  if (uiV2.value && card && typeof ResizeObserver !== 'undefined') {
+    profileContactsObserver = new ResizeObserver(syncProfileContactsFlow)
+    profileContactsObserver.observe(card)
+  }
+  syncProfileContactsFlow()
+}, { flush: 'post' })
+onMounted(() => window.addEventListener('resize', syncProfileContactsFlow))
+onBeforeUnmount(() => {
+  profileContactsObserver?.disconnect()
+  window.removeEventListener('resize', syncProfileContactsFlow)
+})
 const hasPublicContactCta = computed(
   () => !canMessageSpecialist.value && !showInquiryEntry.value && contactActions.value.length > 0
 )
@@ -3446,7 +3593,7 @@ async function changeVisibleMonth(amount: number) {
 }
 
 function scrollToSlots() {
-  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (uiV2.value && phoneProfile.value) openProfileRequestSheet()
   window.location.hash = '#slots'
   focusSlotsSection()
 }
@@ -3465,13 +3612,18 @@ function focusInquirySection() {
 }
 
 function focusSlotsSection() {
+  if (uiV2.value && phoneProfile.value) {
+    // Opening the sheet must reveal the consultation before availability.
+    openProfileRequestSheet()
+    return
+  }
   if (uiV2.value) highlightProfilePanel()
-  if (uiV2.value && compactProfile.value) openProfileRequestSheet()
   void nextTick(() => { document.getElementById('slots')?.scrollIntoView({ behavior: profileScrollBehavior(), block: 'start' }) })
 }
 
 function openProfileVideoModal() {
   if (!profileVideoUrl.value) return
+  if (uiV2.value) profileVideoTrigger.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
   showProfileVideoModal.value = true
 }
 
@@ -4217,9 +4369,11 @@ function openGuestBookingModal(slotId?: number) {
   guestBookingSubmitSlotId.value = selectedSlot?.id || null
   guestBookingRulesAccepted.value = false
   guestOfferSelectionEditing.value = false
-  guestOfferSelectionConfirmed.value = Boolean(selectedPublicOfferType.value)
   resetGuestBookingFieldErrors()
   resetGuestBookingForm()
+  guestOfferSelectionConfirmed.value = uiV2.value
+    ? Boolean(selectedPublicOfferType.value) && guestBookingForm.value.offer_type === selectedPublicOfferType.value
+    : Boolean(selectedPublicOfferType.value)
   showGuestBookingModal.value = true
 }
 
@@ -4862,27 +5016,27 @@ watch(
 watch([uiV2, profile, loading, error, ownerUnpublishedProfile], () => {
   profileTargetsReady.value = Boolean(uiV2.value && !loading.value && !error.value && !ownerUnpublishedProfile.value && document.getElementById('pc2-profile-time') && document.getElementById('pc2-profile-contact'))
 }, { flush: 'post' })
-watch([uiV2, compactProfile, profile, loading, error, ownerUnpublishedProfile], () => {
-  if (!uiV2.value || !compactProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
+watch([uiV2, phoneProfile, profile, loading, error, ownerUnpublishedProfile], () => {
+  if (!uiV2.value || !phoneProfile.value || !profile.value || loading.value || error.value || ownerUnpublishedProfile.value) closeProfileRequestSheet()
 })
 function focusGuestRequestField(target: HTMLElement) {
-  const panel = uiV2.value && !compactProfile.value ? target.closest<HTMLElement>('.pc2-request-panel') : null
+  const panel = uiV2.value && !phoneProfile.value ? target.closest<HTMLElement>('.pc2-request-panel') : null
   if (panel) focusProfilePanelTarget(panel, target)
   else target.focus()
 }
 watch(guestBookingError, message => {
-  if (!message || !uiV2.value || compactProfile.value) return
+  if (!message || !uiV2.value || phoneProfile.value) return
   const target = guestBookingModalRef.value?.querySelector<HTMLElement>('.form-error')
   const panel = target?.closest<HTMLElement>('.pc2-request-panel')
   if (panel && target) revealProfilePanelTarget(panel, target)
 }, { flush: 'post' })
 watch(showGuestBookingModal, open => {
-  if (open && uiV2.value && compactProfile.value) openProfileRequestSheet()
+  if (open && uiV2.value && phoneProfile.value) openProfileRequestSheet()
 })
-watch([showGuestBookingModal, compactProfile, uiV2], async ([open, compact, v2], [wasOpen]) => {
+watch([showGuestBookingModal, phoneProfile, uiV2], async ([open, compact, v2], [wasOpen]) => {
   if (!v2 || compact) return
   await nextTick()
-  if (!uiV2.value || compactProfile.value || showGuestBookingModal.value !== open) return
+  if (!uiV2.value || phoneProfile.value || showGuestBookingModal.value !== open) return
   const form = guestBookingModalRef.value
   const panel = (form ?? document.getElementById('pc2-profile-contact'))?.closest<HTMLElement>('.pc2-request-panel')
   if (!panel?.isConnected) return
@@ -4906,6 +5060,7 @@ watch(uiV2, value => {
 onBeforeUnmount(() => {
   profileShareAttempt++
   profileMedia?.removeEventListener('change', syncProfileViewport)
+  profilePhoneMedia?.removeEventListener('change', syncProfileViewport)
   profileLoadSequence += 1
   resetPublicPageMetadata()
   clearContactActionFallbackTimer()
@@ -4936,6 +5091,9 @@ onBeforeUnmount(() => {
   row-gap: 8px;
   align-items: start;
 }
+
+/* An inert box for v1; only v2 turns this into a separate booking/contact rail. */
+.public__booking-column { display: contents; }
 
 .public__error {
   display: grid;

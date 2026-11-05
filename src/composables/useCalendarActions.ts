@@ -1,4 +1,5 @@
-import { computed, ref, shallowRef, type Ref } from 'vue'
+import { computed, getCurrentScope, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
+import { useAuthStore } from '../stores/auth'
 import { apiGet, fetchCabinetGuestBookingRequests, type GuestBookingRequestRecord } from '../lib/api'
 import { buildCalendarActions, type CalendarAction, type UpcomingSessionRow } from '../lib/calendarActions'
 import type { CalendarRescheduleRequestRow } from '../lib/calendarItems'
@@ -18,14 +19,30 @@ export const CALENDAR_ACTION_SOURCE_LABELS: Record<CalendarActionSource, string>
  * (`complete === true`) when all three loaded.
  */
 export function useCalendarActions(timeZone: Ref<string>) {
+  const auth = useAuthStore()
+  const identity = computed(() => {
+    const id = auth.user?.id
+    if (!auth.authResolved || !auth.accessToken || !Number.isSafeInteger(id) || !id || id <= 0) return null
+    return `${auth.authEpoch}:${id}`
+  })
   const upcomingSessions = shallowRef<UpcomingSessionRow[] | null>(null)
   const rescheduleRequests = shallowRef<CalendarRescheduleRequestRow[] | null>(null)
   const guestRequests = shallowRef<GuestBookingRequestRecord[] | null>(null)
-  const status = ref<'loading' | 'ready'>('loading')
+  const status = ref<'idle' | 'loading' | 'ready'>('idle')
   const failedSources = ref<CalendarActionSource[]>([])
   let sequence = 0
+  let disposed = false
+  function clear() {
+    upcomingSessions.value = null
+    rescheduleRequests.value = null
+    guestRequests.value = null
+    failedSources.value = []
+    status.value = 'idle'
+  }
 
   async function load() {
+    const account = identity.value
+    if (!account || disposed) return
     const request = ++sequence
     status.value = 'loading'
     const [sessions, reschedules, guests] = await Promise.allSettled([
@@ -33,7 +50,7 @@ export function useCalendarActions(timeZone: Ref<string>) {
       fetchSpecialistRescheduleRequests(),
       fetchCabinetGuestBookingRequests(),
     ])
-    if (request !== sequence) return
+    if (disposed || request !== sequence || identity.value !== account) return
     const failed: CalendarActionSource[] = []
     upcomingSessions.value = sessions.status === 'fulfilled' ? sessions.value : (failed.push('upcomingSessions'), null)
     rescheduleRequests.value = reschedules.status === 'fulfilled' ? reschedules.value : (failed.push('rescheduleRequests'), null)
@@ -55,6 +72,20 @@ export function useCalendarActions(timeZone: Ref<string>) {
   )
   const complete = computed(() => status.value === 'ready' && failedSources.value.length === 0)
 
-  void load()
-  return { actions, upcomingSessions, status, failedSources, complete, retry: load }
+  const stop = watch(identity, (_account, previous) => {
+    const invalidation = ++sequence
+    clear()
+    // Auth actions update several fields. Invalidate now and load only their final identity.
+    if (previous === undefined) void load()
+    else queueMicrotask(() => {
+      if (invalidation === sequence) void load()
+    })
+  }, { immediate: true, flush: 'sync' })
+  if (getCurrentScope()) onScopeDispose(() => {
+    disposed = true
+    sequence += 1
+    stop()
+    clear()
+  })
+  return { actions, upcomingSessions, status, failedSources, complete, retry: load, authIdentity: identity }
 }

@@ -284,6 +284,7 @@ function goToday() {
 const { items, status: feedStatus, failedSources: feedFailed, retry: retryFeed } = useCalendarFeed(range, { now: clock })
 const {
   actions,
+  authIdentity: detailsIdentity,
   upcomingSessions,
   status: actionsStatus,
   failedSources: actionsFailed,
@@ -378,6 +379,13 @@ type Details = { kindLabel: string; title: string; facts: { label: string; value
 const details = ref<Details | null>(null)
 const detailsRef = ref<HTMLElement | null>(null)
 let detailsTrigger: HTMLElement | null = null
+let detailsGeneration = 0
+// The 3a panel contains snapshots (including grouped slots), not live feed items.
+watch(detailsIdentity, () => {
+  detailsGeneration += 1
+  details.value = null
+  detailsTrigger = null
+}, { flush: 'sync' })
 const KIND_TITLES: Record<CalendarItem['kind'], string> = {
   session: 'Сесія',
   free_slot: 'Вільний слот',
@@ -401,12 +409,16 @@ function timeText(start: number, end: number, allDay = false) {
   return startDay === endDay ? `${from}–${formatTime(end, tz)}` : `${from} – ${dayLabels(endDay).full}, ${formatTime(end, tz)}`
 }
 async function showDetails(next: Details) {
+  const account = detailsIdentity.value
+  if (!account) return
+  const generation = ++detailsGeneration
   detailsTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
   details.value = next
   await nextTick()
-  detailsRef.value?.focus()
+  if (generation === detailsGeneration && detailsIdentity.value === account) detailsRef.value?.focus()
 }
 function openDetails(item: CalendarItem) {
+  if (!items.value.includes(item)) return
   void showDetails({
     kindLabel: KIND_TITLES[item.kind],
     title: item.title,
@@ -421,6 +433,7 @@ function openDetails(item: CalendarItem) {
   })
 }
 function openWindow(window: FreeWindow) {
+  if (!window.slots.length || !window.slots.every((slot) => items.value.includes(slot))) return
   void showDetails({
     kindLabel: 'Вільне вікно',
     title: `${formatTime(window.start, timeZone.value)}–${formatTime(window.end, timeZone.value)} · ${slotsLabel(window.slots.length)}`,
@@ -433,6 +446,7 @@ function openWindow(window: FreeWindow) {
   })
 }
 function closeDetails() {
+  detailsGeneration += 1
   details.value = null
   detailsTrigger?.focus()
   detailsTrigger = null

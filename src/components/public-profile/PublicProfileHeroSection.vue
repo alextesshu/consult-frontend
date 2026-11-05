@@ -3,11 +3,20 @@
     <div class="hero-profile">
       <div class="hero-media" v-if="profile">
         <img
-          v-if="profile.photo_url"
+          v-if="profile.photo_url && !(uiV2 && photoFailed)"
           class="hero-photo"
           :src="profile.photo_url"
           alt="Фото спеціаліста"
+          @error="photoFailed = true"
         />
+        <div
+          v-else-if="uiV2"
+          class="pc2-profile-photo-fallback"
+          role="img"
+          :aria-label="profile.photo_url ? 'Фото спеціаліста не завантажилося' : 'Фото спеціаліста не додано'"
+        >
+          <span aria-hidden="true">{{ photoInitials }}</span>
+        </div>
         <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
         <button
           v-if="profile.video_url"
@@ -101,6 +110,19 @@ const emit = defineEmits<{
   (event: 'about-action'): void
 }>()
 
+// UI v2: a missing or broken photo becomes a neutral initials tile instead of the browser's
+// broken-image icon. A new photo URL gets a fresh attempt.
+const photoFailed = ref(false)
+watch(() => props.profile?.photo_url, () => { photoFailed.value = false })
+const photoInitials = computed(() =>
+  (props.publicName || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toLocaleUpperCase('uk-UA'))
+    .join('')
+)
+
 // Keep complete name words while preserving the source size whenever they fit.
 const titleRef = ref<HTMLElement | null>(null)
 const fittedTitleSize = ref<number | null>(null)
@@ -110,8 +132,9 @@ let titleDisposed = false
 function fitTitleWords() {
   const title = titleRef.value
   if (titleDisposed || !props.uiV2 || !title || !title.clientWidth) return
-  const sourceSize = window.innerWidth < 860 ? 34 : Math.min(60, Math.max(40, window.innerWidth * .046))
   const style = getComputedStyle(title)
+  const sourceSize = parseFloat(style.getPropertyValue('--pc-profile-title-size')) ||
+    (window.innerWidth < 860 ? 34 : Math.min(60, Math.max(40, window.innerWidth * .046)))
   const probe = document.createElement('span')
   Object.assign(probe.style, {
     position: 'fixed', visibility: 'hidden', whiteSpace: 'nowrap',

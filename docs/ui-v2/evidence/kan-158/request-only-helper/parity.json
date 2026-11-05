@@ -1,0 +1,137 @@
+[
+  {
+    "scenario": "direct",
+    "version": "v1",
+    "width": 1280,
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "scenario": "direct",
+    "version": "v1",
+    "width": 375,
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "scenario": "direct",
+    "version": "v2",
+    "width": 1280,
+    "changedPixels": 134,
+    "bbox": [
+      877,
+      183,
+      1148,
+      536
+    ],
+    "controlVsBaseline": {
+      "changedPixels": 0,
+      "bbox": null
+    }
+  },
+  {
+    "scenario": "directEmpty",
+    "version": "v1",
+    "width": 1280,
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "scenario": "directEmpty",
+    "version": "v1",
+    "width": 375,
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "scenario": "directEmpty",
+    "version": "v2",
+    "width": 1280,
+    "changedPixels": 0,
+    "bbox": null,
+    "controlVsBaseline": {
+      "changedPixels": 0,
+      "bbox": null
+    }
+  },
+  {
+    "scenario": "request",
+    "version": "v1",
+    "width": 1280,
+    "changedPixels": 3252,
+    "bbox": [
+      950,
+      351,
+      1180,
+      395
+    ]
+  },
+  {
+    "scenario": "request",
+    "version": "v1",
+    "width": 375,
+    "changedPixels": 3333,
+    "bbox": [
+      33,
+      1341,
+      340,
+      1369
+    ]
+  },
+  {
+    "scenario": "request",
+    "version": "v2",
+    "width": 1280,
+    "changedPixels": 32703,
+    "bbox": [
+      822,
+      193,
+      1242,
+      627
+    ],
+    "controlVsBaseline": {
+      "changedPixels": 0,
+      "bbox": null
+    }
+  },
+  {
+    "scenario": "requestAvail",
+    "version": "v1",
+    "width": 1280,
+    "changedPixels": 3252,
+    "bbox": [
+      950,
+      283,
+      1180,
+      327
+    ]
+  },
+  {
+    "scenario": "requestAvail",
+    "version": "v1",
+    "width": 375,
+    "changedPixels": 3333,
+    "bbox": [
+      33,
+      1108,
+      340,
+      1136
+    ]
+  },
+  {
+    "scenario": "requestAvail",
+    "version": "v2",
+    "width": 1280,
+    "changedPixels": 32170,
+    "bbox": [
+      822,
+      332,
+      1242,
+      543
+    ],
+    "controlVsBaseline": {
+      "changedPixels": 0,
+      "bbox": null
+    }
+  }
+]

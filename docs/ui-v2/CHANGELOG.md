@@ -1,3 +1,9 @@
+## Canonical reference pointer — 2026-10-26 (KAN-158 scoped overlay)
+
+`claude-design-2026-10-26-1dbb9008` (v6.9.1, SHA-256 `1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d`) is active as a **scoped overlay** for the KAN-158 UI v2 public specialist profile and the profile-editor short-description field only. `claude-design-2026-10-23-4ff7cedd` (v6.6/v6.7) stays the base for every other UI v2 screen. See the [pointer](SNAPSHOT_CURRENT.json), [audit](DESIGN_SYNC_2026-10-26_V691_CANDIDATE.md) and [acceptance matrix](IMPLEMENTATION_MATRIX_V691_KAN158.json).
+
+Accepted differences: no «Обрати формат» / «Змінити» links in the final CTA; offer toggle buttons with `aria-pressed` instead of a radiogroup (keyboard-test condition still open); «Досвід» / «Мови» shown when the API supplies them; a slot click opens the request form directly; the compact contacts card from #80. The final UX audit's video-dialog P2 was remediated in #82. No source chronology was rewritten.
+
 ## Canonical reference pointer - 2026-10-24
 
 Current supplied archive is v6.6 with contents through v6.7. Read the [exact frozen changelog](snapshots/2026-10-23-4ff7cedd/handoff/CHANGELOG.md), [audit](DESIGN_SYNC_2026-10-24_V66_V67.md) and [current entry point](START_HERE.md). The v5 source body below is retained as history; its IN PROGRESS/current-task claims are superseded. No source chronology was rewritten.
