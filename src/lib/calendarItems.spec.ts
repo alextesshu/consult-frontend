@@ -261,3 +261,35 @@ describe('visibility layers and presets', () => {
     ])
   })
 })
+
+describe('status markers (CALENDAR_3A_SPEC §6)', () => {
+  it('writes the state out as one text marker per item', () => {
+    const items = byKey(
+      buildCalendarItems(
+        {
+          sessions: [
+            session({ id: 1, status: 'SCHEDULED' }),
+            session({ id: 2, slot_start_at: '2026-10-24T07:00:00Z', slot_end_at: '2026-10-24T07:50:00Z', session_format: 'online', meeting_link_ready: false }),
+            session({ id: 3, status: 'NO_SHOW', slot_start_at: '2026-10-20T07:00:00Z', slot_end_at: '2026-10-20T07:50:00Z' }),
+            session({ id: 4, status: 'COMPLETED', has_note: false, slot_start_at: '2026-10-21T07:00:00Z', slot_end_at: '2026-10-21T07:50:00Z' }),
+            session({ id: 5, slot_start_at: '2026-10-24T10:00:00Z', slot_end_at: '2026-10-24T10:50:00Z', session_format: 'offline', meeting_link_ready: false }),
+            session({ id: 6, slot_start_at: '2026-10-25T10:00:00Z', slot_end_at: '2026-10-25T10:50:00Z' }),
+          ],
+          rescheduleRequests: [{ id: 60, session_id: 6, status: 'PENDING' }],
+          schedule: [scheduleEvent({ type: 'booked_slot', slot_id: 22, requests_count: 1, request_ids: [301] })],
+          externalSessions: [external({ id: 9, starts_at: '2026-10-23T07:30:00Z' })],
+        },
+        RANGE,
+        NOW
+      )
+    )
+    expect(items.get('session:1')?.marker).toBe('? Підтвердити')
+    expect(items.get('session:2')).toMatchObject({ marker: '! Посилання', missingLink: true, needsAction: true })
+    expect(items.get('session:3')?.marker).toBe('Не підтв. вчасно')
+    expect(items.get('session:4')?.marker).toBe('✎ Нотатки')
+    expect(items.get('session:5')).toMatchObject({ marker: null, missingLink: false })
+    expect(items.get('session:6')?.marker).toBe('⇄ Перенесення')
+    expect(items.get('guest_request:slot-22')?.marker).toBe('Запит')
+    expect(items.get('external_guest_session:9')?.marker).toBe('Зовнішня · перетин')
+  })
+})

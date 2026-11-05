@@ -20,8 +20,8 @@ export type CalendarLayers = Record<CalendarLayer, boolean>
 export const CALENDAR_LAYER_LABELS: Record<CalendarLayer, string> = {
   sessions: 'Заплановані сесії',
   past: 'Минулі сесії',
-  free_slots: 'Вільні вікна',
-  guest_requests: 'Заявки на час',
+  free_slots: 'Вільні слоти',
+  guest_requests: 'Запити',
   absences: 'Відсутності',
   external_guest_sessions: 'Зовнішні гостьові сесії',
 }
@@ -61,6 +61,7 @@ export type CalendarSessionRow = {
   session_format?: string | null
   has_note?: boolean | null
   payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
+  meeting_link_ready?: boolean | null
 }
 
 export type CalendarRescheduleRequestRow = {
@@ -98,6 +99,9 @@ export type CalendarItem = {
   conflicts: CalendarConflict[]
   /** Navigation only. Sessions open their existing detail page. */
   href: string | null
+  /** Text status marker (CALENDAR_3A_SPEC §6); colour never carries the meaning alone. */
+  marker: string | null
+  missingLink: boolean
 }
 
 export const SESSION_STATUS_LABELS: Record<string, string> = {
@@ -118,7 +122,7 @@ function toMs(value: string | null | undefined) {
   return Number.isFinite(ms) ? ms : null
 }
 
-function baseItem(partial: Omit<CalendarItem, 'needsAction' | 'actionReasons' | 'rescheduleRequestIds' | 'requestIds' | 'conflicts' | 'guest' | 'allDay' | 'href'> & Partial<CalendarItem>): CalendarItem {
+function baseItem(partial: Omit<CalendarItem, 'needsAction' | 'actionReasons' | 'rescheduleRequestIds' | 'requestIds' | 'conflicts' | 'guest' | 'allDay' | 'href' | 'marker' | 'missingLink'> & Partial<CalendarItem>): CalendarItem {
   return {
     guest: false,
     allDay: false,
@@ -128,6 +132,8 @@ function baseItem(partial: Omit<CalendarItem, 'needsAction' | 'actionReasons' | 
     requestIds: [],
     conflicts: [],
     href: null,
+    marker: null,
+    missingLink: false,
     ...partial,
   }
 }
@@ -160,6 +166,10 @@ function sessionItem(row: CalendarSessionRow | null, id: number, hint: ScheduleS
   })
   if (status === 'SCHEDULED' && start > now) item.actionReasons.push('Потрібне ваше підтвердження')
   if (status === 'COMPLETED' && row?.has_note === false) item.actionReasons.push('Без нотатки')
+  if (status === 'CONFIRMED' && start > now && row?.session_format === 'online' && row.meeting_link_ready === false) {
+    item.missingLink = true
+    item.actionReasons.push('Немає посилання на зустріч')
+  }
   return item
 }
 
@@ -293,7 +303,10 @@ export function buildCalendarItems(sources: Partial<CalendarSources>, range: { s
 
   const result = [...items.values()]
   markConflicts(result)
-  for (const item of result) item.needsAction = item.actionReasons.length > 0
+  for (const item of result) {
+    item.needsAction = item.actionReasons.length > 0
+    item.marker = itemMarker(item, now)
+  }
   return result.sort((a, b) => a.start - b.start || a.end - b.end || a.key.localeCompare(b.key))
 }
 
@@ -354,4 +367,22 @@ export function hiddenSummary(items: CalendarItem[], layers: CalendarLayers): Hi
 
 export function layersEqual(a: CalendarLayers, b: CalendarLayers) {
   return CALENDAR_LAYERS.every((layer) => a[layer] === b[layer])
+}
+
+/** One text marker per item, most important first (CALENDAR_3A_SPEC §6). */
+export function itemMarker(item: CalendarItem, now: number): string | null {
+  if (item.kind === 'guest_request') return 'Запит'
+  if (item.kind === 'absence') return 'Відсутність'
+  if (item.kind === 'free_slot') return null
+  if (item.kind === 'external_guest_session') {
+    if (item.status === 'CANCELLED') return 'Скасовано'
+    return item.conflicts.includes('external_overlap') ? 'Зовнішня · перетин' : 'Зовнішня'
+  }
+  if (item.status === 'NO_SHOW') return 'Не підтв. вчасно'
+  if (item.status === 'CANCELLED') return 'Скасовано'
+  if (item.rescheduleRequestIds.length) return '⇄ Перенесення'
+  if (item.status === 'SCHEDULED' && item.start > now) return '? Підтвердити'
+  if (item.missingLink) return '! Посилання'
+  if (item.status === 'COMPLETED' && item.actionReasons.includes('Без нотатки')) return '✎ Нотатки'
+  return null
 }
