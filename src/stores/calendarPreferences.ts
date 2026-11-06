@@ -1,3 +1,4 @@
+import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { getApiErrorMessage } from '../lib/api'
 import {
@@ -15,164 +16,147 @@ import { useAuthStore } from './auth'
 
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 
-// One GET in flight per auth epoch, shared by every calendar component.
-let loadInFlight: { epoch: number; promise: Promise<CalendarPreferences | null> } | null = null
-// Per-store and per-login queues: an old account's request never blocks a new login.
-const updateQueues = new WeakMap<object, { epoch: number; tail: Promise<void> }>()
-
 const LOAD_ERROR = 'Не вдалося завантажити налаштування календаря.'
 const SAVE_ERROR = 'Не вдалося зберегти налаштування календаря.'
 const CONFLICT_ERROR = 'Налаштування календаря змінилися на іншому пристрої. Перевірте актуальний стан і повторіть зміну.'
 const REGULAR_VIEW_UNSUPPORTED_ERROR = 'Збереження вигляду календаря ще недоступне на сервері.'
 
-/**
- * Server-authoritative calendar preferences (UC-00).
- *
- * Values only ever come from server responses: nothing is persisted in or restored
- * from browser storage, and there are no optimistic writes. Responses are dropped
- * when they belong to a previous login (auth epoch) or carry an older revision than
- * the one already applied, so out-of-order responses cannot roll the state back.
- */
-export const useCalendarPreferencesStore = defineStore('calendarPreferences', {
-  state: () => ({
-    preferences: null as CalendarPreferences | null,
-    status: 'idle' as LoadStatus,
-    error: '' as string,
-    errorCode: null as string | null,
-    savingCount: 0 as number,
-    requiresReload: false,
-    // A write boundary invalidates callbacks from reads begun before it.
-    readGeneration: 0,
-    epoch: -1 as number,
-  }),
-  getters: {
-    saving: (state) => state.savingCount > 0,
-    /** Week/Day/List to render for ordinary modes: persisted value or read-only fallback. */
-    regularView: (state): CalendarView | null => (state.preferences ? displayRegularView(state.preferences) : null),
-    /** Only a value the server reported; `null` while unknown or on an older backend. */
-    regularViewPersisted: (state): CalendarView | null => state.preferences?.regular_view ?? null,
-    /** Write capability comes from the last server response, never from the fallback. */
-    canWriteRegularView: (state) => state.preferences !== null && state.preferences.regular_view !== null,
-  },
-  actions: {
-    syncEpoch() {
-      const epoch = useAuthStore().authEpoch
-      if (epoch !== this.epoch) {
-        this.preferences = null
-        this.status = 'idle'
-        this.error = ''
-        this.errorCode = null
-        this.epoch = epoch
-        this.savingCount = 0
-        this.requiresReload = false
-        this.readGeneration += 1
-      }
-      return epoch
-    },
-    applyServer(epoch: number, next: CalendarPreferences) {
-      if (!useAuthStore().isEpochActive(epoch) || epoch !== this.epoch) return false
-      if (this.preferences && next.revision < this.preferences.revision) return false
-      this.preferences = next
-      this.status = 'ready'
-      return true
-    },
-    /** Loads once per login; concurrent callers share the same request. */
-    ensureLoaded(): Promise<CalendarPreferences | null> {
-      const epoch = this.syncEpoch()
-      if (this.status === 'ready' && this.preferences) return Promise.resolve(this.preferences)
-      if (loadInFlight && loadInFlight.epoch === epoch) return loadInFlight.promise
-      return this.reload()
-    },
-    reload(): Promise<CalendarPreferences | null> {
-      const epoch = this.syncEpoch()
-      const generation = this.readGeneration
-      const active = () => epoch === this.epoch && useAuthStore().isEpochActive(epoch) && generation === this.readGeneration
-      if (!this.preferences) this.status = 'loading'
-      const promise = fetchCalendarPreferences()
-        .then((data) => {
-          if (!active()) return this.epoch === epoch ? this.preferences : null
-          if (this.applyServer(epoch, data)) this.requiresReload = false
-          return this.epoch === epoch ? this.preferences : null
-        })
-        .catch((err) => {
-          if (!active()) return this.epoch === epoch ? this.preferences : null
-          if (active()) {
-            this.error = getApiErrorMessage(err, LOAD_ERROR)
-            this.errorCode = calendarPreferencesErrorCode(err)
-            if (!this.preferences) this.status = 'error'
-          }
+type AuthScope = Readonly<{ identity: string; epoch: number }>
+
+/** Server-authoritative state, isolated by account, login and store lifetime. */
+export const useCalendarPreferencesStore = defineStore('calendarPreferences', () => {
+  const auth = useAuthStore()
+  const authIdentity = computed(() => {
+    const id = auth.user?.id
+    if (!auth.authResolved || !auth.accessToken || !Number.isSafeInteger(id) || !id || id <= 0) return null
+    return `${auth.authEpoch}:${id}`
+  })
+  const preferences = shallowRef<CalendarPreferences | null>(null)
+  const status = ref<LoadStatus>('idle')
+  const error = ref('')
+  const errorCode = ref<string | null>(null)
+  const savingCount = ref(0)
+  const requiresReload = ref(false)
+  const readGeneration = ref(0)
+  const epoch = ref(auth.authEpoch)
+  const scope = shallowRef<AuthScope | null>(null)
+  let disposed = false
+  let loadInFlight: { scope: AuthScope; promise: Promise<CalendarPreferences | null> } | null = null
+  let updateQueue: { scope: AuthScope; tail: Promise<void> } | null = null
+
+  function clear() {
+    preferences.value = null
+    status.value = 'idle'
+    error.value = ''
+    errorCode.value = null
+    savingCount.value = 0
+    requiresReload.value = false
+    readGeneration.value += 1
+    loadInFlight = null
+    updateQueue = null
+  }
+  watch([authIdentity, () => auth.authEpoch], ([identity, nextEpoch]) => {
+    clear()
+    epoch.value = nextEpoch
+    // Object identity also fences A -> B -> A within the same auth epoch.
+    scope.value = identity ? Object.freeze({ identity, epoch: nextEpoch }) : null
+  }, { immediate: true, flush: 'sync' })
+  onScopeDispose(() => { disposed = true; clear(); scope.value = null })
+  const active = (owner: AuthScope | null): owner is AuthScope =>
+    !disposed && owner !== null && owner === scope.value && owner.identity === authIdentity.value
+
+  const saving = computed(() => savingCount.value > 0)
+  const regularView = computed(() => preferences.value ? displayRegularView(preferences.value) : null)
+  const regularViewPersisted = computed(() => preferences.value?.regular_view ?? null)
+  const canWriteRegularView = computed(() => preferences.value !== null && preferences.value.regular_view !== null)
+  const syncEpoch = () => epoch.value
+
+  function applyServer(owner: AuthScope, next: CalendarPreferences) {
+    if (!active(owner) || (preferences.value && next.revision < preferences.value.revision)) return false
+    preferences.value = next
+    status.value = 'ready'
+    return true
+  }
+  function ensureLoaded(): Promise<CalendarPreferences | null> {
+    const owner = scope.value
+    if (!active(owner)) return Promise.resolve(null)
+    if (status.value === 'ready' && preferences.value) return Promise.resolve(preferences.value)
+    if (loadInFlight?.scope === owner) return loadInFlight.promise
+    return reload()
+  }
+  function reload(): Promise<CalendarPreferences | null> {
+    const owner = scope.value
+    if (!active(owner)) return Promise.resolve(null)
+    const generation = readGeneration.value
+    const activeRead = () => active(owner) && generation === readGeneration.value
+    if (!preferences.value) status.value = 'loading'
+    const promise = fetchCalendarPreferences().then((data) => {
+      if (!activeRead()) return active(owner) ? preferences.value : null
+      if (applyServer(owner, data)) requiresReload.value = false
+      return active(owner) ? preferences.value : null
+    }).catch((err) => {
+      if (!activeRead()) return active(owner) ? preferences.value : null
+      error.value = getApiErrorMessage(err, LOAD_ERROR)
+      errorCode.value = calendarPreferencesErrorCode(err)
+      if (!preferences.value) status.value = 'error'
+      throw err
+    }).finally(() => {
+      if (loadInFlight?.promise === promise) loadInFlight = null
+    })
+    loadInFlight = { scope: owner, promise }
+    return promise
+  }
+  function setRegularView(view: CalendarView): Promise<CalendarPreferences | null> {
+    if (!CALENDAR_VIEWS.includes(view)) return Promise.reject(new TypeError(`Unknown calendar view: ${String(view)}`))
+    return update({ regular_view: view })
+  }
+  function update(patch: CalendarPreferencesChange): Promise<CalendarPreferences | null> {
+    if ('regular_view' in patch && Object.keys(patch).some((key) => key !== 'regular_view')) {
+      return Promise.reject(new TypeError('regular_view must be sent alone'))
+    }
+    const owner = scope.value
+    if (!active(owner)) return Promise.resolve(null)
+    const intent = { ...patch, ...('layers' in patch && patch.layers ? { layers: { ...patch.layers } } : {}) } as CalendarPreferencesChange
+    const tail = updateQueue?.scope === owner ? updateQueue.tail : Promise.resolve()
+    savingCount.value += 1
+    const request = tail.then(async () => {
+      if (!active(owner)) return null
+      try {
+        if (requiresReload.value) await reload()
+        else if (!preferences.value) await ensureLoaded()
+        if (!active(owner) || !preferences.value) return null
+        if ('regular_view' in intent && preferences.value.regular_view === null) throw new CalendarRegularViewUnsupportedError()
+        readGeneration.value += 1
+        const data = await updateCalendarPreferences({ ...intent, expected_revision: preferences.value.revision })
+        if (!active(owner)) return null
+        readGeneration.value += 1
+        error.value = ''
+        errorCode.value = null
+        applyServer(owner, data)
+        return preferences.value
+      } catch (err) {
+        if (err instanceof CalendarRegularViewUnsupportedError) {
+          if (active(owner)) { error.value = REGULAR_VIEW_UNSUPPORTED_ERROR; errorCode.value = err.code }
           throw err
-        })
-        .finally(() => {
-          if (loadInFlight?.promise === promise) loadInFlight = null
-        })
-      loadInFlight = { epoch, promise }
-      return promise
-    },
-    /** Dedicated `{"regular_view", "expected_revision"}` PATCH through the shared queue. */
-    setRegularView(view: CalendarView): Promise<CalendarPreferences | null> {
-      if (!CALENDAR_VIEWS.includes(view)) return Promise.reject(new TypeError(`Unknown calendar view: ${String(view)}`))
-      return this.update({ regular_view: view })
-    },
-    update(patch: CalendarPreferencesChange): Promise<CalendarPreferences | null> {
-      if ('regular_view' in patch && Object.keys(patch).some((key) => key !== 'regular_view')) {
-        return Promise.reject(new TypeError('regular_view must be sent alone'))
-      }
-      const epoch = this.syncEpoch()
-      // Snapshot the intent now; callers must not mutate an enqueued layer object.
-      const intent = { ...patch, ...('layers' in patch && patch.layers ? { layers: { ...patch.layers } } : {}) } as CalendarPreferencesChange
-      const previous = updateQueues.get(this)
-      const tail = previous?.epoch === epoch ? previous.tail : Promise.resolve()
-      this.savingCount += 1
-      const active = () => epoch === this.epoch && useAuthStore().isEpochActive(epoch)
-      const request = tail.then(async () => {
-        if (!active()) return null
-        try {
-          // Revision is captured at dispatch, after preceding writes and recovery GETs.
-          if (this.requiresReload) await this.reload()
-          else if (!this.preferences) await this.ensureLoaded()
-          if (!active() || !this.preferences) return null
-          // Rollout gate: only a server that reports regular_view accepts it. No silent
-          // fallback to a legacy view write.
-          if ('regular_view' in intent && this.preferences.regular_view === null) {
-            throw new CalendarRegularViewUnsupportedError()
-          }
-          this.readGeneration += 1
-          const data = await updateCalendarPreferences({ ...intent, expected_revision: this.preferences.revision })
-          if (!active()) return null
-          this.readGeneration += 1
-          this.error = ''
-          this.errorCode = null
-          this.applyServer(epoch, data)
-          return this.preferences
-        } catch (err) {
-          if (err instanceof CalendarRegularViewUnsupportedError) {
-            // Nothing was sent: no recovery GET is needed.
-            if (active()) {
-              this.error = REGULAR_VIEW_UNSUPPORTED_ERROR
-              this.errorCode = err.code
-            }
-            throw err
-          }
-          if (active()) {
-            this.readGeneration += 1
-            this.requiresReload = true
-            const code = calendarPreferencesErrorCode(err)
-            const message = code === 'CALENDAR_PREFERENCES_STALE' ? CONFLICT_ERROR : getApiErrorMessage(err, SAVE_ERROR)
-            // Await recovery before releasing the queue; never replay the rejected intent.
-            await this.reload().catch(() => undefined)
-            if (active()) {
-              this.error = message
-              this.errorCode = code
-            }
-          }
-          throw err
-        } finally {
-          if (active()) this.savingCount = Math.max(0, this.savingCount - 1)
         }
-      })
-      updateQueues.set(this, { epoch, tail: request.then(() => undefined, () => undefined) })
-      return request
-    },
-  },
+        if (active(owner)) {
+          readGeneration.value += 1
+          requiresReload.value = true
+          const code = calendarPreferencesErrorCode(err)
+          const message = code === 'CALENDAR_PREFERENCES_STALE' ? CONFLICT_ERROR : getApiErrorMessage(err, SAVE_ERROR)
+          // Recovery is authoritative; the rejected intent is never replayed.
+          await reload().catch(() => undefined)
+          if (active(owner)) { error.value = message; errorCode.value = code }
+        }
+        throw err
+      } finally {
+        if (active(owner)) savingCount.value = Math.max(0, savingCount.value - 1)
+      }
+    })
+    updateQueue = { scope: owner, tail: request.then(() => undefined, () => undefined) }
+    return request
+  }
+  return { preferences, status, error, errorCode, savingCount, requiresReload, readGeneration,
+    epoch, scope, authIdentity, saving, regularView, regularViewPersisted, canWriteRegularView,
+    syncEpoch, ensureLoaded, reload, setRegularView, update }
 })

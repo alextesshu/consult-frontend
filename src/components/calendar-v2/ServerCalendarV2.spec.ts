@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { defineComponent } from 'vue'
+import { defineComponent, h } from 'vue'
 import { fetchCalendarPreferences, updateCalendarPreferences, type CalendarPreferences } from '../../lib/calendarPreferences'
 import { PRESET_LAYERS } from '../../lib/calendarItems'
 import { useAuthStore } from '../../stores/auth'
 import ServerCalendarV2 from './ServerCalendarV2.vue'
+import { useServerCalendarPreferencesSource } from '../../composables/useServerCalendarPreferencesSource'
 import { clearCalendarFeedShare } from '../../composables/useCalendarFeed'
 
 vi.mock('../../lib/calendarPreferences', async (original) => ({
@@ -19,10 +20,11 @@ vi.mock('../../composables/useCalendarFeed', async () => {
   return { clearCalendarFeedShare: vi.fn(), useCalendarFeed: () => ({ items: ref([]), status: ref('ready'), failedSources: ref([]), retry: vi.fn() }) }
 })
 vi.mock('../../composables/useCalendarActions', async () => {
-  const { ref } = await import('vue')
+  const { ref, computed } = await import('vue')
+  const { useAuthStore } = await import('../../stores/auth')
   return {
     CALENDAR_ACTION_SOURCE_LABELS: {},
-    useCalendarActions: () => ({ actions: ref([]), upcomingSessions: ref([]), status: ref('ready'), failedSources: ref([]), complete: ref(true), retry: vi.fn() }),
+    useCalendarActions: () => ({ actions: ref([]), upcomingSessions: ref([]), status: ref('ready'), failedSources: ref([]), complete: ref(true), retry: vi.fn(), authIdentity: computed(() => { const auth = useAuthStore(); return auth.user && auth.authResolved && auth.accessToken ? `${auth.authEpoch}:${auth.user.id}` : null }) }),
   }
 })
 
@@ -43,7 +45,7 @@ async function open(path = '/cabinet/sessions?ui=v2') {
   const pinia = createPinia()
   setActivePinia(pinia)
   const auth = useAuthStore()
-  auth.user = { id: 1, username: 'synthetic-specialist', roles: ['SPECIALIST'] } as NonNullable<typeof auth.user>
+  auth.$patch({ accessToken: 'synthetic', authResolved: true, user: { id: 1, username: 'synthetic-specialist', email: null, roles: ['SPECIALIST'] } })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: defineComponent({ template: '<div />' }) }] })
   await router.push(path)
   const rendered = render(ServerCalendarV2, { global: { plugins: [pinia, router] } })
@@ -194,11 +196,11 @@ describe('server-backed calendar integration (isolated API fixtures)', () => {
     auth.logout()
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Календар' })).toBeNull())
     get.mockResolvedValue(prefs({ mode: 'availability', regular_view: 'day', revision: 0 }))
-    auth.user = { id: 2, username: 'other-synthetic-specialist', roles: ['SPECIALIST'] } as NonNullable<typeof auth.user>
+    auth.$patch({ accessToken: 'synthetic-b', authResolved: true, user: { id: 2, username: 'other-synthetic-specialist', email: null, roles: ['SPECIALIST'] } })
     await waitFor(() => expect(screen.getByRole('tab', { name: 'Доступність' })).toHaveAttribute('aria-selected', 'true'))
     expect(document.querySelectorAll('.pc2-cal-grid__col')).toHaveLength(1)
     expect(patch).not.toHaveBeenCalled()
-    expect(clearCalendarFeedShare).toHaveBeenCalledTimes(2)
+    expect(get).toHaveBeenCalledTimes(2)
   })
 
   it('keeps a confirmed snapshot read-only after a failed refresh', async () => {
@@ -298,7 +300,7 @@ describe('server-backed calendar integration (isolated API fixtures)', () => {
     window.dispatchEvent(new Event('focus'))
     auth.logout()
     get.mockResolvedValueOnce(prefs({ mode: 'needs_action', revision: 0 }))
-    auth.user = { id: 2, username: 'second-specialist', roles: ['SPECIALIST'] } as NonNullable<typeof auth.user>
+    auth.$patch({ accessToken: 'synthetic-b', authResolved: true, user: { id: 2, username: 'second-specialist', email: null, roles: ['SPECIALIST'] } })
     await waitFor(() => expect(screen.getByRole('tab', { name: /Потребує дії/ })).toHaveAttribute('aria-selected', 'true'))
     background.resolve(prefs({ mode: 'availability', revision: 99 }))
     await waitFor(() => expect(screen.queryByText('Оновлюємо налаштування…')).toBeNull())
@@ -416,4 +418,28 @@ describe('regular view controls (final P2)', () => {
     expect(rule('html[data-ui="v2"] .pc2-cal__btn:hover')).toMatch(/background/)
     expect(rule('html[data-ui="v2"] .pc2-cal__views > button:focus-visible')).toMatch(/outline:\s*var\(--pc-focus-width\)/)
   })
+})
+
+
+it('retires old source commands when identity changes without changing authEpoch', async () => {
+  const pinia = createPinia(); setActivePinia(pinia)
+  const auth = useAuthStore()
+  auth.$patch({ accessToken: 'synthetic', authResolved: true, user: { id: 1, username: 'a', email: null } })
+  let adapter!: ReturnType<typeof useServerCalendarPreferencesSource>
+  const Harness = defineComponent({ setup() { adapter = useServerCalendarPreferencesSource(); return () => h('div') } })
+  render(Harness, { global: { plugins: [pinia] } })
+  await waitFor(() => expect(adapter.source.value).not.toBeNull())
+  const old = adapter.source.value!
+  const epoch = auth.authEpoch
+  get.mockResolvedValueOnce(prefs({ mode: 'availability', revision: 0 }))
+  auth.user = { id: 2, username: 'b', email: null }
+  expect(auth.authEpoch).toBe(epoch)
+  expect(adapter.source.value).toBeNull()
+  await waitFor(() => expect(adapter.source.value?.state.value.mode).toBe('availability'))
+  await old.setMode('needs_action')
+  expect(patch).not.toHaveBeenCalled()
+  patch.mockResolvedValueOnce(prefs({ mode: 'needs_action', revision: 1 }))
+  await adapter.source.value!.setMode('needs_action')
+  expect(patch).toHaveBeenCalledTimes(1)
+  expect(patch).toHaveBeenCalledWith({ mode: 'needs_action', expected_revision: 0 })
 })

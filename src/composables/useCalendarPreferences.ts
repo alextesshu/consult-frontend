@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import type { CalendarLayerKey, CalendarPreferencesChange, CalendarView } from '../lib/calendarPreferences'
 import { useCalendarPreferencesStore } from '../stores/calendarPreferences'
 
@@ -8,7 +8,9 @@ import { useCalendarPreferencesStore } from '../stores/calendarPreferences'
  */
 export function useCalendarPreferences({ autoload = true }: { autoload?: boolean } = {}) {
   const store = useCalendarPreferencesStore()
-  if (autoload) void store.ensureLoaded().catch(() => undefined)
+  if (autoload) watch(() => store.scope, (owner) => {
+    if (owner) void store.ensureLoaded().catch(() => undefined)
+  }, { immediate: true })
 
   const preferences = computed(() => store.preferences)
   return {

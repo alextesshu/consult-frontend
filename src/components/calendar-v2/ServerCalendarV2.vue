@@ -11,17 +11,17 @@
       </div>
       <p v-if="!regularViewSupported" class="pc2-cal__note">Сервер ще не підтримує збереження звичайного вигляду. Показано сумісний вигляд лише для читання.</p>
       <p role="status" class="pc2-cal-sr" aria-live="polite" aria-atomic="true">{{ saving ? 'Зберігаємо налаштування…' : refreshing ? 'Оновлюємо налаштування…' : '' }}</p>
-      <CalendarV2 :key="auth.authEpoch" :preferences="source" />
+      <CalendarV2 :key="store.authIdentity ?? 'anonymous'" :preferences="source" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useServerCalendarPreferencesSource } from '../../composables/useServerCalendarPreferencesSource'
-import { useAuthStore } from '../../stores/auth'
+import { useCalendarPreferencesStore } from '../../stores/calendarPreferences'
 import CalendarV2 from './CalendarV2.vue'
 import '../../styles/calendarV2.css'
 
-const auth = useAuthStore()
+const store = useCalendarPreferencesStore()
 const { source, status, saving, error, reload, refreshing, regularViewSupported } = useServerCalendarPreferencesSource()
 </script>

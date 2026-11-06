@@ -3,6 +3,7 @@
   <div
     id="pc2-cal-view-menu"
     ref="panelRef"
+    tabindex="-1"
     class="pc2-cal-view"
     :class="{ 'is-sheet': sheet }"
     :style="!sheet && anchor ? { top: `${anchor.top}px`, left: `${anchor.left}px`, right: 'auto', maxHeight: `calc(100dvh - ${anchor.top + 16}px)` } : undefined"
@@ -50,12 +51,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useCalendarDialog } from '../../composables/useCalendarDialog'
 import { CALENDAR_LAYER_LABELS, CALENDAR_LAYERS, type CalendarLayer, type CalendarLayers, type CalendarView } from '../../lib/calendarItems'
 import { CALENDAR_MODE_LABELS, layerDeviations, type CalendarMode } from '../../lib/calendarModes'
 
-const props = defineProps<{ mode: CalendarMode; layers: CalendarLayers; counts: Partial<Record<CalendarLayer, number>>; sheet: boolean; anchor?: { top: number; left: number } | null; view?: CalendarView; disabled?: boolean }>()
-defineEmits<{ close: []; reset: []; 'set-layer': [layer: CalendarLayer, visible: boolean]; 'set-view': [view: CalendarView] }>()
+const props = defineProps<{ mode: CalendarMode; layers: CalendarLayers; counts: Partial<Record<CalendarLayer, number>>; sheet: boolean; anchor?: { top: number; left: number } | null; view?: CalendarView; disabled?: boolean; canRestoreFocus?: () => boolean; trigger?: HTMLElement | null }>()
+const emit = defineEmits<{ close: []; reset: []; 'set-layer': [layer: CalendarLayer, visible: boolean]; 'set-view': [view: CalendarView] }>()
 const allViewOptions = [{ value: 'week', label: 'Тиждень' }, { value: 'day', label: 'День' }, { value: 'list', label: 'Список' }] as const
 const viewOptions = computed(() => allViewOptions.filter(option => !props.sheet || option.value !== 'week'))
 const displayView = computed(() => props.sheet && props.view === 'week' ? 'day' : props.view)
@@ -75,19 +77,9 @@ const deviated = computed(() => new Set(layerDeviations(props.mode, props.layers
 const visibleCount = computed(() => CALENDAR_LAYERS.filter((layer) => props.layers[layer]).length)
 
 const panelRef = ref<HTMLElement | null>(null)
-// The phone sheet scrolls on its own; the page behind it does not.
-let restoreOverflow: string | null = null
-onMounted(async () => {
-  if (props.sheet) {
-    restoreOverflow = document.documentElement.style.overflow
-    document.documentElement.style.overflow = 'hidden'
-  }
-  await nextTick()
-  const firstInput = panelRef.value?.querySelector<HTMLInputElement>('input:not(:disabled)')
-  const closeButton = panelRef.value?.querySelector<HTMLButtonElement>('button:not(:disabled)')
-  ;(firstInput ?? closeButton)?.focus()
-})
-onBeforeUnmount(() => {
-  if (restoreOverflow !== null) document.documentElement.style.overflow = restoreOverflow
+useCalendarDialog({
+  open: ref(true), panel: panelRef, close: () => emit('close'), trigger: () => props.trigger ?? null,
+  initialFocus: () => panelRef.value?.querySelector<HTMLElement>('input:not(:disabled)') ?? panelRef.value?.querySelector<HTMLElement>('button:not(:disabled)') ?? null,
+  restoreFocus: () => props.canRestoreFocus?.() !== false,
 })
 </script>

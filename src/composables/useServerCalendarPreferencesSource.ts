@@ -1,12 +1,8 @@
 import { computed, onActivated, onMounted, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import { displayRegularView, type CalendarPreferences } from '../lib/calendarPreferences'
 import type { CalendarPreferencesSource, CalendarPreferencesState } from '../lib/calendarPreferencesSource'
-import { useAuthStore } from '../stores/auth'
 import { useCalendarPreferencesStore } from '../stores/calendarPreferences'
 import { useCalendarPreferences } from './useCalendarPreferences'
-import { clearCalendarFeedShare } from './useCalendarFeed'
-
-const feedEpochs = new WeakMap<object, number>()
 
 function project(data: CalendarPreferences): CalendarPreferencesState {
   return { mode: data.mode, view: displayRegularView(data), preset: data.preset, layers: data.layers, timezone: data.timezone }
@@ -14,7 +10,6 @@ function project(data: CalendarPreferences): CalendarPreferencesState {
 
 /** Lifecycle/shape adapter only. UC-00 owns normalization, revisions, writes and conflict recovery. */
 export function useServerCalendarPreferencesSource() {
-  const auth = useAuthStore()
   const store = useCalendarPreferencesStore()
   const api = useCalendarPreferences({ autoload: false })
   const online = ref(typeof navigator === 'undefined' || navigator.onLine)
@@ -25,28 +20,27 @@ export function useServerCalendarPreferencesSource() {
   const forbiddenWrite = ref(false)
   const dismissedError = ref<string | null>(null)
   const instance = shallowRef<CalendarPreferencesSource | null>(null)
-  let inFlight: { epoch: number; promise: Promise<void> } | null = null
+  let inFlight: { scope: typeof store.scope; promise: Promise<void> } | null = null
   let disposed = false
   let operation = 0
-  const current = computed(() => auth.user !== null && store.epoch === auth.authEpoch)
+  const current = computed(() => store.scope !== null && store.scope.identity === store.authIdentity)
   const error = computed(() => !online.value ? 'Немає з’єднання. Показано останні завантажені налаштування без можливості збереження.' : readError.value || (api.error.value !== dismissedError.value ? api.error.value : ''))
   const status = computed(() => readError.value || forbiddenRead.value ? 'error' : api.status.value)
   const canWrite = computed(() => current.value && api.status.value === 'ready' && api.canWriteRegularView.value && online.value && !blockingRefresh.value && !api.saving.value && !readError.value && !forbiddenRead.value && !forbiddenWrite.value && !store.requiresReload)
 
-  async function execute(write: () => Promise<CalendarPreferences | null>): Promise<boolean> {
-    if (!canWrite.value) return false
+  async function execute(write: () => Promise<CalendarPreferences | null>, owner: typeof store.scope): Promise<boolean> {
+    if (!owner || store.scope !== owner || !canWrite.value) return false
     // Invalidate adapter callbacks too: an old GET must not dismiss a PATCH conflict.
     operation += 1
     // Retire background ownership, so explicit recovery can start a fresh GET.
     inFlight = null
     refreshing.value = false
     dismissedError.value = null
-    const epoch = auth.authEpoch
     try {
       const response = await write()
-      return response !== null && auth.isEpochActive(epoch) && !disposed
+      return response !== null && store.scope === owner && !disposed
     } catch (err) {
-      if (auth.isEpochActive(epoch) && !disposed) {
+      if (store.scope === owner && !disposed) {
         const httpStatus = (err as { response?: { status?: number } }).response?.status
         if (httpStatus === 403 || httpStatus === 401) forbiddenWrite.value = true
       }
@@ -54,52 +48,48 @@ export function useServerCalendarPreferencesSource() {
     }
   }
 
-  watch(() => auth.authEpoch, (epoch) => {
+  watch(() => store.scope, () => {
     operation += 1
     inFlight = null
     refreshing.value = false
     blockingRefresh.value = false
-    if (feedEpochs.get(auth) !== epoch) {
-      clearCalendarFeedShare()
-      feedEpochs.set(auth, epoch)
-    }
     instance.value = null
     readError.value = ''
     forbiddenRead.value = false
     forbiddenWrite.value = false
     dismissedError.value = null
-    store.syncEpoch()
   }, { immediate: true, flush: 'sync' })
 
   watch(() => api.preferences.value, (snapshot) => {
     if (!snapshot || !current.value || instance.value) return
-    const epoch = auth.authEpoch
+    const owner = store.scope
     // Initial snapshot is used only during unmount. The wrapper hides this instance
     // synchronously on auth change; a new specialist gets a separate calendar/feed.
     instance.value = {
-      state: computed(() => project(auth.isEpochActive(epoch) && store.preferences ? store.preferences : snapshot)),
+      state: computed(() => project(store.scope === owner && store.preferences ? store.preferences : snapshot)),
       get synced() { return canWrite.value && !api.error.value },
       timezoneSource: 'server',
       get canWrite() { return canWrite.value },
       get saving() { return api.saving.value || blockingRefresh.value },
       get error() { return error.value },
       get errorCode() { return api.errorCode.value },
-      setMode: (mode) => execute(() => api.update({ mode })),
-      setPreset: (preset) => execute(() => api.update({ preset })),
-      setView: (view) => api.canWriteRegularView.value ? execute(() => api.setRegularView(view)) : Promise.resolve(false),
+      setMode: (mode) => execute(() => api.update({ mode }), owner),
+      setPreset: (preset) => execute(() => api.update({ preset }), owner),
+      setView: (view) => api.canWriteRegularView.value ? execute(() => api.setRegularView(view), owner) : Promise.resolve(false),
       setLayer: (layer, visible) => {
+        if (store.scope !== owner) return Promise.resolve(false)
         if (!store.preferences || store.preferences.layers[layer] === visible) return Promise.resolve(true)
         if (!Object.values({ ...store.preferences.layers, [layer]: visible }).some(Boolean)) return Promise.resolve(false)
-        return execute(() => api.update({ layers: { [layer]: visible } }))
+        return execute(() => api.update({ layers: { [layer]: visible } }), owner)
       },
-      reset: () => execute(() => api.update({ mode: store.preferences!.mode })),
+      reset: () => execute(() => api.update({ mode: store.preferences!.mode }), owner),
     }
   }, { immediate: true, flush: 'sync' })
 
   function refresh(kind: 'background' | 'blocking'): Promise<void> {
-    const epoch = auth.authEpoch
-    if (disposed || !auth.user || !online.value || api.saving.value) return Promise.resolve()
-    if (inFlight?.epoch === epoch) {
+    const owner = store.scope
+    if (disposed || !current.value || !owner || !online.value || api.saving.value) return Promise.resolve()
+    if (inFlight?.scope === owner) {
       if (kind === 'blocking') blockingRefresh.value = true
       return inFlight.promise
     }
@@ -107,13 +97,13 @@ export function useServerCalendarPreferencesSource() {
     refreshing.value = true
     blockingRefresh.value = kind === 'blocking' || !api.preferences.value
     const promise = api.reload().then(() => {
-      if (!auth.isEpochActive(epoch) || disposed || ticket !== operation) return
+      if (store.scope !== owner || disposed || ticket !== operation) return
       readError.value = ''
       forbiddenRead.value = false
       forbiddenWrite.value = false
       dismissedError.value = api.error.value
     }).catch((err) => {
-      if (!auth.isEpochActive(epoch) || disposed || ticket !== operation) return
+      if (store.scope !== owner || disposed || ticket !== operation) return
       readError.value = 'Не вдалося оновити налаштування календаря. Збереження вимкнено. Спробуйте ще раз.'
       const httpStatus = (err as { response?: { status?: number } }).response?.status
       forbiddenRead.value = httpStatus === 401 || httpStatus === 403
@@ -124,7 +114,7 @@ export function useServerCalendarPreferencesSource() {
         blockingRefresh.value = false
       }
     })
-    inFlight = { epoch, promise }
+    inFlight = { scope: owner, promise }
     return promise
   }
   const reload = () => refresh('blocking')
@@ -132,7 +122,7 @@ export function useServerCalendarPreferencesSource() {
   const visibility = () => { if (document.visibilityState === 'visible') void refresh('background') }
   const reconnect = () => { online.value = navigator.onLine; if (online.value) void reload() }
   const focus = () => { if (document.visibilityState === 'visible') void refresh('background') }
-  watch(() => auth.user, (user) => { if (user) void refresh('background') })
+  watch(() => store.scope, (owner) => { if (owner) void refresh('background') })
   onMounted(() => {
     window.addEventListener('focus', focus)
     window.addEventListener('online', reconnect)

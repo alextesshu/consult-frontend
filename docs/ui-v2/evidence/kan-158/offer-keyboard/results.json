@@ -1,0 +1,246 @@
+{
+  "fixtureOnly": true,
+  "checks": [
+    {
+      "width": 390,
+      "mode": "direct",
+      "tabSteps": 1,
+      "order": [
+        "standard",
+        "intro",
+        "couple"
+      ],
+      "focusStyle": {
+        "visible": true,
+        "width": "2px",
+        "style": "solid",
+        "color": "rgb(18, 52, 90)"
+      },
+      "selections": [
+        "Консультація · 80 хв · 1500 грн",
+        "Ознайомча сесія · 30 хв · 600 грн",
+        "Парна консультація · 80 хв · 2000 грн"
+      ],
+      "payload": {
+        "session_format": "online",
+        "guest_name": "Синтетичний гість",
+        "contact_channel": "email",
+        "contact_value": "guest@example.test",
+        "request_topics": [],
+        "slot_id": 100,
+        "offer_type": "couple",
+        "acquisition": {
+          "first_landing_path": "/s/olena"
+        }
+      },
+      "pendingSubmissionLocked": true,
+      "afterDialogKeyboard": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "mode": "empty",
+      "tabSteps": 1,
+      "order": [
+        "standard",
+        "intro",
+        "couple"
+      ],
+      "focusStyle": {
+        "visible": true,
+        "width": "2px",
+        "style": "solid",
+        "color": "rgb(18, 52, 90)"
+      },
+      "selections": [
+        "Консультація · 50 хв · 1500 грн",
+        "Ознайомча сесія · 30 хв · 600 грн",
+        "Парна консультація · 80 хв · 2000 грн"
+      ],
+      "payload": {
+        "session_format": "online",
+        "guest_name": "Синтетичний гість",
+        "contact_channel": "email",
+        "contact_value": "guest@example.test",
+        "request_topics": [],
+        "offer_type": "standard",
+        "acquisition": {
+          "first_landing_path": "/s/olena"
+        }
+      },
+      "pendingSubmissionLocked": true,
+      "afterDialogKeyboard": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "mode": "request",
+      "tabSteps": 1,
+      "order": [
+        "standard",
+        "intro",
+        "couple"
+      ],
+      "focusStyle": {
+        "visible": true,
+        "width": "2px",
+        "style": "solid",
+        "color": "rgb(18, 52, 90)"
+      },
+      "selections": [
+        "Консультація · 50 хв · 1500 грн",
+        "Ознайомча сесія · 30 хв · 600 грн",
+        "Парна консультація · 80 хв · 2000 грн"
+      ],
+      "payload": {
+        "session_format": "online",
+        "guest_name": "Синтетичний гість",
+        "contact_channel": "email",
+        "contact_value": "guest@example.test",
+        "request_topics": [],
+        "offer_type": "intro",
+        "acquisition": {
+          "first_landing_path": "/s/olena"
+        }
+      },
+      "pendingSubmissionLocked": true,
+      "afterDialogKeyboard": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "mode": "direct",
+      "tabSteps": 5,
+      "order": [
+        "standard",
+        "intro",
+        "couple"
+      ],
+      "focusStyle": {
+        "visible": true,
+        "width": "2px",
+        "style": "solid",
+        "color": "rgb(18, 52, 90)"
+      },
+      "selections": [
+        "Консультація · 80 хв · 1500 грн",
+        "Ознайомча сесія · 30 хв · 600 грн",
+        "Парна консультація · 80 хв · 2000 грн"
+      ],
+      "payload": {
+        "session_format": "online",
+        "guest_name": "Синтетичний гість",
+        "contact_channel": "email",
+        "contact_value": "guest@example.test",
+        "request_topics": [],
+        "slot_id": 100,
+        "offer_type": "couple",
+        "acquisition": {
+          "first_landing_path": "/s/olena"
+        }
+      },
+      "pendingSubmissionLocked": true,
+      "afterDialogKeyboard": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "mode": "empty",
+      "tabSteps": 5,
+      "order": [
+        "standard",
+        "intro",
+        "couple"
+      ],
+      "focusStyle": {
+        "visible": true,
+        "width": "2px",
+        "style": "solid",
+        "color": "rgb(18, 52, 90)"
+      },
+      "selections": [
+        "Консультація · 50 хв · 1500 грн",
+        "Ознайомча сесія · 30 хв · 600 грн",
+        "Парна консультація · 80 хв · 2000 грн"
+      ],
+      "payload": {
+        "session_format": "online",
+        "guest_name": "Синтетичний гість",
+        "contact_channel": "email",
+        "contact_value": "guest@example.test",
+        "request_topics": [],
+        "offer_type": "standard",
+        "acquisition": {
+          "first_landing_path": "/s/olena"
+        }
+      },
+      "pendingSubmissionLocked": true,
+      "afterDialogKeyboard": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "mode": "request",
+      "tabSteps": 5,
+      "order": [
+        "standard",
+        "intro",
+        "couple"
+      ],
+      "focusStyle": {
+        "visible": true,
+        "width": "2px",
+        "style": "solid",
+        "color": "rgb(18, 52, 90)"
+      },
+      "selections": [
+        "Консультація · 50 хв · 1500 грн",
+        "Ознайомча сесія · 30 хв · 600 грн",
+        "Парна консультація · 80 хв · 2000 грн"
+      ],
+      "payload": {
+        "session_format": "online",
+        "guest_name": "Синтетичний гість",
+        "contact_channel": "email",
+        "contact_value": "guest@example.test",
+        "request_topics": [],
+        "offer_type": "intro",
+        "acquisition": {
+          "first_landing_path": "/s/olena"
+        }
+      },
+      "pendingSubmissionLocked": true,
+      "afterDialogKeyboard": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "mode": "form-keyboard",
+      "enter": true,
+      "space": true,
+      "mutuallyExclusive": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "mode": "form-keyboard",
+      "enter": true,
+      "space": true,
+      "mutuallyExclusive": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "mode": "unavailable",
+      "onlyStandard": true,
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "mode": "unavailable",
+      "onlyStandard": true,
+      "errors": []
+    }
+  ],
+  "failures": []
+}

@@ -57,9 +57,14 @@ function httpError(status: number, code?: string) {
   })
 }
 
+function authenticate(id = 1) {
+  useAuthStore().$patch({ accessToken: 'synthetic', authResolved: true, user: { id, username: `synthetic-${id}`, email: null } })
+}
+function activateAccount() { setActivePinia(createPinia()); authenticate() }
+
 describe('calendar preferences store', () => {
   it('ignores a pre-write GET failure after a confirmed PATCH', async () => {
-    setActivePinia(createPinia())
+    activateAccount()
     const background = deferred<CalendarPreferences>()
     mockedFetch.mockResolvedValueOnce(prefs()).mockReturnValueOnce(background.promise)
     mockedUpdate.mockResolvedValueOnce(prefs({ mode: 'availability', revision: 1 }))
@@ -74,7 +79,7 @@ describe('calendar preferences store', () => {
   })
 
   it('does not let an old GET clear requiresReload while 409 recovery is pending', async () => {
-    setActivePinia(createPinia())
+    activateAccount()
     const background = deferred<CalendarPreferences>(), recovery = deferred<CalendarPreferences>()
     mockedFetch.mockResolvedValueOnce(prefs()).mockReturnValueOnce(background.promise).mockReturnValueOnce(recovery.promise)
     mockedUpdate.mockRejectedValueOnce(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
@@ -95,7 +100,7 @@ describe('calendar preferences store', () => {
   })
 
   it('fences a GET started during PATCH before applying the confirmed write', async () => {
-    setActivePinia(createPinia())
+    activateAccount()
     const write = deferred<CalendarPreferences>(), background = deferred<CalendarPreferences>()
     mockedFetch.mockResolvedValueOnce(prefs()).mockReturnValueOnce(background.promise)
     mockedUpdate.mockReturnValueOnce(write.promise)
@@ -113,7 +118,7 @@ describe('calendar preferences store', () => {
   })
 
   beforeEach(() => {
-    setActivePinia(createPinia())
+    activateAccount()
     mockedFetch.mockReset()
     mockedUpdate.mockReset()
     window.localStorage.clear()
@@ -257,6 +262,7 @@ describe('calendar preferences store', () => {
     expect(store.preferences).toBeNull()
 
     mockedFetch.mockResolvedValueOnce(prefs({ view: 'day', revision: 1 }))
+    authenticate(2)
     await store.ensureLoaded()
     expect(store.preferences).toMatchObject({ view: 'day', revision: 1 })
   })
@@ -356,6 +362,7 @@ describe('calendar preferences store', () => {
     const queued = store.update({ mode: 'needs_action' })
     await vi.waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1))
     useAuthStore().beginAuthEpoch()
+    authenticate(2)
     await store.ensureLoaded()
     await store.update({ view: 'day' })
     if (reject) oldReply.reject(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
@@ -385,7 +392,7 @@ describe('calendar preferences store', () => {
 
 describe('calendar preferences store: regular view', () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
+    activateAccount()
     mockedFetch.mockReset()
     mockedUpdate.mockReset()
   })
@@ -571,6 +578,7 @@ describe('calendar preferences store: regular view', () => {
     const next = useCalendarPreferences()
     expect(next.regularView.value).toBeNull()
     expect(next.canWriteRegularView.value).toBe(false)
+    authenticate(2)
     await vi.waitFor(() => expect(next.regularView.value).toBe('week'))
     oldReply.resolve(prefs({ regular_view: 'day', revision: 5 }))
     await expect(old).resolves.toBeNull()
@@ -580,4 +588,110 @@ describe('calendar preferences store: regular view', () => {
     expect(mockedUpdate).toHaveBeenCalledTimes(1)
     expect(store.saving).toBe(false)
   })
+  it('fences a higher-revision A GET after same-epoch B has loaded', async () => {
+    const oldRead = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValueOnce(prefs({ mode: 'availability', regular_view: 'day', revision: 10 })).mockReturnValueOnce(oldRead.promise).mockResolvedValueOnce(prefs({ revision: 0 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const pending = store.reload()
+    const epoch = useAuthStore().authEpoch
+    authenticate(2)
+    expect(useAuthStore().authEpoch).toBe(epoch)
+    expect(store.preferences).toBeNull()
+    expect(store.status).toBe('idle')
+    await store.ensureLoaded()
+    oldRead.resolve(prefs({ mode: 'availability', regular_view: 'day', revision: 99 }))
+    await expect(pending).resolves.toBeNull()
+    expect(store.preferences).toMatchObject({ mode: 'workday', regular_view: 'week', revision: 0 })
+  })
+
+  it.each([false, true])('isolates active and queued writes on identity-only switching (reject=%s)', async (reject) => {
+    const oldReply = deferred<CalendarPreferences>()
+    mockedFetch.mockResolvedValue(prefs())
+    mockedUpdate.mockReturnValueOnce(oldReply.promise).mockResolvedValueOnce(prefs({ regular_view: 'list', revision: 1 }))
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    const old = store.update({ mode: 'availability' })
+    const outcome = reject ? expect(old).rejects.toThrow() : expect(old).resolves.toBeNull()
+    const queued = store.update({ mode: 'needs_action' })
+    await vi.waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1))
+    authenticate(2)
+    expect(store.savingCount).toBe(0)
+    await store.ensureLoaded()
+    await store.setRegularView('list')
+    if (reject) oldReply.reject(httpError(409, 'CALENDAR_PREFERENCES_STALE'))
+    else oldReply.resolve(prefs({ mode: 'availability', revision: 99 }))
+    await outcome
+    await expect(queued).resolves.toBeNull()
+    expect(mockedUpdate).toHaveBeenCalledTimes(2)
+    expect(mockedUpdate).toHaveBeenLastCalledWith({ regular_view: 'list', expected_revision: 0 })
+    expect(store.preferences).toMatchObject({ mode: 'workday', regular_view: 'list', revision: 1 })
+    expect(store.error).toBe('')
+    expect(store.saving).toBe(false)
+  })
+
+  it('fences A -> B -> A even when account and epoch return to their original values', async () => {
+    const old = deferred<CalendarPreferences>()
+    mockedFetch.mockReturnValueOnce(old.promise).mockResolvedValueOnce(prefs({ revision: 1 }))
+    const store = useCalendarPreferencesStore()
+    const pending = store.ensureLoaded()
+    authenticate(2)
+    authenticate(1)
+    await store.ensureLoaded()
+    old.resolve(prefs({ mode: 'availability', revision: 99 }))
+    await pending
+    expect(store.preferences).toMatchObject({ mode: 'workday', revision: 1 })
+  })
+
+  it('does not share pending GETs between independent stores with the same epoch', async () => {
+    const a = deferred<CalendarPreferences>()
+    mockedFetch.mockReturnValueOnce(a.promise).mockResolvedValueOnce(prefs({ regular_view: 'day' }))
+    const first = useCalendarPreferencesStore()
+    const readA = first.ensureLoaded()
+    activateAccount()
+    authenticate(2)
+    const second = useCalendarPreferencesStore()
+    await second.ensureLoaded()
+    expect(second.regularView).toBe('day')
+    expect(first.preferences).toBeNull()
+    expect(mockedFetch).toHaveBeenCalledTimes(2)
+    a.resolve(prefs({ regular_view: 'list' }))
+    await readA
+    expect(first.regularView).toBe('list')
+    expect(second.regularView).toBe('day')
+  })
+
+  it('blocks all private requests with an unresolved or invalid identity', async () => {
+    const auth = useAuthStore()
+    auth.authResolved = false
+    const store = useCalendarPreferencesStore()
+    await store.ensureLoaded()
+    await store.reload()
+    await store.update({ mode: 'availability' })
+    auth.user = { id: Number.NaN, username: 'invalid', email: null }
+    auth.authResolved = true
+    await store.ensureLoaded()
+    auth.accessToken = ''
+    auth.user = { id: 1, username: 'synthetic', email: null }
+    await store.ensureLoaded()
+    expect(mockedFetch).not.toHaveBeenCalled()
+    expect(mockedUpdate).not.toHaveBeenCalled()
+  })
+
+  it('clears prior errors immediately and ignores late replies after disposal', async () => {
+    mockedFetch.mockRejectedValueOnce(httpError(503))
+    const store = useCalendarPreferencesStore()
+    await expect(store.ensureLoaded()).rejects.toThrow()
+    authenticate(2)
+    expect(store.error).toBe('')
+    expect(store.errorCode).toBeNull()
+    const late = deferred<CalendarPreferences>()
+    mockedFetch.mockReturnValueOnce(late.promise)
+    const read = store.reload()
+    store.$dispose()
+    late.resolve(prefs({ revision: 99 }))
+    await expect(read).resolves.toBeNull()
+    expect(store.preferences).toBeNull()
+  })
+
 })

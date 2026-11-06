@@ -1,5 +1,5 @@
 <template>
-  <section class="pc2-cal" :class="{ 'is-mobile': isMobile, 'is-tablet': isTablet }" aria-labelledby="pc2-cal-title">
+  <section ref="calendarRootRef" class="pc2-cal" :class="{ 'is-mobile': isMobile, 'is-tablet': isTablet }" aria-labelledby="pc2-cal-title">
     <div class="pc2-cal__mobile-head">
       <h1 id="pc2-cal-title" class="pc2-cal__page-title">Календар</h1>
       <button
@@ -181,6 +181,8 @@
       :layers="state.layers"
       :counts="layerCounts"
       :sheet="isMobile"
+      :can-restore-focus="canRestoreViewFocus"
+      :trigger="viewTrigger"
       :anchor="viewAnchor"
       :view="state.view"
       :disabled="!canEdit"
@@ -219,6 +221,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useCalendarDialog } from '../../composables/useCalendarDialog'
 import { CALENDAR_ACTION_SOURCE_LABELS, useCalendarActions } from '../../composables/useCalendarActions'
 import { CALENDAR_SOURCE_LABELS, useCalendarFeed } from '../../composables/useCalendarFeed'
 import { pickNextAction, splitActionsByWeek } from '../../lib/calendarActions'
@@ -244,6 +247,7 @@ import CalendarTimeGrid from './CalendarTimeGrid.vue'
 import CalendarViewMenu from './CalendarViewMenu.vue'
 import '../../styles/calendarV2.css'
 
+const calendarRootRef = ref<HTMLElement | null>(null)
 const props = defineProps<{ preferences?: CalendarPreferencesSource; now?: () => number }>()
 
 const prefs = props.preferences ?? createLocalCalendarPreferences()
@@ -308,6 +312,7 @@ function goToday() {
 const { items, status: feedStatus, failedSources: feedFailed, retry: retryFeed } = useCalendarFeed(range, { now: clock })
 const {
   actions,
+  authIdentity: detailsIdentity,
   upcomingSessions,
   status: actionsStatus,
   failedSources: actionsFailed,
@@ -412,25 +417,52 @@ watch(mode, (next) => {
 
 // «Вигляд» menu: focus returns to the button that opened it.
 const viewOpen = ref(false)
+const viewButtonRef = ref<HTMLButtonElement | null>(null)
+const viewButtonMobileRef = ref<HTMLButtonElement | null>(null)
 const viewAnchor = ref<{ top: number; left: number } | null>(null)
 let viewTrigger: HTMLElement | null = null
+let viewOwner: string | null = null
+const canRestoreViewFocus = () => viewOwner === detailsIdentity.value
 function openView(event: Event) {
+  viewOwner = detailsIdentity.value
   viewTrigger = event.currentTarget instanceof HTMLElement ? event.currentTarget : null
   // The desktop popover opens under its trigger, kept inside the viewport (320px wide + 16px gutter).
   const rect = viewTrigger?.getBoundingClientRect()
   viewAnchor.value = rect && rect.height ? { top: rect.bottom + 8, left: Math.max(16, Math.min(rect.left, window.innerWidth - 336)) } : null
   viewOpen.value = true
 }
-function closeView() {
+async function closeView() {
+  const owner = detailsIdentity.value
   viewOpen.value = false
-  viewTrigger?.focus()
+  await nextTick()
+  // Rendering or a breakpoint can replace the original button while the menu is open.
+  if (!viewOpen.value && owner === detailsIdentity.value && canRestoreViewFocus()) {
+    const target = isMobile.value ? viewButtonMobileRef.value : viewButtonRef.value
+    target?.focus({ preventScroll: true })
+  }
 }
 
 // Read-only details for non-session items and availability windows.
 type Details = { kindLabel: string; title: string; facts: { label: string; value: string }[]; href: string | null; linkLabel: string }
 const details = ref<Details | null>(null)
 const detailsRef = ref<HTMLElement | null>(null)
-let detailsTrigger: HTMLElement | null = null
+let detailsGeneration = 0
+let detailsOwner: string | null = null
+let detailsKey: string | null = null
+function currentDetailsTrigger() {
+  return Array.from(calendarRootRef.value?.querySelectorAll<HTMLElement>('[data-calendar-key]') ?? [])
+    .find((el) => el.dataset.calendarKey === detailsKey && el.isConnected) ?? null
+}
+useCalendarDialog({
+  open: computed(() => details.value !== null), panel: detailsRef, close: closeDetails,
+  initialFocus: () => detailsRef.value, trigger: currentDetailsTrigger,
+  restoreFocus: () => detailsOwner === detailsIdentity.value,
+})
+// The 3a panel contains snapshots (including grouped slots), not live feed items.
+watch(detailsIdentity, () => {
+  detailsGeneration += 1
+  details.value = null
+}, { flush: 'sync' })
 const KIND_TITLES: Record<CalendarItem['kind'], string> = {
   session: 'Сесія',
   free_slot: 'Вільний слот',
@@ -454,12 +486,17 @@ function timeText(start: number, end: number, allDay = false) {
   return startDay === endDay ? `${from}–${formatTime(end, tz)}` : `${from} – ${dayLabels(endDay).full}, ${formatTime(end, tz)}`
 }
 async function showDetails(next: Details) {
-  detailsTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  const account = detailsIdentity.value
+  if (!account) return
+  const generation = ++detailsGeneration
+  detailsOwner = account
   details.value = next
   await nextTick()
-  detailsRef.value?.focus()
+  if (generation === detailsGeneration && detailsIdentity.value === account) detailsRef.value?.focus()
 }
 function openDetails(item: CalendarItem) {
+  if (!items.value.includes(item)) return
+  detailsKey = item.key
   void showDetails({
     kindLabel: KIND_TITLES[item.kind],
     title: item.title,
@@ -474,6 +511,8 @@ function openDetails(item: CalendarItem) {
   })
 }
 function openWindow(window: FreeWindow) {
+  if (!window.slots.length || !window.slots.every((slot) => items.value.includes(slot))) return
+  detailsKey = window.key
   void showDetails({
     kindLabel: 'Вільне вікно',
     title: `${formatTime(window.start, timeZone.value)}–${formatTime(window.end, timeZone.value)} · ${slotsLabel(window.slots.length)}`,
@@ -485,9 +524,14 @@ function openWindow(window: FreeWindow) {
     linkLabel: LINK_LABELS.free_slot,
   })
 }
-function closeDetails() {
+async function closeDetails() {
+  const owner = detailsIdentity.value
+  detailsGeneration += 1
   details.value = null
-  detailsTrigger?.focus()
-  detailsTrigger = null
+  await nextTick()
+  if (!details.value && owner === detailsIdentity.value && detailsOwner === owner) {
+    const target = currentDetailsTrigger() ?? (isMobile.value ? viewButtonMobileRef.value : viewButtonRef.value)
+    target?.focus({ preventScroll: true })
+  }
 }
 </script>

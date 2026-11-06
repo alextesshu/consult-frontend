@@ -6,6 +6,7 @@
     :class="classes"
     :aria-label="description"
     :data-kind="item.kind"
+    :data-calendar-key="item.key"
   >
     <span class="pc2-cal-event__line"><span class="pc2-cal-event__time">{{ timeRange }}</span> <span class="pc2-cal-event__title">{{ title }}</span></span>
     <span v-if="!compact && !muted" class="pc2-cal-event__status">{{ item.statusLabel }}</span>
@@ -19,6 +20,7 @@
     :aria-label="description"
     aria-haspopup="dialog"
     :data-kind="item.kind"
+    :data-calendar-key="item.key"
     @click="$emit('open', item)"
   >
     <span class="pc2-cal-event__line"><span class="pc2-cal-event__time">{{ timeRange }}</span> <span class="pc2-cal-event__title">{{ title }}</span></span>

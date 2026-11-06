@@ -746,14 +746,21 @@
           <details class="details" open data-readiness-key="about">
             <summary>Про мене</summary>
             <label class="field">
-              <span class="field-label">Коротке професійне представлення</span>
+              <span id="publicProfileSummaryLabel" class="field-label">Коротке професійне представлення</span>
               <textarea
+                id="publicProfileSummary"
                 v-model="profile.public_profile_summary"
                 class="input"
                 rows="3"
-                maxlength="240"
+                aria-labelledby="publicProfileSummaryLabel"
+                aria-describedby="publicProfileSummaryCounter publicProfileSummaryNotice"
+                :aria-invalid="Boolean(summaryError)"
                 placeholder="Наприклад: Психологиня, гештальт-психотерапевтка. Працюю з дорослими, які переживають тривогу, життєві кризи або труднощі у стосунках."
               ></textarea>
+              <div id="publicProfileSummaryCounter" class="field-help">{{ summaryLength }} / 160</div>
+              <div id="publicProfileSummaryNotice" :class="summaryError ? 'field-error' : 'field-help'" aria-live="polite">
+                {{ summaryError || (isUnchangedLegacySummary ? 'Збережений опис перевищує новий ліміт. Його можна залишити без змін; після редагування — не більше 160 символів.' : 'Не більше 160 символів.') }}
+              </div>
               <div class="field-help">У 1–2 реченнях напишіть, хто ви як спеціаліст, з ким працюєте та що є важливим у вашому підході. Цей текст клієнт побачить одразу під вашим ім’ям.</div>
             </label>
             <div class="field">
@@ -2236,7 +2243,10 @@ function buildProfilePayload() {
     public_display_name: publicDisplayName,
     display_name: publicDisplayName,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
-    public_profile_summary: (profile.public_profile_summary || '').trim(),
+    // Omit unchanged legacy text so backend normalization cannot rewrite it.
+    ...(isUnchangedLegacySummary.value
+      ? {}
+      : { public_profile_summary: profile.public_profile_summary || '' }),
     setting_text: (profile.setting_text || '').trim(),
     bio_about: profile.bio_about,
     bio_work: profile.bio_work,
@@ -3070,6 +3080,17 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
 
 const dirtySnapshot = useDirtySnapshot<ProfileFormSnapshot>(createProfileFormSnapshot)
 
+const summaryLength = computed(() => Array.from(profile.public_profile_summary || '').length)
+const isUnchangedLegacySummary = computed(() =>
+  summaryLength.value > 160 &&
+  profile.public_profile_summary === dirtySnapshot.getSavedSnapshot()?.public_profile_summary
+)
+const summaryError = computed(() =>
+  summaryLength.value > 160 && !isUnchangedLegacySummary.value
+    ? 'Скоротіть коротке професійне представлення до 160 символів.'
+    : ''
+)
+
 function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
   const {
     education_items_text,
@@ -3192,6 +3213,12 @@ async function loadProfile() {
 }
 
 async function onSave() {
+  if (summaryError.value) {
+    error.value = summaryError.value
+    success.value = ''
+    document.getElementById('publicProfileSummary')?.focus()
+    return
+  }
   const analyticsPrevious = profileAnalyticsSnapshot()
   const publicationAttempted = isPendingPublication.value
   saving.value = true

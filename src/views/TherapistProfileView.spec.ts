@@ -1131,6 +1131,86 @@ describe('TherapistProfileView', () => {
     expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
+  it.each([0, 159, 160])('saves a %i-character summary without normalization', async (length) => {
+    const summary = length ? ` ${'я'.repeat(length - 2)} ` : ''
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedUpdateSpecialistProfile.mockResolvedValue(makeProfile({ public_profile_summary: summary }))
+    renderView()
+    const input = await screen.findByLabelText('Коротке професійне представлення')
+    await fireEvent.update(input, summary)
+    expect(screen.getByText(`${length} / 160`)).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    await waitFor(() => expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ public_profile_summary: summary })
+    ))
+  })
+
+  it('blocks a new 161-character summary without truncating it and focuses its error', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    renderView()
+    const input = await screen.findByLabelText('Коротке професійне представлення')
+    const summary = 'я'.repeat(161)
+    await fireEvent.update(input, summary)
+    expect(input).toHaveValue(summary)
+    expect(input).not.toHaveAttribute('maxlength')
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-describedby', 'publicProfileSummaryCounter publicProfileSummaryNotice')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(input).toHaveFocus()
+    await fireEvent.update(input, 'я'.repeat(160))
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+  })
+
+  it.each([161, 200, 240])('preserves an unchanged legacy %i-character summary when saving another field', async (length) => {
+    const summary = ` ${'я'.repeat(length - 2)} `
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile({ public_profile_summary: summary }))
+    mockedUpdateSpecialistProfile.mockResolvedValue(makeProfile({ public_profile_summary: summary, public_display_name: 'Нове ім’я' }))
+    renderView()
+    const input = await screen.findByLabelText('Коротке професійне представлення')
+    expect(input).toHaveValue(summary)
+    expect(screen.getByText(`${length} / 160`)).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+    expect(screen.getByText(/Збережений опис перевищує новий ліміт/)).toBeInTheDocument()
+    await fireEvent.update(screen.getByLabelText('Публічне ім’я'), 'Нове ім’я')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    await waitFor(() => expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ public_display_name: 'Нове ім’я' })
+    ))
+    expect(mockedUpdateSpecialistProfile.mock.calls[0]?.[0]).not.toHaveProperty('public_profile_summary')
+    expect(input).toHaveValue(summary)
+  })
+
+  it('requires an edited legacy summary to meet the limit and resets its baseline after save', async () => {
+    const legacy = 'я'.repeat(240)
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile({ public_profile_summary: legacy }))
+    mockedUpdateSpecialistProfile.mockResolvedValue(makeProfile({ public_profile_summary: 'я'.repeat(160) }))
+    renderView()
+    const input = await screen.findByLabelText('Коротке професійне представлення')
+    await fireEvent.update(input, 'я'.repeat(239))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    await fireEvent.update(input, legacy)
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+    await fireEvent.update(input, 'я'.repeat(160))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    await waitFor(() => expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument())
+    await fireEvent.update(input, legacy)
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('counts Unicode code points consistently with the backend rather than UTF-16 units', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    renderView()
+    const input = await screen.findByLabelText('Коротке професійне представлення')
+    await fireEvent.update(input, '🙂'.repeat(160))
+    expect(screen.getByText('160 / 160')).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+    await fireEvent.update(input, '🙂'.repeat(161))
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+  })
+
   it('renders public_profile_summary field in profile settings', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
@@ -2039,7 +2119,7 @@ describe('TherapistProfileView', () => {
         professional_focus: 'psychological_practice',
         public_display_name: 'Анна Профі',
         display_name: 'Анна Профі',
-        public_profile_summary: 'Оновлений короткий опис.',
+        public_profile_summary: 'Оновлений короткий опис.   ',
         setting_text: 'Оновлені умови перед записом.',
         education_summary: 'Integrative psychotherapy background.',
         education_items: ['Master in psychology', 'CBT program'],

@@ -1,0 +1,38 @@
+[
+  {
+    "width": 375,
+    "dimensions": [
+      375,
+      5177
+    ],
+    "pixelParity": true,
+    "changedPixels": 0
+  },
+  {
+    "width": 390,
+    "dimensions": [
+      390,
+      5136
+    ],
+    "pixelParity": true,
+    "changedPixels": 0
+  },
+  {
+    "width": 820,
+    "dimensions": [
+      820,
+      3922
+    ],
+    "pixelParity": true,
+    "changedPixels": 0
+  },
+  {
+    "width": 1280,
+    "dimensions": [
+      1280,
+      2863
+    ],
+    "pixelParity": true,
+    "changedPixels": 0
+  }
+]

@@ -2,6 +2,7 @@
 
 | Identity | Archive / included version | Authority | Provenance |
 | --- | --- | --- | --- |
+| `claude-design-2026-10-26-1dbb9008` | v6.9.1 (candidate package, KAN-158 only) | Active scoped overlay for the UI v2 public profile and summary field since 2026-10-26; v6.6 stays current for every other screen | [Frozen package](snapshots/2026-10-26-1dbb9008/README.md), [manifest](SNAPSHOT_MANIFEST_V691_CANDIDATE.json), [matrix](IMPLEMENTATION_MATRIX_V691_KAN158.json) |
 | `claude-design-2026-10-23-4ff7cedd` | v6.6 / through v6.7 | Current design documentation only, registered 2026-10-24 | [Frozen package](snapshots/2026-10-23-4ff7cedd/README.md), [manifest](SNAPSHOT_MANIFEST_V66_V67.json) |
 | `claude-design-2026-10-23-7570f1ad` | v5 | Previous immutable reference, preserved | [Package](snapshots/2026-10-23-7570f1ad/README.md), [manifest](SNAPSHOT_MANIFEST_V5.json) |
 | claude-design-2026-10-23-e43f5f80 | v3 | Historical | [Manifest](SNAPSHOT_MANIFEST_V3.json) |

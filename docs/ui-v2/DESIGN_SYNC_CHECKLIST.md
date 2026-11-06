@@ -1,6 +1,6 @@
 # UI v2 — repeatable Design Sync checklist
 
-Current snapshot `claude-design-2026-10-23-4ff7cedd`, archive v6.6 / included v6.7, SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`. [Entry point](START_HERE.md), [manifest](SNAPSHOT_MANIFEST_V66_V67.json), [audit](DESIGN_SYNC_2026-10-24_V66_V67.md).
+Current snapshot `claude-design-2026-10-23-4ff7cedd`, archive v6.6 / included v6.7, SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`. [Entry point](START_HERE.md), [manifest](SNAPSHOT_MANIFEST_V66_V67.json), [audit](DESIGN_SYNC_2026-10-24_V66_V67.md). KAN-158 public profile and the summary field follow the scoped overlay `claude-design-2026-10-26-1dbb9008` (v6.9.1, SHA-256 `1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d`); see [audit](DESIGN_SYNC_2026-10-26_V691_CANDIDATE.md) and [matrix](IMPLEMENTATION_MATRIX_V691_KAN158.json).
 
 1. Receive an explicitly supplied ZIP; record exact filename/path, SHA-256, import date and checksum-derived snapshot ID. It is a supplied snapshot, not live cloud state. Never substitute an old export when the requested archive is missing.
 2. Read AGENTS and current canonical safeguards; inspect clean index/worktrees, fetch latest origin/dev and isolate this task. Preserve local dev and unrelated PR branches.

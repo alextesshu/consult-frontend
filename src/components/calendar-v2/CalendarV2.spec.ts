@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { defineComponent } from 'vue'
+import { defineComponent, nextTick } from 'vue'
+import { createPinia, getActivePinia, setActivePinia } from 'pinia'
+import { useAuthStore } from '../../stores/auth'
 import * as api from '../../lib/api'
 import { apiGet, fetchAvailabilityExceptions, fetchCabinetGuestBookingRequests, fetchExternalSessions, getCabinetSchedule } from '../../lib/api'
 import { fetchSpecialistRescheduleRequests } from '../../lib/specialistSessions'
@@ -81,11 +83,13 @@ function makeRouter() {
 async function renderCalendar(path = '/cabinet/sessions?ui=v2') {
   const router = makeRouter()
   await router.push(path)
-  const result = render(CalendarV2, { props: { now: () => NOW }, global: { plugins: [router] } })
+  const result = render(CalendarV2, { props: { now: () => NOW }, global: { plugins: [getActivePinia()!, router] } })
   return { ...result, router }
 }
 
 function resetMocks() {
+  setActivePinia(createPinia())
+  useAuthStore().$patch({ accessToken: 'synthetic-token', authResolved: true, user: { id: 101, username: 'synthetic-a', email: null } })
   clearCalendarFeedShare()
   Object.values(mocked).forEach((mock) => mock.mockReset())
   mocked.schedule.mockResolvedValue({ events: SCHEDULE as never })
@@ -394,5 +398,104 @@ describe('CalendarV2 3a on tablets and phones', () => {
     expect(await screen.findByText('Немає вільних слотів · є зайняті події')).toBeInTheDocument()
     await fireEvent.click(within(screen.getByRole('group', { name: 'Дні тижня' })).getByRole('button', { name: /Понеділок, 19 жовтня/ }))
     expect(screen.getByText('Порожній день')).toBeInTheDocument()
+  })
+})
+
+
+describe('CalendarV2 3a authenticated isolation', () => {
+  beforeEach(() => { resetMocks(); stubViewport(1280) })
+  afterEach(() => vi.unstubAllGlobals())
+
+  function account(id: number) {
+    useAuthStore().$patch({ accessToken: 'synthetic', authResolved: true, user: { id, username: `synthetic-${id}`, email: null } })
+  }
+  function data(name: string, ids: number[]) {
+    mocked.schedule.mockResolvedValue({ events: [] })
+    mocked.apiGet.mockResolvedValue(ids.map((id) => row(id, 'SCHEDULED', '2026-10-23T07:00:00Z', name)))
+    mocked.guests.mockResolvedValue([])
+  }
+
+  it('clears the action list, next card, badge and feed on A -> B without remount', async () => {
+    data('Synthetic A', [101])
+    await renderCalendar('/cabinet/sessions?ui=v2&mode=actions')
+    await screen.findByRole('heading', { level: 2, name: 'Synthetic A' })
+    expect(screen.getByLabelText('1 дій')).toBeInTheDocument()
+    data('Synthetic B', [202, 203])
+    account(202)
+    await nextTick()
+    expect(screen.queryAllByText('Synthetic A')).toHaveLength(0)
+    expect(screen.queryByLabelText('1 дій')).toBeNull()
+    await screen.findByLabelText('2 дій')
+    expect(screen.getByRole('heading', { level: 2, name: 'Synthetic B' })).toBeInTheDocument()
+    expect(screen.queryAllByText('Synthetic A')).toHaveLength(0)
+    await fireEvent.click(screen.getByRole('tab', { name: 'Робочий день' }))
+    expect(await screen.findAllByRole('link', { name: /Synthetic B, Чекає підтвердження/ })).toHaveLength(2)
+    expect(screen.queryAllByText('Synthetic A')).toHaveLength(0)
+  })
+
+  it.each([['item', true], ['window', true], ['item', false], ['window', false]] as const)('closes %s details across an auth transition (logout=%s) and rejects stale trigger events', async (kind, logout) => {
+    const view = await renderCalendar()
+    await screen.findByRole('heading', { level: 2, name: 'Катерина' })
+    if (kind === 'window') await fireEvent.click(screen.getByRole('tab', { name: 'Доступність' }))
+    await waitFor(() => expect(view.container.querySelector(kind === 'window' ? '.pc2-cal-window' : '[data-kind="guest_request"]')).not.toBeNull())
+    const trigger = view.container.querySelector<HTMLButtonElement>(kind === 'window' ? '.pc2-cal-window' : '[data-kind="guest_request"]')!
+    trigger.focus()
+    await fireEvent.click(trigger)
+    expect(screen.getByRole('dialog')).toHaveFocus()
+    await fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(trigger).toHaveFocus()
+    await fireEvent.click(trigger)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    if (logout) useAuthStore().logout()
+    else {
+      data('Synthetic B', [202])
+      account(202)
+    }
+    // Dispatch against the old DOM before Vue patches it: source membership/auth must reject it.
+    await fireEvent.click(trigger)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Катерина' })).toBeNull()
+    expect(screen.queryByLabelText('4 дій')).toBeNull()
+    data('Synthetic B', [202])
+    account(202)
+    await screen.findByRole('heading', { level: 2, name: 'Synthetic B' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByRole('button', { name: /13:00.*14:50.*Вільне вікно/ })).toBeNull()
+  })
+
+  it('does not resurrect A details or action/feed data when pending A sources complete under B', async () => {
+    const view = await renderCalendar()
+    await screen.findByRole('heading', { level: 2, name: 'Катерина' })
+    const trigger = view.container.querySelector<HTMLButtonElement>('[data-kind="guest_request"]')!
+    await fireEvent.click(trigger)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    let releaseFeed!: (value: Awaited<ReturnType<typeof getCabinetSchedule>>) => void
+    let releaseActions!: (value: unknown) => void
+    mocked.schedule.mockImplementationOnce(() => new Promise((resolve) => { releaseFeed = resolve }))
+    mocked.apiGet.mockImplementationOnce(() => new Promise((resolve) => { releaseActions = resolve }))
+    account(202)
+    await nextTick()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    data('Synthetic C', [303])
+    account(303)
+    await screen.findByRole('heading', { level: 2, name: 'Synthetic C' })
+    releaseFeed({ events: SCHEDULE as never })
+    releaseActions(UPCOMING)
+    await nextTick()
+    await nextTick()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryAllByText('Катерина')).toHaveLength(0)
+    expect(screen.getByRole('heading', { level: 2, name: 'Synthetic C' })).toBeInTheDocument()
+  })
+
+  it('does not start either private feed when authenticated identity is unresolved', async () => {
+    useAuthStore().authResolved = false
+    await renderCalendar()
+    await nextTick()
+    expect(mocked.schedule).not.toHaveBeenCalled()
+    expect(mocked.apiGet).not.toHaveBeenCalled()
+    expect(mocked.guests).not.toHaveBeenCalled()
+    expect(screen.queryByLabelText('0 дій')).toBeNull()
   })
 })

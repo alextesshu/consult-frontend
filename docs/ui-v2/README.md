@@ -1,6 +1,6 @@
 # Pro Consult UI v2 design reference index
 
-Snapshot `claude-design-2026-10-23-4ff7cedd`; SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`; archive label **v6.6**, latest included changelog **v6.7**; registered 2026-10-24. Base `e63b1ca1a941f56c6578c32a7b964a133404bbb6`.
+Snapshot `claude-design-2026-10-23-4ff7cedd`; SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`; archive label **v6.6**, latest included changelog **v6.7**; registered 2026-10-24. Base `e63b1ca1a941f56c6578c32a7b964a133404bbb6`. KAN-158 public profile and the summary field follow the scoped overlay `claude-design-2026-10-26-1dbb9008` (v6.9.1, SHA-256 `1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d`); see [audit](DESIGN_SYNC_2026-10-26_V691_CANDIDATE.md) and [matrix](IMPLEMENTATION_MATRIX_V691_KAN158.json).
 
 Start with [current entry point](START_HERE.md) and [source index](DESIGN_SOURCE_INDEX.md). Current source is the [immutable v6.6/v6.7 package](snapshots/2026-10-23-4ff7cedd/README.md), with [manifest](SNAPSHOT_MANIFEST_V66_V67.json), [comparison](DESIGN_SYNC_2026-10-24_V66_V67.md), [matrix](IMPLEMENTATION_MATRIX_V66_V67.md), [gates](JIRA_ALIGNMENT_V66_V67.md), [follow-ups](FOLLOWUP_PLAN_V66_V67.md) and [validation](DESIGN_SYNC_V66_V67_VALIDATION.md).
 

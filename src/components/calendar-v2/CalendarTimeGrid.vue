@@ -47,7 +47,7 @@
               class="pc2-cal-grid__slot pc2-cal-grid__slot--window"
               :style="{ top: `${block.top}px`, height: `${block.height}px` }"
             >
-              <button type="button" class="pc2-cal-window" :aria-label="windowDescription(block.window)" @click="$emit('open-window', block.window)">
+              <button type="button" class="pc2-cal-window" :data-calendar-key="block.window.key" :aria-label="windowDescription(block.window)" @click="$emit('open-window', block.window)">
                 <span class="pc2-cal-window__time">{{ windowRange(block.window) }}</span>
                 <span class="pc2-cal-window__count">{{ slotsLabel(block.window.slots.length) }}</span>
               </button>
@@ -71,7 +71,7 @@
               <CalendarEventChip :item="item" :time-zone="timeZone" :muted="mode === 'availability' && item.kind === 'session'" compact show-day @open="$emit('open', $event)" />
             </li>
             <li v-for="window in weekendWindows" :key="window.key">
-              <button type="button" class="pc2-cal-window" :aria-label="windowDescription(window)" @click="$emit('open-window', window)">
+              <button type="button" class="pc2-cal-window" :data-calendar-key="window.key" :aria-label="windowDescription(window)" @click="$emit('open-window', window)">
                 <span class="pc2-cal-window__time">{{ dayLabels(window.day).short }} {{ windowRange(window) }}</span>
                 <span class="pc2-cal-window__count">{{ slotsLabel(window.slots.length) }}</span>
               </button>
