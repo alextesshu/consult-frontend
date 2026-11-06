@@ -75,7 +75,7 @@ export type CalendarConflict = 'external_overlap' | 'slot_during_absence' | 'ses
 
 export const CALENDAR_CONFLICT_LABELS: Record<CalendarConflict, string> = {
   external_overlap: 'Перетинається із зовнішньою гостьовою сесією — система це не блокує',
-  slot_during_absence: 'Вікно під час відсутності — клієнти все ще можуть його обрати',
+  slot_during_absence: 'Вікно перетинається з відсутністю. Перевірте вікна та налаштування запису.',
   session_during_absence: 'Сесія під час відсутності',
   session_overlap: 'Перетинається з іншою сесією',
 }

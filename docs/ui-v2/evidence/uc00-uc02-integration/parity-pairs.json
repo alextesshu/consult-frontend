@@ -1,0 +1,59 @@
+{
+  "baseline": "ad6c3a39361678c815b29f2f5eef5574b9ba7aac",
+  "pairs": [
+    {
+      "width": 375,
+      "route": "sessions",
+      "before": "screenshots/v1-375-sessions-before.png",
+      "after": "screenshots/v1-375-sessions-after.png"
+    },
+    {
+      "width": 375,
+      "route": "slots",
+      "before": "screenshots/v1-375-slots-before.png",
+      "after": "screenshots/v1-375-slots-after.png"
+    },
+    {
+      "width": 375,
+      "route": "dashboard",
+      "before": "screenshots/v1-375-dashboard-before.png",
+      "after": "screenshots/v1-375-dashboard-after.png"
+    },
+    {
+      "width": 390,
+      "route": "sessions",
+      "before": "screenshots/v1-390-sessions-before.png",
+      "after": "screenshots/v1-390-sessions-after.png"
+    },
+    {
+      "width": 768,
+      "route": "sessions",
+      "before": "screenshots/v1-768-sessions-before.png",
+      "after": "screenshots/v1-768-sessions-after.png"
+    },
+    {
+      "width": 1280,
+      "route": "sessions",
+      "before": "screenshots/v1-1280-sessions-before.png",
+      "after": "screenshots/v1-1280-sessions-after.png"
+    },
+    {
+      "width": 1280,
+      "route": "dashboard",
+      "before": "screenshots/v1-1280-dashboard-before.png",
+      "after": "screenshots/v1-1280-dashboard-after.png"
+    },
+    {
+      "width": 1440,
+      "route": "sessions",
+      "before": "screenshots/v1-1440-sessions-before.png",
+      "after": "screenshots/v1-1440-sessions-after.png"
+    },
+    {
+      "width": 1280,
+      "route": "slots",
+      "before": "screenshots/v1-1280-slots-before.png",
+      "after": "screenshots/v1-1280-slots-after.png"
+    }
+  ]
+}

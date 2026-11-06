@@ -17,6 +17,7 @@
           <button
             type="button"
             class="pc2-cal-agenda__window"
+            :data-calendar-key="row.window.key"
             :aria-expanded="mode === 'availability' ? expanded.has(row.window.key) : undefined"
             :aria-controls="mode === 'availability' ? `${row.window.key}-slots` : undefined"
             @click="mode === 'availability' ? toggle(row.window.key) : $emit('open-window', row.window)"

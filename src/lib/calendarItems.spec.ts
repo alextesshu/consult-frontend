@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { AvailabilityException, CabinetScheduleEvent, ExternalSessionRecord } from './api'
 import {
   PRESET_LAYERS,
+  CALENDAR_CONFLICT_LABELS,
   buildCalendarItems,
   hiddenSummary,
   visibleItems,
@@ -292,4 +293,9 @@ describe('status markers (CALENDAR_3A_SPEC §6)', () => {
     expect(items.get('guest_request:slot-22')?.marker).toBe('Запит')
     expect(items.get('external_guest_session:9')?.marker).toBe('Зовнішня · перетин')
   })
+})
+
+it('describes a private slot conflict without promising public bookability', () => {
+  expect(CALENDAR_CONFLICT_LABELS.slot_during_absence).toBe('Вікно перетинається з відсутністю. Перевірте вікна та налаштування запису.')
+  expect(CALENDAR_CONFLICT_LABELS.slot_during_absence).not.toMatch(/клієнти.*обрати/)
 })

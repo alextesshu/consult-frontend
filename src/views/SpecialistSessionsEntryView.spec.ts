@@ -4,7 +4,7 @@ import { nextTick } from 'vue'
 import { applyUiVersion } from '../lib/uiVersion'
 import SpecialistSessionsEntryView from './SpecialistSessionsEntryView.vue'
 
-vi.mock('../components/calendar-v2/CalendarV2.vue', () => ({ default: { name: 'CalendarV2', template: '<div data-testid="calendar-v2" />' } }))
+vi.mock('../components/calendar-v2/ServerCalendarV2.vue', () => ({ default: { name: 'ServerCalendarV2', template: '<div data-testid="calendar-v2" />' } }))
 vi.mock('./TherapistSessionsView.vue', () => ({ default: { name: 'TherapistSessionsView', template: '<div data-testid="legacy-sessions" />' } }))
 
 describe('/cabinet/sessions entry', () => {
