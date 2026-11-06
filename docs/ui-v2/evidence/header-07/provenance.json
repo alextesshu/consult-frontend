@@ -1,0 +1,13 @@
+{
+  "source_archive_sha256": "a21ce5959cef28374ce5a5b89cb48df01e1d3b372e760ebf6fdd36fe96150511",
+  "mark_source": "handoff/mockups/public/brand/fennec.svg",
+  "mark_sha256": "f696805cc7ca9e53e4b90e5aefde3f7a5402e5d55bc20a2870663739b2f5087c",
+  "mark_handling": "Exact original bytes; no geometry/color/metadata changes",
+  "font_family": "Manrope",
+  "font_weight": 800,
+  "font_sha256": "a8291b05b2732801abdbbb6d06866c57431c3b990638462423e692151b5e0895",
+  "font_source": "https://fonts.googleapis.com/css2?family=Manrope:wght@800&display=swap",
+  "font_asset_source": "https://fonts.gstatic.com/s/manrope/v23/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk59E-_F.ttf",
+  "license_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/OFL.txt",
+  "hosting": "Local font asset; no new runtime font CDN request"
+}
