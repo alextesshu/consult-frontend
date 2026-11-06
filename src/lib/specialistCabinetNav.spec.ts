@@ -9,9 +9,10 @@ const source = readFileSync('docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mo
 const mobile = readFileSync('docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/Cabinet-Mobile.dc.html', 'utf8')
 
 describe('specialist cabinet v2 navigation', () => {
-  it('uses the 14 source NAV labels in source order', () => {
+  it('preserves source order while consolidating schedule and sessions for Calendar 3a', () => {
     const nav = source.match(/const NAV = (\[[^\]]+\])/)![1]!
-    expect(CABINET_NAV.map((item) => item.label)).toEqual(JSON.parse(nav.replace(/'/g, '"')))
+    const labels: string[] = JSON.parse(nav.replace(/'/g, '"'))
+    expect(CABINET_NAV.map((item) => item.label)).toEqual(labels.filter((label) => label !== 'Розклад').map((label) => label === 'Сесії' ? 'Календар' : label))
   })
 
   it('points every item at an existing specialist-only route (no fallback, no dead links)', () => {
@@ -25,9 +26,9 @@ describe('specialist cabinet v2 navigation', () => {
 
   it('splits M1 tabs and the M2 «Ще» sheet like the source', () => {
     expect(mobile).toContain("const MAIN = [['Кабінет'], ['Сесії'], ['Клієнти'], ['Запити', '2'], ['Ще', '1']]")
-    expect(CABINET_TAB_KEYS.map((key) => cabinetNavItem(key).label)).toEqual(['Кабінет', 'Сесії', 'Клієнти', 'Запити'])
-    // Source M2 lists 9 items; the 14-item NAV adds «Групові події», so the sheet holds 10.
-    expect(CABINET_MORE_KEYS.map((key) => cabinetNavItem(key).label)).toEqual(['Профіль', 'Розклад', 'Завдання', 'Відгуки', 'Чати', 'Групові події', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'])
+    expect(CABINET_TAB_KEYS.map((key) => cabinetNavItem(key).label)).toEqual(['Кабінет', 'Календар', 'Клієнти', 'Запити'])
+    // Schedule management is now secondary to Calendar, so More holds nine items.
+    expect(CABINET_MORE_KEYS.map((key) => cabinetNavItem(key).label)).toEqual(['Профіль', 'Завдання', 'Відгуки', 'Чати', 'Групові події', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'])
   })
 
   it('matches active sections like the legacy sidebar', () => {
@@ -35,9 +36,14 @@ describe('specialist cabinet v2 navigation', () => {
     expect(isCabinetNavActive(item('dashboard'), '/cabinet')).toBe(true)
     expect(isCabinetNavActive(item('dashboard'), '/cabinet/clients')).toBe(false)
     expect(isCabinetNavActive(item('sessions'), '/cabinet/sessions/42')).toBe(true)
-    expect(isCabinetNavActive(item('schedule'), '/cabinet/availability-rules')).toBe(true)
+    expect(isCabinetNavActive(item('sessions'), '/cabinet/availability-rules')).toBe(true)
     expect(isCabinetNavActive(item('requests'), '/cabinet/inquiries')).toBe(true)
     expect(isCabinetNavActive(item('clients'), '/cabinet/clientsx')).toBe(false)
+  })
+
+  it.each(['/cabinet/sessions', '/cabinet/sessions/42', '/cabinet/slots', '/cabinet/schedule', '/cabinet/availability-rules', '/cabinet/availability-exceptions'])('keeps one active Calendar item on %s', (path) => {
+    expect(CABINET_NAV.filter((item) => isCabinetNavActive(item, path)).map((item) => item.label)).toEqual(['Календар'])
+    expect(router.resolve(path).matched.length).toBeGreaterThan(0)
   })
 
   it('formats badges, the «Ще» sum, plan and initials from real values only', () => {

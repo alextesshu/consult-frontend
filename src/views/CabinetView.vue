@@ -45,8 +45,8 @@
         </div>
         <div v-else class="pc2-dashboard__hero-empty">
           <div class="pc2-dashboard__hero-name">Сесій сьогодні немає.</div>
-          <p>Можна перейти до розкладу або створити сесію з верхньої дії.</p>
-          <RouterLink class="pc2-dashboard__hero-ghost" to="/cabinet/slots">Перейти до розкладу</RouterLink>
+          <p>Можна перейти до календаря або створити сесію з верхньої дії.</p>
+          <RouterLink class="pc2-dashboard__hero-ghost" to="/cabinet/sessions">Перейти до календаря</RouterLink>
         </div>
         <ol v-if="todayPills.length" class="pc2-dashboard__today" aria-label="Сесії сьогодні">
           <li v-for="pill in todayPills" :key="pill.id">
@@ -57,6 +57,7 @@
             </RouterLink>
           </li>
         </ol>
+        <RouterLink class="pc2-dashboard__hero-ghost" to="/cabinet/sessions">Усі в календарі →</RouterLink>
       </section>
 
       <div class="pc2-dashboard__columns">
@@ -1858,7 +1859,7 @@ const queueCount = computed(() => {
 })
 const queueOverflow = computed(() => {
   const hidden = queueCount.value - queueItems.value.length
-  return hidden > 0 ? `Ще ${hidden} ${pluralUk(hidden, ['пункт', 'пункти', 'пунктів'])} — у розділах «Запити», «Сесії» та «Нотатки».` : ''
+  return hidden > 0 ? `Ще ${hidden} ${pluralUk(hidden, ['пункт', 'пункти', 'пунктів'])} — у розділах «Запити», «Календар» та «Нотатки».` : ''
 })
 
 const readiness = computed(() => {
