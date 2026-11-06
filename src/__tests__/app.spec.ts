@@ -131,6 +131,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/profile', component: { template: '<div>Cabinet Profile</div>' } },
     { path: '/cabinet/slots', component: { template: '<div>Cabinet Slots</div>' } },
     { path: '/cabinet/sessions', component: { template: '<div>Cabinet Sessions</div>' } },
+    ...['/cabinet/sessions/:id', '/cabinet/schedule', '/cabinet/availability-exceptions'].map((path) => ({ path, component: { template: '<div>Related Calendar Page</div>' } })),
     { path: '/cabinet/practice-board', component: { template: '<div>Cabinet Practice Board</div>' } },
     { path: '/cabinet/clients', component: { template: '<div>Cabinet Clients</div>' } },
     { path: '/cabinet/reviews', component: { template: '<div>Cabinet Reviews</div>' } },
@@ -881,6 +882,35 @@ describe('App shell', () => {
 
   describe('KAN-161 specialist cabinet shell UI v2', () => {
     afterEach(() => { vi.unstubAllGlobals(); document.body.style.overflow = ''; document.documentElement.style.overflow = '' })
+
+    it.each(['/cabinet/sessions', '/cabinet/sessions/42', '/cabinet/slots?tab=settings', '/cabinet/schedule', '/cabinet/availability-exceptions'])('unifies specialist v2 navigation on %s without changing the deep link', async (path) => {
+      applyUiVersion('v2')
+      const { router } = await renderWithProviders({ initialPath: path, roles: ['SPECIALIST'] })
+      expect(router.currentRoute.value.fullPath).toBe(path)
+      for (const selector of ['.pc2-cabinet-sidebar__nav', '.pc2-cabinet-tabbar']) {
+        const nav = document.querySelector(selector) as HTMLElement
+        expect(within(nav).getByRole('link', { name: /^Календар/ })).toHaveAttribute('href', '/cabinet/sessions')
+        expect(within(nav).getByRole('link', { name: /^Календар/ })).toHaveAttribute('aria-current', 'page')
+        expect(within(nav).queryByRole('link', { name: /^Розклад|^Сесії/ })).toBeNull()
+      }
+    })
+
+    it('preserves the v1 specialist schedule/session pair', async () => {
+      applyUiVersion('v1')
+      await renderWithProviders({ initialPath: '/cabinet/slots', roles: ['SPECIALIST'] })
+      const nav = document.querySelector('.specialist-sidebar') as HTMLElement
+      expect(within(nav).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
+      expect(within(nav).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
+      expect(within(nav).queryByRole('link', { name: 'Календар' })).toBeNull()
+    })
+
+    it('does not expose specialist Calendar navigation to a v2 client', async () => {
+      applyUiVersion('v2')
+      await renderWithProviders({ initialPath: '/client', roles: ['CLIENT'] })
+      expect(document.querySelector('.pc2-cabinet-shell')).toBeNull()
+      expect(document.querySelector('a[href="/cabinet/sessions"]')).toBeNull()
+      expect(document.querySelector('a[href="/cabinet/slots"]')).toBeNull()
+    })
 
     it('replaces the legacy cabinet header and sidebar for a v2 specialist', async () => {
       applyUiVersion('v2')

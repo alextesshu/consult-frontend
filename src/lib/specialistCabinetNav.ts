@@ -1,5 +1,5 @@
 // UI v2 specialist cabinet navigation (Cabinet-Dashboard.dc.html NAV, Cabinet-Mobile.dc.html M1/M2).
-// Every item points to an existing router path; matches mirror the legacy sidebar so active states agree.
+// Calendar 3a consolidates schedule and sessions in UI v2; legacy App navigation stays unchanged.
 
 export type CabinetNavKey =
   | 'dashboard' | 'profile' | 'clients' | 'schedule' | 'sessions' | 'requests' | 'tasks'
@@ -15,13 +15,12 @@ export type CabinetNavItem = {
 
 export type CabinetNavBadges = Partial<Record<CabinetNavKey, number>>
 
-// Order and labels follow the 14-item source NAV.
+// Approved Calendar 3a cutover: one calendar entry replaces the source schedule/session pair.
 export const CABINET_NAV: CabinetNavItem[] = [
   { key: 'dashboard', label: 'Кабінет', to: '/cabinet', match: ['/cabinet'], exact: true },
   { key: 'profile', label: 'Профіль', to: '/cabinet/profile', match: ['/cabinet/profile'] },
   { key: 'clients', label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
-  { key: 'schedule', label: 'Розклад', to: '/cabinet/slots', match: ['/cabinet/schedule', '/cabinet/slots', '/cabinet/availability-rules', '/cabinet/availability-exceptions'] },
-  { key: 'sessions', label: 'Сесії', to: '/cabinet/sessions', match: ['/cabinet/sessions'] },
+  { key: 'sessions', label: 'Календар', to: '/cabinet/sessions', match: ['/cabinet/sessions', '/cabinet/schedule', '/cabinet/slots', '/cabinet/availability-rules', '/cabinet/availability-exceptions'] },
   { key: 'requests', label: 'Запити', to: '/cabinet/external-sessions#guest-requests', match: ['/cabinet/external-sessions', '/cabinet/inquiries'] },
   { key: 'tasks', label: 'Завдання', to: '/cabinet/practice-board', match: ['/cabinet/practice-board'] },
   { key: 'reviews', label: 'Відгуки', to: '/cabinet/reviews', match: ['/cabinet/reviews'] },

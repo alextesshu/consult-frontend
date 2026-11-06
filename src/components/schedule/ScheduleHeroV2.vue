@@ -8,6 +8,7 @@
       </div>
       <div class="pc2-schedule-hero__actions">
         <button v-if="active === 'slots'" ref="primaryAction" type="button" :disabled="busy" class="pc2-schedule-hero__fill" @click="$emit('fill')">Створити вікна</button>
+        <RouterLink to="/cabinet/sessions">Календар →</RouterLink>
         <RouterLink to="/cabinet/schedule" :aria-current="active === 'calendar' ? 'page' : undefined">Календар сесій →</RouterLink>
         <RouterLink to="/cabinet/slots?tab=settings" :aria-current="active === 'settings' ? 'page' : undefined">Запис і запити</RouterLink>
       </div>

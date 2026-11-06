@@ -94,6 +94,7 @@ describe('CabinetView UI v2 dashboard (Cabinet-Dashboard.dc.html)', () => {
     expect(hero.querySelector('.pc2-dashboard__clock')).toHaveTextContent('16:30')
     expect(hero).toHaveTextContent(/Четвер, 22 жовтня · Добрий день/)
     expect(within(hero).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/11')
+    expect(within(hero).getByRole('link', { name: 'Усі в календарі →' })).toHaveAttribute('href', '/cabinet/sessions')
     expect(within(hero).getByRole('link', { name: '+ Нова сесія' })).toHaveAttribute('href', '/cabinet/slots?action=create-session')
     expect(hero.querySelector('.pc2-dashboard__join')).toHaveAttribute('aria-disabled', 'true')
     expect(hero.querySelector('a.pc2-dashboard__join')).toBeNull()
