@@ -163,7 +163,9 @@
             </svg>
             <span v-if="notificationCount" class="icon-btn__badge" :aria-label="useHeader07 ? header07UnreadLabel : undefined">{{ notificationCount }}</span>
           </button>
-          <div v-if="showNotifications" ref="notificationsPanelRef" class="notif-panel">
+          <div v-if="showNotifications" ref="notificationsPanelRef" class="notif-panel"
+            :tabindex="useHeader07 ? -1 : undefined" :role="useHeader07 ? 'region' : undefined"
+            :aria-label="useHeader07 ? 'Сповіщення' : undefined">
             <div class="notif-panel__header">
               <div class="notif-panel__title">Сповіщення</div>
               <button
@@ -342,7 +344,7 @@
             Налаштування
           </RouterLink>
           <RouterLink v-if="isChatCapable && (!isSpecialist || useHeader07)" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
-          <button v-if="useHeader07" type="button" class="mobile-menu__item" @click.stop="closeMobileMenu(); toggleNotifications()">Сповіщення</button>
+          <button v-if="useHeader07" type="button" class="mobile-menu__item" @click.stop="openNotificationsFromMenu">Сповіщення</button>
           <button type="button" class="mobile-menu__item mobile-menu__item--button" @click="onLogoutFromMenu">
             Вийти
           </button>
@@ -1189,7 +1191,37 @@ const header07UnreadLabel = computed(() => {
   return `${count} ${form === 'one' ? 'нове сповіщення' : form === 'few' ? 'нові сповіщення' : 'нових сповіщень'}`
 })
 
+let notificationsMenuTrigger: HTMLElement | null = null
+
+async function openNotificationsFromMenu(event: MouseEvent) {
+  notificationsMenuTrigger = mobileMenuButtonRef.value
+  showSettings.value = false
+  showSpecialistSidebarDrawer.value = false
+  showNotifications.value = true
+  if (event.detail === 0) {
+    // Mount and focus the non-modal panel before removing its focused menu item.
+    await nextTick()
+    if (showNotifications.value) notificationsPanelRef.value?.focus({ preventScroll: true })
+  }
+  showMobileMenu.value = false
+}
+
+function closeNotifications(restoreFocus = false) {
+  if (!showNotifications.value) {
+    notificationsMenuTrigger = null
+    return
+  }
+  const trigger = notificationsMenuTrigger
+  if (trigger?.isConnected && getComputedStyle(trigger).display !== 'none' &&
+      (restoreFocus || notificationsPanelRef.value?.contains(document.activeElement))) {
+    trigger.focus({ preventScroll: true })
+  }
+  notificationsMenuTrigger = null
+  showNotifications.value = false
+}
+
 function toggleNotifications() {
+  notificationsMenuTrigger = null
   showSettings.value = false
   showMobileMenu.value = false
   showSpecialistSidebarDrawer.value = false
@@ -1414,7 +1446,7 @@ function handleGlobalClick(event: MouseEvent) {
     const panel = notificationsPanelRef.value
     if (button && button.contains(target)) return
     if (panel && panel.contains(target)) return
-    showNotifications.value = false
+    closeNotifications()
   }
   if (showSettings.value) {
     const button = settingsButtonRef.value
@@ -1438,7 +1470,7 @@ function handleGlobalKeydown(event: KeyboardEvent) {
     showPublicMenu.value = false
     publicMenuButtonRef.value?.focus()
   }
-  showNotifications.value = false
+  closeNotifications(true)
   showSettings.value = false
   if (useHeader07.value && showMobileMenu.value) mobileMenuButtonRef.value?.focus()
   showMobileMenu.value = false

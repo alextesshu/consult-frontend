@@ -2424,6 +2424,75 @@ describe('App shell', () => {
       expect(screen.queryByRole('button', { name: 'Прочитати все' })).not.toBeInTheDocument()
     })
   })
+  describe.each([false, true])('Header07 notifications disclosure (mobile=%s)', (mobile) => {
+    afterEach(() => vi.unstubAllGlobals())
+
+    it.each(['SPECIALIST', 'CLIENT'])('moves keyboard focus before closing the %s menu and restores it on Escape', async (role) => {
+      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: mobile, addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+      applyUiVersion('v2')
+      await renderWithProviders({ roles: [role], initialPath: role === 'SPECIALIST' ? '/cabinet' : '/client' })
+      const trigger = document.querySelector('.header07__account-menu') as HTMLButtonElement
+      await fireEvent.click(trigger)
+      const menu = document.querySelector('header .mobile-menu') as HTMLElement
+      const action = within(menu).getByRole('button', { name: 'Сповіщення' })
+      action.focus()
+      const parent = menu.parentNode!
+      const removeChild = parent.removeChild.bind(parent)
+      const focusAtRemoval: boolean[] = []
+      const removal = vi.spyOn(parent, 'removeChild').mockImplementation((node) => {
+        if (node === menu) focusAtRemoval.push(Boolean(document.querySelector('.notif-panel')?.contains(document.activeElement)))
+        return removeChild(node)
+      })
+      try {
+        // Native Enter/Space activation dispatches a click with detail=0.
+        await fireEvent.click(action, { detail: 0 })
+        const panel = screen.getByRole('region', { name: 'Сповіщення' })
+        await waitFor(() => expect(panel).toHaveFocus())
+        expect(focusAtRemoval).toEqual([true])
+        expect(trigger).toHaveAttribute('aria-expanded', 'false')
+        expect(panel).not.toHaveAttribute('aria-modal')
+        for (const shiftKey of [false, true]) {
+          const tab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true })
+          panel.dispatchEvent(tab)
+          expect(tab.defaultPrevented).toBe(false)
+        }
+        await fireEvent.keyDown(panel, { key: 'Escape' })
+        expect(panel).not.toBeInTheDocument()
+        expect(trigger).toHaveFocus()
+        await fireEvent.click(trigger)
+        expect(document.querySelector('header .mobile-menu a')).toHaveFocus()
+        await fireEvent.keyDown(document, { key: 'Escape' })
+        expect(trigger).toHaveFocus()
+      } finally {
+        removal.mockRestore()
+      }
+    })
+  })
+
+  it('preserves pointer opening and outside-click focus without stealing focus from another control', async () => {
+    applyUiVersion('v2')
+    await renderWithProviders({ roles: ['SPECIALIST'] })
+    const trigger = document.querySelector('.header07__account-menu') as HTMLButtonElement
+    await fireEvent.click(trigger)
+    const action = within(document.querySelector('header .mobile-menu') as HTMLElement).getByRole('button', { name: 'Сповіщення' })
+    trigger.focus()
+    await fireEvent.click(action, { detail: 1 })
+    const panel = screen.getByRole('region', { name: 'Сповіщення' })
+    expect(trigger).toHaveFocus()
+    panel.focus()
+    await fireEvent.click(document.body)
+    expect(panel).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
+
+    await fireEvent.click(trigger)
+    await fireEvent.click(within(document.querySelector('header .mobile-menu') as HTMLElement).getByRole('button', { name: 'Сповіщення' }), { detail: 0 })
+    const brand = document.querySelector('header a.brand') as HTMLElement
+    brand.focus()
+    await fireEvent.click(brand)
+    expect(document.querySelector('.notif-panel')).toBeNull()
+    expect(brand).toHaveFocus()
+  })
+
   it.each([['SPECIALIST'], ['CLIENT']])('renders Header07 with live account actions for %j', async (...roles) => {
     applyUiVersion('v2')
     const { router } = await renderWithProviders({ roles, notificationUnreadCount: 22 })
