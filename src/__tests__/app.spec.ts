@@ -324,6 +324,17 @@ describe('App shell', () => {
     expect(document.querySelector('footer .footer__logo--light')).toHaveAttribute('src', '/brand/proconsult-logo-light.png')
   })
 
+  it.each(['v1', 'v2'] as const)('keeps legal actions and uses the compact approved cabinet brand only in %s', async (version) => {
+    applyUiVersion(version)
+    await renderWithProviders({ roles: ['SPECIALIST'], initialPath: '/cabinet' })
+    const footer = document.querySelector('footer.footer--cabinet') as HTMLElement
+    expect(footer).toBeInTheDocument()
+    expect(footer.querySelector('img')?.getAttribute('src')).toContain(version === 'v2' ? 'proconsult-fennec-header.svg' : '/brand/proconsult-logo-dark.png')
+    for (const href of ['/terms', '/privacy', '/faq', '/support-and-data-requests']) expect(footer.querySelector(`a[href="${href}"]`)).toBeInTheDocument()
+    expect(within(footer).getByRole('button', { name: 'Налаштування конфіденційності' })).toBeInTheDocument()
+    expect(footer.querySelector('img')).toHaveClass('footer__logo--cabinet')
+  })
+
   it('provides public navigation disclosure with Escape focus return and closes after navigation', async () => {
     applyUiVersion('v2')
     const { router } = await renderWithProviders()

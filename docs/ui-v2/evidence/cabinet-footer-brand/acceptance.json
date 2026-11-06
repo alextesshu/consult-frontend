@@ -1,0 +1,19 @@
+{
+  "base": "633ad808fd271015eb3655ce81832243350b7324",
+  "focused_vitest": 119,
+  "full_vitest": 2318,
+  "build": "PASS",
+  "typecheck_baseline": 9,
+  "typecheck_new": 0,
+  "viewports": [
+    375,
+    390,
+    768,
+    1280,
+    1440
+  ],
+  "v2_footer_cases": 5,
+  "v1_exact_png_pairs": 30,
+  "lockup": "Existing proconsult-fennec-header.svg; original outlined wordmark; 30px cabinet footer; no Header07 font changes",
+  "real_authenticated_acceptance": "PENDING"
+}
