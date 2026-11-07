@@ -297,11 +297,11 @@ describe('App shell', () => {
     const audience = within(header).getByRole('navigation', { name: 'Для кого Pro Consult' })
     expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('href', '/')
     expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('href', '/for-clients')
-    expect(within(header).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
+    expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
     expect(within(header).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(header).getByRole('link', { name: 'Знайти спеціаліста' })).toHaveAttribute('href', '/specialists')
-    expect(within(header).getByRole('link', { name: /Спробувати безкоштовно/ })).toHaveClass('pc2-btn', 'pc2-btn--primary')
-    expect(header.querySelector('.pc2-header__logo')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
+    expect(within(header).getByRole('link', { name: /Почати безкоштовно/ })).toHaveClass('header07__start')
+    expect(header.querySelector('.header07-brand__mark')?.getAttribute('src')).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
     expect(within(header).queryByRole('button', { name: 'Меню' })).not.toBeInTheDocument()
   })
 
@@ -376,7 +376,7 @@ describe('App shell', () => {
       applyUiVersion('v2')
       const { router } = await renderWithProviders()
       const header = document.querySelector('header.pc2-header') as HTMLElement
-      expect(within(header).getByRole('link', { name: 'Створити' })).toHaveAttribute('href', '/signup')
+      expect(within(header).getByRole('link', { name: /Почати безкоштовно/ })).toHaveAttribute('href', '/signup')
       const button = screen.getByRole('button', { name: 'Меню сайту' })
       expect(button).toHaveAttribute('aria-controls', 'public-mobile-menu-v2')
       expect(button).toHaveAttribute('aria-haspopup', 'dialog')
@@ -408,15 +408,15 @@ describe('App shell', () => {
       const { router } = await renderWithProviders({ initialPath: '/for-clients' })
       const header = document.querySelector('header.pc2-header') as HTMLElement
       expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
-      expect(within(header).queryByRole('link', { name: 'Створити' })).toBeNull()
+      expect(within(header).getByRole('link', { name: /Почати безкоштовно/ })).toHaveAttribute('href', '/signup-client')
       await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
       const dialog = await screen.findByRole('dialog')
       expect(within(dialog).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
       expect(within(dialog).getByRole('link', { name: 'Створити кабінет клієнта' })).toHaveAttribute('href', '/signup-client')
       await fireEvent.keyDown(document, { key: 'Escape' })
       await router.push('/login')
-      await waitFor(() => expect(within(header).queryByRole('link', { name: 'Увійти' })).toBeNull())
-      expect(within(header).getByRole('link', { name: 'Створити' })).toHaveAttribute('href', '/signup')
+      await waitFor(() => expect(within(header).getByRole('link', { name: /Почати безкоштовно/ })).toHaveAttribute('href', '/signup'))
+      expect(within(header).getByRole('link', { name: /Почати безкоштовно/ })).toHaveAttribute('href', '/signup')
       await router.push('/specialists')
       await waitFor(() => expect(within(header).getByRole('link', { name: 'Увійти' })).toBeInTheDocument())
     })
@@ -464,13 +464,13 @@ describe('App shell', () => {
     await waitFor(() => expect(document.querySelector('header.pc2-header')).toBeInTheDocument())
     const audience = screen.getByRole('navigation', { name: 'Для кого Pro Consult' })
     await router.push('/#client-entry-title')
-    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
-    expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute('aria-current', 'false')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
+    expect(within(audience).getByRole('link', { name: 'Для спеціалістів' })).not.toHaveAttribute('aria-current')
     await router.push('/for-clients')
     expect(document.querySelector('main')).toHaveClass('main--for-clients-v2')
-    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'location')
-    expect(document.querySelector('a.nav__guest-cta')).toHaveAttribute('href', '/signup-client?ui=v2')
-    expect(document.querySelector('.nav__guest-cta-full')).toHaveTextContent('Створити кабінет')
+    expect(within(audience).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
+    expect(document.querySelector('a.header07__start')).toHaveAttribute('href', '/signup-client')
+    expect(document.querySelector('.header07__start-full')).toHaveTextContent('Почати безкоштовно')
     await fireEvent.click(screen.getByRole('button', { name: 'Меню сайту' }))
     const mobile = screen.getByRole('navigation', { name: 'Мобільна навігація сайту' })
     expect(within(mobile).getByRole('link', { name: 'Для клієнтів' })).toHaveAttribute('aria-current', 'page')
@@ -487,7 +487,7 @@ describe('App shell', () => {
       const header = document.querySelector('header.topbar') as HTMLElement
       expect(header).not.toHaveClass('pc2-header')
       // Branding follows the UI version: signed-in v2 shows the approved fennec, controls stay authenticated.
-      expect(header.querySelector('.pc2-brand-lockup')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
+      expect(header.querySelector('.header07-brand__mark, .pc2-brand-lockup')?.getAttribute('src')).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
       expect(header.querySelector('img[src="/brand/proconsult-logo-dark.png"]')).toBeNull()
       expect(document.querySelector('footer.pc2-footer img[src*="proconsult-fennec-lockup.svg"]')).toBeInTheDocument()
       expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
@@ -518,7 +518,7 @@ describe('App shell', () => {
         document.body.innerHTML = ''
         applyUiVersion('v2')
         await renderWithProviders({ roles, initialPath: path })
-        expect(headerLogo(), path).toContain('proconsult-fennec-header.svg')
+        expect(headerLogo(), path).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
         expect(footerLogos(), path).toEqual([expect.stringContaining('proconsult-fennec-lockup.svg')])
       }
     })
@@ -526,13 +526,13 @@ describe('App shell', () => {
     it('uses the fennec lockup on signed-in specialist-owned pages and leaves the v2 cabinet shell unchanged', async () => {
       applyUiVersion('v2')
       const { router } = await renderWithProviders({ roles: ['CLIENT'], initialPath: '/s/olena' })
-      expect(headerLogo()).toContain('proconsult-fennec-header.svg')
+      expect(headerLogo()).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
       expect(footerLogos()).toEqual([expect.stringContaining('proconsult-fennec-lockup.svg')])
       expect(document.querySelector('footer.footer')).toHaveClass('footer--specialist-owned')
       document.body.innerHTML = ''
       await renderWithProviders({ roles: ['SPECIALIST'], initialPath: '/cabinet' })
       expect(document.querySelector('header.topbar')).toHaveClass('pc2-cabinet-header')
-      expect(headerLogo()).toContain('proconsult-fennec-header.svg')
+      expect(headerLogo()).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
       expect(document.querySelector('footer.footer')).toHaveClass('footer--cabinet')
       expect(document.querySelector('footer.pc2-footer')).toBeNull()
       void router
@@ -564,7 +564,7 @@ describe('App shell', () => {
       const header = document.querySelector('header.topbar') as HTMLElement
       expect(header).toHaveClass('pc2-header')
       expect(header).not.toHaveClass('pc2-public-auth-header')
-      expect(within(header).getByRole('link', { name: 'Вхід' })).toHaveAttribute('href', '/login')
+      expect(within(header).getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
       expect(screen.queryByRole('button', { name: 'Меню сайту' })).toBeNull()
       for (const href of ['/specialists', '/signup', '/pricing']) expect(header.querySelector(`a[href="${href}"]`), href).toBeNull()
       expectOwnedFooter()
@@ -586,7 +586,7 @@ describe('App shell', () => {
         const header = document.querySelector('header.topbar') as HTMLElement
         expect(header).toHaveClass('pc2-public-auth-header')
         expect(header).not.toHaveClass('pc2-header')
-        expect(header.querySelector('.pc2-brand-lockup')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
+        expect(header.querySelector('.header07-brand__mark, .pc2-brand-lockup')?.getAttribute('src')).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
         const cabinet = header.querySelector('a.nav__primary-action') as HTMLElement
         expect(cabinet.getAttribute('href')).toBe(roles.includes('ADMIN') ? '/admin/work-queue' : roles.includes('SPECIALIST') ? '/cabinet' : '/client')
         expect(within(header).getByRole('button', { name: 'Сповіщення' })).toBeInTheDocument()
@@ -638,7 +638,7 @@ describe('App shell', () => {
     applyUiVersion('v2')
     const { router } = await renderWithProviders({ initialPath: '/s/olena' })
     const header = document.querySelector('header.pc2-header') as HTMLElement
-    expect(within(header).getByRole('link', { name: 'Вхід' })).toBeInTheDocument()
+    expect(within(header).getByRole('link', { name: 'Увійти' })).toBeInTheDocument()
     expect(header.querySelector('.pc2-header__audience')).toBeNull()
     expect(header.querySelector('.nav__guest-cta')).toBeNull()
     expect(within(header).queryByRole('link', { name: 'Знайти спеціаліста' })).not.toBeInTheDocument()
@@ -917,7 +917,7 @@ describe('App shell', () => {
       await renderWithProviders({ initialPath: '/cabinet/clients', roles: ['SPECIALIST'] })
       const header = document.querySelector('header.topbar') as HTMLElement
       expect(header).toHaveClass('pc2-cabinet-header')
-      expect(header.querySelector('.pc2-brand-lockup')?.getAttribute('src')).toContain('proconsult-fennec-header.svg')
+      expect(header.querySelector('.header07-brand__mark, .pc2-brand-lockup')?.getAttribute('src')).toMatch(/header07-fennec.svg|proconsult-fennec-header.svg/)
       expect(document.querySelector('.shell')).toHaveClass('shell--cabinet-v2')
       expect(document.querySelector('.specialist-shell')).toBeNull()
       const sidebar = document.querySelector('.pc2-cabinet-sidebar') as HTMLElement
@@ -2424,4 +2424,101 @@ describe('App shell', () => {
       expect(screen.queryByRole('button', { name: 'Прочитати все' })).not.toBeInTheDocument()
     })
   })
+  describe.each([false, true])('Header07 notifications disclosure (mobile=%s)', (mobile) => {
+    afterEach(() => vi.unstubAllGlobals())
+
+    it.each(['SPECIALIST', 'CLIENT'])('moves keyboard focus before closing the %s menu and restores it on Escape', async (role) => {
+      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: mobile, addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+      applyUiVersion('v2')
+      await renderWithProviders({ roles: [role], initialPath: role === 'SPECIALIST' ? '/cabinet' : '/client' })
+      const trigger = document.querySelector('.header07__account-menu') as HTMLButtonElement
+      await fireEvent.click(trigger)
+      const menu = document.querySelector('header .mobile-menu') as HTMLElement
+      const action = within(menu).getByRole('button', { name: 'Сповіщення' })
+      action.focus()
+      const parent = menu.parentNode!
+      const removeChild = parent.removeChild.bind(parent)
+      const focusAtRemoval: boolean[] = []
+      const removal = vi.spyOn(parent, 'removeChild').mockImplementation((node) => {
+        if (node === menu) focusAtRemoval.push(Boolean(document.querySelector('.notif-panel')?.contains(document.activeElement)))
+        return removeChild(node)
+      })
+      try {
+        // Native Enter/Space activation dispatches a click with detail=0.
+        await fireEvent.click(action, { detail: 0 })
+        const panel = screen.getByRole('region', { name: 'Сповіщення' })
+        await waitFor(() => expect(panel).toHaveFocus())
+        expect(focusAtRemoval).toEqual([true])
+        expect(trigger).toHaveAttribute('aria-expanded', 'false')
+        expect(panel).not.toHaveAttribute('aria-modal')
+        for (const shiftKey of [false, true]) {
+          const tab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true })
+          panel.dispatchEvent(tab)
+          expect(tab.defaultPrevented).toBe(false)
+        }
+        await fireEvent.keyDown(panel, { key: 'Escape' })
+        expect(panel).not.toBeInTheDocument()
+        expect(trigger).toHaveFocus()
+        await fireEvent.click(trigger)
+        expect(document.querySelector('header .mobile-menu a')).toHaveFocus()
+        await fireEvent.keyDown(document, { key: 'Escape' })
+        expect(trigger).toHaveFocus()
+      } finally {
+        removal.mockRestore()
+      }
+    })
+  })
+
+  it('preserves pointer opening and outside-click focus without stealing focus from another control', async () => {
+    applyUiVersion('v2')
+    await renderWithProviders({ roles: ['SPECIALIST'] })
+    const trigger = document.querySelector('.header07__account-menu') as HTMLButtonElement
+    await fireEvent.click(trigger)
+    const action = within(document.querySelector('header .mobile-menu') as HTMLElement).getByRole('button', { name: 'Сповіщення' })
+    trigger.focus()
+    await fireEvent.click(action, { detail: 1 })
+    const panel = screen.getByRole('region', { name: 'Сповіщення' })
+    expect(trigger).toHaveFocus()
+    panel.focus()
+    await fireEvent.click(document.body)
+    expect(panel).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
+
+    await fireEvent.click(trigger)
+    await fireEvent.click(within(document.querySelector('header .mobile-menu') as HTMLElement).getByRole('button', { name: 'Сповіщення' }), { detail: 0 })
+    const brand = document.querySelector('header a.brand') as HTMLElement
+    brand.focus()
+    await fireEvent.click(brand)
+    expect(document.querySelector('.notif-panel')).toBeNull()
+    expect(brand).toHaveFocus()
+  })
+
+  it.each([['SPECIALIST'], ['CLIENT']])('renders Header07 with live account actions for %j', async (...roles) => {
+    applyUiVersion('v2')
+    const { router } = await renderWithProviders({ roles, notificationUnreadCount: 22 })
+    const auth = useAuthStore()
+    const header = document.querySelector('header.header07') as HTMLElement
+    expect(header).toBeInTheDocument()
+    expect(header.querySelector('.header07-brand__wordmark')).toHaveTextContent('PRO CONSULT')
+    expect(header.querySelector('.header07-brand__wordmark')).toHaveAttribute('aria-label', 'Pro Consult')
+    expect(header.querySelector('.header07-brand__mark')).toHaveAttribute('alt', '')
+    await waitFor(() => expect(header.querySelector('.icon-btn__badge')).toHaveAttribute('aria-label', '22 нові сповіщення'))
+    expect(header.querySelector('.header07__segments')?.querySelectorAll('a')).toHaveLength(roles.includes('SPECIALIST') ? 4 : 3)
+    const trigger = within(header).getByRole('button', { name: 'Меню' })
+    trigger.focus()
+    await fireEvent.click(trigger)
+    const panel = header.querySelector('.mobile-menu') as HTMLElement
+    const destination = roles.includes('SPECIALIST') ? '/cabinet' : '/client'
+    await waitFor(() => expect(panel.querySelector(`a[href="${destination}"]`)).toHaveFocus())
+    expect(within(panel).getByRole('link', { name: 'Чат' })).toHaveAttribute('href', roles.includes('SPECIALIST') ? '/cabinet/chat' : '/client/chat')
+    if (roles.includes('SPECIALIST')) expect(header.querySelector('a.header07__profile-link')).toHaveAttribute('href', '/public')
+    await fireEvent.keyDown(document, { key: 'Escape' })
+    expect(trigger).toHaveFocus()
+    const logout = vi.spyOn(auth, 'logoutWithServer').mockResolvedValue(undefined)
+    await fireEvent.click(trigger)
+    await fireEvent.click(within(header.querySelector('.mobile-menu') as HTMLElement).getByRole('button', { name: 'Вийти' }))
+    await waitFor(() => expect(logout).toHaveBeenCalledOnce())
+    expect(router.currentRoute.value.path).toBe('/')
+  })
+
 })

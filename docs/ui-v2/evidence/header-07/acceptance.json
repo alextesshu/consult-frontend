@@ -1,0 +1,94 @@
+{
+  "base": "633ad808fd271015eb3655ce81832243350b7324",
+  "archive_sha256": "a21ce5959cef28374ce5a5b89cb48df01e1d3b372e760ebf6fdd36fe96150511",
+  "primary_spec": "handoff/HEADER_07_SPEC.md",
+  "concept": "07 navy; not 07b or other concepts",
+  "engine": "145.0.7632.6",
+  "viewports": [
+    375,
+    390,
+    768,
+    1280,
+    1440
+  ],
+  "geometry_route_cases": 120,
+  "geometry_overflow_cases": 0,
+  "final_account_interaction_cases": 10,
+  "final_account_interaction_failures": 0,
+  "footer_viewport_cases": 5,
+  "v1_initial_exact_png_pairs": 53,
+  "v1_total_png_pairs": 60,
+  "v1_initial_nonidentical_pixels": {
+    "header": 7,
+    "footer": 207
+  },
+  "v1_independent_controls": [
+    {
+      "width": 375,
+      "role": "guest",
+      "part": "header",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 375,
+      "role": "guest",
+      "part": "footer",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 390,
+      "role": "specialist",
+      "part": "header",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 390,
+      "role": "specialist",
+      "part": "footer",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 390,
+      "role": "client",
+      "part": "header",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 390,
+      "role": "client",
+      "part": "footer",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 768,
+      "role": "client",
+      "part": "header",
+      "baselineStable": true,
+      "candidateEqual": true
+    },
+    {
+      "width": 768,
+      "role": "client",
+      "part": "footer",
+      "baselineStable": true,
+      "candidateEqual": true
+    }
+  ],
+  "v1_result": "All initially nonidentical cases matched baseline exactly on independent paired recapture; original captures retained. No reproducible v1 visual regression.",
+  "typecheck_baseline_count": 9,
+  "typecheck_new_diagnostics": 0,
+  "authentication": "Synthetic browser API fixtures only; real authenticated staging acceptance remains pending",
+  "mutations": "All synthetic/non-GET requests intercepted locally; no business writes",
+  "initial_browser_findings": "Cabinet CSS hid account panel; fixed with v2 Header07-only display rule. Old harness checked logout URL before async router completion; corrected to waitForURL. Original failing runs retained.",
+  "responsive_choices": "Desktop bar76; mobile bar60 + attached mint34 (semantic header total94); compact navigation at <=1100, tablet768 retains76; mobile CTA44 to satisfy minimum touch target. Public Profile remains visible desktop for specialists and in mobile menu. Account chip opens existing account disclosure; all existing actions remain reachable. Admin UI unchanged.",
+  "full_vitest_passed": 2318,
+  "focused_vitest_passed": 123,
+  "notification_badge": "Navy digits on orange preserve readable contrast",
+  "specialist_screenshot_route": "/cabinet/sessions?ui=v2"
+}
