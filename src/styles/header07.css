@@ -13,7 +13,7 @@ html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .topbar__inner {
 }
 html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .brand { display: inline-flex; flex: 0 0 auto; margin: 0; padding: 0; border: 0; gap: 0; }
 html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .brand__tagline { display: none; }
-html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav { flex: 0 0 auto; width: auto; flex-basis: auto; order: 0; align-self: center; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 12px; margin-left: auto; }
+html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav { position: relative; flex: 0 0 auto; width: auto; flex-basis: auto; order: 0; align-self: center; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 12px; margin-left: auto; }
 html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > .nav__desktop-only:not(.header07__profile-link),
 html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > .nav__primary-action,
 html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > .pc2-cabinet-header__account { display: none; }
@@ -31,9 +31,18 @@ html[data-ui="v2"] .shell.shell--header07 .topbar.header07 button.header07__acco
 html[data-ui="v2"] .shell.shell--header07 .header07__account-copy { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font: 500 14px/1 var(--pc-font); }
 html[data-ui="v2"] .shell.shell--header07 .header07__avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e8eef6; font-size: 12px; font-weight: 600; }
 html[data-ui="v2"] .shell.shell--header07 .header07__account-menu > svg { display: none; }
-html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .mobile-menu { right: 0; top: calc(100% + 8px); max-height: calc(100dvh - 100px); overflow-y: auto; background: #fbf9f5; border: 1px solid #e6e0d8; color: #12233a; }
-html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > .mobile-menu { display: block; }
-html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .mobile-menu__item { min-height: 44px; color: #12233a; }
+/* The legacy panel geometry exists only at <=640px. Header07 exposes it at every width. */
+html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > .mobile-menu {
+  position: absolute; display: grid; right: 0; top: calc(100% + 8px); width: min(280px, calc(100vw - 24px));
+  max-height: calc(100dvh - 100px); overflow-y: auto; padding: 6px; z-index: 24;
+  background: #fbf9f5; border: 1px solid #e6e0d8; border-radius: 12px;
+  box-shadow: 0 18px 32px rgb(16 33 50 / 18%); color: #12233a;
+}
+html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .mobile-menu__item {
+  display: flex; align-items: center; justify-content: flex-start; width: 100%; min-height: 44px;
+  padding: 8px 10px; margin: 0; border: 1px solid transparent; border-radius: 8px;
+  background: transparent; color: #12233a; font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
 html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav a.header07__mobile-avatar,
 html[data-ui="v2"] .shell.shell--header07 .header07__slogan-strip,
 html[data-ui="v2"] .shell.shell--header07 .header07__start-short { display: none; }
@@ -74,6 +83,8 @@ html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > a.header07__pr
 }
 @media (max-width: 767px) {
  html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > a.header07__profile-link { display: none; }
+ /* Keep the disclosure below the 60px bar and 34px slogan strip. */
+ html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav > .mobile-menu { top: calc(100% + 50px); }
  html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav a.header07__login:not(:only-child) { display: none; }
  html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav__notifications { display: block; }
  html[data-ui="v2"] .shell.shell--header07 .topbar.header07 .nav__notifications > .icon-btn { display: none; }
