@@ -2435,6 +2435,33 @@ describe('App shell', () => {
       expect(screen.queryByRole('button', { name: 'Прочитати все' })).not.toBeInTheDocument()
     })
   })
+  describe.each(['/', '/for-clients', '/s/specialist-2'])('Header07 public account menu at %s', (initialPath) => {
+    it.each(['SPECIALIST', 'CLIENT'])('keeps %s actions in the disclosure and preserves Escape focus', async (role) => {
+      applyUiVersion('v2')
+      await renderWithProviders({ roles: [role], initialPath })
+      const header = document.querySelector('header.header07') as HTMLElement
+      const trigger = within(header).getByRole('button', { name: 'Меню' })
+      expect(header.querySelector('.mobile-menu')).toBeNull()
+      await fireEvent.click(trigger)
+      const panel = header.querySelector('.mobile-menu') as HTMLElement
+      expect(panel.parentElement).toHaveClass('nav')
+      expect(within(panel).getAllByRole('link', { name: 'Чат' })).toHaveLength(1)
+      expect(within(panel).getAllByRole('button', { name: 'Вийти' })).toHaveLength(1)
+      expect(panel.querySelector('a')).toHaveFocus()
+      if (role === 'SPECIALIST') {
+        expect(within(panel).getByRole('link', { name: 'Публічний профіль (перегляд)' })).toHaveAttribute('href', '/public')
+        expect(header.querySelector('a.header07__profile-link')).toHaveAttribute('href', '/public')
+      }
+      if (initialPath.startsWith('/s/')) {
+        expect(header.querySelector('.header07__segments')).toBeNull()
+        expect(within(panel).queryByRole('link', { name: 'Стати спеціалістом' })).not.toBeInTheDocument()
+      }
+      await fireEvent.keyDown(panel, { key: 'Escape' })
+      expect(panel).not.toBeInTheDocument()
+      expect(trigger).toHaveFocus()
+    })
+  })
+
   describe.each([false, true])('Header07 notifications disclosure (mobile=%s)', (mobile) => {
     afterEach(() => vi.unstubAllGlobals())
 
