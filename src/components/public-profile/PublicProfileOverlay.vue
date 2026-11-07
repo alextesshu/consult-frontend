@@ -102,12 +102,13 @@ watch(() => props.open, async open => {
     previousHtmlOverflow = document.documentElement.style.overflow
     document.documentElement.style.overflow = 'hidden'
   }
+  if (!dialog.value.open) dialog.value.showModal()
   if (props.kind === 'share' && props.anchor) {
     const rect = props.anchor.getBoundingClientRect()
+    const height = Math.min(dialog.value.scrollHeight + 2, window.innerHeight - 32)
     dialog.value.style.setProperty('--profile-share-left', `${Math.max(16, Math.min(rect.left, window.innerWidth - 396))}px`)
-    dialog.value.style.setProperty('--profile-share-top', `${Math.max(16, Math.min(rect.bottom + 10, window.innerHeight - 360))}px`)
+    dialog.value.style.setProperty('--profile-share-top', `${Math.max(16, Math.min(rect.bottom + 10, window.innerHeight - height - 16))}px`)
   }
-  if (!dialog.value.open) dialog.value.showModal()
   if (props.kind === 'video') {
     dialog.value.querySelector<HTMLElement>('[data-video-initial-focus]')?.focus({ preventScroll: true })
     // Native showModal focus steps can scroll the document to an off-screen trigger.

@@ -100,7 +100,7 @@ describe('profile overlay, sharing and accordions', () => {
   const view = render(PublicProfileShare, { props: { open: true, canonicalUrl: 'https://example.test/s/olena', name: 'Олена' } }); await nextTick()
   await fireEvent.click(screen.getByRole('button', { name: /Instagram/ })); await nextTick()
   expect(copy).toHaveBeenCalledWith('https://example.test/s/olena'); expect(screen.getByRole('status')).toHaveTextContent('сторіз')
-  expect(screen.getByRole('link', { name: /Threads/ }).getAttribute('href')).toContain('threads.net/intent/post'); view.unmount()
+  expect(screen.getByRole('link', { name: /Threads/ }).getAttribute('href')).toContain('threads.com/intent/post'); view.unmount()
  })
  it('keeps a single-open v2 FAQ and removes collapsed content from interaction', async () => {
   const view = render(PublicProfileFaqSection, { props: { uiV2: true, faqItems: [{ id: 'a', question: 'Перше?', answer: 'А' }, { id: 'b', question: 'Друге?', answer: 'Б' }] } })
