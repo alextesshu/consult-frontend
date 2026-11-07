@@ -539,7 +539,8 @@
       <template v-else-if="isCabinetRoute">
         <div class="footer__cabinet-brand">
           <span class="footer__brand-lockup">
-            <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <img v-if="useV2Brand && isSpecialist" class="footer__logo footer__logo--cabinet" :src="fennecHeader" alt="Pro Consult" />
+            <img v-else class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <span class="footer__name footer__text-fallback">Pro Consult</span>
           </span>
           <span>Без комісій. Без посередників. З повагою до практики.</span>
