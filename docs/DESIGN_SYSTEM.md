@@ -8,6 +8,17 @@ Current reference is `claude-design-2026-10-23-4ff7cedd`, archive v6.6 with cont
 
 ## Approved UI v2 brand override — KAN-158 (2026-10-23)
 
+### Approved Header 07 override (2026-11-07)
+
+The product-owner-approved `handoff/HEADER_07_SPEC.md` and Concept 07 from the
+2026-11-07 supplied ZIP (SHA-256
+`a21ce5959cef28374ce5a5b89cb48df01e1d3b372e760ebf6fdd36fe96150511`)
+supersede the previous **header-only** lockup/typography: unchanged official
+fennec SVG, single-line `PRO CONSULT` in Manrope 800, segmented navigation and
+the responsive slogan. UI text remains Onest. This approval does not change
+footer typography, historical artwork, favicons, UI v1 or the active snapshot.
+See [source, provenance and validation](ui-v2/evidence/header-07/README.md).
+
 The user-approved minimalist fennec in `logo.rar` supersedes older Claude artwork for the public UI v2 header/footer. Preserve the original PDF symbol/glyph geometry, negative space and supplied colors; use the user-approved horizontal header composition and retain the original stacked footer lockup. The Montserrat wordmark remains outlined; UI typography/layout/navigation still follow Claude v5. See [source PDFs, hashes, conversion and acceptance](ui-v2/brand/approved-fennec-2026-10-23/README.md). Keep separately named v2 assets; preserve existing v1 logos, global icons/favicons and all runtime/product safeguards. This override does not authorize replacing brand artwork inside other pages or source snapshots.
 
 ## Current supplied snapshot — v5 incremental overlay

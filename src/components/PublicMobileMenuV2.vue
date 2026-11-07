@@ -4,7 +4,7 @@
       <div class="pc2-mobile-menu__backdrop" aria-hidden="true" @click="close"></div>
       <div id="public-mobile-menu-v2" ref="panel" class="pc2-mobile-menu__panel" role="dialog" aria-modal="true" aria-label="Меню сайту" tabindex="-1">
         <div class="pc2-mobile-menu__bar">
-          <RouterLink class="pc2-mobile-menu__brand" to="/" @click="close"><img :src="fennecHeader" alt="Pro Consult"></RouterLink>
+          <RouterLink class="pc2-mobile-menu__brand" to="/" @click="close"><HeaderBrand07 /></RouterLink>
           <button ref="closeButton" class="pc2-mobile-menu__close" type="button" aria-label="Закрити меню" @click="close"><span aria-hidden="true">×</span></button>
         </div>
         <div class="pc2-mobile-menu__body">
@@ -30,7 +30,7 @@ import { computed, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMobileOverlay } from '../composables/useMobileOverlay'
 import { PUBLIC_MENU_ITEMS, PUBLIC_MENU_PRIMARY, type PublicMenuAudience } from '../lib/publicMobileMenu'
-import fennecHeader from '../assets/brand-v2/proconsult-fennec-header.svg'
+import HeaderBrand07 from './HeaderBrand07.vue'
 
 const props = withDefaults(defineProps<{
   open: boolean
