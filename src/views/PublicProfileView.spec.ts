@@ -580,7 +580,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(shareButton)
 
     expect(screen.getByRole('dialog', { name: 'Поділитися профілем' })).toBeInTheDocument()
-    const canonicalUrl = `${window.location.origin}/s/specialist-2`
+    const canonicalUrl = 'https://proconsult.space/s/specialist-2'
     await fireEvent.click(screen.getByRole('button', { name: 'Копіювати посилання' }))
     expect(clipboardWriteTextSpy).toHaveBeenCalledWith(canonicalUrl)
     expect(screen.getByRole('link', { name: 'Telegram' })).toHaveAttribute(
@@ -901,6 +901,29 @@ describe('PublicProfileView', () => {
 
     await screen.findByText('Загальна інформація')
     expect(screen.queryByRole('button', { name: 'Відеовізитка' })).not.toBeInTheDocument()
+  })
+
+  it('opens the v2 share UI even when compact browsers expose native Web Share', async () => {
+    const nativeShare = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'share', { configurable: true, value: nativeShare })
+    const media = vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() } as unknown as MediaQueryList)
+    applyUiVersion('v2')
+    mockCommonPublicData()
+    mockBookingPageDataWithSlots([])
+    const view = renderView()
+    try {
+      const trigger = await screen.findByRole('button', { name: 'Поділитися профілем' })
+      trigger.focus(); await fireEvent.click(trigger)
+      const dialog = await screen.findByRole('dialog', { name: 'Поділитися профілем' })
+      expect(nativeShare).not.toHaveBeenCalled()
+      expect(within(dialog).getByRole('link', { name: 'Telegram' }).getAttribute('href')).toContain(encodeURIComponent('https://proconsult.space/s/olena'))
+      expect(within(dialog).getByRole('link', { name: 'Threads' })).toHaveAttribute('rel', 'noopener noreferrer')
+      await fireEvent(dialog, new Event('cancel', { cancelable: true }))
+      await waitFor(() => expect(dialog).not.toHaveAttribute('open'))
+      expect(trigger).toHaveFocus()
+    } finally {
+      view.unmount(); media.mockRestore(); delete (navigator as Partial<Navigator>).share
+    }
   })
 
   it('opens the v2 video in the shared labelled modal without changing its player', async () => {

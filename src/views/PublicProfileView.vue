@@ -1066,6 +1066,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { canonicalPublicProfileShareUrl as buildProfileShareUrl } from '../lib/publicProfileSharing'
 import { isUiV2 } from '../lib/uiVersion'
 import PublicProfileOverlay from '../components/public-profile/PublicProfileOverlay.vue'
 import PublicProfileShare from '../components/public-profile/PublicProfileShare.vue'
@@ -1168,7 +1169,6 @@ import {
 const uiV2 = computed(isUiV2)
 const { highlighted: profileHighlighted, highlight: highlightProfilePanel } = useProfileMotion(uiV2)
 let requestAfterAbout = false
-let profileShareAttempt = 0
 const compactProfile = ref(false)
 // Booking presentation is phone-only; retain the 860px compact contract elsewhere.
 const phoneProfile = ref(false)
@@ -1882,24 +1882,19 @@ const publicName = computed(() =>
 const canonicalProfileSlug = computed(() =>
   String(profile.value?.slug || slug.value).trim()
 )
-const canonicalProfileShareUrl = computed(() =>
+const canonicalProfileMetadataUrl = computed(() =>
   canonicalProfileSlug.value
     ? `${window.location.origin}/s/${canonicalProfileSlug.value}`
     : ''
 )
+const canonicalProfileShareUrl = computed(() => buildProfileShareUrl(canonicalProfileSlug.value))
 const profileShareTitle = computed(() => `${publicName.value || 'Спеціаліст'} — Pro Consult`)
 const canShareProfile = computed(
   () => Boolean(profile.value && canonicalProfileShareUrl.value && !ownerUnpublishedProfile.value)
 )
 
-async function openProfileShare() {
-  const attempt = ++profileShareAttempt
-  if (!canShareProfile.value) return
-  if (uiV2.value && compactProfile.value && navigator.share) {
-    try { await navigator.share({ title: profileShareTitle.value, text: publicName.value, url: canonicalProfileShareUrl.value }); return }
-    catch (error) { if (error instanceof Error && error.name === 'AbortError') return }
-  }
-  if (attempt === profileShareAttempt && canShareProfile.value) profileShareDialogOpen.value = true
+function openProfileShare() {
+  if (canShareProfile.value) profileShareDialogOpen.value = true
 }
 function requestFromAbout() { requestAfterAbout = true; showAboutModal.value = false }
 function afterProfileAboutClosed() {
@@ -2327,7 +2322,7 @@ function applyProfileRuntimeMetadata() {
   applyPublicPageMetadata({
     title,
     description,
-    canonicalUrl: canonicalProfileShareUrl.value,
+    canonicalUrl: canonicalProfileMetadataUrl.value,
     ogType: 'profile',
     imageUrl: resolveClientMetadataImage(profile.value.photo_url),
     imageAlt: profile.value.photo_url && publicName.value ? `Фото профілю ${publicName.value}` : 'Pro Consult',
@@ -5049,16 +5044,14 @@ watch([showGuestBookingModal, phoneProfile, uiV2], async ([open, compact, v2], [
   }
 }, { flush: 'post' })
 watch(() => route.fullPath ?? route.path, () => {
-  profileShareAttempt++
   requestAfterAbout = false
   closeProfileRequestSheet(); showAboutModal.value = false; profileShareDialogOpen.value = false
 })
 watch(uiV2, value => {
-  if (!value) { profileShareAttempt++; requestAfterAbout = false; closeProfileRequestSheet(); showAboutModal.value = false; profileShareDialogOpen.value = false }
+  if (!value) { requestAfterAbout = false; closeProfileRequestSheet(); showAboutModal.value = false; profileShareDialogOpen.value = false }
 })
 
 onBeforeUnmount(() => {
-  profileShareAttempt++
   profileMedia?.removeEventListener('change', syncProfileViewport)
   profilePhoneMedia?.removeEventListener('change', syncProfileViewport)
   profileLoadSequence += 1

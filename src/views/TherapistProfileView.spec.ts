@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import TherapistProfileView from './TherapistProfileView.vue'
+import { applyUiVersion } from '../lib/uiVersion'
 import {
   createProfileDocument,
   deleteProfileDocument,
@@ -294,6 +295,7 @@ function setClipboard(writeText?: (value: string) => Promise<void>) {
 
 describe('TherapistProfileView', () => {
   beforeEach(() => {
+    applyUiVersion('v1')
     mockAuthStore.user = { email_verification_state: 'legacy_unknown' }
     mockAuthStore.me = null
     mockAuthStore.markProductUpdateResolved.mockReset()
@@ -348,7 +350,7 @@ describe('TherapistProfileView', () => {
     expect(
       screen.getByDisplayValue('Будь ласка, попереджайте про перенесення щонайменше за 24 години.')
     ).toBeInTheDocument()
-    expect(screen.getByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
+    expect(screen.getByText('https://proconsult.space/s/specialist-anna')).toBeInTheDocument()
     const finalCheck = screen.getByTestId('profile-final-public-check')
     expect(finalCheck).toBeInTheDocument()
     const finalOpenLink = screen.getByTestId('open-public-profile-final-link')
@@ -559,6 +561,32 @@ describe('TherapistProfileView', () => {
     expect(browserConfirm).not.toHaveBeenCalled()
   })
 
+  it('uses the same canonical v2 sharing UI from the cabinet profile', async () => {
+    const originalShow = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
+    const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, writable: true, value() { this.open = true } })
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, writable: true, value() { this.open = false; this.dispatchEvent(new Event('close')) } })
+    applyUiVersion('v2')
+    vi.mocked(fetchSpecialistProfile).mockResolvedValue(makeProfile({ slug: 'published-specialist', public_profile_enabled: true }))
+    const copy = vi.fn().mockResolvedValue(undefined); setClipboard(copy)
+    const view = renderView()
+    try {
+      const trigger = await screen.findByRole('button', { name: 'Поділитися профілем' })
+      trigger.focus(); await fireEvent.click(trigger)
+      const dialog = await screen.findByRole('dialog', { name: 'Поділитися профілем' })
+      expect(dialog).toHaveClass('pc2-profile-overlay--share')
+      await fireEvent.click(within(dialog).getByRole('button', { name: 'Копіювати посилання' }))
+      expect(copy).toHaveBeenCalledWith('https://proconsult.space/s/published-specialist')
+      expect(within(dialog).getByRole('button', { name: /Instagram/ })).toBeInTheDocument()
+    } finally {
+      view.unmount(); applyUiVersion('v1')
+      if (originalShow) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShow)
+      else delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>).showModal
+      if (originalClose) Object.defineProperty(HTMLDialogElement.prototype, 'close', originalClose)
+      else delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>).close
+    }
+  })
+
   it('renders a compact public profile summary with the active public CTA', async () => {
     const profile = {
       ...makeProfile(),
@@ -615,10 +643,10 @@ describe('TherapistProfileView', () => {
     const shareDialog = screen.getByRole('dialog', { name: 'Поділитися профілем' })
     expect(shareDialog).toBeInTheDocument()
     await fireEvent.click(within(shareDialog).getByRole('button', { name: 'Копіювати посилання' }))
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
+    expect(writeText).toHaveBeenCalledWith('https://proconsult.space/s/specialist-anna')
     expect(screen.getByRole('link', { name: 'Telegram' })).toHaveAttribute(
       'href',
-      `https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/s/specialist-anna`)}&text=${encodeURIComponent('Анна — Pro Consult')}`
+      `https://t.me/share/url?url=${encodeURIComponent('https://proconsult.space/s/specialist-anna')}&text=${encodeURIComponent('Анна — Pro Consult')}`
     )
     expect(screen.getByRole('link', { name: 'Telegram' }).getAttribute('href')).not.toContain(
       'b7d6276f'
@@ -653,7 +681,7 @@ describe('TherapistProfileView', () => {
       Boolean(linkCallout.compareDocumentPosition(searchVisibility) & Node.DOCUMENT_POSITION_FOLLOWING)
     ).toBe(true)
     expect(within(linkCallout).getByText('Ваше посилання')).toBeInTheDocument()
-    expect(within(linkCallout).getByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
+    expect(within(linkCallout).getByText('https://proconsult.space/s/specialist-anna')).toBeInTheDocument()
     const copyLinkButton = within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })
     expect(copyLinkButton).toHaveClass('btn')
     expect(copyLinkButton).toHaveClass('btn--ghost')
@@ -680,7 +708,7 @@ describe('TherapistProfileView', () => {
     expect(container.querySelector('a[href^="mailto:"]')).toBeNull()
 
     await fireEvent.click(copyLinkButton)
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
+    expect(writeText).toHaveBeenCalledWith('https://proconsult.space/s/specialist-anna')
     expect(await within(linkCallout).findByText('Посилання скопійовано')).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Переглянути сторінку' })).toHaveLength(1)
   })
@@ -1852,7 +1880,7 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
+    expect(await screen.findByText('https://proconsult.space/s/specialist-anna')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Змінити адресу' }))
     const slugInput = screen.getByPlaceholderText('ваш-slug') as HTMLInputElement
     await fireEvent.update(slugInput, 'anna-new')
@@ -1861,7 +1889,7 @@ describe('TherapistProfileView', () => {
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith({ slug: 'anna-new' })
     })
-    expect(await screen.findByText(`${window.location.origin}/s/anna-new`)).toBeInTheDocument()
+    expect(await screen.findByText('https://proconsult.space/s/anna-new')).toBeInTheDocument()
   })
 
   it('maps professional_focus from API into the profile form select', async () => {
@@ -1908,7 +1936,7 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    await screen.findByText(`${window.location.origin}/s/specialist-anna`)
+    await screen.findByText('https://proconsult.space/s/specialist-anna')
     await fireEvent.click(screen.getByRole('button', { name: 'Змінити адресу' }))
     const slugInput = screen.getByPlaceholderText('ваш-slug') as HTMLInputElement
     await fireEvent.update(slugInput, 'anna-new')
