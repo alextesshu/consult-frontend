@@ -195,7 +195,7 @@ describe('CalendarV2 3a on desktop', () => {
     const elsewhere = screen.getByRole('region', { name: /Поза цим тижнем/ })
     expect(within(elsewhere).getByText('2 дії')).toBeInTheDocument()
     expect(within(elsewhere).getByText('Без часу')).toBeInTheDocument()
-    expect(screen.getByText(/Лічильник вкладки — 4: усе, що чекає на вас, незалежно від тижня. Тут — 2 у вибраному тижні й 2 поза ним/)).toBeInTheDocument()
+    expect(screen.getByText('Лічильник вкладки не обмежений вибраним тижнем.')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('tab', { name: /Робочий день/ }))
     await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
@@ -208,7 +208,7 @@ describe('CalendarV2 3a on desktop', () => {
   it('does not show a global badge when an action source failed', async () => {
     mocked.guests.mockRejectedValue(new Error('500'))
     await renderCalendar('/cabinet/sessions?ui=v2&mode=actions')
-    expect(await screen.findByText(/Не вдалося завантажити: запити на сесію. Загальну кількість не показуємо/)).toBeInTheDocument()
+    expect(await screen.findByText(/Не вдалося завантажити: запити на сесію. Показані лише доступні справи/)).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Потребує дії' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.queryByLabelText(/дій$/)).toBeNull()
   })
