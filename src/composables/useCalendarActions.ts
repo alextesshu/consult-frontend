@@ -8,7 +8,7 @@ import { fetchSpecialistRescheduleRequests } from '../lib/specialistSessions'
 export type CalendarActionSource = 'upcomingSessions' | 'rescheduleRequests' | 'guestRequests'
 
 export const CALENDAR_ACTION_SOURCE_LABELS: Record<CalendarActionSource, string> = {
-  upcomingSessions: 'майбутні сесії',
+  upcomingSessions: 'заплановані сесії',
   rescheduleRequests: 'запити на перенесення',
   guestRequests: 'запити на сесію',
 }
@@ -18,7 +18,7 @@ export const CALENDAR_ACTION_SOURCE_LABELS: Record<CalendarActionSource, string>
  * endpoints that each return their complete set. The total is only reported as complete
  * (`complete === true`) when all three loaded.
  */
-export function useCalendarActions(timeZone: Ref<string>) {
+export function useCalendarActions(timeZone: Ref<string>, now?: Ref<number>) {
   const auth = useAuthStore()
   const identity = computed(() => {
     const id = auth.user?.id
@@ -46,7 +46,7 @@ export function useCalendarActions(timeZone: Ref<string>) {
     const request = ++sequence
     status.value = 'loading'
     const [sessions, reschedules, guests] = await Promise.allSettled([
-      apiGet<UpcomingSessionRow[]>('/booking/sessions/', { params: { upcoming: true } }).then((rows) => (Array.isArray(rows) ? rows : [])),
+      apiGet<UpcomingSessionRow[]>('/booking/sessions/', { params: { status: 'SCHEDULED,CONFIRMED' } }).then((rows) => (Array.isArray(rows) ? rows : [])),
       fetchSpecialistRescheduleRequests(),
       fetchCabinetGuestBookingRequests(),
     ])
@@ -67,7 +67,8 @@ export function useCalendarActions(timeZone: Ref<string>) {
         rescheduleRequests: rescheduleRequests.value || [],
         guestRequests: guestRequests.value || [],
       },
-      timeZone.value
+      timeZone.value,
+      now?.value ?? Date.now()
     )
   )
   const complete = computed(() => status.value === 'ready' && failedSources.value.length === 0)

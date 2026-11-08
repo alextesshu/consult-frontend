@@ -17,6 +17,11 @@ import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { formatSessionDateTime } from '../lib/specialistSessions'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
 import { createPracticeBoardItem, fetchPracticeBoards } from '../lib/specialistPracticeBoard'
+const timezoneFixture = vi.hoisted(() => ({ value: 'Europe/Kyiv' as string | null }))
+vi.mock('../composables/useCalendarPreferences', async () => {
+  const { ref } = await import('vue')
+  return { useCalendarPreferences: () => ({ timezone: ref(timezoneFixture.value) }) }
+})
 
 const mockRoute = {
   params: {
@@ -238,6 +243,7 @@ function renderView() {
 
 describe('TherapistSessionDetailView', () => {
   beforeEach(() => {
+    timezoneFixture.value = 'Europe/Kyiv'
     mockRoute.params.id = '42'
     mockRoute.query = {}
     mockRouter.push.mockReset()
@@ -261,6 +267,35 @@ describe('TherapistSessionDetailView', () => {
     mockToast.error.mockReset()
     mockToast.warning.mockReset()
     mockToast.info.mockReset()
+  })
+
+  it('keeps persisted status separate from the live phase and shows specialist time until the exclusive end', async () => {
+    vi.useFakeTimers()
+    const start = Date.parse('2026-11-08T14:00:00Z')
+    vi.setSystemTime(start - 1000)
+    mockDetailContext(() => buildSession({ status: 'CONFIRMED', slot_start_at: new Date(start).toISOString(), slot_end_at: new Date(start + 1800000).toISOString() }))
+    const view = renderView()
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      expect(screen.getByRole('heading', { name: 'Підтверджено' })).toBeInTheDocument()
+      expect(screen.getByText('08.11.2026, 16:00')).toBeInTheDocument()
+      expect(screen.queryByText('Триває за розкладом')).not.toBeInTheDocument()
+      const calls = mockedApiGet.mock.calls.length
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(screen.getByText('Триває за розкладом')).toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(1800000)
+      expect(screen.queryByText('Триває за розкладом')).not.toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Підтверджено' })).toBeInTheDocument()
+      expect(mockedApiGet).toHaveBeenCalledTimes(calls)
+    } finally { view.unmount(); vi.useRealTimers() }
+  })
+
+  it('does not display browser-local session time when specialist timezone is unresolved', async () => {
+    timezoneFixture.value = null
+    mockDetailContext(() => buildSession({ slot_start_at: '2026-11-08T14:00:00Z' }))
+    renderView()
+    await screen.findByRole('heading', { name: 'Деталі сесії' })
+    expect(document.querySelector('.detail-grid .detail-value')).toHaveTextContent('—')
   })
 
   it('renders the session detail happy path with related context', async () => {

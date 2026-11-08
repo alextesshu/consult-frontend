@@ -1,10 +1,11 @@
+import { needsMeetingLink, sessionTimePhase } from './sessionTime'
 import type { GuestBookingRequestRecord } from './api'
 import type { CalendarRescheduleRequestRow, CalendarSessionRow } from './calendarItems'
 import { dayKeyOf, dayLabels, formatTime } from './calendarTime'
 
 // «Потребує дії» and the next-action card (CALENDAR_3A_SPEC §2–§3). Built only from complete,
 // existing GET sets, so the total is global (not limited to the loaded week):
-// - GET /booking/sessions/?upcoming=true — every future SCHEDULED/CONFIRMED session;
+// - GET /booking/sessions/?status=SCHEDULED,CONFIRMED — authorized active-status sessions;
 // - GET /cabinet/sessions/reschedule-requests/ — every pending reschedule request;
 // - GET /cabinet/guest-booking-requests/ — every guest request (PENDING kept).
 // One action = one reason from one source. Past sessions without notes are not counted:
@@ -62,18 +63,19 @@ export function buildCalendarActions(
     rescheduleRequests: CalendarRescheduleRequestRow[]
     guestRequests: GuestBookingRequestRecord[]
   },
-  timeZone: string
+  timeZone: string,
+  now = Date.now()
 ): CalendarAction[] {
   const actions: CalendarAction[] = []
   const sessionsById = new Map(sources.upcomingSessions.map((row) => [row.id, row]))
 
-  for (const row of sources.upcomingSessions) {
+  for (const row of sessionsById.values()) {
     const when = toMs(row.slot_start_at)
     const href = `/cabinet/sessions/${row.id}`
-    if (row.status === 'SCHEDULED') {
+    if (row.status === 'SCHEDULED' && when !== null && when > now) {
       actions.push({ key: `confirm:${row.id}`, kind: 'confirm', when, who: sessionName(row), reason: 'сесія чекає вашого підтвердження', marker: ACTION_MARKERS.confirm, primaryLabel: 'Підтвердити', href, sessionId: row.id })
     }
-    if (row.status === 'CONFIRMED' && row.session_format === 'online' && row.meeting_link_ready === false) {
+    if (needsMeetingLink(row.status, row.session_format, row.meeting_link_ready, when ?? NaN, toMs(row.slot_end_at) ?? NaN, now)) {
       actions.push({ key: `missing_link:${row.id}`, kind: 'missing_link', when, who: sessionName(row), reason: 'немає посилання на зустріч', marker: ACTION_MARKERS.missing_link, primaryLabel: 'Додати посилання', href, sessionId: row.id })
     }
   }
@@ -122,29 +124,35 @@ export function splitActionsByWeek(actions: CalendarAction[], week: { start: num
 }
 
 export type NextActionCard =
-  | { kind: 'action'; action: CalendarAction; when: number }
+  | { kind: 'action'; action: CalendarAction; when: number | null }
   | { kind: 'session'; session: UpcomingSessionRow; when: number; today: boolean }
   | { kind: 'none' }
 
 /**
- * Priority (§2): nearest future event with an action → otherwise the nearest session
- * («Наступна») → a quiet card when today has nothing. Only real, loaded data is used.
+ * The same eligible set drives list, total and card, including pending undated requests.
+ * With no actions, show the current/next session. Only real, loaded data is used.
  */
 export function pickNextAction(input: { actions: CalendarAction[] | null; upcomingSessions: UpcomingSessionRow[] | null; now: number; timeZone: string }): NextActionCard {
-  const nextAction = (input.actions || []).find((action) => action.when !== null && action.when >= input.now)
-  if (nextAction && nextAction.when !== null) return { kind: 'action', action: nextAction, when: nextAction.when }
+  const nextAction = input.actions?.[0]
+  if (nextAction) return { kind: 'action', action: nextAction, when: nextAction.when }
   const nextSession = (input.upcomingSessions || [])
     .map((row) => ({ row, when: toMs(row.slot_start_at) }))
-    .filter((entry): entry is { row: UpcomingSessionRow; when: number } => entry.when !== null && entry.when >= input.now)
+    .filter((entry): entry is { row: UpcomingSessionRow; when: number } => {
+      if (entry.when === null || !['SCHEDULED', 'CONFIRMED'].includes(entry.row.status)) return false
+      const phase = sessionTimePhase(entry.when, toMs(entry.row.slot_end_at) ?? NaN, input.now)
+      return phase === 'upcoming' || phase === 'ongoing'
+    })
     .sort((a, b) => a.when - b.when)[0]
   if (nextSession) {
-    return { kind: 'session', session: nextSession.row, when: nextSession.when, today: dayKeyOf(nextSession.when, input.timeZone) === dayKeyOf(input.now, input.timeZone) }
+    const ongoing = sessionTimePhase(nextSession.when, toMs(nextSession.row.slot_end_at) ?? NaN, input.now) === 'ongoing'
+    return { kind: 'session', session: nextSession.row, when: nextSession.when, today: ongoing || dayKeyOf(nextSession.when, input.timeZone) === dayKeyOf(input.now, input.timeZone) }
   }
   return { kind: 'none' }
 }
 
 /** «через N хв» / «скоро» (< 15 хв); refreshed by the caller once a minute. */
 export function relativeLabel(when: number, now: number) {
+  if (when <= now) return ''
   const minutes = Math.round((when - now) / 60000)
   if (minutes < 15) return 'скоро'
   if (minutes < 60) return `через ${minutes} хв`

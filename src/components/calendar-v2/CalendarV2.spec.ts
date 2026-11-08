@@ -94,7 +94,7 @@ function resetMocks() {
   Object.values(mocked).forEach((mock) => mock.mockReset())
   mocked.schedule.mockResolvedValue({ events: SCHEDULE as never })
   mocked.apiGet.mockImplementation((async (_url: string, config?: { params?: Record<string, unknown> }) =>
-    config?.params?.upcoming ? UPCOMING : WEEK_SESSIONS) as never)
+    config?.params?.status ? UPCOMING : WEEK_SESSIONS) as never)
   mocked.absences.mockResolvedValue([])
   mocked.external.mockResolvedValue([])
   mocked.reschedule.mockResolvedValue([])
@@ -107,6 +107,33 @@ describe('CalendarV2 3a on desktop', () => {
     stubViewport(1440)
   })
   afterEach(() => vi.unstubAllGlobals())
+
+  it('updates rendered list, badge and card at the exclusive end without reload or API polling', async () => {
+    vi.useFakeTimers()
+    const start = Date.parse('2026-11-08T14:00:00Z')
+    vi.setSystemTime(start - 1000)
+    mocked.apiGet.mockResolvedValue([row(42, 'CONFIRMED', new Date(start).toISOString(), 'Синтетична сесія', { meeting_link_ready: false, slot_end_at: new Date(start + 1800000).toISOString() })] as never)
+    mocked.guests.mockResolvedValue([])
+    mocked.schedule.mockResolvedValue({ events: [] })
+    const router = makeRouter()
+    await router.push('/cabinet/sessions?ui=v2&mode=needs_action')
+    const view = render(CalendarV2, { props: { now: () => Date.now() }, global: { plugins: [getActivePinia()!, router] } })
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      const tab = screen.getByRole('tab', { name: /Потребує дії/ })
+      expect(within(tab).getByLabelText('1 дій')).toHaveTextContent('1')
+      expect(screen.getAllByRole('link', { name: /Додати посилання/ })).toHaveLength(2)
+      const requests = mocked.apiGet.mock.calls.length
+      await vi.advanceTimersByTimeAsync(1000 + 600000)
+      expect(within(tab).getByLabelText('1 дій')).toHaveTextContent('1')
+      expect(screen.getAllByRole('link', { name: /Додати посилання/ })).toHaveLength(2)
+      await vi.advanceTimersByTimeAsync(1200000)
+      expect(within(tab).getByLabelText('0 дій')).toHaveTextContent('0')
+      expect(screen.queryByRole('link', { name: /Додати посилання/ })).not.toBeInTheDocument()
+      expect(screen.getByText('Найближчих сесій і дій немає')).toBeInTheDocument()
+      expect(mocked.apiGet).toHaveBeenCalledTimes(requests)
+    } finally { view.unmount(); vi.useRealTimers() }
+  })
 
   it('shows the next-action card, navigation and «Робочий день» without single free slots', async () => {
     await renderCalendar()
@@ -252,7 +279,7 @@ describe('CalendarV2 3a on desktop', () => {
   it('shows a quiet card when nothing needs action and today has no sessions', async () => {
     mocked.guests.mockResolvedValue([])
     mocked.apiGet.mockImplementation((async (_url: string, config?: { params?: Record<string, unknown> }) =>
-      config?.params?.upcoming ? [row(5, 'CONFIRMED', '2026-10-30T09:00:00Z', 'Андрій Л.')] : []) as never)
+      config?.params?.status ? [row(5, 'CONFIRMED', '2026-10-30T09:00:00Z', 'Андрій Л.')] : []) as never)
     await renderCalendar()
     expect(await screen.findByText('Сьогодні сесій немає')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Найближча — Пт, 30 жовтня · 11:00' })).toBeInTheDocument()
@@ -275,7 +302,7 @@ describe('CalendarV2 3a week grid height', () => {
 
   async function renderSessions(starts: string[]) {
     mocked.apiGet.mockImplementation((async (_url: string, config?: { params?: Record<string, unknown> }) =>
-      config?.params?.upcoming ? [] : starts.map((start, index) => row(40 + index, 'CONFIRMED', start, `Клієнт ${index}`))) as never)
+      config?.params?.status ? [] : starts.map((start, index) => row(40 + index, 'CONFIRMED', start, `Клієнт ${index}`))) as never)
     await renderCalendar()
     await screen.findByRole('link', { name: /Клієнт 0/ })
   }
@@ -334,7 +361,7 @@ describe('CalendarV2 3a week grid height', () => {
   it('draws availability windows on the same proportional scale', async () => {
     mocked.schedule.mockResolvedValue({ events: [slot(61, kyiv(14)), slot(62, kyiv(15))] as never })
     mocked.apiGet.mockImplementation((async (_url: string, config?: { params?: Record<string, unknown> }) =>
-      config?.params?.upcoming ? [] : [row(40, 'CONFIRMED', kyiv(10), 'Клієнт 0')]) as never)
+      config?.params?.status ? [] : [row(40, 'CONFIRMED', kyiv(10), 'Клієнт 0')]) as never)
     await renderCalendar('/cabinet/sessions?ui=v2&mode=availability')
     const window = await screen.findByRole('button', { name: 'Вільне вікно 14:00–15:50, 2 слоти' })
     const style = (window.closest('li') as HTMLElement).style
