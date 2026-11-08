@@ -5,12 +5,14 @@
     class="pc2-cal-event"
     :class="classes"
     :aria-label="description"
+    :title="density ? description : undefined"
     :data-kind="item.kind"
     :data-calendar-key="item.key"
   >
-    <span class="pc2-cal-event__line"><span class="pc2-cal-event__time">{{ timeRange }}</span> <span class="pc2-cal-event__title">{{ title }}</span></span>
-    <span v-if="!compact && !muted" class="pc2-cal-event__status">{{ item.statusLabel }}</span>
-    <span v-if="shownMarker" class="pc2-cal-event__marker">{{ shownMarker }}</span>
+    <span class="pc2-cal-event__line"><span class="pc2-cal-event__time">{{ density ? shortTime : timeRange }}</span> <span v-if="density" class="pc2-cal-event__compact-status">{{ compactStatus }}</span><span v-else class="pc2-cal-event__title">{{ title }}</span></span>
+    <span v-if="density === 'short' && !muted" class="pc2-cal-event__title">{{ title }}</span>
+    <span v-if="!compact && !density && !muted" class="pc2-cal-event__status">{{ item.statusLabel }}</span>
+    <span v-if="shownMarker && !density" class="pc2-cal-event__marker">{{ shownMarker }}</span>
   </RouterLink>
   <button
     v-else
@@ -18,14 +20,16 @@
     class="pc2-cal-event"
     :class="classes"
     :aria-label="description"
+    :title="density ? description : undefined"
     aria-haspopup="dialog"
     :data-kind="item.kind"
     :data-calendar-key="item.key"
     @click="$emit('open', item)"
   >
-    <span class="pc2-cal-event__line"><span class="pc2-cal-event__time">{{ timeRange }}</span> <span class="pc2-cal-event__title">{{ title }}</span></span>
-    <span v-if="!compact" class="pc2-cal-event__status">{{ item.statusLabel }}</span>
-    <span v-if="shownMarker" class="pc2-cal-event__marker">{{ shownMarker }}</span>
+    <span class="pc2-cal-event__line"><span class="pc2-cal-event__time">{{ density ? shortTime : timeRange }}</span> <span v-if="density" class="pc2-cal-event__compact-status">{{ compactStatus }}</span><span v-else class="pc2-cal-event__title">{{ title }}</span></span>
+    <span v-if="density === 'short'" class="pc2-cal-event__title">{{ title }}</span>
+    <span v-if="!compact && !density" class="pc2-cal-event__status">{{ item.statusLabel }}</span>
+    <span v-if="shownMarker && !density" class="pc2-cal-event__marker">{{ shownMarker }}</span>
   </button>
 </template>
 
@@ -39,6 +43,8 @@ const props = defineProps<{
   item: CalendarItem
   timeZone: string
   compact?: boolean
+  /** Allocated grid height, not session duration: never enlarge a time block to fit text. */
+  density?: 'micro' | 'short'
   /** «Доступність»: sessions are shown only as «Зайнято», without names (§3). */
   muted?: boolean
   /** Prefix the weekday (collapsed weekend column). */
@@ -53,6 +59,12 @@ const timeRange = computed(() => {
 })
 const title = computed(() => (props.muted ? 'Зайнято' : props.item.title))
 const shownMarker = computed(() => (props.muted ? null : props.item.marker))
+const shortTime = computed(() => props.item.allDay ? 'Увесь день' : formatTime(props.item.start, props.timeZone))
+const compactStatus = computed(() => props.muted ? 'Зайнято' : ({
+  SCHEDULED: 'Очікує',
+  CONFIRMED: 'Підтв.',
+  CANCELLED: 'Скасовано',
+} as Record<string, string>)[props.item.status] || props.item.statusLabel)
 
 const KIND_LABELS: Record<CalendarItem['kind'], string> = {
   session: 'Сесія',
@@ -65,6 +77,7 @@ const KIND_LABELS: Record<CalendarItem['kind'], string> = {
 const classes = computed(() => [
   `pc2-cal-event--${props.item.kind}`,
   props.item.kind === 'session' ? `pc2-cal-event--status-${props.item.status.toLowerCase()}` : '',
+  props.density ? `pc2-cal-event--density-${props.density}` : '',
   {
     'is-guest': props.item.guest,
     'is-past': props.item.layer === 'past',

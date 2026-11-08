@@ -56,10 +56,10 @@
               v-for="event in day.events"
               :key="event.item.key"
               class="pc2-cal-grid__slot"
-              :class="{ 'is-overlay': event.overlay }"
+              :class="{ 'is-overlay': event.overlay, 'is-tight': event.density }"
               :style="event.style"
             >
-              <CalendarEventChip :item="event.item" :time-zone="timeZone" :muted="mode === 'availability' && event.item.kind === 'session'" compact @open="$emit('open', $event)" />
+              <CalendarEventChip :item="event.item" :time-zone="timeZone" :muted="mode === 'availability' && event.item.kind === 'session'" :density="event.density" compact @open="$emit('open', $event)" />
             </li>
           </ul>
           <span v-if="day.nowTop !== null" class="pc2-cal-grid__now" :style="{ top: `${day.nowTop}px` }" aria-hidden="true"></span>
@@ -110,7 +110,8 @@ const props = defineProps<{
 defineEmits<{ open: [item: CalendarItem]; 'open-window': [window: FreeWindow] }>()
 
 // Time scale: see calendarGridScale.ts (≥ 4 visible hours, 52–80px per hour, scroll only when needed).
-const MIN_EVENT_PX = 26
+const MIN_WINDOW_PX = 26
+const eventDensity = (height: number): 'micro' | 'short' | undefined => height < 34 ? 'micro' : height < 50 ? 'short' : undefined
 const viewportHeight = ref(typeof window === 'undefined' ? 900 : window.innerHeight)
 const onResize = () => { viewportHeight.value = window.innerHeight }
 onMounted(() => window.addEventListener('resize', onResize))
@@ -208,24 +209,24 @@ const columns = computed(() =>
       else laneEnds[lane] = entry.endMinute
       return { ...entry, lane }
     })
-    // Events keep their true duration; a very short one gets MIN_EVENT_PX but never spills past the body.
-    const box = (entry: { startMinute: number; endMinute: number }) => {
+    // Timed events keep their exact duration; only availability windows retain their existing minimum.
+    const box = (entry: { startMinute: number; endMinute: number }, minimum = 0) => {
       const start = Math.max(0, toPx(entry.startMinute))
-      const height = Math.max(MIN_EVENT_PX, toPx(entry.endMinute) - start)
+      const height = Math.max(minimum, toPx(entry.endMinute) - start)
       return { top: Math.max(0, Math.min(start, bodyHeight.value - height)), height }
     }
     const events = placed.map((entry) => {
       const lanes = 1 + Math.max(0, ...placed.filter((other) => other.startMinute < entry.endMinute && other.endMinute > entry.startMinute).map((other) => other.lane))
       const { top, height } = box(entry)
-      return { item: entry.item, overlay: false, style: { top: `${top}px`, height: `${height}px`, left: `calc(${entry.lane} * 100% / ${lanes})`, width: `calc(100% / ${lanes})` } }
+      return { item: entry.item, overlay: false, density: eventDensity(height), style: { top: `${top}px`, height: `${height}px`, left: `calc(${entry.lane} * 100% / ${lanes})`, width: `calc(100% / ${lanes})` } }
     })
     // External guest sessions sit on top, shifted by 42% when they cross something (§5).
     for (const entry of day.timed.filter((candidate) => candidate.item.kind === 'external_guest_session')) {
       const crosses = regular.some((other) => other.startMinute < entry.endMinute && other.endMinute > entry.startMinute)
       const { top, height } = box(entry)
-      events.push({ item: entry.item, overlay: crosses, style: { top: `${top}px`, height: `${height}px`, left: crosses ? '42%' : '0', width: crosses ? '58%' : '100%' } })
+      events.push({ item: entry.item, overlay: crosses, density: eventDensity(height), style: { top: `${top}px`, height: `${height}px`, left: crosses ? '42%' : '0', width: crosses ? '58%' : '100%' } })
     }
-    const windowBlocks = day.windows.map((entry) => ({ window: entry.window, ...box(entry) }))
+    const windowBlocks = day.windows.map((entry) => ({ window: entry.window, ...box(entry, MIN_WINDOW_PX) }))
     const bands = day.absences
       .map((entry) => {
         const top = Math.max(0, toPx(entry.startMinute))

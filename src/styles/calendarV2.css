@@ -142,6 +142,16 @@ html[data-ui="v2"] .pc2-cal-event--absence { background: var(--pc-bg-sunk); bord
 html[data-ui="v2"] .pc2-cal-event--external_guest_session { border: 1px solid var(--pc-border-strong); background: repeating-linear-gradient(135deg, var(--pc-bg-card) 0 6px, var(--pc-bg-soft) 6px 12px); color: var(--pc-text-body); }
 html[data-ui="v2"] .pc2-cal-event.is-muted { background: #eeeae3; border: 1px solid #e2dcd3; color: #6b7587; }
 html[data-ui="v2"] .pc2-cal-event.is-muted .pc2-cal-event__title { font-weight: var(--pc-fw-regular); text-decoration: none; }
+/* Short time-grid entries fit the allocated time interval; agenda cards keep their full layout. */
+html[data-ui="v2"] .pc2-cal-grid__slot.is-tight { padding-block: 0; }
+html[data-ui="v2"] .pc2-cal-event--density-micro,
+html[data-ui="v2"] .pc2-cal-event--density-short { min-height: 0; min-width: 0; gap: 0; padding: 2px 4px; border-width: 1px; border-radius: 5px; font-size: 11px; line-height: 14px; }
+html[data-ui="v2"] .pc2-cal-event--density-micro { padding: 0 3px; font-size: 10px; line-height: 11px; justify-content: center; }
+html[data-ui="v2"] :is(.pc2-cal-event--density-micro, .pc2-cal-event--density-short) .pc2-cal-event__line { display: flex; flex: none; width: 100%; gap: 4px; align-items: baseline; }
+html[data-ui="v2"] :is(.pc2-cal-event--density-micro, .pc2-cal-event--density-short) .pc2-cal-event__time { flex: none; }
+html[data-ui="v2"] .pc2-cal-event__compact-status,
+html[data-ui="v2"] .pc2-cal-event--density-short > .pc2-cal-event__title { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html[data-ui="v2"] .pc2-cal-event__compact-status { font-weight: var(--pc-fw-medium); }
 html[data-ui="v2"] .pc2-cal-event:focus-visible, html[data-ui="v2"] .pc2-cal-window:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); z-index: 6; position: relative; }
 
 /* «Потребує дії» */
