@@ -11,7 +11,7 @@
       <RouterLink class="pc2-cal-next__btn" :to="card.action.href">{{ card.action.primaryLabel }} →</RouterLink>
     </template>
     <template v-else-if="card.kind === 'session' && card.today">
-      <p class="pc2-cal-next__meta">Наступна сесія · {{ whenLabel }}<template v-if="relative"> · {{ relative }}</template><template v-if="outsideWeek"> · поза вибраним тижнем</template></p>
+      <p class="pc2-cal-next__meta">{{ card.when <= now ? 'Зараз за розкладом' : 'Наступна сесія' }} · {{ whenLabel }}<template v-if="relative"> · {{ relative }}</template><template v-if="outsideWeek"> · поза вибраним тижнем</template></p>
       <h2 id="pc2-cal-next-title" class="pc2-cal-next__who">{{ sessionName }}</h2>
       <p class="pc2-cal-next__state">{{ sessionState }}</p>
       <RouterLink class="pc2-cal-next__btn" :to="`/cabinet/sessions/${card.session.id}`">Відкрити сесію →</RouterLink>
@@ -47,6 +47,7 @@ const quiet = computed(() => props.card.kind === 'none' || (props.card.kind === 
 const whenLabel = computed(() => {
   const card = props.card
   if (card.kind === 'none') return ''
+  if (card.when === null) return 'без обраного часу'
   const key = dayKeyOf(card.when, props.timeZone)
   const today = dayKeyOf(props.now, props.timeZone)
   if (key === today) return `сьогодні ${formatTime(card.when, props.timeZone)}`
@@ -56,11 +57,11 @@ const whenLabel = computed(() => {
 
 const outsideWeek = computed(() => {
   const card = props.card
-  if (card.kind === 'none' || !props.week) return false
+  if (card.kind === 'none' || card.when === null || !props.week) return false
   return card.when < props.week.start || card.when >= props.week.end
 })
 
-const relative = computed(() => (props.card.kind === 'none' ? '' : relativeLabel(props.card.when, props.now)))
+const relative = computed(() => (props.card.kind === 'none' || props.card.when === null ? '' : relativeLabel(props.card.when, props.now)))
 
 const sessionName = computed(() => {
   if (props.card.kind !== 'session') return ''

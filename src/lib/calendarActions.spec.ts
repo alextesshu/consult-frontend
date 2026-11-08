@@ -36,7 +36,7 @@ describe('buildCalendarActions', () => {
       ],
       guestRequests: [guest(81, '2026-10-30T10:00:00Z'), guest(82, null), guest(83, '2026-10-29T10:00:00Z', 'DECLINED')],
     },
-    KYIV
+    KYIV, NOW
   )
 
   it('derives one action per reason from complete sources only', () => {
@@ -78,9 +78,10 @@ describe('buildCalendarActions', () => {
     expect(pickNextAction({ actions: null, upcomingSessions: null, now: NOW, timeZone: KYIV })).toEqual({ kind: 'none' })
   })
 
-  it('ignores actions without a time or in the past for the card', () => {
-    const undated = buildCalendarActions({ upcomingSessions: [], rescheduleRequests: [], guestRequests: [guest(1, null), guest(2, '2026-10-20T10:00:00Z')] }, KYIV)
-    expect(pickNextAction({ actions: undated, upcomingSessions: [], now: NOW, timeZone: KYIV })).toEqual({ kind: 'none' })
+  it('keeps pending past and undated actions visible in the card', () => {
+    const undated = buildCalendarActions({ upcomingSessions: [], rescheduleRequests: [], guestRequests: [guest(1, null), guest(2, '2026-10-20T10:00:00Z')] }, KYIV, NOW)
+    expect(pickNextAction({ actions: undated, upcomingSessions: [], now: NOW, timeZone: KYIV })).toMatchObject({ kind: 'action', action: { key: 'request:2' } })
+    expect(pickNextAction({ actions: undated.filter((a) => a.when === null), upcomingSessions: [], now: NOW, timeZone: KYIV })).toMatchObject({ kind: 'action', when: null })
   })
 
   it('labels relative time («скоро» under 15 minutes)', () => {

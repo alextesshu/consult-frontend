@@ -20,6 +20,7 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title">{{ statusLabel(session) }}</h2>
+            <p v-if="sessionPhase === 'ongoing' && session.status === 'CONFIRMED'" class="muted">Триває за розкладом</p>
             <p v-if="session.status === 'SCHEDULED'" class="muted">
               Очікує підтвердження спеціаліста. Потрібно завершити підготовку: перевірте формат, посилання на зустріч і робочі нотатки. Підтвердження не означає підтвердження оплати.
             </p>
@@ -216,6 +217,9 @@
           <div class="detail-card">
             <div class="detail-label">Початок</div>
             <div class="detail-value">{{ formatDateTime(sessionStartAt(session)) }}</div>
+            <p v-if="specialistTimezone" class="muted">Часовий пояс: {{ specialistTimezone }}</p>
+            <p v-else class="muted">{{ timezoneStatus === 'error' ? 'Не вдалося визначити часовий пояс.' : 'Уточнюємо часовий пояс…' }}</p>
+            <button v-if="timezoneStatus === 'error'" type="button" class="btn btn--ghost" @click="reloadTimezone">Повторити</button>
           </div>
           <div class="detail-card">
             <div class="detail-label">Тривалість</div>
@@ -862,6 +866,9 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useCalendarClock } from '../composables/useCalendarClock'
+import { useCalendarPreferences } from '../composables/useCalendarPreferences'
+import { formatSpecialistSessionDateTime, sessionTimePhase } from '../lib/sessionTime'
 import { useRoute, useRouter } from 'vue-router'
 import DatePickerField from '../components/DatePickerField.vue'
 import TimeSelectField from '../components/TimeSelectField.vue'
@@ -909,7 +916,7 @@ import {
   sessionEndAt as getSessionEndAt,
   sessionStartAt as getSessionStartAt,
   statusClass as getStatusClass,
-  statusLabel as getStatusLabel,
+  persistedSessionStatusLabel,
   suggestedActualDurationInput as getSuggestedActualDurationInput,
   suggestionReasonLabel as getSuggestionReasonLabel,
   timeUntilLabel as getTimeUntilLabel,
@@ -1133,6 +1140,14 @@ const toast = useToast()
 const sessionId = computed(() => Number(route.params.id))
 const hasValidSessionId = computed(() => Number.isInteger(sessionId.value) && sessionId.value > 0)
 const session = ref<SessionDetail | null>(null)
+const { timezone: specialistTimezone, status: timezoneStatus, reload: reloadPreferences } = useCalendarPreferences()
+function reloadTimezone() {
+  void reloadPreferences().catch(() => undefined)
+}
+const sessionBoundaries = computed(() => session.value
+  ? [Date.parse(getSessionStartAt(session.value) || ''), Date.parse(getSessionEndAt(session.value) || '')] : [])
+const sessionNow = useCalendarClock(sessionBoundaries)
+const sessionPhase = computed(() => sessionTimePhase(sessionBoundaries.value[0] ?? NaN, sessionBoundaries.value[1] ?? NaN, sessionNow.value))
 const reminderSettings = ref<NotificationSettings | null>(null)
 const upcomingReminderSession = computed(() => {
   const current = session.value
@@ -1605,7 +1620,7 @@ function sessionEndAt(detail: SessionDetail) {
 }
 
 function formatDateTime(value?: string | null) {
-  return sharedFormatSessionDateTime(value)
+  return formatSpecialistSessionDateTime(value, specialistTimezone.value)
 }
 
 function formatDuration(start?: string | null, end?: string | null) {
@@ -1674,7 +1689,7 @@ function clientLabel(detail: SessionDetail) {
 }
 
 function statusLabel(detail: SessionDetail) {
-  return getStatusLabel(detail)
+  return persistedSessionStatusLabel(detail.status)
 }
 
 function statusClass(detail: SessionDetail) {

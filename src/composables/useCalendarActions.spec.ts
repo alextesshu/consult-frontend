@@ -20,7 +20,7 @@ const scopes: ReturnType<typeof effectScope>[] = []
 function useCalendarActions(...args: Parameters<typeof createActions>) {
   const scope = effectScope()
   scopes.push(scope)
-  return scope.run(() => createActions(...args))!
+  return scope.run(() => createActions(args[0], args[1] ?? ref(Date.parse('2026-10-26T09:20:00Z'))))!
 }
 function signIn(id: number) {
   useAuthStore().$patch({ accessToken: 'synthetic', authResolved: true, user: { id, username: `synthetic-${id}`, email: null } })
@@ -44,10 +44,10 @@ describe('useCalendarActions', () => {
     mocked.guests.mockResolvedValue([{ id: 5, status: 'PENDING', requested_slot_start: null, guest_name: 'Гість' }] as never)
   })
 
-  it('reads every upcoming session in one GET and reports a complete global set', async () => {
+  it('reads current and future active-status sessions in one GET and reports a complete global set', async () => {
     const result = useCalendarActions(ref('Europe/Kyiv'))
     await flush()
-    expect(mocked.apiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
+    expect(mocked.apiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { status: 'SCHEDULED,CONFIRMED' } })
     expect(result.complete.value).toBe(true)
     expect(result.actions.value.map((action) => action.key)).toEqual(['confirm:1', 'request:5'])
   })

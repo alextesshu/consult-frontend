@@ -221,6 +221,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useCalendarClock } from '../../composables/useCalendarClock'
 import { useCalendarDialog } from '../../composables/useCalendarDialog'
 import { CALENDAR_ACTION_SOURCE_LABELS, useCalendarActions } from '../../composables/useCalendarActions'
 import { CALENDAR_SOURCE_LABELS, useCalendarFeed } from '../../composables/useCalendarFeed'
@@ -286,12 +287,8 @@ onBeforeUnmount(() => {
   tabletMedia?.removeEventListener('change', syncMedia)
 })
 
-// «через N хв» and the now line refresh once a minute.
-const nowValue = ref(clock())
-const timer = setInterval(() => {
-  nowValue.value = clock()
-}, 60_000)
-onBeforeUnmount(() => clearInterval(timer))
+const boundaries = ref<number[]>([])
+const nowValue = useCalendarClock(boundaries, clock)
 
 const todayKey = computed(() => dayKeyOf(nowValue.value, timeZone.value))
 const anchor = ref<DayKey>(todayKey.value)
@@ -309,7 +306,7 @@ function goToday() {
   anchor.value = todayKey.value
 }
 
-const { items, status: feedStatus, failedSources: feedFailed, retry: retryFeed } = useCalendarFeed(range, { now: clock })
+const { items, status: feedStatus, failedSources: feedFailed, retry: retryFeed } = useCalendarFeed(range, { nowValue })
 const {
   actions,
   authIdentity: detailsIdentity,
@@ -318,7 +315,13 @@ const {
   failedSources: actionsFailed,
   complete: actionsComplete,
   retry: retryActions,
-} = useCalendarActions(timeZone)
+} = useCalendarActions(timeZone, nowValue)
+watch([items, upcomingSessions], () => {
+  boundaries.value = [
+    ...items.value.flatMap((item) => [item.start, item.end]),
+    ...(upcomingSessions.value || []).flatMap((row) => [Date.parse(row.slot_start_at || ''), Date.parse(row.slot_end_at || '')]),
+  ]
+}, { immediate: true })
 
 const weekItems = computed(() => items.value.filter((item) => item.start < range.value.end && item.end > range.value.start))
 // Free slots are drawn as windows, never one by one.

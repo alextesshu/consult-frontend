@@ -1,6 +1,7 @@
 import { apiGet, apiPatch, apiPost, apiPut } from './api'
 import { BOOKING_UI_MESSAGES, getSuggestionReasonLabel } from './bookingCopy'
 import { formatUkDateTimeCompact } from './dateTime'
+import { sessionTimePhase } from './sessionTime'
 
 type SessionSlot = {
   start_at?: string | null
@@ -172,7 +173,7 @@ export function isSessionInProgress(detail: Pick<SpecialistSessionLike, 'status'
   const endValue = new Date(end).getTime()
   if (Number.isNaN(startValue) || Number.isNaN(endValue)) return false
   const now = Date.now()
-  return now >= startValue && now <= endValue
+  return sessionTimePhase(startValue, endValue, now) === 'ongoing'
 }
 
 export function timeUntilLabel(detail: Pick<SpecialistSessionLike, 'slot' | 'slot_start_at'>) {
@@ -212,7 +213,11 @@ export function clientLabel(
 
 export function statusLabel(detail: Pick<SpecialistSessionLike, 'status' | 'slot' | 'slot_start_at' | 'slot_end_at'>) {
   if (isSessionInProgress(detail)) return 'В процесі'
-  return statusMap[detail.status] || detail.status
+  return persistedSessionStatusLabel(detail.status)
+}
+
+export function persistedSessionStatusLabel(status: string) {
+  return statusMap[status] || status
 }
 
 export function statusClass(detail: Pick<SpecialistSessionLike, 'status' | 'slot' | 'slot_start_at' | 'slot_end_at'>) {

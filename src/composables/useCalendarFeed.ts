@@ -1,7 +1,7 @@
 import { computed, getCurrentScope, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { apiGet, fetchAvailabilityExceptions, fetchExternalSessions, getCabinetSchedule } from '../lib/api'
-import { buildCalendarItems, type CalendarItem, type CalendarSessionRow, type CalendarSources } from '../lib/calendarItems'
+import { buildCalendarItems, type CalendarSessionRow, type CalendarSources } from '../lib/calendarItems'
 import { fetchSpecialistRescheduleRequests } from '../lib/specialistSessions'
 import { utcQueryDates } from '../lib/calendarTime'
 
@@ -74,7 +74,7 @@ const SOURCE_ORDER: CalendarFeedSource[] = ['schedule', 'sessions', 'rescheduleR
  * Responses for a range that is no longer current are discarded; a range that was
  * loaded before is shown from memory while it refreshes. No writes of any kind.
  */
-export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number } = {}) {
+export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number; nowValue?: Ref<number> } = {}) {
   const auth = useAuthStore()
   const identity = computed(() => {
     const id = auth.user?.id
@@ -82,10 +82,11 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
     return `${auth.authEpoch}:${id}`
   })
   const now = options.now ?? (() => Date.now())
-  const items = shallowRef<CalendarItem[]>([])
+  const snapshot = shallowRef<{ sources: Partial<CalendarSources>; range: Range } | null>(null)
+  const items = computed(() => snapshot.value ? buildCalendarItems(snapshot.value.sources, snapshot.value.range, options.nowValue?.value ?? now()) : [])
   const status = ref<CalendarFeedStatus>('idle')
   const failedSources = ref<CalendarFeedSource[]>([])
-  const cache = new Map<string, { items: CalendarItem[]; failed: CalendarFeedSource[] }>()
+  const cache = new Map<string, { sources: Partial<CalendarSources>; failed: CalendarFeedSource[] }>()
   let sequence = 0
 
   async function load({ force = false } = {}) {
@@ -97,11 +98,11 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
     const request = ++sequence
     const cached = cache.get(key)
     if (cached && !force) {
-      items.value = cached.items
+      snapshot.value = { sources: cached.sources, range: current }
       failedSources.value = cached.failed
       status.value = 'ready'
     } else if (!cached) {
-      items.value = []
+      snapshot.value = null
       status.value = 'loading'
     }
 
@@ -120,9 +121,8 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
       status.value = cached ? 'ready' : 'error'
       return
     }
-    const built = buildCalendarItems(sources, current, now())
-    cache.set(key, { items: built, failed })
-    items.value = built
+    cache.set(key, { sources, failed })
+    snapshot.value = { sources, range: current }
     failedSources.value = failed
     status.value = 'ready'
   }
@@ -131,7 +131,7 @@ export function useCalendarFeed(range: Ref<Range>, options: { now?: () => number
     const invalidation = ++sequence
     if (!previous || account !== previous[0]) {
       cache.clear()
-      items.value = []
+      snapshot.value = null
       failedSources.value = []
       status.value = 'idle'
       getSharedScope(auth, account)

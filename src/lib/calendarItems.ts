@@ -1,4 +1,5 @@
 import type { AvailabilityException, CabinetScheduleEvent, ExternalSessionRecord } from './api'
+import { needsMeetingLink } from './sessionTime'
 
 // Unified calendar read model (UC-01). Pure functions: API rows in, CalendarItem[] out.
 // Every item keeps its source identity (kind + source id); ids of different models are
@@ -166,7 +167,7 @@ function sessionItem(row: CalendarSessionRow | null, id: number, hint: ScheduleS
   })
   if (status === 'SCHEDULED' && start > now) item.actionReasons.push('Потрібне ваше підтвердження')
   if (status === 'COMPLETED' && row?.has_note === false) item.actionReasons.push('Без нотатки')
-  if (status === 'CONFIRMED' && start > now && row?.session_format === 'online' && row.meeting_link_ready === false) {
+  if (needsMeetingLink(status, row?.session_format, row?.meeting_link_ready, start, end, now)) {
     item.missingLink = true
     item.actionReasons.push('Немає посилання на зустріч')
   }
