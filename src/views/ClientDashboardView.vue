@@ -1,16 +1,24 @@
 <template>
-  <section class="client">
-    <header class="client__hero card">
+  <section class="client" :class="{ 'pc2-client-dashboard': uiV2 }">
+    <header class="client__hero card" :class="{ 'pc2-card pc2-card--lg': uiV2, 'pc2-client-dashboard__hero--session': uiV2 && prioritySession && !loading && !sessionsError }" :aria-busy="uiV2 ? loading : undefined">
+      <h1 v-if="uiV2 && (loading || sessionsError)" class="title">Клієнтський кабінет</h1>
+      <LoadingSkeleton v-if="uiV2 && loading" variant="card" :count="1" height="112px" />
+      <EmptyState v-else-if="uiV2 && sessionsError" title="Не вдалося завантажити найближчу сесію" :description="sessionsError">
+        <template #actions><button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button></template>
+      </EmptyState>
+      <template v-else>
       <div>
         <div class="eyebrow">Клієнтський кабінет</div>
         <h1 class="title">{{ primaryHeroTitle }}</h1>
         <p class="muted">{{ primaryHeroDescription }}</p>
+        <p v-if="uiV2 && !prioritySession && !primarySpecialist" class="muted">Наступної сесії поки не заплановано.</p>
         <div v-if="prioritySession" class="client-hero-state">
           <div class="client-hero-state__name">{{ specialistLabel(prioritySession) }}</div>
-          <div class="muted">{{ formatDateTime(sessionStartAt(prioritySession)) }} · {{ sessionFormatBadge(prioritySession) }}</div>
-          <div class="status-pill" :class="{ 'status-pill--danger': isPriorityLive, 'status-pill--warn': prioritySession.status === 'SCHEDULED' }">
+          <div class="muted" :class="{ 'pc2-client-dashboard__when': uiV2 }">{{ formatDateTime(sessionStartAt(prioritySession)) }} · {{ sessionFormatBadge(prioritySession) }}</div>
+          <div class="status-pill" :class="[{ 'status-pill--danger': isPriorityLive, 'status-pill--warn': prioritySession.status === 'SCHEDULED' }, uiV2 ? sessionTagClass(prioritySession) : undefined]">
             {{ isPriorityLive ? 'Сесія триває' : sessionStatusLabel(prioritySession) }}
           </div>
+          <div v-if="uiV2 && hasPaymentBadge(prioritySession)" :class="paymentTagClass(prioritySession)">{{ paymentBadgeLabel(prioritySession) }}</div>
         </div>
         <div v-else-if="primaryInquiry" class="client-hero-state">
           <div class="client-hero-state__name">{{ specialistName(primaryInquiry.other_user?.display_name) }}</div>
@@ -44,7 +52,30 @@
         <RouterLink v-if="prioritySession" class="btn btn--ghost" to="/specialists">Знайти спеціаліста</RouterLink>
         <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
       </div>
+      </template>
     </header>
+
+    <section v-if="uiV2" class="card pc2-client-dashboard__materials" aria-labelledby="client-dashboard-materials" :aria-busy="materialsLoading">
+      <div class="pc2-client-dashboard__section-head">
+        <h2 id="client-dashboard-materials">Нове від спеціаліста</h2>
+        <RouterLink to="/client/materials">Усі матеріали</RouterLink>
+      </div>
+      <p class="muted">Лише матеріали, які спеціаліст відкрив для вас.</p>
+      <LoadingSkeleton v-if="materialsLoading" variant="card" :count="1" />
+      <div v-else-if="materialsError" role="alert">
+        <p>{{ materialsError }}</p>
+        <button class="btn btn--ghost" type="button" @click="loadMaterials">Спробувати ще раз</button>
+      </div>
+      <p v-else-if="materials.length === 0" class="muted">Поки що матеріалів немає.</p>
+      <div v-else class="pc2-client-dashboard__material-grid">
+        <RouterLink v-for="material in materials" :key="material.id" class="pc2-card pc2-card--interactive pc2-client-dashboard__material" to="/client/materials" :aria-label="`Матеріали: ${material.title}`">
+          <h3>{{ material.title }}</h3>
+          <p v-if="material.content_preview">{{ material.content_preview }}</p>
+          <span class="muted">Опубліковано: {{ formatDateTime(material.published_at) }}</span>
+          <span class="pc2-client-dashboard__material-action">Переглянути матеріали →</span>
+        </RouterLink>
+      </div>
+    </section>
 
     <div class="card active-specialists-card">
       <div class="card__title">Мої спеціалісти</div>
@@ -264,7 +295,7 @@
         </li>
       </ul>
     </div>
-    <div class="card">
+    <div class="card" :class="{ 'pc2-client-dashboard__viewed': uiV2 }">
       <div class="card__title">Переглянуті спеціалісти</div>
       <div v-if="viewedSpecialistPreview.length === 0" class="muted">
         Ви ще не переглядали профілі спеціалістів.
@@ -364,11 +395,11 @@
               <div class="muted">{{ specialistLabel(session) }}</div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div v-if="meetingBadge(session)" class="muted">{{ meetingBadge(session) }}</div>
-              <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
+              <div class="muted" :class="uiV2 ? sessionTagClass(session) : undefined">Статус: {{ sessionStatusLabel(session) }}</div>
               <div
                 v-if="hasPaymentBadge(session)"
                 class="status-pill status-pill--payment"
-                :class="paymentBadgeClass(session)"
+                :class="[paymentBadgeClass(session), uiV2 ? paymentTagClass(session) : undefined]"
               >
                 {{ paymentBadgeLabel(session) }}
               </div>
@@ -426,11 +457,11 @@
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ specialistLabel(session) }}</div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
-              <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
+              <div class="muted" :class="uiV2 ? sessionTagClass(session) : undefined">Статус: {{ sessionStatusLabel(session) }}</div>
               <div
                 v-if="hasPaymentBadge(session)"
                 class="status-pill status-pill--payment"
-                :class="paymentBadgeClass(session)"
+                :class="[paymentBadgeClass(session), uiV2 ? paymentTagClass(session) : undefined]"
               >
                 {{ paymentBadgeLabel(session) }}
               </div>
@@ -466,10 +497,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   apiGet,
   fetchClientSpecialists,
+  fetchClientMaterials,
+  type ClientMaterialClientRecord,
   fetchInquiryState,
   fetchInquiryThreads,
   fetchPublicSpecialistProfile,
@@ -479,6 +512,7 @@ import {
   type PublicSpecialistProfile,
   type SessionFormat,
 } from '../lib/api'
+import { isUiV2 } from '../lib/uiVersion'
 import { BOOKING_ERROR_FALLBACKS, getBookingErrorMessage } from '../lib/bookingCopy'
 import EmptyState from '../components/EmptyState.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
@@ -491,6 +525,47 @@ import {
   externalMeetingProviderLabel,
   normalizeMeetingUrl,
 } from '../lib/sessionExecution'
+
+const uiV2 = computed(isUiV2)
+const materials = ref<ClientMaterialClientRecord[]>([])
+const materialsLoading = ref(false)
+const materialsError = ref('')
+let materialsLoaded = false
+
+async function loadMaterials() {
+  if (materialsLoading.value) return
+  materialsLoading.value = true
+  materialsError.value = ''
+  try {
+    // The existing client endpoint returns only the current client's published materials.
+    // Keep attachment access in ClientMaterialsView, including its server-side checks.
+    const payload = await fetchClientMaterials()
+    materials.value = payload.results.filter((item) => Boolean(item.published_at)).slice(0, 3)
+    materialsLoaded = true
+  } catch {
+    materials.value = []
+    materialsError.value = 'Не вдалося завантажити матеріали.'
+  } finally {
+    materialsLoading.value = false
+  }
+}
+
+watch(uiV2, (enabled) => {
+  if (enabled && !materialsLoaded) void loadMaterials()
+}, { immediate: true })
+
+// Presentation only: the existing labels and meeting/priority decisions remain authoritative.
+function sessionTagClass(session: Session) {
+  const tone = isSessionInProgress(session) ? 'info' : ({
+    CONFIRMED: 'success', SCHEDULED: 'info', NO_SHOW: 'danger',
+  } as Record<string, string>)[session.status] || 'neutral'
+  return `pc2-tag pc2-tag--${tone}`
+}
+function paymentTagClass(session: Session) {
+  const tone = session.payment_badge_state === 'paid' ? 'success'
+    : session.payment_badge_state === 'awaiting_confirmation' ? 'warning' : 'neutral'
+  return `pc2-tag pc2-tag--${tone}`
+}
 
 type Slot = {
   start_at: string
@@ -1877,5 +1952,75 @@ onBeforeUnmount(() => {
   .therapist-grid--viewed.therapist-grid--compact {
     grid-template-columns: 1fr;
   }
+}
+</style>
+
+<style>
+html[data-ui="v2"] .pc2-client-dashboard { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--pc-space-6); min-width: 0; font-family: var(--pc-font); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-client-dashboard > .card,
+html[data-ui="v2"] .pc2-client-dashboard > .client__grid { grid-column: 1 / -1; min-width: 0; }
+html[data-ui="v2"] .pc2-client-dashboard .card { background: var(--pc-bg-card); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); padding: var(--pc-space-6); box-shadow: none; }
+html[data-ui="v2"] .pc2-client-dashboard .client__hero { gap: var(--pc-space-6); border-radius: var(--pc-radius-lg); background: var(--pc-bg-sunk); padding: var(--pc-space-8); }
+html[data-ui="v2"] .pc2-client-dashboard .client__hero > div { min-width: 0; }
+html[data-ui="v2"] .pc2-client-dashboard .title { font-size: var(--pc-fs-h1); font-weight: var(--pc-fw-medium); line-height: var(--pc-lh-head); margin-block: var(--pc-space-2) var(--pc-space-4); }
+html[data-ui="v2"] .pc2-client-dashboard .eyebrow { font-size: var(--pc-fs-micro); font-weight: var(--pc-fw-medium); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-client-dashboard .client-hero-state { display: grid; gap: var(--pc-space-3); }
+html[data-ui="v2"] .pc2-client-dashboard .client-hero-state__name { font-size: var(--pc-fs-body); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__when { font-size: var(--pc-fs-h2); font-weight: var(--pc-fw-medium); line-height: var(--pc-lh-head); }
+html[data-ui="v2"] .pc2-client-dashboard .client-hero-actions { gap: var(--pc-space-2); flex: 0 1 calc(var(--pc-container) / 3); }
+html[data-ui="v2"] .pc2-client-dashboard .card__title,
+html[data-ui="v2"] .pc2-client-dashboard h2 { font-size: var(--pc-fs-h3); font-weight: var(--pc-fw-medium); color: var(--pc-text-main); margin: 0; }
+html[data-ui="v2"] .pc2-client-dashboard .btn { min-height: var(--pc-control-h); border: 1px solid var(--pc-navy-900); border-radius: var(--pc-radius-pill); padding: var(--pc-space-3) var(--pc-space-5); background: var(--pc-navy-900); color: var(--pc-bg-card); font: var(--pc-fw-medium) var(--pc-fs-ui)/var(--pc-lh-head) var(--pc-font); box-shadow: none; text-decoration: none; white-space: normal; }
+html[data-ui="v2"] .pc2-client-dashboard .btn:hover { background: var(--pc-navy-950); transform: none; }
+html[data-ui="v2"] .pc2-client-dashboard .btn:active { background: var(--pc-navy-800); }
+html[data-ui="v2"] .pc2-client-dashboard .btn--ghost { background: transparent; color: var(--pc-navy-900); border-color: var(--pc-border-strong); }
+html[data-ui="v2"] .pc2-client-dashboard .btn--ghost:hover { background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session { background: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session .title,
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session .muted,
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session .eyebrow { color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session .btn { background: var(--pc-bg-card); color: var(--pc-navy-900); border-color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session .btn--ghost { background: transparent; color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session .btn:hover { background: var(--pc-bg-soft); color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-client-dashboard :is(a, button):focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__hero--session a:focus-visible { outline-color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-tag { display: inline-flex; width: fit-content; margin-top: var(--pc-space-2); padding: var(--pc-space-1) var(--pc-space-3); bborder-radius: var(--pc-radius-pill); box-shadow: none; font: var(--pc-fw-medium) var(--pc-fs-meta)/var(--pc-lh-body) var(--pc-font); text-transform: none; letter-spacing: normal; }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-tag--info { background: var(--pc-info-soft); color: var(--pc-info); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-tag--success { background: var(--pc-success-soft); color: var(--pc-success); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-tag--warning { background: var(--pc-warning-soft); color: var(--pc-peach-ink); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-tag--neutral { background: var(--pc-bg-soft); color: var(--pc-text-body); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-tag--danger { background: var(--pc-danger-soft); color: var(--pc-danger); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__section-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__section-head a { color: var(--pc-navy-900); min-height: var(--pc-control-h); display: inline-flex; align-items: center; }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--pc-container) / 4)), 1fr)); gap: var(--pc-space-4); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material { display: flex; flex-direction: column; gap: var(--pc-space-3); padding: var(--pc-space-6); border-radius: var(--pc-radius-md); border: 1px solid var(--pc-border-hair); background: var(--pc-bg-main); color: var(--pc-text-main); text-decoration: none; min-width: 0; overflow-wrap: anywhere; transition: border-color var(--pc-dur), box-shadow var(--pc-dur); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material h3 { font-size: var(--pc-fs-h3); margin: 0; font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material p { margin: 0; color: var(--pc-text-body); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material .muted { font-size: var(--pc-fs-meta); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material-action { margin-top: auto; color: var(--pc-navy-900); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-client-dashboard .pc2-client-dashboard__material:hover { border-color: var(--pc-border-strong); box-shadow: var(--pc-shadow-sm); }
+html[data-ui="v2"] .pc2-client-dashboard > .client__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-client-dashboard > .active-specialists-card { grid-column: auto; }
+html[data-ui="v2"] .pc2-client-dashboard > .pc2-client-dashboard__viewed { grid-column: auto; }
+html[data-ui="v2"] .pc2-client-dashboard .session-list { gap: var(--pc-space-3); }
+html[data-ui="v2"] .pc2-client-dashboard .session-item { align-items: start; flex-wrap: wrap; border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-sm); padding: var(--pc-space-4); background: var(--pc-bg-main); box-shadow: none; min-width: 0; overflow-wrap: anywhere; }
+html[data-ui="v2"] .pc2-client-dashboard .session-item > div { min-width: 0; }
+html[data-ui="v2"] .pc2-client-dashboard .session-time,
+html[data-ui="v2"] .pc2-client-dashboard .therapist-name { font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--pc-container) / 5)), 1fr)); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-card { background: var(--pc-bg-main); border-color: var(--pc-border-hair); border-radius: var(--pc-radius-md); max-width: 100%; color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-card:hover { transform: none; box-shadow: var(--pc-shadow-sm); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-photo { border-radius: var(--pc-radius-sm); border-color: var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-photo--empty { background: var(--pc-bg-soft); color: var(--pc-text-muted); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-card--viewed { grid-template-columns: var(--pc-control-h) minmax(0, 1fr); grid-template-rows: auto; align-items: center; gap: var(--pc-space-3); padding: var(--pc-space-3); }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-photo-link--viewed { width: var(--pc-control-h); height: var(--pc-control-h); aspect-ratio: 1; }
+html[data-ui="v2"] .pc2-client-dashboard .therapist-price--viewed { grid-column: 2; padding-top: var(--pc-space-2); border-color: var(--pc-border-hair); }
+html[data-ui="v2"] .pc2-client-dashboard .empty-state { background: var(--pc-bg-soft); border-color: var(--pc-border); border-radius: var(--pc-radius-md); }
+html[data-ui="v2"] .pc2-client-dashboard #upcoming-sessions { scroll-margin-top: var(--pc-header-anchor-offset); }
+@media (max-width: 860px) {
+  html[data-ui="v2"] .pc2-client-dashboard { grid-template-columns: minmax(0, 1fr); gap: var(--pc-space-4); }
+  html[data-ui="v2"] .pc2-client-dashboard > .client__grid { grid-template-columns: minmax(0, 1fr); }
+  html[data-ui="v2"] .pc2-client-dashboard .client__hero { padding: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-client-dashboard .client-hero-actions { flex-basis: auto; }
 }
 </style>
