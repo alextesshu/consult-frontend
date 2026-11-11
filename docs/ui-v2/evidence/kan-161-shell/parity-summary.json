@@ -1,0 +1,386 @@
+[
+  {
+    "width": 375,
+    "route": "/cabinet",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/clients",
+    "runs": 3,
+    "bestCandidateDiff": 10,
+    "maxBaselineNoise": 77,
+    "perRun": [
+      [
+        10,
+        10,
+        0
+      ],
+      [
+        93,
+        16,
+        77
+      ],
+      [
+        21,
+        21,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/sessions",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/cabinet/settings",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/cabinet",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 2609,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2609,
+        2609,
+        0
+      ],
+      [
+        0,
+        2609,
+        2609
+      ]
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/sessions",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/cabinet/settings",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 389,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        389,
+        0,
+        389
+      ]
+    ]
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 8,
+    "perRun": [
+      [
+        0,
+        4,
+        4
+      ],
+      [
+        4,
+        12,
+        8
+      ],
+      [
+        4,
+        4,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/sessions",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 1184,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1184,
+        1184
+      ],
+      [
+        1184,
+        0,
+        1184
+      ]
+    ]
+  },
+  {
+    "width": 1280,
+    "route": "/cabinet/settings",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/clients",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/sessions",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/cabinet/settings",
+    "runs": 3,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1339,
+        1339,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  }
+]

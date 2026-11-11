@@ -1,0 +1,77 @@
+{
+  "mode": "isolated browser fixtures; no real backend validation",
+  "rows": [
+    {
+      "ui": "v1",
+      "width": 375,
+      "result": "PASS",
+      "boundaryLengths": [
+        0,
+        159,
+        160,
+        161
+      ],
+      "legacyLength": 240,
+      "legacyOmittedFromPatch": true,
+      "legacyReloadExact": true,
+      "editedLegacyBlocked": true,
+      "patches": 5,
+      "overflow": false,
+      "pageErrors": []
+    },
+    {
+      "ui": "v1",
+      "width": 1280,
+      "result": "PASS",
+      "boundaryLengths": [
+        0,
+        159,
+        160,
+        161
+      ],
+      "legacyLength": 240,
+      "legacyOmittedFromPatch": true,
+      "legacyReloadExact": true,
+      "editedLegacyBlocked": true,
+      "patches": 5,
+      "overflow": false,
+      "pageErrors": []
+    },
+    {
+      "ui": "v2",
+      "width": 375,
+      "result": "PASS",
+      "boundaryLengths": [
+        0,
+        159,
+        160,
+        161
+      ],
+      "legacyLength": 240,
+      "legacyOmittedFromPatch": true,
+      "legacyReloadExact": true,
+      "editedLegacyBlocked": true,
+      "patches": 5,
+      "overflow": false,
+      "pageErrors": []
+    },
+    {
+      "ui": "v2",
+      "width": 1280,
+      "result": "PASS",
+      "boundaryLengths": [
+        0,
+        159,
+        160,
+        161
+      ],
+      "legacyLength": 240,
+      "legacyOmittedFromPatch": true,
+      "legacyReloadExact": true,
+      "editedLegacyBlocked": true,
+      "patches": 5,
+      "overflow": false,
+      "pageErrors": []
+    }
+  ]
+}

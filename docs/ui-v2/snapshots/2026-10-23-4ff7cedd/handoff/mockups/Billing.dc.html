@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="height:100vh;overflow:hidden;display:grid;grid-template-columns:{{ cols }};background:#FBF9F5">
+
+  <aside style="display:{{ sideDisp }};flex-direction:column;gap:20px;padding:20px 12px;border-right:1px solid #EDE7DE;min-height:0">
+    <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;align-self:flex-start;margin-left:6px">
+    <nav style="display:flex;flex-direction:column;gap:1px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="14">
+        <a href="{{ n.href }}" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:12px;font-size:14px;background:{{ n.bg }};color:{{ n.fg }};transition:box-shadow .2s" style-hover="box-shadow:inset 0 0 0 1px #D4CCC2">{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></a>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:4px 8px">
+      <span style="width:32px;height:32px;border-radius:999px;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+      <div style="font-size:14px;line-height:1.3">Марія Коваль<div style="font-size:12px;color:#5A6578">{{ planShort }}</div></div>
+    </div>
+  </aside>
+
+  <main style="overflow-y:auto;min-height:0;padding:{{ mainPad }};display:flex;flex-direction:column;gap:16px">
+    <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;align-self:flex-start;margin-left:-6px"></sc-if>
+
+    <section style="border-radius:24px;background:{{ h.bg }};color:#fff;padding:24px 26px;display:flex;flex-wrap:wrap;gap:20px 32px;justify-content:space-between;align-items:center">
+      <div style="display:flex;flex-direction:column;gap:6px;max-width:560px">
+        <div style="font-size:14px;color:#C9D4E3">Тарифи і доступ</div>
+        <h1 style="margin:0;font-weight:500;font-size:clamp(24px,2.6vw,30px);letter-spacing:-0.03em;line-height:1.15">{{ h.title }}</h1>
+        <span style="font-size:14px;line-height:1.55;color:#C9D4E3">{{ h.sub }}</span>
+        <sc-if value="{{ h.hasCta }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <span onClick="{{ request }}" style="padding:12px 20px;border-radius:999px;font-size:15px;font-weight:500;white-space:nowrap;background:{{ h.ctaBg }};color:{{ h.ctaFg }};cursor:{{ h.ctaCur }};transition:all .25s">{{ h.cta }}</span>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center">
+        <span style="width:88px;height:88px;border-radius:50%;background:conic-gradient({{ ringC }} {{ ringDeg }}, rgba(255,255,255,.14) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:72px;height:72px;border-radius:50%;background:{{ h.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1"><span style="font-size:20px;font-weight:500">{{ used }}</span><span style="font-size:11px;color:#A9B8CC">з {{ limit }}</span></span></span>
+        <div style="font-size:14px;line-height:1.45;color:#C9D4E3;max-width:160px">активних клієнтів<span style="display:block;color:{{ limitFg }}">{{ limitNote }}</span></div>
+      </div>
+    </section>
+
+    <sc-if value="{{ showPay }}" hint-placeholder-val="{{ false }}">
+      <section style="background:#fff;border:1.5px solid #F7D3AE;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+        <div><h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0 0 4px">Оплата Pro</h2><span style="font-size:14px;line-height:1.5;color:#5A6578">Заявку схвалено. Платний доступ увімкнеться, щойно адміністратор підтвердить оплату.</span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px">
+          <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;background:#FBF9F5">
+              <span style="font-size:12px;color:#8B95A7">{{ r.k }}</span>
+              <span style="font-size:15px;word-break:break-all">{{ r.v }}</span>
+              <sc-if value="{{ r.copyable }}" hint-placeholder-val="{{ false }}"><span onClick="{{ r.copy }}" style="align-self:flex-start;font-size:13px;color:#12345A;cursor:pointer">{{ r.copyL }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;align-items:stretch">
+      <sc-for list="{{ plans }}" as="p" hint-placeholder-count="3">
+        <section style="border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:14px;background:#fff;border:1.5px solid {{ p.bd }};opacity:{{ p.op }}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+            <div><div style="font-size:20px;font-weight:500;letter-spacing:-0.01em">{{ p.title }}</div><div style="font-size:13px;color:#5A6578">{{ p.sub }}</div></div>
+            <sc-if value="{{ p.tag }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:4px 10px;border-radius:999px;white-space:nowrap;background:{{ p.tagBg }};color:{{ p.tagFg }}">{{ p.tag }}</span></sc-if>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:30px;font-weight:500;letter-spacing:-0.02em">{{ p.price }}</span><span style="font-size:14px;color:#8B95A7">/ міс</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+            <sc-for list="{{ p.feats }}" as="x" hint-placeholder-count="5"><span style="display:flex;gap:10px;font-size:14px;line-height:1.45;color:#3F4B5E"><span style="color:#2F8C86">✓</span>{{ x.t }}</span></sc-for>
+          </div>
+          <span onClick="{{ p.on }}" style="padding:12px;border-radius:999px;text-align:center;font-size:15px;font-weight:500;background:{{ p.btnBg }};color:{{ p.btnFg }};border:1px solid {{ p.btnBd }};cursor:{{ p.cur }}">{{ p.btn }}</span>
+        </section>
+      </sc-for>
+    </div>
+
+    <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px 24px;display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:center">
+      <div style="max-width:460px;display:flex;flex-direction:column;gap:4px">
+        <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Більше активних клієнтів</h2>
+        <span style="font-size:14px;line-height:1.5;color:#5A6578">+1 клієнт — 200 грн/міс, до +6. Сесії без реєстрації в ліміт не входять.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;background:#F1EBE2">
+          <span onClick="{{ dec }}" role="button" aria-label="Менше" style="width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:{{ decCur }};opacity:{{ decOp }};background:#fff">−</span>
+          <span style="min-width:48px;text-align:center;font-size:17px;font-weight:500">+{{ extra }}</span>
+          <span onClick="{{ inc }}" role="button" aria-label="Більше" style="width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:{{ incCur }};opacity:{{ incOp }};background:#fff">+</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:150px"><span style="font-size:15px;font-weight:500">{{ extraPrice }}</span><span style="font-size:13px;color:#8B95A7">{{ extraTotal }}</span></div>
+        <span onClick="{{ reqExtra }}" style="padding:12px 18px;border-radius:999px;font-size:15px;white-space:nowrap;border:1px solid {{ exBd }};color:{{ exFg }};cursor:{{ exCur }}">{{ exL }}</span>
+      </div>
+    </section>
+
+    <span style="font-size:13px;line-height:1.55;color:#8B95A7;max-width:720px">Комісії з консультацій немає — клієнти платять вам напряму. Якщо доступ Pro завершиться, клієнти, сесії й записи збережуться; нове зростання діятиме в межах Start.</span>
+  </main>
+
+  <div style="position:fixed;left:{{ toastLeft }};bottom:24px;transform:translate(-50%,{{ toastY }});opacity:{{ toastOp }};pointer-events:none;padding:12px 20px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);transition:all .35s cubic-bezier(.2,.8,.2,1);z-index:60">{{ toastMsg }}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;access&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;trial&quot;,&quot;pending&quot;,&quot;approved&quot;,&quot;pro&quot;,&quot;expired&quot;,&quot;start&quot;],&quot;default&quot;:&quot;trial&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
+const NAV_S = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати', 'Групові події', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
+const HREF_S = { 'Кабінет': 'Cabinet-Dashboard.dc.html', 'Профіль': 'Profile-Edit.dc.html', 'Клієнти': 'Clients.dc.html', 'Сесії': 'Sessions.dc.html', 'Запити': 'Inquiries.dc.html', 'Чати': 'Chat.dc.html', 'Розклад': 'Schedule.dc.html', 'Тарифи і доступ': 'Billing.dc.html', 'Налаштування': 'Settings.dc.html', 'Завдання': 'Specialist-Tools.dc.html', 'Відгуки': 'Specialist-Tools.dc.html', 'Аналітика': 'Specialist-Tools.dc.html', 'Групові події': 'Specialist-Tools.dc.html', 'Власний блог': 'Specialist-Tools.dc.html' };
+const PLANS = [
+  { code: 'START', title: 'Start', sub: 'Для невеликої практики', price: '0 грн', limit: 3, feats: ['Публічна сторінка й запити', '3 активні клієнти', 'Без комісій з консультацій'] },
+  { code: 'PRO', title: 'Pro', sub: 'Повний робочий кабінет', price: '990 грн', limit: 20, feats: ['Усе зі Start', '20 активних клієнтів', 'Сесії, календар, нагадування на email', 'Матеріали для клієнтів', 'Власний блог і приватні записи'] },
+  { code: 'LEADER', title: 'Leader', sub: 'Для великої практики', price: '2 490 грн', limit: 0, feats: ['Усе з Pro', 'Розширені можливості', 'Індивідуальні умови'] },
+];
+class Component extends DCLogic {
+  state = { st: null, extra: 0, exSent: false, copied: null, toast: false, toastMsg: '', w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() { this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize); }
+  componentDidUpdate(p) { p = p || {}; if (p.access !== this.props.access) this.setState({ st: null, exSent: false }); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearTimeout(this.tt); clearTimeout(this.tc); }
+  toast(m) { clearTimeout(this.tt); this.setState({ toast: true, toastMsg: m }); this.tt = setTimeout(() => this.setState({ toast: false }), 3200); }
+  renderVals() {
+    const S = this.state, nar = S.w < 768;
+    const st = S.st || this.props.access || 'trial';
+    const isPro = st !== 'start' && st !== 'expired';
+    const limit = isPro ? 20 : 3, used = isPro ? 14 : 3;
+    const H = {
+      trial: { bg: '#12345A', title: 'Pro · тестовий доступ, ще 5 днів', sub: 'До 28 жовтня. Щоб лишитися на Pro, подайте заявку — інакше простір перейде на Start, а email-нагадування про сесії вимкнуться.', cta: 'Продовжити Pro', ctaOn: true },
+      pending: { bg: '#12345A', title: 'Заявку на Pro надіслано', sub: 'Адміністратор розгляне її найближчим часом. Тестовий доступ діє до 28 жовтня — нічого не зміниться, поки заявка на розгляді.', cta: 'Заявка очікує розгляду', ctaOn: false },
+      approved: { bg: '#12345A', title: 'Pro схвалено — лишилась оплата', sub: 'Реквізити нижче. До підтвердження оплати діє тестовий доступ.', cta: '', ctaOn: false },
+      pro: { bg: '#12345A', title: 'Pro · оплачено до 23 листопада', sub: 'Наступна оплата — 990 грн. Нагадаємо за 5 днів.', cta: '', ctaOn: false },
+      expired: { bg: '#3F4B5E', title: 'Тестовий доступ завершився — зараз Start', sub: 'Клієнти, сесії й записи на місці. Нових активних клієнтів — до 3; email-нагадування вимкнено, нагадування в кабінеті працюють.', cta: 'Повернути Pro', ctaOn: true },
+      start: { bg: '#3F4B5E', title: 'Start', sub: 'Безкоштовно, до 3 активних клієнтів. Pro відкриває повний кабінет і 20 клієнтів.', cta: 'Подати заявку на Pro', ctaOn: true },
+    }[st];
+    const cur = isPro ? 'PRO' : 'START';
+    const canExtra = !S.exSent;
+    return {
+      cols: nar ? 'minmax(0,1fr)' : '220px minmax(0,1fr)', sideDisp: nar ? 'none' : 'flex', narrow: nar, mainPad: nar ? '20px 16px 96px' : '24px clamp(20px,3vw,32px) 96px',
+      nav: NAV_S.map(label => ({ label, href: HREF_S[label] || '#', bg: label === 'Тарифи і доступ' ? '#12345A' : 'transparent', fg: label === 'Тарифи і доступ' ? '#fff' : '#3F4B5E', badge: label === 'Запити' ? '2' : label === 'Чати' ? '1' : '' })),
+      planShort: isPro ? (st === 'pro' ? 'Pro' : 'Pro · тест') : 'Start',
+      h: { ...H, hasCta: !!H.cta, ctaBg: H.ctaOn ? '#F7B77E' : 'rgba(255,255,255,.14)', ctaFg: H.ctaOn ? '#12233A' : '#A9B8CC', ctaCur: H.ctaOn ? 'pointer' : 'default' },
+      request: () => { if (!H.ctaOn) return; this.setState({ st: 'pending' }); this.toast('Заявку на Pro надіслано'); },
+      used: String(used), limit: String(limit + S.extra * (S.exSent ? 1 : 0)), ringDeg: `${Math.round(used / limit * 360)}deg`, ringC: used >= limit ? '#F7B77E' : '#8FCBC8',
+      limitNote: used >= limit ? 'Ліміт вичерпано' : `Ще ${limit - used} вільних`, limitFg: used >= limit ? '#F7B77E' : '#8FCBC8',
+      showPay: st === 'approved',
+      payRows: [['Отримувач', 'ФОП Іваненко О. П.'], ['IBAN', 'UA21 3052 9900 0002 6007 1234 5678 9'], ['Сума', '990 грн'], ['Призначення', 'Pro Consult, Pro, maria-koval']].map(([k, v]) => ({ k, v, copyable: k !== 'Отримувач', copyL: S.copied === k ? '✓ Скопійовано' : 'Копіювати', copy: () => { this.setState({ copied: k }); clearTimeout(this.tc); this.tc = setTimeout(() => this.setState({ copied: null }), 1800); } })),
+      plans: PLANS.map(p => { const isCur = p.code === cur, beta = p.code === 'LEADER', up = p.code === 'PRO' && !isPro;
+        return { ...p, feats: p.feats.map(t => ({ t })), op: beta ? 0.6 : 1, bd: isCur ? '#12345A' : '#EDE7DE',
+          tag: isCur ? 'Ваш тариф' : beta ? 'Готується' : '', tagBg: isCur ? '#EEF4FA' : '#F1EBE2', tagFg: isCur ? '#2F6FA8' : '#5A6578',
+          btn: isCur ? 'Поточний' : beta ? 'Незабаром' : up ? (st === 'pending' ? 'Заявка на розгляді' : 'Подати заявку') : 'Базовий тариф',
+          btnBg: up && st !== 'pending' ? '#12345A' : 'transparent', btnFg: up && st !== 'pending' ? '#fff' : '#8B95A7', btnBd: up && st !== 'pending' ? '#12345A' : '#E6E0D8', cur: up && st !== 'pending' ? 'pointer' : 'default',
+          on: () => { if (up && st !== 'pending') { this.setState({ st: 'pending' }); this.toast('Заявку на Pro надіслано'); } } }; }),
+      extra: String(S.extra), dec: () => canExtra && S.extra > 0 && this.setState({ extra: S.extra - 1 }), inc: () => canExtra && S.extra < 6 && this.setState({ extra: S.extra + 1 }),
+      decOp: canExtra && S.extra > 0 ? 1 : 0.4, decCur: canExtra && S.extra > 0 ? 'pointer' : 'default', incOp: canExtra && S.extra < 6 ? 1 : 0.4, incCur: canExtra && S.extra < 6 ? 'pointer' : 'default',
+      extraPrice: S.extra ? `${S.extra * 200} грн/міс` : 'Без розширення', extraTotal: S.extra ? `Разом: ${((isPro ? 990 : 0) + S.extra * 200).toLocaleString('uk-UA')} грн/міс · ${limit + S.extra} клієнтів` : `Зараз ${limit} клієнтів`,
+      exL: S.exSent ? 'Заявку надіслано' : 'Подати заявку', exBd: S.extra && canExtra ? '#12345A' : '#E6E0D8', exFg: S.extra && canExtra ? '#12233A' : '#8B95A7', exCur: S.extra && canExtra ? 'pointer' : 'default',
+      reqExtra: () => { if (!S.extra || !canExtra) return; this.setState({ exSent: true }); this.toast(`Заявку на +${S.extra} клієнтів надіслано`); },
+      toastMsg: S.toastMsg, toastOp: S.toast ? 1 : 0, toastY: S.toast ? '0px' : '24px', toastLeft: nar ? '50%' : 'calc(50% + 110px)',
+    };
+  }
+}
+</script>
+</body>
+</html>

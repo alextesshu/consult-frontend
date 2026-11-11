@@ -1,0 +1,46 @@
+[
+  {
+    "width": 375,
+    "noOverflow": true,
+    "requestPanels": 1,
+    "requestForms": 1,
+    "slotlessPending": true,
+    "aboutFocusEscape": true,
+    "shareClipboard": true,
+    "faq": true,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "noOverflow": true,
+    "requestPanels": 1,
+    "requestForms": 1,
+    "slotlessPending": true,
+    "aboutFocusEscape": true,
+    "shareClipboard": true,
+    "faq": true,
+    "errors": []
+  },
+  {
+    "width": 1280,
+    "noOverflow": true,
+    "requestPanels": 1,
+    "requestForms": 1,
+    "slotlessPending": true,
+    "aboutFocusEscape": true,
+    "shareClipboard": true,
+    "faq": true,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "noOverflow": true,
+    "requestPanels": 1,
+    "requestForms": 1,
+    "slotlessPending": true,
+    "aboutFocusEscape": true,
+    "shareClipboard": true,
+    "faq": true,
+    "errors": []
+  }
+]

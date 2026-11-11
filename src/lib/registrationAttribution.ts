@@ -119,11 +119,17 @@ function readStored(environment: BrowserAttributionEnvironment): StoredRegistrat
 
 function browserEnvironment(): BrowserAttributionEnvironment | null {
   if (typeof window === 'undefined' || typeof document === 'undefined') return null
+  let storage: BrowserAttributionEnvironment['storage'] = null
+  try {
+    storage = window.localStorage
+  } catch {
+    // The property getter can throw before any storage method is called.
+  }
   return {
     href: window.location.href,
     origin: window.location.origin,
     referrer: document.referrer,
-    storage: window.localStorage,
+    storage,
   }
 }
 

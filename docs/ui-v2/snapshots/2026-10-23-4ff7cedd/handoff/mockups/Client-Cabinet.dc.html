@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}textarea{font:inherit;color:inherit}textarea::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="min-height:100vh;display:grid;grid-template-columns:{{ cols }}">
+
+  <aside style="position:sticky;top:0;align-self:start;height:100vh;display:{{ sideDisp }};flex-direction:column;gap:28px;padding:24px 16px;border-right:1px solid #EDE7DE;background:#FBF9F5">
+    <a href="For-Clients.dc.html" style="align-self:flex-start;display:block"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:36px;width:auto;display:block;margin-left:-4px"></a>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <span onClick="{{ n.on }}" style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;font-size:15px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }};transition:all .2s" style-hover="background:#F1EBE2">
+          {{ n.label }}
+          <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if>
+        </span>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">
+      <a href="Find-Specialist.dc.html" style="padding:12px 14px;border-radius:12px;border:1px solid #E6E0D8;font-size:14px;text-align:center;color:#12233A" style-hover="border-color:#12345A;color:#12233A">Знайти спеціаліста</a>
+      <div style="display:flex;align-items:center;gap:10px;padding:4px">
+        <span style="width:32px;height:32px;border-radius:50%;background:#DDF1EF;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">О</span>
+        <div style="font-size:14px;line-height:1.3">Олена<div style="font-size:12px;color:#8B95A7">Кабінет клієнта</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main style="padding:{{ mainPad }};max-width:1120px;width:100%">
+    <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 20px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;display:block;margin-left:-6px"><span style="width:36px;height:36px;border-radius:50%;background:#DDF1EF;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">О</span></div></sc-if>
+    <p style="font-size:15px;color:#8B95A7;margin:0 0 6px">{{ greeting }}</p>
+    <h1 style="font-weight:500;font-size:clamp(30px,3.4vw,40px);letter-spacing:-0.035em;line-height:1.1;margin:0 0 28px">{{ heroTitle }}</h1>
+
+    <section style="border-radius:28px;background:{{ heroBg }};color:{{ heroFg }};padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end;margin-bottom:20px;transition:background .5s">
+      <sc-if value="{{ hasSession }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:18px;align-items:center">
+          <span style="width:72px;height:72px;border-radius:20px;flex-shrink:0;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:{{ heroSub }};margin-bottom:6px">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ dotC }};opacity:{{ dotOp }};transition:opacity .8s ease"></span>{{ heroKicker }}
+            </div>
+            <div style="font-size:clamp(24px,2.6vw,30px);font-weight:500;letter-spacing:-0.02em;margin-bottom:4px">{{ heroWhen }}</div>
+            <div style="font-size:15px;color:{{ heroSub }}">Марія Коваль · Консультація · 50 хв · онлайн</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end">
+            <span style="padding:13px 22px;border-radius:999px;font-size:15px;font-weight:500;white-space:nowrap;background:{{ joinBg }};color:{{ joinFg }};cursor:{{ joinCur }};transition:all .3s">Приєднатися</span>
+            <span onClick="{{ openPanel }}" style="padding:13px 20px;border-radius:999px;font-size:15px;white-space:nowrap;border:1px solid {{ ghostBd }};cursor:pointer" style-hover="background:rgba(255,255,255,.08)">Деталі сесії</span>
+          </div>
+          <span style="font-size:13px;color:{{ heroSub }}">{{ joinHint }}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isPending }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
+          <span style="display:flex;padding:8px">{{ listenBig }}</span>
+          <div style="max-width:460px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:22px;font-weight:500;letter-spacing:-0.02em">Марія Коваль отримала ваш запит</div>
+            <div style="font-size:15px;line-height:1.55;color:#3D5A58">Зазвичай відповідає протягом доби. Відповідь прийде на email і з’явиться тут — разом із запропонованим часом.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span style="font-size:13px;padding:5px 11px;border-radius:999px;background:#fff">Тема: тривога, сон</span><span style="font-size:13px;padding:5px 11px;border-radius:999px;background:#fff">Бажано: вечори, онлайн</span><span style="font-size:13px;padding:5px 11px;border-radius:999px;background:#fff">Надіслано сьогодні, 14:20</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="padding:13px 20px;border-radius:999px;border:1px solid #9FCFCB;font-size:15px;cursor:pointer;white-space:nowrap;background:#fff">Доповнити запит</span>
+          <span style="padding:13px 20px;border-radius:999px;font-size:15px;cursor:pointer;white-space:nowrap;color:#3D5A58">Скасувати</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noSession }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:520px">
+          <div style="font-size:22px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Наступної сесії поки не заплановано</div>
+          <div style="font-size:15px;color:#5A6578">Напишіть Марії або оберіть вільне вікно на її сторінці.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span style="padding:13px 22px;border-radius:999px;background:#12345A;color:#fff;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap">Обрати час</span>
+          <span style="padding:13px 20px;border-radius:999px;border:1px solid #D4CCC2;font-size:15px;cursor:pointer;white-space:nowrap">Написати</span>
+        </div>
+      </sc-if>
+    </section>
+
+    <sc-if value="{{ showPrep }}" hint-placeholder-val="{{ true }}">
+      <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:22px 24px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px 28px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:4px"><h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">До сесії</h2><span style="font-size:13px;color:#8B95A7">{{ prepCount }}</span></div>
+        <div onClick="{{ toggleHw }}" style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:4px 0">
+          <span style="width:22px;height:22px;border-radius:7px;flex-shrink:0;margin-top:1px;border:1.5px solid {{ hwBd }};background:{{ hwBg }};color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s">{{ hwMark }}</span>
+          <div><div style="font-size:15px;text-decoration:{{ hwTd }};color:{{ hwFg }}">Заповнити «Щоденник думок»</div><div style="font-size:13px;color:#8B95A7">Від Марії · 2–3 ситуації за тиждень</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:13px;color:#8B95A7">Нагадати мені</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ rems }}" as="r" hint-placeholder-count="2"><span onClick="{{ r.on }}" style="white-space:nowrap;padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }};border:1px solid {{ r.bd }};transition:all .2s">{{ r.label }}</span></sc-for></div>
+        </div>
+      </section>
+    </sc-if>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;margin-bottom:16px">
+
+      <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Нове від спеціаліста</h2>
+          <span style="font-size:13px;color:#12345A;cursor:pointer">Усі матеріали</span>
+        </div>
+        <sc-for list="{{ materials }}" as="m" hint-placeholder-count="3">
+          <div onClick="{{ m.on }}" style="display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;background:#FBF9F5;cursor:pointer;transition:transform .25s" style-hover="transform:translateX(4px)">
+            <span style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:{{ m.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;color:#12233A">{{ m.kind }}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:15px;font-weight:500">{{ m.t }}</div>
+              <div style="font-size:13px;color:#8B95A7">{{ m.d }}</div>
+            </div>
+            <sc-if value="{{ m.isNew }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#FFE2C4">нове</span></sc-if>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Мій щоденник</h2>
+          <span style="font-size:12px;color:#B5651F">бачите лише ви</span>
+        </div>
+        <div style="font-size:14px;color:#657287">Як ви сьогодні?</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ moods }}" as="md" hint-placeholder-count="5">
+            <span onClick="{{ md.on }}" style="font-size:14px;padding:8px 14px;border-radius:999px;cursor:pointer;background:{{ md.bg }};color:{{ md.fg }};transition:all .2s">{{ md.label }}</span>
+          </sc-for>
+        </div>
+        <textarea value="{{ note }}" onChange="{{ onNote }}" rows="3" placeholder="Що помітили за день — для себе або до наступної сесії" style="padding:12px 14px;border-radius:14px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:15px;resize:none;outline:none" style-focus="border-color:#12345A"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:#2F7A55;opacity:{{ savedOp }};transition:opacity .4s">Збережено</span>
+          <span onClick="{{ save }}" style="padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;color:#fff;background:{{ saveBg }};cursor:pointer;transition:background .3s">Зберегти запис</span>
+        </div>
+      </section>
+    </div>
+
+    <section id="sessions" style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;margin-bottom:16px;scroll-margin-top:24px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+        <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Сесії</h2>
+        <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+            <span onClick="{{ t.on }}" style="padding:7px 16px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ t.bg }};box-shadow:{{ t.sh }};transition:all .25s">{{ t.label }}</span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="opacity:{{ listOp }};transition:opacity .25s">
+        <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="3">
+          <div onClick="{{ s.on }}" style="display:grid;grid-template-columns:{{ rowCols }};gap:12px 16px;align-items:center;padding:14px 8px;margin:0 -8px;border-radius:14px;border-top:1px solid #F1EBE2;cursor:pointer;transition:background .2s" style-hover="background:#FBF9F5">
+            <div style="text-align:center;padding:8px 0;border-radius:14px;background:{{ s.dateBg }}">
+              <div style="font-size:11px;color:#8B95A7">{{ s.wd }}</div>
+              <div style="font-size:20px;font-weight:500;line-height:1.1">{{ s.d }}</div>
+            </div>
+            <div style="min-width:0">
+              <div style="font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.time }} · {{ s.kind }}</div>
+              <div style="font-size:13px;color:#8B95A7">Марія Коваль · {{ s.fmt }}</div>
+            </div>
+            <div style="grid-column:{{ rowBadgeCol }};display:flex;flex-direction:{{ rowBadgeDir }};gap:6px;align-items:{{ rowBadgeAl }};flex-wrap:wrap">
+              <span style="font-size:12px;padding:5px 10px;border-radius:999px;background:{{ s.stBg }};color:{{ s.stFg }};white-space:nowrap">{{ s.st }}</span>
+              <sc-if value="{{ s.pay }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:5px 10px;border-radius:999px;background:{{ s.payBg }};color:{{ s.payFg }};white-space:nowrap">{{ s.pay }}</span></sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ canMore }}" hint-placeholder-val="{{ false }}"><div style="border-top:1px solid #F1EBE2;padding-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:13px;color:#8B95A7">Показано 3 з 6</span><span onClick="{{ showMore }}" style="padding:10px 18px;border-radius:999px;border:1px solid #D4CCC2;font-size:14px;cursor:pointer" style-hover="border-color:#12345A">Показати ще</span></div></sc-if>
+      </div>
+    </section>
+
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px">
+      <div style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px">
+        <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Мої спеціалісти</h2>
+        <div style="display:flex;gap:14px;align-items:center">
+          <span style="width:48px;height:48px;border-radius:14px;flex-shrink:0;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+          <div style="flex:1">
+            <div style="font-size:16px;font-weight:500">Марія Коваль</div>
+            <div style="font-size:13px;color:#2F7A55">Активна співпраця · 6 сесій</div>
+          </div>
+          <a href="Client-Pages.dc.html" style="font-size:14px;white-space:nowrap">Профіль →</a>
+        </div>
+      </div>
+      <div style="background:#F6F1EA;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px">
+        <h2 style="font-weight:500;font-size:19px;letter-spacing:-0.01em;margin:0">Переглянуті нещодавно</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ viewed }}" as="v" hint-placeholder-count="2">
+            <span style="display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;background:#fff;font-size:14px;cursor:pointer" style-hover="box-shadow:0 4px 12px rgba(18,35,58,.08)">
+              <span style="width:28px;height:28px;border-radius:50%;background:{{ v.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#12345A">{{ v.ini }}</span>{{ v.name }}
+            </span>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <sc-if value="{{ panel }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closePanel }}" style="position:fixed;inset:0;background:rgba(18,35,58,.28);z-index:40"></div>
+    <aside role="dialog" aria-label="Деталі сесії" style="position:fixed;top:0;right:0;bottom:0;width:{{ panelW }};background:#FBF9F5;z-index:41;display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(18,35,58,.16)">
+      <div style="padding:20px 24px 16px;border-bottom:1px solid #EDE7DE;display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;background:{{ ps.stBg }};color:{{ ps.stFg }}">{{ ps.st }}</span>
+          <span style="font-size:24px;font-weight:500;letter-spacing:-0.02em">{{ ps.when }}</span>
+          <span style="font-size:14px;color:#5A6578">Марія Коваль · {{ ps.kind }} · 50 хв · {{ ps.fmt }}</span>
+        </div>
+        <span onClick="{{ closePanel }}" role="button" aria-label="Закрити" style="width:44px;height:44px;margin:-8px -10px 0 0;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#5A6578;cursor:pointer" style-hover="background:#F1EBE2">✕</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+        <div style="padding:16px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:13px;color:#8B95A7">Посилання на зустріч</span>
+          <span style="font-size:15px">Google Meet · з’явиться за 10 хв до початку</span>
+        </div>
+        <div style="padding:16px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:#8B95A7">Оплата</span><span style="font-size:17px;font-weight:500">1 400 грн</span></div>
+          <span style="align-self:flex-start;font-size:12px;padding:4px 10px;border-radius:999px;background:{{ ps.payBg }};color:{{ ps.payFg }}">{{ ps.payL }}</span>
+          <span style="font-size:13px;line-height:1.5;color:#5A6578">Оплачуєте напряму Марії — реквізити вона надіслала в повідомленні. Платформа комісії не бере.</span>
+        </div>
+        <sc-if value="{{ ps.future }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:500">Не виходить у цей час?</span>
+            <span style="font-size:13px;color:#5A6578">Оберіть інше вільне вікно — Марія підтвердить перенос.</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ reschSlots }}" as="m" hint-placeholder-count="4"><span onClick="{{ m.on }}" style="min-height:44px;padding:0 14px;border-radius:12px;font-size:14px;display:flex;align-items:center;cursor:pointer;white-space:nowrap;background:{{ m.bg }};color:{{ m.fg }};border:1px solid {{ m.bd }};transition:all .2s">{{ m.l }}</span></sc-for></div>
+            <span style="font-size:13px;color:#8B95A7">Безкоштовне скасування — не пізніше ніж за 24 год.</span>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ ps.future }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:14px 24px 24px;border-top:1px solid #EDE7DE;display:flex;gap:8px;justify-content:space-between;align-items:center">
+          <span onClick="{{ cancelSes }}" style="padding:12px 16px;border-radius:999px;font-size:14px;color:#B83232;cursor:pointer" style-hover="background:#FDE8E8">Скасувати сесію</span>
+          <span onClick="{{ sendResch }}" style="padding:13px 22px;border-radius:999px;font-size:15px;font-weight:500;background:{{ reschBg }};color:#fff;cursor:{{ reschCur }};transition:background .2s">Попросити перенести</span>
+        </div>
+      </sc-if>
+    </aside>
+  </sc-if>
+
+  <div style="position:fixed;left:{{ toastLeft }};bottom:{{ toastBottom }};transform:translate(-50%,{{ toastY }});opacity:{{ toastOp }};pointer-events:{{ toastPe }};display:flex;align-items:center;gap:16px;padding:12px 14px 12px 20px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);transition:all .35s cubic-bezier(.2,.8,.2,1);z-index:60">{{ toastMsg }}<span onClick="{{ undo }}" style="padding:6px 12px;border-radius:999px;color:#F7B77E;cursor:pointer">Скасувати</span></div>
+
+  <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+    <nav style="position:fixed;left:0;right:0;bottom:0;z-index:30;height:72px;padding:6px 6px 14px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)">
+      <sc-for list="{{ tabbar }}" as="n" hint-placeholder-count="5">
+        <span onClick="{{ n.on }}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;cursor:pointer;color:{{ n.fg }};font-weight:{{ n.fw }}"><span style="width:22px;height:22px;border-radius:7px;border:1.8px solid {{ n.fg }};background:{{ n.ibg }}"></span>{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></span>
+      </sc-for>
+    </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;heroState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;upcoming&quot;,&quot;live&quot;,&quot;pending&quot;,&quot;none&quot;],&quot;default&quot;:&quot;upcoming&quot;,&quot;tsType&quot;:&quot;'upcoming'|'live'|'pending'|'none'&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
+class Component extends DCLogic {
+  state = { nav: 0, mood: null, note: '', saved: false, tab: 0, fade: false, read: {}, pulse: true, panel: null, resch: null, rem: { day: true, hour: true }, hw: false, toast: false, toastMsg: '', snap: null, reqd: {}, more: false, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() { this.t = setInterval(() => this.setState(s => ({ pulse: !s.pulse })), 900); this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize); this.onEsc = e => { if (e.key === 'Escape') this.setState({ panel: null }); }; window.addEventListener('keydown', this.onEsc); }
+  toast(msg, snap) { clearTimeout(this.t4); this.setState({ toast: true, toastMsg: msg, snap }); this.t4 = setTimeout(() => this.setState({ toast: false, snap: null }), 5000); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onEsc); clearTimeout(this.t4); clearInterval(this.t); clearTimeout(this.t2); clearTimeout(this.t3); }
+  renderVals() {
+    const { nav, mood, note, saved, tab, fade, read, pulse, panel, resch, rem, hw, toast, toastMsg, snap, reqd, more, w } = this.state;
+    const nar = w < 768;
+    if (!this.listenNode && window.PCListen) this.listenNode = React.createElement(window.PCListen, { size: 72, color: '#0F2D52', ring: '#2F8C86' });
+    const st = this.props.heroState ?? 'upcoming';
+    const live = st === 'live', none = st === 'none', pending = st === 'pending';
+    const unread = ['m1'].filter(k => !read[k]).length;
+    const N = ['Головна', 'Матеріали', 'Мої спеціалісти', 'Мій щоденник', 'Повідомлення', 'Профіль'];
+    const S0 = [
+      { wd: 'Чт', d: 29, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Підтверджено', stBg: '#EEF8F1', stFg: '#2F7A55', pay: 'Очікує підтвердження оплати', payBg: '#FFF5DF', payFg: '#8A5A12', dateBg: '#EEF8F7' },
+      { wd: 'Чт', d: 5, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Заплановано', stBg: '#EEF4FA', stFg: '#2F6FA8', pay: '', dateBg: '#FBF9F5' },
+      { wd: 'Чт', d: 12, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Заплановано', stBg: '#EEF4FA', stFg: '#2F6FA8', pay: '', dateBg: '#FBF9F5' },
+    ];
+    const S1 = [
+      { wd: 'Чт', d: 22, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+      { wd: 'Чт', d: 15, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+      { wd: 'Пн', d: 6, time: '19:00', kind: 'Ознайомча сесія', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+    ];
+    if (more) S1.push(
+      { wd: 'Чт', d: 8, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+      { wd: 'Чт', d: 1, time: '18:00', kind: 'Консультація', fmt: 'онлайн', st: 'Завершено', stBg: '#F1EBE2', stFg: '#5A6578', pay: 'Оплачено', payBg: '#EEF8F1', payFg: '#2F7A55', dateBg: '#FBF9F5' },
+      { wd: 'Пн', d: 28, time: '19:00', kind: 'Ознайомча сесія', fmt: 'онлайн', st: 'Скасовано вами', stBg: '#F1EBE2', stFg: '#8B95A7', pay: '', dateBg: '#FBF9F5' });
+    const MAT = [
+      { k: 'm1', kind: 'PDF', t: 'Вправа «Щоденник думок»', d: 'Після сесії 22 жовтня', tint: '#FFE2C4' },
+      { k: 'm2', kind: 'Аудіо', t: 'Техніка дихання 4–7–8', d: '3 хв', tint: '#DDF1EF' },
+      { k: 'm3', kind: 'Текст', t: 'Що робити, коли накриває тривога', d: 'Стаття з блогу Марії', tint: '#EEF4FA' },
+    ];
+    const ALL = [...S0.map((x, i) => ({ ...x, id: 'f' + i, future: true })), ...S1.map((x, i) => ({ ...x, id: 'p' + i, future: false }))];
+    const P = panel ? ALL.find(x => x.id === panel) : null;
+    const SL = ['Пт 30 · 18:00', 'Сб 31 · 11:00', 'Пн 2 · 19:00', 'Вт 3 · 18:30'];
+    const switchTab = i => { if (i === tab) return; this.setState({ fade: true }); clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ tab: i, fade: false }), 180); };
+    return {
+      nav: N.map((label, i) => ({ label, on: () => this.setState({ nav: i }), bg: nav === i ? '#12345A' : 'transparent', fg: nav === i ? '#fff' : '#3F4B5E', fw: nav === i ? 500 : 400,
+        badge: label === 'Матеріали' && unread ? String(unread) : label === 'Повідомлення' ? '1' : '' })),
+      cols: nar ? 'minmax(0,1fr)' : '232px minmax(0,1fr)', wide: !nar, sideDisp: nar ? 'none' : 'flex', narrow: nar, mainPad: nar ? '20px 16px 104px' : '32px clamp(24px,4vw,56px) 72px',
+      panelW: nar ? '100%' : 'min(100%,460px)', toastBottom: nar ? '88px' : '24px', toastLeft: nar ? '50%' : 'calc(50% + 116px)',
+      rowCols: nar ? '60px minmax(0,1fr)' : '72px minmax(0,1fr) auto', rowBadgeCol: nar ? '2' : 'auto', rowBadgeDir: nar ? 'row' : 'column', rowBadgeAl: nar ? 'flex-start' : 'flex-end',
+      isPending: pending, listenBig: this.listenNode || null,
+      showPrep: !none && !pending && !live, prepCount: hw ? 'Усе готово' : '1 завдання від спеціаліста',
+      toggleHw: () => this.setState({ hw: !hw }), hwBg: hw ? '#2F7A55' : '#fff', hwBd: hw ? '#2F7A55' : '#C9C1B6', hwMark: hw ? '✓' : '', hwTd: hw ? 'line-through' : 'none', hwFg: hw ? '#8B95A7' : '#12233A',
+      rems: [['day', 'За добу'], ['hour', 'За годину']].map(([k, label]) => { const on = rem[k]; return { label: (on ? '✓ ' : '') + label, bg: on ? '#EEF8F7' : '#fff', fg: on ? '#1F5E5A' : '#5A6578', bd: on ? '#BFE3E0' : '#E6E0D8', on: () => this.setState({ rem: { ...rem, [k]: !on } }) }; }),
+      openPanel: () => this.setState({ panel: 'f0', resch: null }), closePanel: () => this.setState({ panel: null }), panel: !!P,
+      ps: P ? { st: reqd[P.id] ? 'Запит на перенос надіслано' : P.st, stBg: reqd[P.id] ? '#FFF1E3' : P.stBg, stFg: reqd[P.id] ? '#8A4B12' : P.stFg, when: `${P.wd}, ${P.d} ${P.future ? (P.d > 20 ? 'жовтня' : 'листопада') : 'жовтня'} · ${P.time}`, kind: P.kind, fmt: P.fmt, future: P.future && !reqd[P.id],
+        payL: P.pay || 'Оплата після сесії', payBg: P.pay ? P.payBg : '#F1EBE2', payFg: P.pay ? P.payFg : '#5A6578' } : { future: false },
+      reschSlots: SL.map(l => ({ l, bg: resch === l ? '#12345A' : '#fff', fg: resch === l ? '#fff' : '#12233A', bd: resch === l ? '#12345A' : '#E6E0D8', on: () => this.setState({ resch: resch === l ? null : l }) })),
+      reschBg: resch ? '#12345A' : '#B7C0CC', reschCur: resch ? 'pointer' : 'default',
+      sendResch: () => { if (!resch || !P) return; const prev = reqd; this.setState({ reqd: { ...reqd, [P.id]: resch }, panel: null }); this.toast(`Запит на перенос надіслано · ${resch}`, { reqd: prev }); },
+      cancelSes: () => { const prev = reqd; this.setState({ panel: null }); this.toast('Сесію скасовано · Марія отримає повідомлення', { reqd: prev }); },
+      toastMsg, toastOp: toast ? 1 : 0, toastY: toast ? '0px' : '24px', toastPe: toast ? 'auto' : 'none',
+      undo: () => { clearTimeout(this.t4); this.setState({ ...(snap || {}), toast: false, snap: null }); },
+      tabbar: [['Головна'], ['Матеріали', unread ? String(unread) : ''], ['Щоденник'], ['Чат', '1'], ['Ще']].map(([label, badge], i) => { const on = i === Math.min(nav, 4); return { label, badge, fg: on ? '#12345A' : '#8B95A7', fw: on ? 500 : 400, ibg: on ? '#DDF1EF' : 'transparent', on: () => this.setState({ nav: i }) }; }),
+      greeting: 'Добрий вечір, Олено',
+      heroTitle: live ? 'Сесія триває' : pending ? 'Запит надіслано' : none ? 'Продовжити роботу з Марією Коваль' : 'Найближча сесія',
+      hasSession: !none && !pending, noSession: none,
+      heroBg: live ? '#0E2D52' : pending ? '#EEF8F7' : none ? '#F1EBE2' : '#12345A', heroFg: none || pending ? '#12233A' : '#fff', heroSub: '#C9D4E3',
+      heroKicker: live ? 'Почалася 6 хв тому' : 'Через 2 дні',
+      heroWhen: live ? 'Сьогодні, 18:00' : 'Четвер, 29 жовтня · 18:00',
+      dotC: live ? '#F7B77E' : '#8FCBC8', dotOp: live ? (pulse ? 1 : 0.25) : 1,
+      joinBg: live ? '#F7B77E' : 'rgba(255,255,255,.14)', joinFg: live ? '#12233A' : '#A9B8CC', joinCur: live ? 'pointer' : 'default',
+      ghostBd: 'rgba(255,255,255,.3)',
+      joinHint: live ? 'Посилання від спеціаліста' : 'Кнопка стане активною за 10 хв до початку',
+      materials: MAT.map(m => ({ ...m, isNew: m.k === 'm1' && !read.m1, on: () => this.setState({ read: { ...read, [m.k]: true } }) })),
+      moods: ['спокійно', 'тривожно', 'втомлено', 'піднесено', 'по-різному'].map(label => ({ label, on: () => this.setState({ mood: mood === label ? null : label }),
+        bg: mood === label ? '#12345A' : '#F1EBE2', fg: mood === label ? '#fff' : '#12233A' })),
+      note, onNote: e => this.setState({ note: e.target.value, saved: false }),
+      saveBg: (mood || note.trim()) ? '#12345A' : '#B7C0CC',
+      save: () => { if (!(mood || note.trim())) return; this.setState({ saved: true, note: '', mood: null }); clearTimeout(this.t2); this.t2 = setTimeout(() => this.setState({ saved: false }), 2200); },
+      savedOp: saved ? 1 : 0,
+      tabs: ['Найближчі', 'Минулі'].map((label, i) => ({ label, on: () => switchTab(i), bg: tab === i ? '#fff' : 'transparent', sh: tab === i ? '0 1px 2px rgba(18,35,58,.1)' : 'none' })),
+      sessions: (tab === 0 ? ALL.filter(x => x.future) : ALL.filter(x => !x.future)).map(x => ({ ...x, st: reqd[x.id] ? 'Перенос: ' + reqd[x.id] : x.st, stBg: reqd[x.id] ? '#FFF1E3' : x.stBg, stFg: reqd[x.id] ? '#8A4B12' : x.stFg, on: () => this.setState({ panel: x.id, resch: null }) })), listOp: fade ? 0 : 1,
+      canMore: tab === 1 && !more, showMore: () => this.setState({ more: true }),
+      viewed: [{ name: 'Андрій Лисенко', ini: 'АЛ', tint: '#DDF1EF' }, { name: 'Олена Гнатюк', ini: 'ОГ', tint: '#FFE2C4' }],
+    };
+  }
+}
+</script>
+</body>
+</html>

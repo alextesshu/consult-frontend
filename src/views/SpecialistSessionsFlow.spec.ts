@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { useAuthStore } from '../stores/auth'
 import { apiGet, apiPatch, fetchSpecialistProfile } from '../lib/api'
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { formatSessionDateTime } from '../lib/specialistSessions'
@@ -177,6 +178,9 @@ function createTestRouter() {
 }
 
 async function renderFlow(initialPath = '/cabinet/sessions') {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  useAuthStore().$patch({ accessToken: 'synthetic', authResolved: true, user: { id: 3, username: 'specialist', email: null } })
   const router = createTestRouter()
   await router.push(initialPath)
   await router.isReady()
@@ -188,7 +192,7 @@ async function renderFlow(initialPath = '/cabinet/sessions') {
     },
     {
       global: {
-        plugins: [createPinia(), router],
+        plugins: [pinia, router],
       },
     }
   )
@@ -242,6 +246,9 @@ describe('specialist sessions flow', () => {
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
 
     mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/settings/calendar/') {
+        return { timezone: 'Europe/Kyiv', revision: 0, mode: 'workday', view: 'week', regular_view: 'week', preset: 'workday', layers: {}, updated_at: null }
+      }
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
         return getUpcomingSessions()
       }

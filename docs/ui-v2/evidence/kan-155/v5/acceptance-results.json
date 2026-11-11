@@ -1,0 +1,66 @@
+[
+  {
+    "width": 375,
+    "reduced": {
+      "timers": 0,
+      "animations": 0,
+      "visible": true
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "pricing": "PASS",
+    "clientNavigation": "PASS",
+    "livePreference": "PASS",
+    "fixtures": "HTTP 401 API; synthetic document.hidden visibility change"
+  },
+  {
+    "width": 768,
+    "reduced": {
+      "timers": 0,
+      "animations": 0,
+      "visible": true
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "pricing": "PASS",
+    "clientNavigation": "PASS",
+    "livePreference": "PASS",
+    "fixtures": "HTTP 401 API; synthetic document.hidden visibility change"
+  },
+  {
+    "width": 1280,
+    "reduced": {
+      "timers": 0,
+      "animations": 0,
+      "visible": true
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "pricing": "PASS",
+    "clientNavigation": "PASS",
+    "livePreference": "PASS",
+    "fixtures": "HTTP 401 API; synthetic document.hidden visibility change"
+  },
+  {
+    "width": 1440,
+    "reduced": {
+      "timers": 0,
+      "animations": 0,
+      "visible": true
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "pricing": "PASS",
+    "clientNavigation": "PASS",
+    "livePreference": "PASS",
+    "fixtures": "HTTP 401 API; synthetic document.hidden visibility change"
+  }
+]

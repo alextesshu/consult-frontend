@@ -1,0 +1,8 @@
+{
+  "fixtureAuth": true,
+  "singleNativeSheet": true,
+  "confirmationInsideTopLayer": true,
+  "noSubmitOnSelect": true,
+  "cancel": true,
+  "errors": []
+}

@@ -1,0 +1,985 @@
+{
+  "checks": [
+    {
+      "width": 375,
+      "result": "PASS",
+      "tabs": [
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        }
+      ],
+      "geometry": {
+        "x": 12,
+        "y": 12,
+        "width": 351,
+        "height": 876
+      },
+      "scrollY": 0,
+      "escape": true,
+      "backdrop": true,
+      "reopen": true,
+      "removedTriggerFallback": true,
+      "unmount": true,
+      "errors": [],
+      "posts": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        },
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "result": "PASS",
+      "tabs": [
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        }
+      ],
+      "geometry": {
+        "x": 12,
+        "y": 12,
+        "width": 366,
+        "height": 876
+      },
+      "scrollY": 0,
+      "escape": true,
+      "backdrop": true,
+      "reopen": true,
+      "removedTriggerFallback": true,
+      "unmount": true,
+      "errors": [],
+      "posts": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        },
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "result": "PASS",
+      "tabs": [
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        }
+      ],
+      "geometry": {
+        "x": 23.046875,
+        "y": 200.578125,
+        "width": 721.90625,
+        "height": 498.828125
+      },
+      "scrollY": 0,
+      "escape": true,
+      "backdrop": true,
+      "reopen": true,
+      "removedTriggerFallback": true,
+      "unmount": true,
+      "errors": [],
+      "posts": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        },
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "result": "PASS",
+      "tabs": [
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        }
+      ],
+      "geometry": {
+        "x": 24.59375,
+        "y": 186.828125,
+        "width": 770.796875,
+        "height": 526.328125
+      },
+      "scrollY": 0,
+      "escape": true,
+      "backdrop": true,
+      "reopen": true,
+      "removedTriggerFallback": true,
+      "unmount": true,
+      "errors": [],
+      "posts": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        },
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        }
+      ]
+    },
+    {
+      "width": 1100,
+      "result": "PASS",
+      "tabs": [
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        }
+      ],
+      "geometry": {
+        "x": 160,
+        "y": 184.234375,
+        "width": 780,
+        "height": 531.515625
+      },
+      "scrollY": 0,
+      "escape": true,
+      "backdrop": true,
+      "reopen": true,
+      "removedTriggerFallback": true,
+      "unmount": true,
+      "errors": [],
+      "posts": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        },
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "result": "PASS",
+      "tabs": [
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "VIDEO"
+        },
+        {
+          "key": "Shift+Tab",
+          "inside": true,
+          "active": "BUTTON"
+        }
+      ],
+      "geometry": {
+        "x": 250,
+        "y": 184.234375,
+        "width": 780,
+        "height": 531.515625
+      },
+      "scrollY": 0,
+      "escape": true,
+      "backdrop": true,
+      "reopen": true,
+      "removedTriggerFallback": true,
+      "unmount": true,
+      "errors": [],
+      "posts": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        },
+        {
+          "path": "/api/auth/token/refresh/",
+          "method": "POST",
+          "payload": {}
+        }
+      ]
+    }
+  ],
+  "parity": [
+    {
+      "width": 375,
+      "state": "page",
+      "changedPixels": 0,
+      "mediaMasked": false
+    },
+    {
+      "width": 375,
+      "state": "video",
+      "changedPixels": 0,
+      "mediaMasked": true
+    },
+    {
+      "width": 390,
+      "state": "page",
+      "changedPixels": 0,
+      "mediaMasked": false
+    },
+    {
+      "width": 390,
+      "state": "video",
+      "changedPixels": 0,
+      "mediaMasked": true
+    },
+    {
+      "width": 768,
+      "state": "page",
+      "changedPixels": 0,
+      "mediaMasked": false
+    },
+    {
+      "width": 768,
+      "state": "video",
+      "changedPixels": 0,
+      "mediaMasked": true
+    },
+    {
+      "width": 820,
+      "state": "page",
+      "changedPixels": 0,
+      "mediaMasked": false
+    },
+    {
+      "width": 820,
+      "state": "video",
+      "changedPixels": 0,
+      "mediaMasked": true
+    },
+    {
+      "width": 1100,
+      "state": "page",
+      "changedPixels": 0,
+      "mediaMasked": false
+    },
+    {
+      "width": 1100,
+      "state": "video",
+      "changedPixels": 0,
+      "mediaMasked": true
+    },
+    {
+      "width": 1280,
+      "state": "page",
+      "changedPixels": 0,
+      "mediaMasked": false
+    },
+    {
+      "width": 1280,
+      "state": "video",
+      "changedPixels": 0,
+      "mediaMasked": true
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,118 @@
+{
+  "snapshot_id": "claude-design-2026-10-23-e43f5f80",
+  "source": "handoff/CHANGELOG.md",
+  "screens": [
+    {
+      "screen": "Home.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Signup.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Specialist-Profile.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "For-Clients.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Find-Specialist.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Client-Signup.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Client-Cabinet.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Auth.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Client-Pages.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Cabinet-Dashboard.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Cabinet-Drawer.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Sessions.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Clients.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Admin.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Cabinet-Mobile.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Chat.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Inquiries.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Schedule.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Profile-Edit.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Billing.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Settings.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Specialist-Tools.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Guest.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Brand.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Handoff-Spec.dc.html",
+      "status": "DESIGN READY"
+    },
+    {
+      "screen": "Журнал (список / допис / добірка)",
+      "status": "DESIGN IN PROGRESS"
+    },
+    {
+      "screen": "FAQ",
+      "status": "DESIGN IN PROGRESS"
+    },
+    {
+      "screen": "Тур",
+      "status": "DESIGN IN PROGRESS"
+    }
+  ]
+}

@@ -1,0 +1,1531 @@
+{
+  "label": "before",
+  "base": "http://127.0.0.1:5410",
+  "grid": [
+    {
+      "width": 1440,
+      "scenario": "empty",
+      "range": "Показано 09:00–18:00 — поза цим часом подій немає",
+      "hours": 9,
+      "hourPx": 70,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [],
+      "fullDay": null
+    },
+    {
+      "width": 1440,
+      "scenario": "one50",
+      "range": "Показано 10:00–11:00 — поза цим часом подій немає",
+      "hours": 1,
+      "hourPx": 630,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 7,
+      "events": [
+        {
+          "label": "10:00–10:50, Сесія, Одна Сесія, Підтверджено",
+          "top": 0,
+          "height": 525,
+          "width": 147,
+          "left": 931
+        }
+      ],
+      "fullDay": {
+        "range": "Показано 00:00–24:00",
+        "hours": 24,
+        "hourPx": 52,
+        "bodyHeight": 1248,
+        "scrollBox": 630,
+        "innerScroll": true,
+        "halfLines": 0,
+        "events": [
+          {
+            "label": "10:00–10:50, Сесія, Одна Сесія, Підтверджено",
+            "top": 520,
+            "height": 43,
+            "width": 147,
+            "left": 931
+          }
+        ]
+      }
+    },
+    {
+      "width": 1440,
+      "scenario": "twoApart",
+      "range": "Показано 09:00–16:00 — поза цим часом подій немає",
+      "hours": 7,
+      "hourPx": 90,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [
+        {
+          "label": "09:00–09:50, Сесія, Ранкова, Підтверджено",
+          "top": 0,
+          "height": 75,
+          "width": 147,
+          "left": 931
+        },
+        {
+          "label": "15:00–15:50, Сесія, Пообідня, Підтверджено",
+          "top": 540,
+          "height": 75,
+          "width": 147,
+          "left": 931
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1440,
+      "scenario": "five",
+      "range": "Показано 09:00–14:00 — поза цим часом подій немає",
+      "hours": 5,
+      "hourPx": 126,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 35,
+      "events": [
+        {
+          "label": "09:00–09:50, Сесія, Ранкова, Підтверджено",
+          "top": 0,
+          "height": 105,
+          "width": 147,
+          "left": 931
+        },
+        {
+          "label": "13:00–13:50, Сесія, Обідня, Підтверджено",
+          "top": 504,
+          "height": 105,
+          "width": 147,
+          "left": 931
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1440,
+      "scenario": "twelve",
+      "range": "Показано 07:00–19:00 — поза цим часом подій немає",
+      "hours": 12,
+      "hourPx": 52.5,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [
+        {
+          "label": "07:00–07:50, Сесія, Рання, Підтверджено",
+          "top": 0,
+          "height": 44,
+          "width": 147,
+          "left": 931
+        },
+        {
+          "label": "18:00–18:50, Сесія, Вечірня, Підтверджено",
+          "top": 578,
+          "height": 44,
+          "width": 147,
+          "left": 931
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1440,
+      "scenario": "earlyLate",
+      "range": "Показано 06:00–22:00 — поза цим часом подій немає",
+      "hours": 16,
+      "hourPx": 52,
+      "bodyHeight": 832,
+      "scrollBox": 630,
+      "innerScroll": true,
+      "halfLines": 0,
+      "events": [
+        {
+          "label": "06:00–06:50, Сесія, Світанок, Підтверджено",
+          "top": 0,
+          "height": 43,
+          "width": 147,
+          "left": 931
+        },
+        {
+          "label": "21:00–21:50, Сесія, Пізня, Підтверджено",
+          "top": 780,
+          "height": 43,
+          "width": 147,
+          "left": 931
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1440,
+      "scenario": "overlap",
+      "range": "Показано 10:00–12:00 — поза цим часом подій немає",
+      "hours": 2,
+      "hourPx": 315,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 14,
+      "events": [
+        {
+          "label": "10:00–10:50, Сесія, Перша, Підтверджено, Перетинається з іншою сесією",
+          "top": 0,
+          "height": 263,
+          "width": 73,
+          "left": 931
+        },
+        {
+          "label": "10:30–11:20, Сесія, Друга, Підтверджено, Перетинається з іншою сесією",
+          "top": 158,
+          "height": 263,
+          "width": 73,
+          "left": 1004
+        },
+        {
+          "label": "11:00–11:50, Сесія, Третя, Підтверджено, Перетинається з іншою сесією",
+          "top": 315,
+          "height": 263,
+          "width": 73,
+          "left": 931
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1280,
+      "scenario": "empty",
+      "range": "Показано 09:00–18:00 — поза цим часом подій немає",
+      "hours": 9,
+      "hourPx": 70,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [],
+      "fullDay": null
+    },
+    {
+      "width": 1280,
+      "scenario": "one50",
+      "range": "Показано 10:00–11:00 — поза цим часом подій немає",
+      "hours": 1,
+      "hourPx": 630,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 7,
+      "events": [
+        {
+          "label": "10:00–10:50, Сесія, Одна Сесія, Підтверджено",
+          "top": 0,
+          "height": 525,
+          "width": 125,
+          "left": 840
+        }
+      ],
+      "fullDay": {
+        "range": "Показано 00:00–24:00",
+        "hours": 24,
+        "hourPx": 52,
+        "bodyHeight": 1248,
+        "scrollBox": 630,
+        "innerScroll": true,
+        "halfLines": 0,
+        "events": [
+          {
+            "label": "10:00–10:50, Сесія, Одна Сесія, Підтверджено",
+            "top": 520,
+            "height": 43,
+            "width": 125,
+            "left": 840
+          }
+        ]
+      }
+    },
+    {
+      "width": 1280,
+      "scenario": "twoApart",
+      "range": "Показано 09:00–16:00 — поза цим часом подій немає",
+      "hours": 7,
+      "hourPx": 90,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [
+        {
+          "label": "09:00–09:50, Сесія, Ранкова, Підтверджено",
+          "top": 0,
+          "height": 75,
+          "width": 125,
+          "left": 840
+        },
+        {
+          "label": "15:00–15:50, Сесія, Пообідня, Підтверджено",
+          "top": 540,
+          "height": 75,
+          "width": 125,
+          "left": 840
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1280,
+      "scenario": "five",
+      "range": "Показано 09:00–14:00 — поза цим часом подій немає",
+      "hours": 5,
+      "hourPx": 126,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 35,
+      "events": [
+        {
+          "label": "09:00–09:50, Сесія, Ранкова, Підтверджено",
+          "top": 0,
+          "height": 105,
+          "width": 125,
+          "left": 840
+        },
+        {
+          "label": "13:00–13:50, Сесія, Обідня, Підтверджено",
+          "top": 504,
+          "height": 105,
+          "width": 125,
+          "left": 840
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1280,
+      "scenario": "twelve",
+      "range": "Показано 07:00–19:00 — поза цим часом подій немає",
+      "hours": 12,
+      "hourPx": 52.5,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [
+        {
+          "label": "07:00–07:50, Сесія, Рання, Підтверджено",
+          "top": 0,
+          "height": 44,
+          "width": 125,
+          "left": 840
+        },
+        {
+          "label": "18:00–18:50, Сесія, Вечірня, Підтверджено",
+          "top": 578,
+          "height": 44,
+          "width": 125,
+          "left": 840
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1280,
+      "scenario": "earlyLate",
+      "range": "Показано 06:00–22:00 — поза цим часом подій немає",
+      "hours": 16,
+      "hourPx": 52,
+      "bodyHeight": 832,
+      "scrollBox": 630,
+      "innerScroll": true,
+      "halfLines": 0,
+      "events": [
+        {
+          "label": "06:00–06:50, Сесія, Світанок, Підтверджено",
+          "top": 0,
+          "height": 43,
+          "width": 125,
+          "left": 840
+        },
+        {
+          "label": "21:00–21:50, Сесія, Пізня, Підтверджено",
+          "top": 780,
+          "height": 43,
+          "width": 125,
+          "left": 840
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1280,
+      "scenario": "overlap",
+      "range": "Показано 10:00–12:00 — поза цим часом подій немає",
+      "hours": 2,
+      "hourPx": 315,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 14,
+      "events": [
+        {
+          "label": "10:00–10:50, Сесія, Перша, Підтверджено, Перетинається з іншою сесією",
+          "top": 0,
+          "height": 263,
+          "width": 62,
+          "left": 840
+        },
+        {
+          "label": "10:30–11:20, Сесія, Друга, Підтверджено, Перетинається з іншою сесією",
+          "top": 158,
+          "height": 263,
+          "width": 62,
+          "left": 902
+        },
+        {
+          "label": "11:00–11:50, Сесія, Третя, Підтверджено, Перетинається з іншою сесією",
+          "top": 315,
+          "height": 263,
+          "width": 62,
+          "left": 840
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 768,
+      "scenario": "empty",
+      "range": "Показано 09:00–18:00 — поза цим часом подій немає",
+      "hours": 9,
+      "hourPx": 70,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 0,
+      "events": [],
+      "fullDay": null
+    },
+    {
+      "width": 768,
+      "scenario": "one50",
+      "range": "Показано 10:00–11:00 — поза цим часом подій немає",
+      "hours": 1,
+      "hourPx": 630,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 5,
+      "events": [
+        {
+          "label": "10:00–10:50, Сесія, Одна Сесія, Підтверджено",
+          "top": 0,
+          "height": 525,
+          "width": 67,
+          "left": 589
+        }
+      ],
+      "fullDay": {
+        "range": "Показано 00:00–24:00",
+        "hours": 24,
+        "hourPx": 52,
+        "bodyHeight": 1248,
+        "scrollBox": 630,
+        "innerScroll": true,
+        "halfLines": 0,
+        "events": [
+          {
+            "label": "10:00–10:50, Сесія, Одна Сесія, Підтверджено",
+            "top": 520,
+            "height": 43,
+            "width": 67,
+            "left": 589
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "scenario": "overlap",
+      "range": "Показано 10:00–12:00 — поза цим часом подій немає",
+      "hours": 2,
+      "hourPx": 315,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 10,
+      "events": [
+        {
+          "label": "10:00–10:50, Сесія, Перша, Підтверджено, Перетинається з іншою сесією",
+          "top": 0,
+          "height": 263,
+          "width": 33,
+          "left": 589
+        },
+        {
+          "label": "10:30–11:20, Сесія, Друга, Підтверджено, Перетинається з іншою сесією",
+          "top": 158,
+          "height": 263,
+          "width": 33,
+          "left": 622
+        },
+        {
+          "label": "11:00–11:50, Сесія, Третя, Підтверджено, Перетинається з іншою сесією",
+          "top": 315,
+          "height": 263,
+          "width": 33,
+          "left": 589
+        }
+      ],
+      "fullDay": null
+    },
+    {
+      "width": 1440,
+      "scenario": "sparseAvailability",
+      "range": "Показано 10:00–16:00 — поза цим часом подій немає",
+      "hours": 6,
+      "hourPx": 105,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 42,
+      "events": [
+        {
+          "top": 420,
+          "height": 193,
+          "width": 147,
+          "left": 931
+        },
+        {
+          "label": "10:00–10:50, Зайнято",
+          "top": 0,
+          "height": 88,
+          "width": 147,
+          "left": 931
+        }
+      ],
+      "windowBlocks": [
+        {
+          "label": "Вільне вікно 14:00–15:50, 2 слоти",
+          "height": 193
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "scenario": "sparseAvailability",
+      "range": "Показано 10:00–16:00 — поза цим часом подій немає",
+      "hours": 6,
+      "hourPx": 105,
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "halfLines": 42,
+      "events": [
+        {
+          "top": 420,
+          "height": 193,
+          "width": 125,
+          "left": 840
+        },
+        {
+          "label": "10:00–10:50, Зайнято",
+          "top": 0,
+          "height": 88,
+          "width": 125,
+          "left": 840
+        }
+      ],
+      "windowBlocks": [
+        {
+          "label": "Вільне вікно 14:00–15:50, 2 слоти",
+          "height": 193
+        }
+      ]
+    }
+  ],
+  "wheel": [
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "emptyCell",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 1,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 0,
+        "top": 1
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "emptyCell",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 315,
+        "top": 0
+      },
+      "after": {
+        "y": 315,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "session",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 1,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 0,
+        "top": 1
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "session",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 315,
+        "top": 0
+      },
+      "after": {
+        "y": 315,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "window",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 240,
+      "timelineDelta": 0,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 240,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "window",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 315,
+        "top": 0
+      },
+      "after": {
+        "y": 315,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "nearTop",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 1,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 0,
+        "top": 1
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "nearTop",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 315,
+        "top": 0
+      },
+      "after": {
+        "y": 315,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "nearBottom",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 240,
+      "timelineDelta": 0,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 240,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "point": "nearBottom",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 315,
+        "top": 0
+      },
+      "after": {
+        "y": 315,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "sparse",
+      "meta": {
+        "overflows": false,
+        "scrollHeight": 631,
+        "clientHeight": 630,
+        "pageHeight": 1215,
+        "overscroll": "contain"
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "emptyCell",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "emptyCell",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "emptyCell",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 330,
+        "top": 0
+      },
+      "after": {
+        "y": 330,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "session",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "session",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "session",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 330,
+        "top": 0
+      },
+      "after": {
+        "y": 330,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "window",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "window",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "window",
+      "state": "atTop",
+      "skipped": "no such element in view"
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "nearTop",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "nearTop",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "nearTop",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 330,
+        "top": 0
+      },
+      "after": {
+        "y": 330,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "nearBottom",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "nearBottom",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "point": "nearBottom",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 330,
+        "top": 0
+      },
+      "after": {
+        "y": 330,
+        "top": 0
+      }
+    },
+    {
+      "width": 1440,
+      "kind": "dense",
+      "meta": {
+        "overflows": true,
+        "scrollHeight": 989,
+        "clientHeight": 630,
+        "pageHeight": 1230,
+        "overscroll": "contain"
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "emptyCell",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 1,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 0,
+        "top": 1
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "emptyCell",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 346,
+        "top": 0
+      },
+      "after": {
+        "y": 346,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "session",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 1,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 0,
+        "top": 1
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "session",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 346,
+        "top": 0
+      },
+      "after": {
+        "y": 346,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "window",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 240,
+      "timelineDelta": 0,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 240,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "window",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 346,
+        "top": 0
+      },
+      "after": {
+        "y": 346,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "nearTop",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 1,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 0,
+        "top": 1
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "nearTop",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 346,
+        "top": 0
+      },
+      "after": {
+        "y": 346,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "nearBottom",
+      "state": "fitsDown",
+      "dy": 240,
+      "pageDelta": 240,
+      "timelineDelta": 0,
+      "before": {
+        "y": 0,
+        "top": 0
+      },
+      "after": {
+        "y": 240,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "point": "nearBottom",
+      "state": "fitsUp",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 346,
+        "top": 0
+      },
+      "after": {
+        "y": 346,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "sparse",
+      "meta": {
+        "overflows": false,
+        "scrollHeight": 631,
+        "clientHeight": 630,
+        "pageHeight": 1246,
+        "overscroll": "contain"
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "emptyCell",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "emptyCell",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "emptyCell",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 361,
+        "top": 0
+      },
+      "after": {
+        "y": 361,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "session",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "session",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "session",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 361,
+        "top": 0
+      },
+      "after": {
+        "y": 361,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "window",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "window",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "window",
+      "state": "atTop",
+      "skipped": "no such element in view"
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "nearTop",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "nearTop",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "nearTop",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 361,
+        "top": 0
+      },
+      "after": {
+        "y": 361,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "nearBottom",
+      "state": "middle",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 179,
+      "before": {
+        "y": 284,
+        "top": 180
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "nearBottom",
+      "state": "atBottom",
+      "dy": 240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 284,
+        "top": 359
+      },
+      "after": {
+        "y": 284,
+        "top": 359
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "point": "nearBottom",
+      "state": "atTop",
+      "dy": -240,
+      "pageDelta": 0,
+      "timelineDelta": 0,
+      "before": {
+        "y": 361,
+        "top": 0
+      },
+      "after": {
+        "y": 361,
+        "top": 0
+      }
+    },
+    {
+      "width": 1280,
+      "kind": "dense",
+      "meta": {
+        "overflows": true,
+        "scrollHeight": 989,
+        "clientHeight": 630,
+        "pageHeight": 1261,
+        "overscroll": "contain"
+      }
+    }
+  ],
+  "touch": [
+    {
+      "width": 375,
+      "pageDelta": {
+        "at": {
+          "x": 188,
+          "y": 648
+        },
+        "pageDelta": 201
+      },
+      "afterSheet": {
+        "rootOverflow": "",
+        "pageDelta": {
+          "at": {
+            "x": 188,
+            "y": 648
+          },
+          "pageDelta": 201
+        }
+      },
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      }
+    },
+    {
+      "width": 390,
+      "pageDelta": {
+        "at": {
+          "x": 195,
+          "y": 648
+        },
+        "pageDelta": 201
+      },
+      "afterSheet": {
+        "rootOverflow": "",
+        "pageDelta": {
+          "at": {
+            "x": 195,
+            "y": 648
+          },
+          "pageDelta": 201
+        }
+      },
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      }
+    },
+    {
+      "width": 440,
+      "pageDelta": {
+        "at": {
+          "x": 220,
+          "y": 629
+        },
+        "pageDelta": 201
+      },
+      "afterSheet": {
+        "rootOverflow": "",
+        "pageDelta": {
+          "at": {
+            "x": 220,
+            "y": 629
+          },
+          "pageDelta": 201
+        }
+      },
+      "overflow": {
+        "scrollWidth": 440,
+        "innerWidth": 440,
+        "ok": true
+      }
+    },
+    {
+      "width": 768,
+      "pageDelta": {
+        "at": {
+          "x": 494,
+          "y": 600
+        },
+        "pageDelta": 0
+      },
+      "afterSheet": null,
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      }
+    }
+  ],
+  "keyboard": [
+    {
+      "scrollTop": 0,
+      "visible": true,
+      "label": "10:00–10:50, Зайнято",
+      "endPageDelta": 330
+    }
+  ],
+  "writes": [],
+  "errors": []
+}

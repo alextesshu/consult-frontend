@@ -1,0 +1,410 @@
+{
+  "baseline": "5b294accb50d874a013c4f7f1cb13abe8e84f341",
+  "backend": "http://127.0.0.1:8000",
+  "candidateOrigin": "http://localhost:5173",
+  "beforeStructure": [
+    {
+      "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+      "top": 96,
+      "height": 786,
+      "scrollHeight": 948,
+      "scrollTop": 0,
+      "overflow": "auto"
+    },
+    {
+      "class": "setting-modal pc2-profile-inline",
+      "top": 121,
+      "height": 900,
+      "scrollHeight": 1295,
+      "scrollTop": 0,
+      "overflow": "auto"
+    },
+    {
+      "class": "setting-modal__content guest-booking-modal",
+      "top": 121,
+      "height": 1295,
+      "scrollHeight": 1295,
+      "scrollTop": 0,
+      "overflow": "hidden"
+    },
+    {
+      "class": "setting-modal__body",
+      "top": 249.3125,
+      "height": 1167,
+      "scrollHeight": 1167,
+      "scrollTop": 0,
+      "overflow": "auto"
+    }
+  ],
+  "result": [
+    {
+      "width": 1280,
+      "evidence": "direct actual local Django GETs; only potential guest POST is blocked as a safety guard",
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "posts": [],
+      "checks": {
+        "documentY": 500,
+        "structure": [
+          {
+            "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+            "top": 96,
+            "height": 786,
+            "scrollHeight": 1343,
+            "scrollTop": 0,
+            "overflow": "auto"
+          },
+          {
+            "class": "setting-modal pc2-profile-inline",
+            "top": 121,
+            "height": 1295,
+            "scrollHeight": 1295,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__content guest-booking-modal",
+            "top": 121,
+            "height": 1295,
+            "scrollHeight": 1295,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__body",
+            "top": 249.3125,
+            "height": 1167,
+            "scrollHeight": 1167,
+            "scrollTop": 0,
+            "overflow": "visible"
+          }
+        ],
+        "wheel": true,
+        "tabSteps": 22,
+        "reachedSubmit": true,
+        "validation": true,
+        "typingAndTopicsStable": true,
+        "repeatCycles": 2,
+        "mobileNativeLifecycle": false
+      }
+    },
+    {
+      "width": 1440,
+      "evidence": "direct actual local Django GETs; only potential guest POST is blocked as a safety guard",
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "posts": [],
+      "checks": {
+        "documentY": 500,
+        "structure": [
+          {
+            "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+            "top": 96,
+            "height": 786,
+            "scrollHeight": 1343,
+            "scrollTop": 0,
+            "overflow": "auto"
+          },
+          {
+            "class": "setting-modal pc2-profile-inline",
+            "top": 121,
+            "height": 1295,
+            "scrollHeight": 1295,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__content guest-booking-modal",
+            "top": 121,
+            "height": 1295,
+            "scrollHeight": 1295,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__body",
+            "top": 249.3125,
+            "height": 1167,
+            "scrollHeight": 1167,
+            "scrollTop": 0,
+            "overflow": "visible"
+          }
+        ],
+        "wheel": true,
+        "tabSteps": 22,
+        "reachedSubmit": true,
+        "validation": true,
+        "typingAndTopicsStable": true,
+        "repeatCycles": 2,
+        "mobileNativeLifecycle": false
+      }
+    },
+    {
+      "width": 375,
+      "evidence": "direct actual local Django GETs; only potential guest POST is blocked as a safety guard",
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "posts": [],
+      "checks": {
+        "documentY": 500,
+        "structure": [
+          {
+            "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+            "top": 174.78125,
+            "height": 1170,
+            "scrollHeight": 1170,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal pc2-profile-inline",
+            "top": 174.78125,
+            "height": 1170,
+            "scrollHeight": 1170,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__content guest-booking-modal",
+            "top": 174.78125,
+            "height": 1170,
+            "scrollHeight": 1170,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__body",
+            "top": 301.09375,
+            "height": 1043,
+            "scrollHeight": 1043,
+            "scrollTop": 0,
+            "overflow": "visible"
+          }
+        ],
+        "wheel": true,
+        "tabSteps": 22,
+        "reachedSubmit": true,
+        "validation": true,
+        "typingAndTopicsStable": true,
+        "repeatCycles": 2,
+        "mobileNativeLifecycle": true
+      }
+    },
+    {
+      "width": 768,
+      "evidence": "direct actual local Django GETs; only potential guest POST is blocked as a safety guard",
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "posts": [],
+      "checks": {
+        "documentY": 500,
+        "structure": [
+          {
+            "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+            "top": 206,
+            "height": 983,
+            "scrollHeight": 983,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal pc2-profile-inline",
+            "top": 206,
+            "height": 983,
+            "scrollHeight": 983,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__content guest-booking-modal",
+            "top": 206,
+            "height": 983,
+            "scrollHeight": 983,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__body",
+            "top": 275.515625,
+            "height": 913,
+            "scrollHeight": 913,
+            "scrollTop": 0,
+            "overflow": "visible"
+          }
+        ],
+        "wheel": true,
+        "tabSteps": 22,
+        "reachedSubmit": true,
+        "validation": true,
+        "typingAndTopicsStable": true,
+        "repeatCycles": 2,
+        "mobileNativeLifecycle": true
+      }
+    },
+    {
+      "width": 1440,
+      "evidence": "reduced-motion replay of actual public DTOs",
+      "checks": {
+        "documentY": 500,
+        "structure": [
+          {
+            "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+            "top": 96,
+            "height": 786,
+            "scrollHeight": 1343,
+            "scrollTop": 0,
+            "overflow": "auto"
+          },
+          {
+            "class": "setting-modal pc2-profile-inline",
+            "top": 121,
+            "height": 1295,
+            "scrollHeight": 1295,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__content guest-booking-modal",
+            "top": 121,
+            "height": 1295,
+            "scrollHeight": 1295,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__body",
+            "top": 249.3125,
+            "height": 1167,
+            "scrollHeight": 1167,
+            "scrollTop": 0,
+            "overflow": "visible"
+          }
+        ],
+        "wheel": true,
+        "tabSteps": 22,
+        "reachedSubmit": true,
+        "validation": true,
+        "typingAndTopicsStable": true,
+        "repeatCycles": 2,
+        "mobileNativeLifecycle": false
+      }
+    },
+    {
+      "width": 375,
+      "evidence": "reduced-motion replay of actual public DTOs",
+      "checks": {
+        "documentY": 500,
+        "structure": [
+          {
+            "class": "public__sidebar pc2-request-panel pc2-request-panel--contact pc2-request-panel--guest-slots",
+            "top": 174.78125,
+            "height": 1170,
+            "scrollHeight": 1170,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal pc2-profile-inline",
+            "top": 174.78125,
+            "height": 1170,
+            "scrollHeight": 1170,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__content guest-booking-modal",
+            "top": 174.78125,
+            "height": 1170,
+            "scrollHeight": 1170,
+            "scrollTop": 0,
+            "overflow": "visible"
+          },
+          {
+            "class": "setting-modal__body",
+            "top": 301.09375,
+            "height": 1043,
+            "scrollHeight": 1043,
+            "scrollTop": 0,
+            "overflow": "visible"
+          }
+        ],
+        "wheel": true,
+        "tabSteps": 22,
+        "reachedSubmit": true,
+        "validation": true,
+        "typingAndTopicsStable": true,
+        "repeatCycles": 2,
+        "mobileNativeLifecycle": true
+      }
+    }
+  ],
+  "limits": "Chromium wheel models pointer scrolling, not physical OS trackpad hardware. No real guest POST or PENDING claim."
+}

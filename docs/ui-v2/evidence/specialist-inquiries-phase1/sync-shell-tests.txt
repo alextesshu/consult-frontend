@@ -1,0 +1,15 @@
+> frontend@0.0.0 test:run
+> vitest run src/components/cabinet-v2/SpecialistCabinetShellV2.spec.ts src/styles/cabinetShellV2.spec.ts src/lib/specialistCabinetNav.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_specialist_inquiries_v2
+
+ ✓ src/components/cabinet-v2/SpecialistCabinetShellV2.spec.ts (4 tests) 849ms
+   ✓ SpecialistCabinetShellV2 > renders the 14-item sidebar with the active page and real badges 348ms
+ ✓ src/styles/cabinetShellV2.spec.ts (4 tests) 58ms
+ ✓ src/lib/specialistCabinetNav.spec.ts (5 tests) 14ms
+
+ Test Files  3 passed (3)
+      Tests  13 passed (13)
+   Start at  18:58:53
+   Duration  13.29s (transform 6.55s, setup 405ms, collect 8.47s, tests 922ms, environment 2.24s, prepare 458ms)

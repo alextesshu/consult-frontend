@@ -1,0 +1,37 @@
+
+> frontend@0.0.0 test:run
+> vitest run src/views/PublicProfileView.spec.ts src/components/public-profile src/composables/useProfileMotion.spec.ts src/styles/publicProfileV2.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_ui_v2_stage2_1_public_profile
+
+ ✓ src/views/PublicProfileView.spec.ts (143 tests) 20337ms
+   ✓ PublicProfileView > renders the main public profile sections from loaded data 489ms
+   ✓ PublicProfileView > allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal 343ms
+   ✓ PublicProfileView > renders simplified request topic and message copy while keeping topic selection stable 784ms
+   ✓ PublicProfileView > keeps the request input simple when the Other topic is selected 369ms
+   ✓ PublicProfileView > submits a valid guest booking request and renders success state copy 435ms
+   ✓ PublicProfileView > submits guest booking request with canonical telegram contact channel value 383ms
+   ✓ PublicProfileView > submits guest booking request with canonical phone contact channel value 376ms
+   ✓ PublicProfileView > shows specific validation message for unsupported contact channel choice 314ms
+   ✓ PublicProfileView > shows friendly unavailable slot error for guest booking request 332ms
+   ✓ PublicProfileView > shows friendly guest-flow restriction error for entitlement limits 332ms
+   ✓ PublicProfileView > blocks booking for a client until booking rules acceptance is confirmed 360ms
+   ✓ PublicProfileView > does not re-prompt booking rules after successful acceptance for repeated booking actions 335ms
+   ✓ PublicProfileView > requires guest booking rules checkbox when active rules are present 328ms
+   ✓ PublicProfileView > shows a coherent no-slots request action in v1 311ms
+   ✓ PublicProfileView > creates the first inquiry from the public profile happy path 324ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > reuses the guest request form inline and sends the existing request contract only after submission 318ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > restores the original calendar and preserves entered values through v2/v1 switches 305ms
+ ✓ src/components/public-profile/PublicProfileAboutSection.spec.ts (20 tests) 246ms
+ ✓ src/components/public-profile/PublicProfileTrustSection.spec.ts (7 tests) 153ms
+ ✓ src/components/public-profile/PublicProfileOverlay.spec.ts (6 tests) 150ms
+ ✓ src/components/public-profile/PublicProfileIdentityRail.spec.ts (5 tests) 117ms
+ ✓ src/composables/useProfileMotion.spec.ts (5 tests) 27ms
+ ✓ src/components/public-profile/PublicProfileHeroSection.spec.ts (3 tests) 94ms
+ ✓ src/styles/publicProfileV2.spec.ts (5 tests) 30ms
+
+ Test Files  8 passed (8)
+      Tests  194 passed (194)
+   Start at  04:15:49
+   Duration  30.92s (transform 1.43s, setup 727ms, collect 3.09s, tests 21.15s, environment 4.18s, prepare 615ms)

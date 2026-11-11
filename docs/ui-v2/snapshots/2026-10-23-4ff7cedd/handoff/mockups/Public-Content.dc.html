@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input{font:inherit;color:inherit}input::placeholder{color:#8B95A7}</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:0 clamp(18px,4vw,48px)">
+
+  <header style="position:sticky;top:0;z-index:10;background:#FBF9F5;display:flex;align-items:center;gap:clamp(8px,3vw,32px);height:68px;border-bottom:1px solid #EDE7DE">
+    <a href="For-Clients.dc.html" style="display:block;flex-shrink:0"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;display:block;margin-left:-6px"></a>
+    <div style="flex:1"></div>
+    <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><a href="Find-Specialist.dc.html" style="font-size:14px;color:#657287;white-space:nowrap" style-hover="color:#12233A">Усі спеціалісти</a></sc-if>
+    <a href="Auth.dc.html" style="font-size:14px;color:#12345A;font-weight:500;white-space:nowrap">Увійти</a>
+  </header>
+
+  <sc-if value="{{ s.journal }}" hint-placeholder-val="{{ true }}">
+    <section style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:clamp(28px,5vw,56px) 0 24px">
+      <div style="display:flex;gap:16px;align-items:center;min-width:0">
+        <span style="width:64px;height:64px;border-radius:50%;background:#DCEBEA;color:#12345A;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;flex-shrink:0">ОК</span>
+        <div style="min-width:0">
+          <div style="font-size:14px;color:#8B95A7">Блог спеціалістки</div>
+          <h1 style="font-weight:500;font-size:clamp(30px,4vw,46px);letter-spacing:-0.035em;line-height:1.05;margin:2px 0 0">Олена Коваль</h1>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="Specialist-Profile.dc.html" style="padding:11px 18px;border-radius:999px;font-size:15px;border:1px solid #E6E0D8;color:#12233A" style-hover="border-color:#12345A">Профіль</a>
+        <a href="Specialist-Profile.dc.html" style="padding:11px 18px;border-radius:999px;font-size:15px;font-weight:500;background:#12345A;color:#fff" style-hover="background:#0E2D52;color:#fff">Залишити запит</a>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:12px;padding-bottom:28px">
+      <div style="font-size:14px;color:#8B95A7">Добірки</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px">
+        <sc-for list="{{ colls }}" as="c" hint-placeholder-count="2">
+          <a href="#" onClick="{{ c.on }}" style="display:flex;flex-direction:column;gap:8px;padding:18px 20px;border-radius:20px;background:{{ c.bg }};color:#12233A" style-hover="box-shadow:inset 0 0 0 1px #D4CCC2">
+            <span style="font-size:17px;font-weight:500">{{ c.t }}</span>
+            <span style="font-size:14px;color:#5A6578;line-height:1.5">{{ c.d }}</span>
+            <span style="font-size:13px;color:#2F7A55">{{ c.n }} →</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:20px">
+      <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4"><span onClick="{{ c.on }}" style="padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }}">{{ c.l }}</span></sc-for>
+    </div>
+
+    <sc-if value="{{ hasFeat }}" hint-placeholder-val="{{ true }}">
+      <a href="#" onClick="{{ openPost }}" style="display:grid;grid-template-columns:{{ featCols }};gap:clamp(20px,3vw,40px);align-items:center;padding:clamp(20px,3vw,32px);border-radius:28px;background:#fff;border:1px solid #EDE7DE;color:#12233A;margin-bottom:16px" style-hover="border-color:#D4CCC2">
+        <div style="aspect-ratio:4/3;border-radius:20px;background:#EEF8F7;display:flex;align-items:flex-end;padding:16px"><span style="font-size:12px;color:#5A8C88">обкладинка · cover_image_url</span></div>
+        <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+          <div style="display:flex;gap:8px;align-items:center;font-size:13px;color:#8B95A7"><span style="padding:3px 10px;border-radius:999px;background:#FFF4E5;color:#8A5A14">Закріплено</span>12 жовтня · 4 хв</div>
+          <h2 style="font-weight:500;font-size:clamp(24px,2.8vw,34px);letter-spacing:-0.03em;line-height:1.12;margin:0;text-wrap:balance">Що робити, коли накриває тривога</h2>
+          <p style="font-size:16px;line-height:1.6;color:#5A6578;margin:0;text-wrap:pretty">Три способи заземлитися за кілька хвилин — і як зрозуміти, що час звернутися по допомогу.</p>
+          <span style="font-size:14px;color:#12345A;font-weight:500">Читати →</span>
+        </div>
+      </a>
+    </sc-if>
+
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ posts }}" as="p" hint-placeholder-count="4">
+        <a href="#" onClick="{{ p.on }}" style="display:grid;grid-template-columns:{{ rowCols }};gap:8px 24px;padding:22px 4px;border-top:1px solid #EDE7DE;color:#12233A" style-hover="background:#F6F1EA">
+          <span style="font-size:13px;color:#8B95A7;padding-top:4px">{{ p.date }}</span>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+            <span style="font-size:19px;font-weight:500;letter-spacing:-0.01em;line-height:1.3">{{ p.t }}</span>
+            <span style="font-size:15px;color:#5A6578;line-height:1.55">{{ p.lead }}</span>
+            <span style="font-size:13px;color:#8B95A7">{{ p.meta }}</span>
+          </div>
+        </a>
+      </sc-for>
+      <sc-if value="{{ emptyCat }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px 4px;border-top:1px solid #EDE7DE;display:flex;flex-direction:column;gap:6px"><span style="font-size:17px;font-weight:500">У цій темі поки немає дописів</span><span onClick="{{ allCats }}" style="font-size:14px;color:#12345A;cursor:pointer">Показати всі →</span></div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ s.post }}" hint-placeholder-val="{{ false }}">
+    <article style="max-width:720px;margin:0 auto;padding:clamp(24px,5vw,56px) 0 32px;display:flex;flex-direction:column;gap:20px">
+      <a href="#" onClick="{{ toJournal }}" style="font-size:14px;color:#5A6578;align-self:flex-start">← Блог Олени Коваль</a>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;color:#8B95A7"><span style="padding:3px 10px;border-radius:999px;background:#EEF8F7;color:#2F7A55">Тривога</span>12 жовтня 2026 · 4 хв читання</div>
+      <h1 style="font-weight:500;font-size:clamp(32px,4.6vw,52px);letter-spacing:-0.04em;line-height:1.06;margin:0;text-wrap:balance">Що робити, коли накриває тривога</h1>
+      <p style="font-size:clamp(18px,1.8vw,21px);line-height:1.55;color:#3F4B5E;margin:0;text-wrap:pretty">Три способи заземлитися за кілька хвилин — і як зрозуміти, що час звернутися по допомогу.</p>
+      <div style="aspect-ratio:16/9;border-radius:24px;background:#EEF8F7;display:flex;align-items:flex-end;padding:16px"><span style="font-size:12px;color:#5A8C88">обкладинка · cover_image_url</span></div>
+
+      <sc-if value="{{ inColl }}" hint-placeholder-val="{{ true }}">
+        <a href="#" onClick="{{ toColl }}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-radius:18px;background:#F6F1EA;color:#12233A">
+          <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:#8B95A7">Добірка · допис 2 з 3</span><span style="font-size:15px;font-weight:500">Тривога й сон</span></span>
+          <span style="display:flex;gap:4px;flex-shrink:0"><span style="width:18px;height:4px;border-radius:2px;background:#12345A"></span><span style="width:18px;height:4px;border-radius:2px;background:#12345A"></span><span style="width:18px;height:4px;border-radius:2px;background:#D4CCC2"></span></span>
+        </a>
+      </sc-if>
+
+      <div style="font-size:18px;line-height:1.75;color:#12233A;display:flex;flex-direction:column;gap:18px;text-wrap:pretty">
+        <p style="margin:0">Тривога — це не слабкість і не «надумане». Це реакція тіла на загрозу, навіть якщо загрози зараз немає. Серце пришвидшується, дихання стає поверхневим, думки біжать по колу.</p>
+        <h2 style="font-weight:500;font-size:26px;letter-spacing:-0.02em;line-height:1.25;margin:14px 0 0">1. Повільний видих</h2>
+        <p style="margin:0">Вдих на чотири рахунки, видих — на шість. Довгий видих підказує нервовій системі, що можна знизити оберти. Достатньо п’яти-шести циклів.</p>
+        <blockquote style="margin:6px 0;padding:4px 0 4px 20px;border-left:3px solid #8FCBC8;font-size:20px;line-height:1.55;color:#3F4B5E">Мета не в тому, щоб тривога зникла, а в тому, щоб ви знову відчули опору.</blockquote>
+        <h2 style="font-weight:500;font-size:26px;letter-spacing:-0.02em;line-height:1.25;margin:14px 0 0">2. П’ять речей навколо</h2>
+        <p style="margin:0">Назвіть п’ять речей, які бачите, чотири — які чуєте, три — яких торкаєтесь. Це повертає увагу з думок у теперішній момент.</p>
+        <ul style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px"><li>напруга не спадає кілька тижнів;</li><li>ви уникаєте місць чи людей через страх;</li><li>тривога заважає спати або працювати.</li></ul>
+      </div>
+
+      <sc-if value="{{ inColl }}" hint-placeholder-val="{{ true }}">
+        <nav style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;margin-top:8px">
+          <a href="#" style="display:flex;flex-direction:column;gap:4px;padding:14px 18px;border-radius:18px;border:1px solid #E6E0D8;color:#12233A" style-hover="border-color:#12345A"><span style="font-size:12px;color:#8B95A7">← Попередній</span><span style="font-size:15px">Чому тривога посилюється ввечері</span></a>
+          <a href="#" style="display:flex;flex-direction:column;gap:4px;padding:14px 18px;border-radius:18px;border:1px solid #E6E0D8;color:#12233A;text-align:right" style-hover="border-color:#12345A"><span style="font-size:12px;color:#8B95A7">Наступний →</span><span style="font-size:15px">Сон без таблеток: з чого почати</span></a>
+        </nav>
+      </sc-if>
+
+      <section style="margin-top:16px;padding:22px 24px;border-radius:24px;background:#EEF8F7;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <span style="width:52px;height:52px;border-radius:50%;background:#DCEBEA;color:#12345A;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;flex-shrink:0">ОК</span>
+        <div style="flex:1;min-width:200px"><div style="font-size:16px;font-weight:500">Олена Коваль</div><div style="font-size:14px;color:#3D5A58;line-height:1.5">Психологиня, КПТ. Працює з тривогою, сном і вигоранням.</div></div>
+        <a href="Specialist-Profile.dc.html" style="padding:11px 18px;border-radius:999px;font-size:15px;font-weight:500;background:#12345A;color:#fff;white-space:nowrap" style-hover="background:#0E2D52;color:#fff">Залишити запит</a>
+      </section>
+    </article>
+  </sc-if>
+
+  <sc-if value="{{ s.coll }}" hint-placeholder-val="{{ false }}">
+    <section style="max-width:760px;margin:0 auto;padding:clamp(24px,5vw,56px) 0 32px;display:flex;flex-direction:column;gap:18px">
+      <a href="#" onClick="{{ toJournal }}" style="font-size:14px;color:#5A6578;align-self:flex-start">← Блог Олени Коваль</a>
+      <div style="font-size:14px;color:#8B95A7">Добірка · 3 дописи · 12 хв</div>
+      <h1 style="font-weight:500;font-size:clamp(32px,4.4vw,48px);letter-spacing:-0.04em;line-height:1.06;margin:0">Тривога й сон</h1>
+      <p style="font-size:18px;line-height:1.6;color:#3F4B5E;margin:0;text-wrap:pretty">Коротко про те, чому тривога заважає спати і що з цим можна зробити самостійно. Читайте по порядку.</p>
+      <ol style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ collItems }}" as="it" hint-placeholder-count="3">
+          <li>
+            <a href="#" onClick="{{ openPost }}" style="display:flex;gap:18px;align-items:center;padding:18px 20px;border-radius:20px;background:#fff;border:1px solid #EDE7DE;color:#12233A" style-hover="border-color:#12345A">
+              <span style="width:40px;height:40px;border-radius:50%;background:{{ it.nBg }};color:{{ it.nFg }};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;flex-shrink:0">{{ it.n }}</span>
+              <span style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1"><span style="font-size:17px;font-weight:500;line-height:1.3">{{ it.t }}</span><span style="font-size:13px;color:#8B95A7">{{ it.meta }}</span></span>
+              <span style="color:#8B95A7;flex-shrink:0">→</span>
+            </a>
+          </li>
+        </sc-for>
+      </ol>
+      <a href="#" onClick="{{ openPost }}" style="align-self:flex-start;margin-top:8px;padding:13px 22px;border-radius:999px;font-size:15px;font-weight:500;background:#12345A;color:#fff" style-hover="background:#0E2D52;color:#fff">Почати з першого</a>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ s.faq }}" hint-placeholder-val="{{ false }}">
+    <section style="display:grid;grid-template-columns:{{ faqCols }};gap:clamp(24px,4vw,56px);padding:clamp(28px,5vw,56px) 0 40px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px;position:{{ faqPos }};top:92px">
+        <h1 style="font-weight:500;font-size:clamp(34px,4.4vw,52px);letter-spacing:-0.04em;line-height:1.04;margin:0">Часті питання</h1>
+        <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start" role="tablist" aria-label="Для кого">
+          <sc-for list="{{ auds }}" as="a" hint-placeholder-count="2"><span onClick="{{ a.on }}" role="tab" aria-selected="{{ a.sel }}" style="padding:8px 16px;border-radius:999px;font-size:14px;cursor:pointer;white-space:nowrap;background:{{ a.bg }};box-shadow:{{ a.sh }}">{{ a.l }}</span></sc-for>
+        </div>
+        <div style="height:48px;border-radius:14px;background:#fff;border:1.5px solid #E6E0D8;display:flex;align-items:center;padding:0 14px;gap:10px">
+          <span style="color:#8B95A7;font-size:15px">⌕</span>
+          <input value="{{ fq }}" onChange="{{ onFq }}" placeholder="Пошук у питаннях" aria-label="Пошук у питаннях" style="flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:15px">
+        </div>
+        <div style="padding:16px 18px;border-radius:18px;background:#EEF8F7;display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:15px;font-weight:500">Не знайшли відповідь?</span>
+          <span style="font-size:14px;color:#3D5A58;line-height:1.5">Напишіть нам — відповідаємо в робочі дні протягом доби.</span>
+          <a href="#" style="font-size:14px;font-weight:500;margin-top:2px">support@proconsult.space →</a>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;min-width:0">
+        <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+          <div style="border-top:1px solid #EDE7DE">
+            <div onClick="{{ f.toggle }}" role="button" aria-expanded="{{ f.aria }}" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 4px;cursor:pointer">
+              <span style="font-size:18px;font-weight:500;line-height:1.35">{{ f.q }}</span>
+              <span style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:{{ f.icBg }};color:{{ f.icFg }};transition:all .2s">{{ f.ic }}</span>
+            </div>
+            <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}"><p style="margin:-4px 0 0;padding:0 52px 22px 4px;font-size:16px;line-height:1.65;color:#3F4B5E;text-wrap:pretty">{{ f.a }}</p></sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noFaq }}" hint-placeholder-val="{{ false }}"><div style="border-top:1px solid #EDE7DE;padding:28px 4px;font-size:16px;color:#5A6578">Нічого не знайшли за «{{ fq }}». Спробуйте інше слово або напишіть нам.</div></sc-if>
+      </div>
+    </section>
+  </sc-if>
+
+  <footer style="border-top:1px solid #EDE7DE;padding:24px 0 32px;margin-top:24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:#8B95A7">
+    <span>© 2026 Pro Consult</span>
+    <span style="display:flex;gap:16px;flex-wrap:wrap"><a href="#" onClick="{{ toFaq }}" style="color:#5A6578">Часті питання</a><a href="#" style="color:#5A6578">Умови</a><a href="#" style="color:#5A6578">Конфіденційність</a></span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;journal&quot;,&quot;post&quot;,&quot;collection&quot;,&quot;faq&quot;],&quot;default&quot;:&quot;journal&quot;,&quot;tsType&quot;:&quot;'journal'|'post'|'collection'|'faq'&quot;}}">
+const POSTS = [
+  { t: 'Чому тривога посилюється ввечері', lead: 'Про втому, тишу і думки, які чекали свого часу.', date: '5 жовтня', min: 3, cat: 'Тривога', coll: true },
+  { t: 'Сон без таблеток: з чого почати', lead: 'Режим, світло і що робити, коли не спиться о третій ночі.', date: '28 вересня', min: 5, cat: 'Сон', coll: true },
+  { t: 'Як підготуватися до першої сесії', lead: 'Що можна сказати, а що — ні. І чому «не знаю, з чого почати» — нормальний початок.', date: '14 вересня', min: 4, cat: 'Терапія', coll: false },
+  { t: 'Вигорання чи просто втома?', lead: 'Кілька питань, які допоможуть розрізнити.', date: '2 вересня', min: 6, cat: 'Вигорання', coll: false },
+];
+const CATS = ['Усі', 'Тривога', 'Сон', 'Вигорання', 'Терапія'];
+const FAQ = {
+  client: [
+    ['Чи потрібно реєструватися, щоб записатися?', 'Ні. Оберіть спеціаліста й час, залиште ім’я та контакт — запрошення на сесію прийде на пошту. Кабінет можна створити пізніше, щоб бачити історію сесій і матеріали.'],
+    ['Як оплатити сесію?', 'Напряму спеціалісту — за реквізитами, які він вказав. Pro Consult не бере комісію і не проводить платежі.'],
+    ['Чи можна перенести або скасувати сесію?', 'Так. У кабінеті або за посиланням із запрошення надішліть запит на перенесення — спеціаліст підтвердить новий час.'],
+    ['Хто бачить те, що я пишу?', 'Лише спеціаліст, з яким ви працюєте. Нотатки спеціаліста про сесії вам не показуються, а ваш щоденник бачите тільки ви.'],
+    ['Як обрати спеціаліста?', 'Опишіть своїми словами, що турбує, — пошук покаже спеціалістів з цими темами й найближчим вільним часом. На профілі є підхід, освіта й відгуки.'],
+    ['Це підходить для екстрених ситуацій?', 'Ні. Якщо вам загрожує небезпека, телефонуйте 112. Цілодобова лінія психологічної підтримки — 7333.'],
+  ],
+  spec: [
+    ['Що таке Pro Consult?', 'Інструмент для організації практики: профіль, запити, сесії, клієнти та групові події — в одному кабінеті.'],
+    ['Чи бере сервіс комісію із сесій?', 'Ні. Pro Consult не втручається у фінансові домовленості між клієнтом і спеціалістом.'],
+    ['Як клієнт звертається до спеціаліста?', 'Через ваш профіль: обирає вільне вікно або пише запит. Реєстрація клієнту не потрібна.'],
+    ['Чи обов’язково додавати доступний час?', 'Ні, але без вільних вікон клієнти зможуть лише написати запит. Робочі години можна задати один раз — вікна заповняться автоматично.'],
+    ['Чи можна приховати профіль?', 'Так. У налаштуваннях профілю є перемикач публічності — профіль залишиться доступним за прямим посиланням або зникне зовсім.'],
+    ['Чи є Pro Consult медичною інформаційною системою?', 'Ні. Сервіс не веде медичну документацію і не призначений для зберігання діагнозів.'],
+    ['Що таке групові події?', 'Зустрічі або трансляції з кількома учасниками: запрошення за посиланням, ліміт місць, налаштування приватності.'],
+  ],
+};
+
+class Component extends DCLogic {
+  state = { scr: null, cat: 'Усі', aud: 'client', fq: '', open: 0, w: 1280 };
+  componentDidMount() { this.rs = () => this.setState({ w: window.innerWidth }); this.rs(); window.addEventListener('resize', this.rs); }
+  componentWillUnmount() { window.removeEventListener('resize', this.rs); }
+  componentDidUpdate(pp) { if (pp.screen !== this.props.screen) this.setState({ scr: null }); }
+  go(scr) { return e => { e && e.preventDefault(); this.setState({ scr }); window.scrollTo(0, 0); }; }
+  renderVals() {
+    const S = this.state, scr = S.scr ?? this.props.screen ?? 'journal', nar = S.w < 768, wide = S.w >= 1024;
+    const list = POSTS.filter(p => S.cat === 'Усі' || p.cat === S.cat);
+    const q = S.fq.trim().toLowerCase();
+    const fl = FAQ[S.aud].filter(([a, b]) => !q || (a + ' ' + b).toLowerCase().includes(q));
+    return {
+      wide,
+      s: { journal: scr === 'journal', post: scr === 'post', coll: scr === 'collection', faq: scr === 'faq' },
+      colls: [['Тривога й сон', 'Чому тривога заважає спати і що з цим робити самостійно.', '3 дописи', '#EEF8F7'], ['Перед першою сесією', 'Що очікувати, як підготуватися, які питання поставити.', '2 дописи', '#F6F1EA']].map(([t, d, n, bg]) => ({ t, d, n, bg, on: this.go('collection') })),
+      cats: CATS.map(l => { const on = S.cat === l; return { l, bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#12233A', bd: on ? '#12345A' : '#E6E0D8', on: () => this.setState({ cat: l }) }; }),
+      hasFeat: S.cat === 'Усі' || S.cat === 'Тривога', featCols: nar ? 'minmax(0,1fr)' : 'minmax(0,5fr) minmax(0,6fr)',
+      rowCols: nar ? 'minmax(0,1fr)' : '120px minmax(0,1fr)',
+      posts: list.map(p => ({ ...p, meta: `${p.min} хв · ${p.cat}${p.coll ? ' · у добірці' : ''}`, on: this.go('post') })),
+      emptyCat: list.length === 0, allCats: () => this.setState({ cat: 'Усі' }),
+      openPost: this.go('post'), toJournal: this.go('journal'), toColl: this.go('collection'), toFaq: this.go('faq'), inColl: true,
+      collItems: [['Чому тривога посилюється ввечері', '3 хв'], ['Що робити, коли накриває тривога', '4 хв'], ['Сон без таблеток: з чого почати', '5 хв']].map(([t, m], i) => ({ n: String(i + 1), t, meta: m, nBg: i === 0 ? '#12345A' : '#F1EBE2', nFg: i === 0 ? '#fff' : '#12233A' })),
+      faqCols: wide ? 'minmax(260px,340px) minmax(0,1fr)' : 'minmax(0,1fr)', faqPos: wide ? 'sticky' : 'static',
+      auds: [['client', 'Клієнтам'], ['spec', 'Спеціалістам']].map(([k, l]) => ({ l, sel: S.aud === k ? 'true' : 'false', bg: S.aud === k ? '#fff' : 'transparent', sh: S.aud === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => this.setState({ aud: k, open: 0 }) })),
+      fq: S.fq, onFq: e => this.setState({ fq: e.target.value, open: 0 }),
+      faqs: fl.map(([qq, a], i) => { const open = S.open === i; return { q: qq, a, open, aria: open ? 'true' : 'false', ic: open ? '−' : '+', icBg: open ? '#12345A' : '#F1EBE2', icFg: open ? '#fff' : '#12233A', toggle: () => this.setState({ open: open ? -1 : i }) }; }),
+      noFaq: fl.length === 0,
+    };
+  }
+}
+</script>
+</body>
+</html>

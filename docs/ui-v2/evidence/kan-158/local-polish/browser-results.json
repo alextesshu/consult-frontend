@@ -1,0 +1,877 @@
+{
+  "backend": "http://127.0.0.1:8000",
+  "candidateOrigin": "http://localhost:5173",
+  "baseline": "f84a329; temporary Vite load hook; baseline/V1/names replay actual local DTOs; after-v2 direct API",
+  "results": [
+    {
+      "width": 375,
+      "label": "before",
+      "title": {
+        "fontSize": "34px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 168.984375,
+            "available": 327
+          },
+          {
+            "word": "Константінов",
+            "lines": 1,
+            "width": 201.453125,
+            "available": 327
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "normal",
+          "height": 486,
+          "headerHeight": 30
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "normal",
+          "height": 562.875,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "normal",
+          "height": 784.40625,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "normal",
+          "height": 1478.703125,
+          "headerHeight": 263.859375
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 375,
+      "label": "after",
+      "title": {
+        "fontSize": "34px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 168.984375,
+            "available": 327
+          },
+          {
+            "word": "Константінов",
+            "lines": 1,
+            "width": 201.453125,
+            "available": 327
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "start",
+          "height": 486,
+          "headerHeight": 30
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "start",
+          "height": 562.875,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "start",
+          "height": 784.40625,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "start",
+          "height": 1478.703125,
+          "headerHeight": 263.859375
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 768,
+      "label": "before",
+      "title": {
+        "fontSize": "34px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 168.984375,
+            "available": 716
+          },
+          {
+            "word": "Константінов",
+            "lines": 1,
+            "width": 201.46875,
+            "available": 716
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "normal",
+          "height": 222,
+          "headerHeight": 30
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "normal",
+          "height": 383.71875,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "normal",
+          "height": 430.6875,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "normal",
+          "height": 886.765625,
+          "headerHeight": 135.53125
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 768,
+      "label": "after",
+      "title": {
+        "fontSize": "34px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 168.984375,
+            "available": 716
+          },
+          {
+            "word": "Константінов",
+            "lines": 1,
+            "width": 201.453125,
+            "available": 716
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "start",
+          "height": 222,
+          "headerHeight": 30
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "start",
+          "height": 383.71875,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "start",
+          "height": 430.6875,
+          "headerHeight": 23.75
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "start",
+          "height": 886.765625,
+          "headerHeight": 135.53125
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 1280,
+      "label": "before",
+      "title": {
+        "fontSize": "58.88px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 292.640625,
+            "available": 347
+          },
+          {
+            "word": "Константінов",
+            "lines": 2,
+            "width": 318.671875,
+            "available": 347
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "normal",
+          "height": 365,
+          "headerHeight": 45
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "normal",
+          "height": 734.46875,
+          "headerHeight": 163.46875
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "normal",
+          "height": 734.46875,
+          "headerHeight": 25
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "normal",
+          "height": 886.765625,
+          "headerHeight": 135.53125
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 1280,
+      "label": "after",
+      "title": {
+        "fontSize": "58.56px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 291.046875,
+            "available": 347
+          },
+          {
+            "word": "Константінов",
+            "lines": 1,
+            "width": 346.96875,
+            "available": 347
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "start",
+          "height": 365,
+          "headerHeight": 45
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "start",
+          "height": 734.46875,
+          "headerHeight": 25
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "start",
+          "height": 734.46875,
+          "headerHeight": 25
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "start",
+          "height": 886.765625,
+          "headerHeight": 135.53125
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 1440,
+      "label": "before",
+      "title": {
+        "fontSize": "60px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 298.203125,
+            "available": 344
+          },
+          {
+            "word": "Константінов",
+            "lines": 2,
+            "width": 324.734375,
+            "available": 344
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "normal",
+          "height": 365,
+          "headerHeight": 45
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "normal",
+          "height": 734.46875,
+          "headerHeight": 163.46875
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "normal",
+          "height": 734.46875,
+          "headerHeight": 25
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "normal",
+          "height": 886.765625,
+          "headerHeight": 135.53125
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    },
+    {
+      "width": 1440,
+      "label": "after",
+      "title": {
+        "fontSize": "58.05px",
+        "runs": [
+          {
+            "word": "Олександр",
+            "lines": 1,
+            "width": 288.515625,
+            "available": 344
+          },
+          {
+            "word": "Константінов",
+            "lines": 1,
+            "width": 343.953125,
+            "available": 344
+          }
+        ],
+        "overflow": false
+      },
+      "sections": [
+        {
+          "class": "panel profile-content-section pc2-profile-work",
+          "alignContent": "start",
+          "height": 365,
+          "headerHeight": 45
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--with",
+          "alignContent": "start",
+          "height": 734.46875,
+          "headerHeight": 25
+        },
+        {
+          "class": "panel profile-content-section profile-content-section--without",
+          "alignContent": "start",
+          "height": 734.46875,
+          "headerHeight": 25
+        },
+        {
+          "class": "panel panel--trust",
+          "alignContent": "start",
+          "height": 886.765625,
+          "headerHeight": 135.53125
+        }
+      ],
+      "network": [
+        {
+          "path": "/api/auth/token/refresh/",
+          "status": 401
+        },
+        {
+          "path": "/api/s/specialist/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        },
+        {
+          "path": "/api/booking/slots/",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/auth/token/refresh/"
+        }
+      ],
+      "requestSubmission": "NOT EXECUTED: actual local SMTP delivery is not isolated"
+    }
+  ],
+  "names": [
+    {
+      "width": 375,
+      "name": "Анна Лі",
+      "fontSize": "34px",
+      "runs": [
+        {
+          "word": "Анна",
+          "lines": 1,
+          "width": 75.9375,
+          "available": 327
+        },
+        {
+          "word": "Лі",
+          "lines": 1,
+          "width": 29.28125,
+          "available": 327
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 375,
+      "name": "Олександр Константінов",
+      "fontSize": "34px",
+      "runs": [
+        {
+          "word": "Олександр",
+          "lines": 1,
+          "width": 168.984375,
+          "available": 327
+        },
+        {
+          "word": "Константінов",
+          "lines": 1,
+          "width": 201.453125,
+          "available": 327
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 375,
+      "name": "Олександра Константінопольська-Вишневецька",
+      "fontSize": "20.37px",
+      "runs": [
+        {
+          "word": "Олександра",
+          "lines": 1,
+          "width": 111.8125,
+          "available": 327
+        },
+        {
+          "word": "Константінопольська-Вишневецька",
+          "lines": 1,
+          "width": 326.953125,
+          "available": 327
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 768,
+      "name": "Анна Лі",
+      "fontSize": "34px",
+      "runs": [
+        {
+          "word": "Анна",
+          "lines": 1,
+          "width": 75.9375,
+          "available": 716
+        },
+        {
+          "word": "Лі",
+          "lines": 1,
+          "width": 29.28125,
+          "available": 716
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 768,
+      "name": "Олександр Константінов",
+      "fontSize": "34px",
+      "runs": [
+        {
+          "word": "Олександр",
+          "lines": 1,
+          "width": 168.984375,
+          "available": 716
+        },
+        {
+          "word": "Константінов",
+          "lines": 1,
+          "width": 201.453125,
+          "available": 716
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 768,
+      "name": "Олександра Константінопольська-Вишневецька",
+      "fontSize": "34px",
+      "runs": [
+        {
+          "word": "Олександра",
+          "lines": 1,
+          "width": 186.640625,
+          "available": 716
+        },
+        {
+          "word": "Константінопольська-Вишневецька",
+          "lines": 1,
+          "width": 545.703125,
+          "available": 716
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 1280,
+      "name": "Анна Лі",
+      "fontSize": "58.88px",
+      "runs": [
+        {
+          "word": "Анна",
+          "lines": 1,
+          "width": 131.484375,
+          "available": 347
+        },
+        {
+          "word": "Лі",
+          "lines": 1,
+          "width": 50.703125,
+          "available": 347
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 1280,
+      "name": "Олександр Константінов",
+      "fontSize": "58.56px",
+      "runs": [
+        {
+          "word": "Олександр",
+          "lines": 1,
+          "width": 291.046875,
+          "available": 347
+        },
+        {
+          "word": "Константінов",
+          "lines": 1,
+          "width": 346.96875,
+          "available": 347
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 1280,
+      "name": "Олександра Константінопольська-Вишневецька",
+      "fontSize": "21.61px",
+      "runs": [
+        {
+          "word": "Олександра",
+          "lines": 1,
+          "width": 118.625,
+          "available": 347
+        },
+        {
+          "word": "Константінопольська-Вишневецька",
+          "lines": 1,
+          "width": 346.84375,
+          "available": 347
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 1440,
+      "name": "Анна Лі",
+      "fontSize": "60px",
+      "runs": [
+        {
+          "word": "Анна",
+          "lines": 1,
+          "width": 133.984375,
+          "available": 344
+        },
+        {
+          "word": "Лі",
+          "lines": 1,
+          "width": 51.671875,
+          "available": 344
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 1440,
+      "name": "Олександр Константінов",
+      "fontSize": "58.05px",
+      "runs": [
+        {
+          "word": "Олександр",
+          "lines": 1,
+          "width": 288.515625,
+          "available": 344
+        },
+        {
+          "word": "Константінов",
+          "lines": 1,
+          "width": 343.953125,
+          "available": 344
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    },
+    {
+      "width": 1440,
+      "name": "Олександра Константінопольська-Вишневецька",
+      "fontSize": "21.43px",
+      "runs": [
+        {
+          "word": "Олександра",
+          "lines": 1,
+          "width": 117.640625,
+          "available": 344
+        },
+        {
+          "word": "Константінопольська-Вишневецька",
+          "lines": 1,
+          "width": 343.953125,
+          "available": 344
+        }
+      ],
+      "overflow": false,
+      "source": "name variants on replay of actual local DTOs; separate from direct real smoke"
+    }
+  ]
+}

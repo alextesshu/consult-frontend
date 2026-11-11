@@ -7,21 +7,49 @@
         'shell--minimal': useMinimalShell,
         'shell--authenticated': isAuthenticatedLayout,
         'shell--public-profile': isPublicProfilePage,
+        'shell--public-header-v2': usePublicHeaderV2,
+        'shell--public-auth-header-v2': useSignedInPublicHeaderV2,
+        'shell--cabinet-v2': useCabinetShellV2,
+        'shell--header07': useHeader07,
+        'header07--signed-in': useHeader07 && isAuthenticated,
       },
     ]"
   >
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
-        <RouterLink class="brand" to="/">
-          <span class="brand__logo-frame">
-            <img class="brand__logo brand__logo--full" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+        <RouterLink class="brand" to="/" :aria-label="useHeader07 ? 'Pro Consult' : undefined">
+          <HeaderBrand07 v-if="useHeader07" slogan />
+          <img v-else-if="useV2Brand" class="pc2-brand-lockup pc2-header__logo" :src="fennecHeader" alt="Pro Consult" />
+          <span v-else class="brand__logo-frame">
+            <img class="brand__logo brand__logo--full" :class="{ 'pc2-header__logo': usePublicHeaderV2 }" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
             <span class="brand__mobile-name" aria-hidden="true">Pro Consult</span>
             <span class="brand__text-fallback" aria-hidden="true">PRO CONSULT</span>
           </span>
           <span class="brand__tagline">простір для ведення консультацій</span>
         </RouterLink>
-        <nav class="nav">
+        <nav v-if="usePublicHeaderV2 && !useHeader07 && !isSpecialistOwnedSurface" class="pc2-header__audience" aria-label="Для кого Pro Consult">
+          <RouterLink to="/" class="pc2-header__link" active-class="" exact-active-class=""
+            :class="{ 'is-active': isHome && !isClientEntry }"
+            :aria-current="isHome && !isClientEntry ? 'location' : 'false'">Для спеціалістів</RouterLink>
+          <RouterLink to="/for-clients" class="pc2-header__link" active-class="" exact-active-class=""
+            :class="{ 'is-active': isClientEntry }"
+            :aria-current="isClientEntry ? 'location' : 'false'">Для клієнтів</RouterLink>
+        </nav>
+        <nav v-if="useHeader07 && !isSpecialistOwnedSurface" class="header07__segments" aria-label="Для кого Pro Consult">
+          <RouterLink to="/" :class="{ 'is-active': header07Active === 'specialists' }" :aria-current="header07Active === 'specialists' ? 'page' : undefined">Для спеціалістів</RouterLink>
+          <RouterLink to="/for-clients" :class="{ 'is-active': header07Active === 'clients' }" :aria-current="header07Active === 'clients' ? 'page' : undefined">Для клієнтів</RouterLink>
+          <RouterLink to="/specialists" :class="{ 'is-active': header07Active === 'directory' }">Знайти спеціаліста</RouterLink>
+          <RouterLink v-if="!isClient || isSpecialist" to="/pricing" :class="{ 'is-active': header07Active === 'pricing' }">Тарифи</RouterLink>
+        </nav>
+        <nav class="nav" :class="{ 'pc2-header__actions': usePublicHeaderV2 }">
+        <template v-if="useHeader07 && !isAuthenticated">
+          <RouterLink class="header07__login" to="/login">Увійти</RouterLink>
+          <RouterLink v-if="!isSpecialistOwnedSurface" class="header07__start" :to="isClientContext ? '/signup-client' : '/signup'"><span class="header07__start-full">Почати безкоштовно</span><span class="header07__start-short">Почати</span></RouterLink>
+        </template>
+        <RouterLink v-if="useHeader07 && isAuthenticated && hasSupportedCabinetRole" class="header07__mobile-avatar" :to="cabinetRoute" :aria-label="cabinetLabel">
+          <span>{{ cabinetAccountInitials }}</span><i v-if="notifs.unreadCount.value" aria-hidden="true"></i>
+        </RouterLink>
         <RouterLink
           v-if="isAuthenticated && hasSupportedCabinetRole"
           class="nav__primary-action"
@@ -38,7 +66,7 @@
           Спеціалісти
         </RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Знайти спеціаліста</RouterLink>
-        <RouterLink v-if="showGuestCatalogNav" class="nav__guest-catalog" to="/specialists">
+        <RouterLink v-if="showGuestCatalogNav && !useHeader07" class="nav__guest-catalog" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/specialists">
           Знайти спеціаліста
         </RouterLink>
         <RouterLink v-if="isAuthenticated && isClient && !isSpecialist && !isSpecialistOwnedSurface" class="nav__desktop-only" to="/signup">
@@ -51,15 +79,23 @@
           v-if="isAuthenticated && isSpecialist"
           class="nav__desktop-only"
           to="/public"
-          :class="{ 'nav-link--active': isPublicRoute }"
+          :class="{ 'nav-link--active': isPublicRoute, 'header07__profile-link': useHeader07 }"
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
-        <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" to="/signup">
-          <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
-          <span class="nav__guest-cta-short">Спробувати</span>
+        <RouterLink v-if="!useHeader07 && !isAuthenticated && !isSpecialistOwnedSurface && !isClientLandingV2" class="nav__desktop-only" :class="{ 'pc2-header__link': usePublicHeaderV2 }" to="/pricing">Тарифи</RouterLink>
+        <RouterLink v-if="!useHeader07 && !isAuthenticated" :class="{ 'pc2-header__link pc2-header__login': usePublicHeaderV2 }" to="/login">Вхід</RouterLink>
+        <RouterLink v-if="!useHeader07 && !isAuthenticated && !isSpecialistOwnedSurface" class="nav__guest-cta" :class="{ 'pc2-btn pc2-btn--primary pc2-header__cta': usePublicHeaderV2 }" :to="isClientLandingV2 ? '/signup-client?ui=v2' : '/signup'">
+          <span class="nav__guest-cta-full">{{ isClientLandingV2 ? 'Створити кабінет' : 'Спробувати безкоштовно' }}</span>
+          <span class="nav__guest-cta-short">{{ isClientLandingV2 ? 'Кабінет клієнта' : 'Спробувати' }}</span>
+        </RouterLink>
+        <RouterLink
+          v-if="usePublicHeaderV2 && !useHeader07 && publicMobileAction"
+          class="pc2-header__mobile-action"
+          :class="publicMobileAction.primary ? 'is-primary' : 'is-link'"
+          :to="publicMobileAction.to"
+        >
+          {{ publicMobileAction.label }}
         </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
@@ -125,9 +161,11 @@
                 fill="currentColor"
               />
             </svg>
-            <span v-if="notificationCount" class="icon-btn__badge">{{ notificationCount }}</span>
+            <span v-if="notificationCount" class="icon-btn__badge" :aria-label="useHeader07 ? header07UnreadLabel : undefined">{{ notificationCount }}</span>
           </button>
-          <div v-if="showNotifications" ref="notificationsPanelRef" class="notif-panel">
+          <div v-if="showNotifications" ref="notificationsPanelRef" class="notif-panel"
+            :tabindex="useHeader07 ? -1 : undefined" :role="useHeader07 ? 'region' : undefined"
+            :aria-label="useHeader07 ? 'Сповіщення' : undefined">
             <div class="notif-panel__header">
               <div class="notif-panel__title">Сповіщення</div>
               <button
@@ -203,15 +241,31 @@
           </div>
         </div>
         <button
+          v-if="usePublicHeaderV2 && !isSpecialistOwnedSurface"
+          ref="publicMenuButtonRef"
+          class="pc2-header__menu-toggle" :class="{ 'header07__guest-menu': useHeader07 }"
+          type="button"
+          aria-label="Меню сайту"
+          :aria-controls="usePublicMobileMenu ? 'public-mobile-menu-v2' : 'public-navigation-v2'"
+          :aria-haspopup="usePublicMobileMenu ? 'dialog' : undefined"
+          :aria-expanded="showPublicMenu ? 'true' : 'false'"
+          @click="showPublicMenu = !showPublicMenu"
+        >
+          <svg class="pc2-header__menu-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <svg class="pc2-header__menu-icon--mobile" viewBox="0 0 20 9" aria-hidden="true"><path d="M1 1h18M1 8h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        </button>
+        <button
           v-if="isAuthenticated"
           ref="mobileMenuButtonRef"
           class="icon-btn nav__mobile-only"
+          :class="{ 'header07__account-menu': useHeader07 }"
           type="button"
           aria-label="Меню"
           aria-haspopup="menu"
           :aria-expanded="showMobileMenu ? 'true' : 'false'"
           @click="toggleMobileMenu"
         >
+          <span v-if="useHeader07" class="header07__account-copy"><span class="header07__avatar">{{ cabinetAccountInitials }}</span>{{ isClient && !isSpecialist ? 'Мої сесії' : 'Кабінет' }}</span>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M4 7h16M4 12h16M4 17h16"
@@ -225,9 +279,21 @@
         <button v-if="isAuthenticated" class="btn btn--ghost nav__desktop-only" type="button" @click="onLogout">
           Вийти
         </button>
+        <button
+          v-if="useCabinetShellV2"
+          class="pc2-cabinet-header__account"
+          type="button"
+          aria-label="Акаунт та інші розділи кабінету"
+          aria-haspopup="dialog"
+          aria-controls="cabinet-more-sheet"
+          :aria-expanded="showCabinetMore ? 'true' : 'false'"
+          @click="openCabinetMore"
+        >
+          <span aria-hidden="true">{{ cabinetAccountInitials }}</span>
+        </button>
         <div v-if="isAuthenticated && showMobileMenu" ref="mobileMenuPanelRef" class="mobile-menu" role="menu">
           <RouterLink
-            v-if="hasSupportedCabinetRole && !isSpecialist"
+            v-if="hasSupportedCabinetRole && (!isSpecialist || useHeader07)"
             class="mobile-menu__item"
             :to="cabinetRoute"
             @click="closeMobileMenu"
@@ -277,13 +343,34 @@
           >
             Налаштування
           </RouterLink>
-          <RouterLink v-if="isChatCapable && !isSpecialist" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
+          <RouterLink v-if="isChatCapable && (!isSpecialist || useHeader07)" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
+          <button v-if="useHeader07" type="button" class="mobile-menu__item" @click.stop="openNotificationsFromMenu">Сповіщення</button>
           <button type="button" class="mobile-menu__item mobile-menu__item--button" @click="onLogoutFromMenu">
             Вийти
           </button>
         </div>
         </nav>
+        <nav
+          v-if="usePublicHeaderV2 && !isSpecialistOwnedSurface && showPublicMenu && !usePublicMobileMenu"
+          id="public-navigation-v2"
+          ref="publicMenuPanelRef"
+          class="pc2-header__mobile-nav"
+          aria-label="Мобільна навігація сайту"
+        >
+          <RouterLink to="/" @click="showPublicMenu = false">Для спеціалістів</RouterLink>
+          <RouterLink to="/for-clients" :aria-current="isClientEntry ? 'page' : undefined" @click="showPublicMenu = false">Для клієнтів</RouterLink>
+          <RouterLink to="/specialists" @click="showPublicMenu = false">Знайти спеціаліста</RouterLink>
+          <RouterLink to="/pricing" @click="showPublicMenu = false">Тарифи</RouterLink>
+          <RouterLink to="/login" @click="showPublicMenu = false">Вхід</RouterLink>
+        </nav>
+        <PublicMobileMenuV2
+          v-if="usePublicMobileMenu"
+          v-model:open="showPublicMenu"
+          :audience="publicMenuAudience"
+          :trigger="publicMenuButtonRef"
+        />
       </div>
+    <div v-if="useHeader07" class="header07__slogan-strip"><span aria-hidden="true"></span>Простір для консультацій і приватної практики</div>
     </header>
 
     <main
@@ -293,13 +380,27 @@
           'main--home': isHome,
           'main--public-profile': isPublicProfilePage,
           'main--tour': isTour,
+          'main--for-clients-v2': isUiV2() && route.name === 'for-clients',
           'main--authenticated': isAuthenticatedLayout,
           'main--specialist-shell': showSpecialistCabinetShell,
         },
       ]"
     >
       <EmailVerificationNotice v-if="isAuthenticated && isAuthenticatedCabinetRoute && !useMinimalShell" />
-      <div v-if="showSpecialistCabinetShell" class="specialist-shell">
+      <SpecialistCabinetShellV2
+        v-if="useCabinetShellV2"
+        v-model:more-open="showCabinetMore"
+        :path="route.path"
+        :badges="cabinetNavBadges"
+        :account-title="cabinetAccountTitle"
+        :account-subtitle="cabinetAccountSubtitle"
+        :account-initials="cabinetAccountInitials"
+        public-profile-to="/public"
+        @logout="onLogout"
+      >
+        <RouterView :key="route.path" />
+      </SpecialistCabinetShellV2>
+      <div v-else-if="showSpecialistCabinetShell" class="specialist-shell">
         <aside class="specialist-sidebar" role="navigation" aria-label="Навігація кабінету спеціаліста">
           <div class="specialist-sidebar__label">Кабінет</div>
           <nav class="specialist-sidebar__nav">
@@ -400,13 +501,46 @@
           'footer--public': !isCabinetRoute && !isSpecialistOwnedSurface,
           'footer--specialist-owned': isSpecialistOwnedSurface,
           'footer--home': isHome,
+          'pc2-footer': usePublicFooterV2,
         },
       ]"
     >
-      <template v-if="isCabinetRoute">
+      <template v-if="usePublicFooterV2">
+        <img class="pc2-footer__watermark" :src="fennecSymbol" alt="" aria-hidden="true" />
+        <div class="pc2-footer__brand">
+          <RouterLink to="/" aria-label="Pro Consult — головна"><img :src="fennecLockup" alt="Pro Consult" /></RouterLink>
+          <span>© {{ new Date().getFullYear() }}</span>
+        </div>
+        <!-- Specialist-owned pages keep their legal-only link set: no product, catalog or registration promotion. -->
+        <nav class="pc2-footer__links" aria-label="Правова інформація та підтримка">
+          <RouterLink v-if="!isSpecialistOwnedSurface" to="/faq">Питання та відповіді</RouterLink>
+          <RouterLink to="/privacy">Політика конфіденційності</RouterLink>
+          <RouterLink to="/terms">Умови користування</RouterLink>
+          <RouterLink v-if="!isSpecialistOwnedSurface" to="/disclaimer">Дисклеймер</RouterLink>
+          <RouterLink to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
+          <button type="button" @click="openAnalyticsConsent">Налаштування конфіденційності</button>
+        </nav>
+        <nav v-if="!isSpecialistOwnedSurface" class="pc2-footer__secondary" aria-label="Продукт Pro Consult">
+          <RouterLink to="/#features">Можливості</RouterLink>
+          <RouterLink to="/specialists">Знайти спеціаліста</RouterLink>
+          <RouterLink to="/pricing">Тарифи</RouterLink>
+          <RouterLink to="/login">Увійти</RouterLink>
+          <RouterLink to="/signup">Створити простір</RouterLink>
+        </nav>
+        <div class="pc2-footer__bottom">
+          <span v-if="isSpecialistOwnedSurface">Інформацію на сторінці надає спеціаліст. Pro Consult не перевіряє кваліфікацію і не бере комісію з консультацій.</span>
+          <span v-else>Без комісій. Без посередників. З повагою до практики.</span>
+          <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
+            <span class="footer__deploy-env">Staging</span>
+            <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="isCabinetRoute">
         <div class="footer__cabinet-brand">
           <span class="footer__brand-lockup">
-            <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <img v-if="useV2Brand && isSpecialist" class="footer__logo footer__logo--cabinet" :src="fennecHeader" alt="Pro Consult" />
+            <img v-else class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
             <span class="footer__name footer__text-fallback">Pro Consult</span>
           </span>
           <span>Без комісій. Без посередників. З повагою до практики.</span>
@@ -516,9 +650,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { isUiV2 } from './lib/uiVersion'
+import fennecLockup from './assets/brand-v2/proconsult-fennec-lockup.svg'
+import fennecHeader from './assets/brand-v2/proconsult-fennec-header.svg'
+import HeaderBrand07 from './components/HeaderBrand07.vue'
+import './styles/header07.css'
+import SpecialistCabinetShellV2 from './components/cabinet-v2/SpecialistCabinetShellV2.vue'
+import { accountInitials, planLabel, type CabinetNavBadges } from './lib/specialistCabinetNav'
+import PublicMobileMenuV2 from './components/PublicMobileMenuV2.vue'
+import type { PublicMenuAudience } from './lib/publicMobileMenu'
+import fennecSymbol from './assets/brand-v2/proconsult-fennec-symbol-blue.svg'
 import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner.vue'
@@ -547,7 +691,44 @@ const isAuthenticatedCabinetRoute = computed(
   () => route.path.startsWith('/cabinet') || route.path.startsWith('/client')
 )
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
+const usePublicHeaderV2 = computed(() => isUiV2() && !isAuthenticated.value && !useMinimalShell.value)
+// Approved fennec branding follows the UI version, not the auth state; v1 keeps the legacy logos.
+const useV2Brand = computed(() => isUiV2() && !useMinimalShell.value)
+const useHeader07 = computed(() => useV2Brand.value && !isAdmin.value)
+const header07Active = computed(() => {
+  if (route.path.startsWith('/specialists')) return 'directory'
+  if (route.path === '/pricing' || route.hash === '#pricing') return 'pricing'
+  return isClientEntry.value || (isClient.value && !isSpecialist.value) ? 'clients' : 'specialists'
+})
+const usePublicFooterV2 = computed(() => useV2Brand.value && !isCabinetRoute.value)
+// Specialist-owned public pages in v2: signed-in visitors get the same cream public header frame
+// with their existing account actions; guests already use the v2 public header.
+const useSignedInPublicHeaderV2 = computed(() => useV2Brand.value && isAuthenticated.value && isSpecialistOwnedSurface.value)
+const showPublicMenu = ref(false)
+const publicMenuButtonRef = ref<HTMLButtonElement | null>(null)
+const publicMenuPanelRef = ref<HTMLElement | null>(null)
+watch(() => [route.fullPath, usePublicHeaderV2.value], () => { showPublicMenu.value = false })
+const isClientEntry = computed(() => route.name === 'for-clients' || (isHome.value && route.hash === '#client-entry-title'))
+const isClientLandingV2 = computed(() => usePublicHeaderV2.value && route.name === 'for-clients')
 const isSpecialistOwnedSurface = computed(() => route.meta?.publicSurface === 'specialist-owned')
+// Public-Mobile.dc.html P2 (< 768px): 60px header with one context action and a full-screen menu.
+// Specialist-owned pages keep the restricted inline menu without product promotion.
+const PUBLIC_MOBILE_QUERY = '(max-width: 767px)'
+const publicMobileMedia = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(PUBLIC_MOBILE_QUERY) : null
+const isPublicMobile = ref(Boolean(publicMobileMedia?.matches))
+function syncPublicMobile() { isPublicMobile.value = Boolean(publicMobileMedia?.matches) }
+onMounted(() => publicMobileMedia?.addEventListener('change', syncPublicMobile))
+onBeforeUnmount(() => publicMobileMedia?.removeEventListener('change', syncPublicMobile))
+const usePublicMobileMenu = computed(() => usePublicHeaderV2.value && isPublicMobile.value && !isSpecialistOwnedSurface.value)
+const isClientContext = computed(() => isClientEntry.value || route.path.startsWith('/specialists'))
+const publicMenuAudience = computed<PublicMenuAudience>(() => (isClientContext.value ? 'clients' : 'specialists'))
+const publicMobileAction = computed(() => {
+  // Specialists: «Створити» is the same action as the hero «Створити простір безкоштовно».
+  const action = isClientContext.value || isSpecialistOwnedSurface.value
+    ? { label: 'Увійти', to: '/login', primary: false }
+    : { label: 'Створити', to: '/signup', primary: true }
+  return route.path === action.to ? null : action
+})
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
 )
@@ -654,6 +835,27 @@ const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
 const showSpecialistCabinetShell = computed(
   () => isAuthenticated.value && isSpecialist.value && !useMinimalShell.value && route.path.startsWith('/cabinet')
 )
+// KAN-161: UI v2 specialist cabinet shell (sidebar, M1 tab bar, M2 «Ще»); v1 keeps the legacy shell.
+const useCabinetShellV2 = computed(() => isUiV2() && showSpecialistCabinetShell.value)
+const showCabinetMore = ref(false)
+function openCabinetMore() {
+  showNotifications.value = false
+  showSettings.value = false
+  showMobileMenu.value = false
+  showCabinetMore.value = true
+}
+watch(useCabinetShellV2, (enabled) => { if (!enabled) showCabinetMore.value = false })
+const cabinetNavBadges = computed<CabinetNavBadges>(() => ({
+  sessions: pendingSessionsCount.value || undefined,
+  requests: pendingGuestRequestsCount.value || undefined,
+  chats: chatUnreadCount.value || undefined,
+}))
+const cabinetAccountTitle = computed(() => auth.me?.user?.email || auth.me?.user?.username || 'Мій акаунт')
+const cabinetAccountSubtitle = computed(() => {
+  const plan = planLabel(auth.me?.effective_entitlements?.plan)
+  return plan ? `Тариф ${plan}` : 'Кабінет спеціаліста'
+})
+const cabinetAccountInitials = computed(() => accountInitials(auth.me?.user?.username || auth.me?.user?.email))
 watchEffect(() => {
   const path = route.path || ''
   const role =
@@ -703,6 +905,10 @@ const topbarClass = computed(() => [
     'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
+    'pc2-header': usePublicHeaderV2.value,
+    'pc2-public-auth-header': useSignedInPublicHeaderV2.value,
+    'pc2-cabinet-header': useCabinetShellV2.value,
+    'header07': useHeader07.value,
   },
 ])
 
@@ -980,8 +1186,43 @@ const notifications = computed(() => [
   ...supplementalNotifications.value,
 ])
 const notificationCount = notifs.unreadCount
+const header07UnreadLabel = computed(() => {
+  const count = notificationCount.value
+  const form = new Intl.PluralRules('uk').select(count)
+  return `${count} ${form === 'one' ? 'нове сповіщення' : form === 'few' ? 'нові сповіщення' : 'нових сповіщень'}`
+})
+
+let notificationsMenuTrigger: HTMLElement | null = null
+
+async function openNotificationsFromMenu(event: MouseEvent) {
+  notificationsMenuTrigger = mobileMenuButtonRef.value
+  showSettings.value = false
+  showSpecialistSidebarDrawer.value = false
+  showNotifications.value = true
+  if (event.detail === 0) {
+    // Mount and focus the non-modal panel before removing its focused menu item.
+    await nextTick()
+    if (showNotifications.value) notificationsPanelRef.value?.focus({ preventScroll: true })
+  }
+  showMobileMenu.value = false
+}
+
+function closeNotifications(restoreFocus = false) {
+  if (!showNotifications.value) {
+    notificationsMenuTrigger = null
+    return
+  }
+  const trigger = notificationsMenuTrigger
+  if (trigger?.isConnected && getComputedStyle(trigger).display !== 'none' &&
+      (restoreFocus || notificationsPanelRef.value?.contains(document.activeElement))) {
+    trigger.focus({ preventScroll: true })
+  }
+  notificationsMenuTrigger = null
+  showNotifications.value = false
+}
 
 function toggleNotifications() {
+  notificationsMenuTrigger = null
   showSettings.value = false
   showMobileMenu.value = false
   showSpecialistSidebarDrawer.value = false
@@ -995,11 +1236,15 @@ function toggleSettings() {
   showSettings.value = !showSettings.value
 }
 
-function toggleMobileMenu() {
+async function toggleMobileMenu() {
   showNotifications.value = false
   showSettings.value = false
   showSpecialistSidebarDrawer.value = false
   showMobileMenu.value = !showMobileMenu.value
+  if (useHeader07.value && showMobileMenu.value) {
+    await nextTick()
+    mobileMenuPanelRef.value?.querySelector<HTMLElement>('a, button')?.focus()
+  }
 }
 
 function closeMobileMenu() {
@@ -1192,12 +1437,17 @@ function handleVisibilityChange() {
 
 function handleGlobalClick(event: MouseEvent) {
   const target = event.target as Node
+  // The teleported P2 menu handles its own backdrop and links.
+  const insideMobileMenu = target instanceof Element && Boolean(target.closest('.pc2-mobile-menu'))
+  if (showPublicMenu.value && !insideMobileMenu && !publicMenuButtonRef.value?.contains(target) && !publicMenuPanelRef.value?.contains(target)) {
+    showPublicMenu.value = false
+  }
   if (showNotifications.value) {
     const button = notificationsButtonRef.value
     const panel = notificationsPanelRef.value
     if (button && button.contains(target)) return
     if (panel && panel.contains(target)) return
-    showNotifications.value = false
+    closeNotifications()
   }
   if (showSettings.value) {
     const button = settingsButtonRef.value
@@ -1217,8 +1467,13 @@ function handleGlobalClick(event: MouseEvent) {
 
 function handleGlobalKeydown(event: KeyboardEvent) {
   if (event.key !== 'Escape') return
-  showNotifications.value = false
+  if (showPublicMenu.value) {
+    showPublicMenu.value = false
+    publicMenuButtonRef.value?.focus()
+  }
+  closeNotifications(true)
   showSettings.value = false
+  if (useHeader07.value && showMobileMenu.value) mobileMenuButtonRef.value?.focus()
   showMobileMenu.value = false
 }
 
@@ -2166,6 +2421,13 @@ watch(isChatCapable, (value) => {
 
 .main--authenticated {
   width: min(1480px, 100%);
+}
+
+html[data-ui="v2"] .main--for-clients-v2 {
+  width: min(var(--pc-container), calc(100% + var(--shell-inline-pad) * 2));
+  max-width: none;
+  margin: 0;
+  justify-self: center;
 }
 
 .main--specialist-shell {

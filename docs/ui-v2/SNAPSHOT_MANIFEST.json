@@ -1,0 +1,1180 @@
+{
+  "source": "C:\\Users\\admin\\dev\\portfolio\\consult\\design-sources\\Модернізація дизайну сайту ProConsult.zip",
+  "sha256": "265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948",
+  "archive_bytes": 4256906,
+  "files": [
+    {
+      "path": ".thumbnail",
+      "bytes": 19086,
+      "sha256": "d16ebac7b3816cae8e45bd162e730ca26058839c393c12d8459b9d9400693311"
+    },
+    {
+      "path": "Admin.dc.html",
+      "bytes": 87463,
+      "sha256": "f33ab82c60255554fa64ac0b4e555320c84361b28ddfcf6d563c76ddf14cde81"
+    },
+    {
+      "path": "Brand.dc.html",
+      "bytes": 22501,
+      "sha256": "122026852b919305240476dbcc7acc98c78e269d8870ba6bf961ccee8338bc60"
+    },
+    {
+      "path": "Cabinet-Dashboard.dc.html",
+      "bytes": 40475,
+      "sha256": "b63e21e8fac7b7299862d962c849d3ba69a47863c25cf9b4af7a67d125dbc164"
+    },
+    {
+      "path": "Cabinet-Drawer.dc.html",
+      "bytes": 40571,
+      "sha256": "cd2000c5bf8e9699e89befccb8f44104e7eee7ee7fc2ca066e6b3d0662478407"
+    },
+    {
+      "path": "Cabinet-Mobile.dc.html",
+      "bytes": 56581,
+      "sha256": "3297d7a9d59f4fc72bcd620cb5d30473f8381a90061ab83c2bf3579822565f14"
+    },
+    {
+      "path": "Client-Cabinet.dc.html",
+      "bytes": 33912,
+      "sha256": "1904a84985679890ff26a30327ef00d19c3c54969287c909d6058a82297e06b5"
+    },
+    {
+      "path": "Client-Signup.dc.html",
+      "bytes": 12238,
+      "sha256": "4b237ea1b0fbf805469ecd1ee7b85d6a2ff6a255e45695adb2378facea1c6249"
+    },
+    {
+      "path": "Clients.dc.html",
+      "bytes": 61725,
+      "sha256": "73c67d2eb53457ac1274002fcf8ce1f1174c80b1bfda79c7213b7b9eec08fbe4"
+    },
+    {
+      "path": "Find-Specialist.dc.html",
+      "bytes": 23858,
+      "sha256": "98204a1bf4581ba4e7574cadc136c919d161d8263b653c2dc59987a65c515a71"
+    },
+    {
+      "path": "For-Clients.dc.html",
+      "bytes": 25909,
+      "sha256": "b31d4f4fcbb10bbc04eb5851b68e1028c7594c5d51aade01693d89bce16c59b8"
+    },
+    {
+      "path": "Handoff-Spec.dc.html",
+      "bytes": 44754,
+      "sha256": "cd442b6976575d7bb585160f875aacc7b34e480eaa9b71026f4ddda8ded78040"
+    },
+    {
+      "path": "Home-A-Calm-Letter.dc.html",
+      "bytes": 9451,
+      "sha256": "36b5eb57ecd4f3903fd3790ca62f99bb481075a5c1b57b5a03ab0c8879344767"
+    },
+    {
+      "path": "Home-B-One-Path.dc.html",
+      "bytes": 8855,
+      "sha256": "2714553a342f8a52fd93b681f1f871fb770d531a3b6c9754ae3bc681af831dc4"
+    },
+    {
+      "path": "Home-C-Desk.dc.html",
+      "bytes": 10417,
+      "sha256": "75f7d33c4376d31937d81df10940130371bc03988328550b0f57eb8f41612d66"
+    },
+    {
+      "path": "Home.dc.html",
+      "bytes": 33480,
+      "sha256": "00822e105a758dd69d39b5755ba30e2de7aa27d1d78a6a759187ed3e1d425c22"
+    },
+    {
+      "path": "Practice-Block-Options.dc.html",
+      "bytes": 18730,
+      "sha256": "c2e798e630f0a9ba6cd6144852a77bed7802c29eb4b7e593497479fc45d8a60e"
+    },
+    {
+      "path": "Sessions.dc.html",
+      "bytes": 63737,
+      "sha256": "8f0835d52ac8423f7690abd35b2eec539139f327a18b556e792fd7e14faddc10"
+    },
+    {
+      "path": "Signup.dc.html",
+      "bytes": 19036,
+      "sha256": "263c965ac31e8cdf4684973d4bfefbf7ad5b17d9ce34bf4268202ea939be8bb6"
+    },
+    {
+      "path": "Specialist-Dashboard.dc.html",
+      "bytes": 79216,
+      "sha256": "1c1a3cf59e386d93e65b0bc64a5ae1c186a1b777938687e72f5b816553e29dbc"
+    },
+    {
+      "path": "Specialist-Profile.dc.html",
+      "bytes": 28774,
+      "sha256": "3f1d667b9415c580e0c59b6e9400b6084c1423b69c07313f9138daad694a03de"
+    },
+    {
+      "path": "_ds/nocturne-0780b0bf-a32b-4746-8fd7-cf0a0b0b3f2d/_adherence.oxlintrc.json",
+      "bytes": 4195,
+      "sha256": "06186bb46f06c0fa5afd27543508082248de52d249988265ce294511a684923d"
+    },
+    {
+      "path": "_ds/nocturne-0780b0bf-a32b-4746-8fd7-cf0a0b0b3f2d/_ds_bundle.js",
+      "bytes": 300,
+      "sha256": "aceb66bfea8c86f6ebf519525c4669e2d6bda22791fdf24db8f2cff09deabfb0"
+    },
+    {
+      "path": "_ds/nocturne-0780b0bf-a32b-4746-8fd7-cf0a0b0b3f2d/_ds_manifest.json",
+      "bytes": 7480,
+      "sha256": "232f36fe241f1d1dba230d5c82f4dc02baeb28ffae6172db00d0a952d909da4c"
+    },
+    {
+      "path": "_ds/nocturne-0780b0bf-a32b-4746-8fd7-cf0a0b0b3f2d/readme.md",
+      "bytes": 8307,
+      "sha256": "dcc4460813d2feb7cc696c1a6f881626137537c96dd57a504cca7de330fc7499"
+    },
+    {
+      "path": "_ds/nocturne-0780b0bf-a32b-4746-8fd7-cf0a0b0b3f2d/styles.css",
+      "bytes": 13029,
+      "sha256": "6fea354710ec4e3b2b979b723ed37d8e8959bb7d9137425d0d562b4ad8733cda"
+    },
+    {
+      "path": "assets/maria-koval.webp",
+      "bytes": 35642,
+      "sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605"
+    },
+    {
+      "path": "brand-listen.js",
+      "bytes": 1807,
+      "sha256": "bdf72b9bc3446a173f28f5e1945c81bda6f12dac8dbc33db54c3a3cb644fd017"
+    },
+    {
+      "path": "github.md",
+      "bytes": 1857,
+      "sha256": "420b883c8c0f2c1c9b149676ee7d66ad784e824c8438c34a47db2e4c36140d40"
+    },
+    {
+      "path": "handoff/CODEX_TASKS.md",
+      "bytes": 12451,
+      "sha256": "59ca4792e02a0ee09b6e50aafb454c0cdfcdcf6b5cb0e04ebbfb6d1ad2432554"
+    },
+    {
+      "path": "handoff/MIGRATION_PLAN_V2.md",
+      "bytes": 11265,
+      "sha256": "fb72ca5f36ba282416ea5a1623343d16aafbb9386dafe2e3e31b05e033339be4"
+    },
+    {
+      "path": "handoff/README.md",
+      "bytes": 4860,
+      "sha256": "88b59e572e87ad4d9755a08d6fdf1f7a7fa1aa69351313b332530ebd260df10a"
+    },
+    {
+      "path": "handoff/TZ_CODEX.md",
+      "bytes": 48953,
+      "sha256": "851fc0520b20d67be4f905b24670853c6d191fbf57bc824f9cecfc64643a1ae5"
+    },
+    {
+      "path": "handoff/frontend/PATCHES.md",
+      "bytes": 2598,
+      "sha256": "164c73d10e8362c7d00b414dd0d9cbe75c6d9a8961be2c9d8c30ceb3076b4ef0"
+    },
+    {
+      "path": "handoff/frontend/docs/DESIGN_SYSTEM.md",
+      "bytes": 29643,
+      "sha256": "2ce193ba62d4beb58cf791ce4d9ed376deb61ccc549c5e360ede261d8f952293"
+    },
+    {
+      "path": "handoff/frontend/src/lib/uiVersion.ts",
+      "bytes": 861,
+      "sha256": "5d293bfa722250071fd431f4b34eeefd869f72129680fbd4641914380adcc385"
+    },
+    {
+      "path": "handoff/frontend/src/styles/components-v2.css",
+      "bytes": 23243,
+      "sha256": "564c13491ae720933aeca75c68eb6ec67ca2218c8a831600f05cde77ee104504"
+    },
+    {
+      "path": "handoff/frontend/src/styles/tokens-v2.css",
+      "bytes": 6336,
+      "sha256": "f7a89121a7d6d6283ea76964d24695745f4ee9fd254c4b6cc169b856d6948a2d"
+    },
+    {
+      "path": "handoff/mockups/Admin.dc.html",
+      "bytes": 87463,
+      "sha256": "f33ab82c60255554fa64ac0b4e555320c84361b28ddfcf6d563c76ddf14cde81"
+    },
+    {
+      "path": "handoff/mockups/Brand.dc.html",
+      "bytes": 22501,
+      "sha256": "122026852b919305240476dbcc7acc98c78e269d8870ba6bf961ccee8338bc60"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Dashboard.dc.html",
+      "bytes": 40475,
+      "sha256": "b63e21e8fac7b7299862d962c849d3ba69a47863c25cf9b4af7a67d125dbc164"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Drawer.dc.html",
+      "bytes": 40571,
+      "sha256": "cd2000c5bf8e9699e89befccb8f44104e7eee7ee7fc2ca066e6b3d0662478407"
+    },
+    {
+      "path": "handoff/mockups/Cabinet-Mobile.dc.html",
+      "bytes": 56581,
+      "sha256": "3297d7a9d59f4fc72bcd620cb5d30473f8381a90061ab83c2bf3579822565f14"
+    },
+    {
+      "path": "handoff/mockups/Client-Cabinet.dc.html",
+      "bytes": 33912,
+      "sha256": "1904a84985679890ff26a30327ef00d19c3c54969287c909d6058a82297e06b5"
+    },
+    {
+      "path": "handoff/mockups/Client-Signup.dc.html",
+      "bytes": 12238,
+      "sha256": "4b237ea1b0fbf805469ecd1ee7b85d6a2ff6a255e45695adb2378facea1c6249"
+    },
+    {
+      "path": "handoff/mockups/Clients.dc.html",
+      "bytes": 61725,
+      "sha256": "73c67d2eb53457ac1274002fcf8ce1f1174c80b1bfda79c7213b7b9eec08fbe4"
+    },
+    {
+      "path": "handoff/mockups/Find-Specialist.dc.html",
+      "bytes": 23858,
+      "sha256": "98204a1bf4581ba4e7574cadc136c919d161d8263b653c2dc59987a65c515a71"
+    },
+    {
+      "path": "handoff/mockups/For-Clients.dc.html",
+      "bytes": 25909,
+      "sha256": "b31d4f4fcbb10bbc04eb5851b68e1028c7594c5d51aade01693d89bce16c59b8"
+    },
+    {
+      "path": "handoff/mockups/Handoff-Spec.dc.html",
+      "bytes": 44754,
+      "sha256": "cd442b6976575d7bb585160f875aacc7b34e480eaa9b71026f4ddda8ded78040"
+    },
+    {
+      "path": "handoff/mockups/Home.dc.html",
+      "bytes": 33480,
+      "sha256": "00822e105a758dd69d39b5755ba30e2de7aa27d1d78a6a759187ed3e1d425c22"
+    },
+    {
+      "path": "handoff/mockups/Sessions.dc.html",
+      "bytes": 63737,
+      "sha256": "8f0835d52ac8423f7690abd35b2eec539139f327a18b556e792fd7e14faddc10"
+    },
+    {
+      "path": "handoff/mockups/Signup.dc.html",
+      "bytes": 19036,
+      "sha256": "263c965ac31e8cdf4684973d4bfefbf7ad5b17d9ce34bf4268202ea939be8bb6"
+    },
+    {
+      "path": "handoff/mockups/Specialist-Profile.dc.html",
+      "bytes": 28774,
+      "sha256": "3f1d667b9415c580e0c59b6e9400b6084c1423b69c07313f9138daad694a03de"
+    },
+    {
+      "path": "handoff/mockups/assets/maria-koval.webp",
+      "bytes": 35642,
+      "sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605"
+    },
+    {
+      "path": "handoff/mockups/brand-listen.js",
+      "bytes": 1807,
+      "sha256": "bdf72b9bc3446a173f28f5e1945c81bda6f12dac8dbc33db54c3a3cb644fd017"
+    },
+    {
+      "path": "handoff/mockups/public/brand/apple-touch-icon.png",
+      "bytes": 10864,
+      "sha256": "42c8513e7ae75a8b309503c405e512a7f46c3a8def1ede4e702af2fc0fb1ed92"
+    },
+    {
+      "path": "handoff/mockups/public/brand/favicon-192.png",
+      "bytes": 15348,
+      "sha256": "fa91068d85b12b9bfabf67634eb1ca30bc5506d4e87b2740e2fac438030bcf0d"
+    },
+    {
+      "path": "handoff/mockups/public/brand/favicon-32.png",
+      "bytes": 2142,
+      "sha256": "0af0ebc5efbb921405d2e0505a1098dd0bec50ddbf5d910655c5b98fecaff495"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-band.png",
+      "bytes": 96333,
+      "sha256": "19f1ca55e2838701a7d88ba72d7ad92e55adf69de6052f4d15d6d410e2a81ac4"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-deep.png",
+      "bytes": 96144,
+      "sha256": "105a23c5b8029bb0e1356a4b48bc747aa2f6948ffda3f32ac496371e8e410476"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-mask.png",
+      "bytes": 76749,
+      "sha256": "e9b469dfccf750eb32cdc975d930a3331d54d05788be420b4061f5e7d911bba8"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-mint.png",
+      "bytes": 96472,
+      "sha256": "3955a02083318054564c1537df2ea5d87cf32270ea409bfecf88e9f4028d5587"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-navy.png",
+      "bytes": 95525,
+      "sha256": "474646f6d9ea9fd10afbd1e9347d2005ed3721d349c00911c58acf592a7b08d9"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-pale.png",
+      "bytes": 96088,
+      "sha256": "f753d19d614c0942b6e7225c74da57babdecdb5780659cbfedf586097ee639e8"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-sand.png",
+      "bytes": 95938,
+      "sha256": "dfceb2a88c25f82694f2e3321c2d2cfd55f17ee1a86762d2c50b584740a9aeb3"
+    },
+    {
+      "path": "handoff/mockups/public/brand/mark-white.png",
+      "bytes": 81252,
+      "sha256": "e18f4c97c8384a9617141a99350c85dd0129d155db38b99a5fbc4b1fbe12ca80"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-logo-dark.png",
+      "bytes": 40403,
+      "sha256": "fa406630c9ec734240d0bf16b2827b6fb5d7759a6b4429db053f2bd343caa5e0"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-logo-light.png",
+      "bytes": 32713,
+      "sha256": "85b9acfda817fa05d3f766d4bf41f3baadb9b18242b33c06b302a4f53bf8fa8c"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-mark-light.png",
+      "bytes": 37169,
+      "sha256": "56e2de484c4c50aa4159f7f54e8552dc226d377b7cb06d50dc1c66003c6a7b73"
+    },
+    {
+      "path": "handoff/mockups/public/brand/proconsult-mark.png",
+      "bytes": 44720,
+      "sha256": "99c47107e98597b4909159f26ba74f2b1dc25db7c22804d56e3ef764481c0739"
+    },
+    {
+      "path": "handoff/mockups/public/brand/wordmark-caps-ink.png",
+      "bytes": 51726,
+      "sha256": "15aa3d5fd8de0b0a2ea8227ef1c71b04fbf4e5a2e5e4e13e08e506ccb19b0f09"
+    },
+    {
+      "path": "handoff/mockups/public/brand/wordmark-caps-mask.png",
+      "bytes": 40913,
+      "sha256": "2bc23140f0b236b239bc1339ab0324bb415e2eaa9bdbd2cbff25d940fe6293c1"
+    },
+    {
+      "path": "handoff/mockups/public/brand/wordmark-mask.png",
+      "bytes": 29638,
+      "sha256": "0ae86cc9511d42354221884acf79172d5fa100a5f0f07f2630e45e742c42b88a"
+    },
+    {
+      "path": "handoff/mockups/support.js",
+      "bytes": 69150,
+      "sha256": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe"
+    },
+    {
+      "path": "public/brand/apple-touch-icon.png",
+      "bytes": 10864,
+      "sha256": "42c8513e7ae75a8b309503c405e512a7f46c3a8def1ede4e702af2fc0fb1ed92"
+    },
+    {
+      "path": "public/brand/favicon-192.png",
+      "bytes": 15348,
+      "sha256": "fa91068d85b12b9bfabf67634eb1ca30bc5506d4e87b2740e2fac438030bcf0d"
+    },
+    {
+      "path": "public/brand/favicon-32.png",
+      "bytes": 2142,
+      "sha256": "0af0ebc5efbb921405d2e0505a1098dd0bec50ddbf5d910655c5b98fecaff495"
+    },
+    {
+      "path": "public/brand/legacy/proconsult-logo-dark.png",
+      "bytes": 12366,
+      "sha256": "ace5c4f8dce721ec77ed7c9b930cd7b16e78601d70d5a7fb703bd9dc94d0cb96"
+    },
+    {
+      "path": "public/brand/legacy/proconsult-logo-light.png",
+      "bytes": 12160,
+      "sha256": "7bbc0b77556c81be9ae98d25871eaef4b5ecd07903df53250ddc602988921586"
+    },
+    {
+      "path": "public/brand/legacy/proconsult-mark.png",
+      "bytes": 9376,
+      "sha256": "4c19a7dda6b68e58dc1d651c8767d4e8a6c021297cad7e9fbd40c4f78cc06169"
+    },
+    {
+      "path": "public/brand/mark-band.png",
+      "bytes": 96333,
+      "sha256": "19f1ca55e2838701a7d88ba72d7ad92e55adf69de6052f4d15d6d410e2a81ac4"
+    },
+    {
+      "path": "public/brand/mark-deep.png",
+      "bytes": 96144,
+      "sha256": "105a23c5b8029bb0e1356a4b48bc747aa2f6948ffda3f32ac496371e8e410476"
+    },
+    {
+      "path": "public/brand/mark-mask.png",
+      "bytes": 76749,
+      "sha256": "e9b469dfccf750eb32cdc975d930a3331d54d05788be420b4061f5e7d911bba8"
+    },
+    {
+      "path": "public/brand/mark-mint.png",
+      "bytes": 96472,
+      "sha256": "3955a02083318054564c1537df2ea5d87cf32270ea409bfecf88e9f4028d5587"
+    },
+    {
+      "path": "public/brand/mark-navy.png",
+      "bytes": 95525,
+      "sha256": "474646f6d9ea9fd10afbd1e9347d2005ed3721d349c00911c58acf592a7b08d9"
+    },
+    {
+      "path": "public/brand/mark-pale.png",
+      "bytes": 96088,
+      "sha256": "f753d19d614c0942b6e7225c74da57babdecdb5780659cbfedf586097ee639e8"
+    },
+    {
+      "path": "public/brand/mark-sand.png",
+      "bytes": 95938,
+      "sha256": "dfceb2a88c25f82694f2e3321c2d2cfd55f17ee1a86762d2c50b584740a9aeb3"
+    },
+    {
+      "path": "public/brand/mark-white.png",
+      "bytes": 81252,
+      "sha256": "e18f4c97c8384a9617141a99350c85dd0129d155db38b99a5fbc4b1fbe12ca80"
+    },
+    {
+      "path": "public/brand/proconsult-logo-dark.png",
+      "bytes": 40403,
+      "sha256": "fa406630c9ec734240d0bf16b2827b6fb5d7759a6b4429db053f2bd343caa5e0"
+    },
+    {
+      "path": "public/brand/proconsult-logo-light.png",
+      "bytes": 32713,
+      "sha256": "85b9acfda817fa05d3f766d4bf41f3baadb9b18242b33c06b302a4f53bf8fa8c"
+    },
+    {
+      "path": "public/brand/proconsult-mark-light.png",
+      "bytes": 37169,
+      "sha256": "56e2de484c4c50aa4159f7f54e8552dc226d377b7cb06d50dc1c66003c6a7b73"
+    },
+    {
+      "path": "public/brand/proconsult-mark.png",
+      "bytes": 44720,
+      "sha256": "99c47107e98597b4909159f26ba74f2b1dc25db7c22804d56e3ef764481c0739"
+    },
+    {
+      "path": "public/brand/wordmark-caps-ink.png",
+      "bytes": 51726,
+      "sha256": "15aa3d5fd8de0b0a2ea8227ef1c71b04fbf4e5a2e5e4e13e08e506ccb19b0f09"
+    },
+    {
+      "path": "public/brand/wordmark-caps-mask.png",
+      "bytes": 40913,
+      "sha256": "2bc23140f0b236b239bc1339ab0324bb415e2eaa9bdbd2cbff25d940fe6293c1"
+    },
+    {
+      "path": "public/brand/wordmark-mask.png",
+      "bytes": 29638,
+      "sha256": "0ae86cc9511d42354221884acf79172d5fa100a5f0f07f2630e45e742c42b88a"
+    },
+    {
+      "path": "scraps/01-cc.png",
+      "bytes": 25949,
+      "sha256": "003fd1065023162efdd87c642c989c59799a44fa43a2177bf07972afbe81b995"
+    },
+    {
+      "path": "scraps/01-clients.png",
+      "bytes": 21326,
+      "sha256": "39e65672d4471c52d2d7874280ea98be1226ae35a39daac64daa57c93e01f949"
+    },
+    {
+      "path": "scraps/01-find.png",
+      "bytes": 28963,
+      "sha256": "1865186173fd5389b87848ca35a274f52b8e82fa498c23e53cb45e94f4f415a4"
+    },
+    {
+      "path": "scraps/01-home-check.png",
+      "bytes": 26360,
+      "sha256": "5555f48f7d341ae2e8c6eb99e699ffd745359b0dd5e79208801a88524cdd9977"
+    },
+    {
+      "path": "scraps/02-cc.png",
+      "bytes": 30744,
+      "sha256": "100d62a57a4f1833ab137f44c132243c36c7cdc5646a0e58b3957b1910de5d49"
+    },
+    {
+      "path": "scraps/02-clients.png",
+      "bytes": 10802,
+      "sha256": "9b083543e50c173070fc99f9ada7db8f9169ba30b2280522621a4d98a16e0be4"
+    },
+    {
+      "path": "scraps/02-find.png",
+      "bytes": 28092,
+      "sha256": "25034d10dd794356b872ef6f99a52259bd2854be559b1713da1484539d1d42d6"
+    },
+    {
+      "path": "scraps/02-home-check.png",
+      "bytes": 18238,
+      "sha256": "4bbe85ba0fb7577f046e63d6aec336f2051ea40acd7ef2c61588f0a7065bde74"
+    },
+    {
+      "path": "scraps/Client-Cabinet-before.dc.html",
+      "bytes": 18890,
+      "sha256": "c75bbce65459e7aaf574b14d5d2194febe7e1524a377265606f4b60aa3f24bd3"
+    },
+    {
+      "path": "scraps/Home-before-clients.dc.html",
+      "bytes": 33416,
+      "sha256": "6e18c76cba3633cc52fd83fca55ac9bf25be8916687b04b5045080f006608b53"
+    },
+    {
+      "path": "scraps/clients.png",
+      "bytes": 20087,
+      "sha256": "d5954411b1bd1e0b0594af8d1a8ee885a6e9b4ea0a87ed4e67b4f1676fe6676f"
+    },
+    {
+      "path": "scraps/home-check.png",
+      "bytes": 25109,
+      "sha256": "0c0b6b0c9637993432cd04fa917d453210de7bb68a48ee86984711ff75a3cc5f"
+    },
+    {
+      "path": "scraps/lockup-check.png",
+      "bytes": 86457,
+      "sha256": "a436f91c1616f908d5f98a7cc0f27789ebe07a13c4dbf83dd6a66e3879c9f125"
+    },
+    {
+      "path": "scraps/mask-check.png",
+      "bytes": 73406,
+      "sha256": "9da22efdbbf83c4f3544b17e7ac4acdf83611e194403243bdb27e0d390557ef9"
+    },
+    {
+      "path": "scraps/neck-src.png",
+      "bytes": 13589,
+      "sha256": "49e5dff12204b8bfe488e4c547c0ae855ddcb143eb746cad31641c86e4462862"
+    },
+    {
+      "path": "scraps/zoom.png",
+      "bytes": 67105,
+      "sha256": "bdad9ce5aad0a55fbe198336f7d2ece182e784e4396015969445e2210a457d6c"
+    },
+    {
+      "path": "support.js",
+      "bytes": 69150,
+      "sha256": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe"
+    },
+    {
+      "path": "uploads/consult-logo_2026-10-23-0106-BB1.png",
+      "bytes": 783978,
+      "sha256": "18c463bfb3975315fbbd7a720144b7c5161ba3a0a2ebccb3fdc37ce7fcd35986"
+    },
+    {
+      "path": "uploads/consult-logo_2026-10-23-0115-blue.pdf",
+      "bytes": 6364,
+      "sha256": "cbeb61298a9e96b8b93a06a24c0b2ca08b317e2c646155c2dccd8cc6ea2dac69"
+    },
+    {
+      "path": "uploads/consult-logotype_1_2026-10-23-0115.pdf",
+      "bytes": 9556,
+      "sha256": "6b68e6b5c787e2d192046984298a7789c59efa9f66f3e6cf4768486598f5435c"
+    },
+    {
+      "path": "uploads/pasted-1792676393099-0.png",
+      "bytes": 170932,
+      "sha256": "df812f58706022fa460e3f22d1b5f67c5162afcfc0d816b310d8639dd7d9a337"
+    },
+    {
+      "path": "uploads/pasted-1792700490226-0.png",
+      "bytes": 57917,
+      "sha256": "caf5e942f75cf7f4a5469953c44c4f806061f75c8daf58658140a55c2868b7b4"
+    },
+    {
+      "path": "uploads/pasted-1792707268872-0.png",
+      "bytes": 73387,
+      "sha256": "ef56443f467d13131ee7b027d740fe84144c476b66ec222bcf3d414248b4cf94"
+    }
+  ],
+  "snapshot_id": "claude-design-2026-10-23-265f221a",
+  "imported_on": "2026-10-23",
+  "date_meaning": "User-supplied snapshot ingestion date; not a verified Claude project last-update time",
+  "project_url": "https://claude.ai/design/p/c453ec11-5135-4169-a1c2-cf1d64218392",
+  "base_sha": "e4b903e523836f44c2ac79c0403621382cf92d55",
+  "imports": [
+    {
+      "archive_path": "handoff/README.md",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/README.md",
+      "role": "source_reference",
+      "sha256": "88b59e572e87ad4d9755a08d6fdf1f7a7fa1aa69351313b332530ebd260df10a",
+      "previous_sha256": null,
+      "bytes": 4860
+    },
+    {
+      "archive_path": "handoff/TZ_CODEX.md",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/TZ_CODEX.md",
+      "role": "source_reference",
+      "sha256": "851fc0520b20d67be4f905b24670853c6d191fbf57bc824f9cecfc64643a1ae5",
+      "previous_sha256": null,
+      "bytes": 48953
+    },
+    {
+      "archive_path": "handoff/CODEX_TASKS.md",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/CODEX_TASKS.md",
+      "role": "source_reference",
+      "sha256": "59ca4792e02a0ee09b6e50aafb454c0cdfcdcf6b5cb0e04ebbfb6d1ad2432554",
+      "previous_sha256": null,
+      "bytes": 12451
+    },
+    {
+      "archive_path": "handoff/MIGRATION_PLAN_V2.md",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/MIGRATION_PLAN_V2.md",
+      "role": "source_reference",
+      "sha256": "fb72ca5f36ba282416ea5a1623343d16aafbb9386dafe2e3e31b05e033339be4",
+      "previous_sha256": null,
+      "bytes": 11265
+    },
+    {
+      "archive_path": "handoff/frontend/PATCHES.md",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/PATCHES.md",
+      "role": "source_reference",
+      "sha256": "164c73d10e8362c7d00b414dd0d9cbe75c6d9a8961be2c9d8c30ceb3076b4ef0",
+      "previous_sha256": null,
+      "bytes": 2598
+    },
+    {
+      "archive_path": "handoff/frontend/docs/DESIGN_SYSTEM.md",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/docs/DESIGN_SYSTEM.md",
+      "role": "source_reference",
+      "sha256": "2ce193ba62d4beb58cf791ce4d9ed376deb61ccc549c5e360ede261d8f952293",
+      "previous_sha256": null,
+      "bytes": 29643
+    },
+    {
+      "archive_path": "handoff/frontend/src/lib/uiVersion.ts",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/src/lib/uiVersion.ts",
+      "role": "source_reference",
+      "sha256": "5d293bfa722250071fd431f4b34eeefd869f72129680fbd4641914380adcc385",
+      "previous_sha256": null,
+      "bytes": 861
+    },
+    {
+      "archive_path": "handoff/frontend/src/styles/tokens-v2.css",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/src/styles/tokens-v2.css",
+      "role": "source_reference",
+      "sha256": "f7a89121a7d6d6283ea76964d24695745f4ee9fd254c4b6cc169b856d6948a2d",
+      "previous_sha256": null,
+      "bytes": 6336
+    },
+    {
+      "archive_path": "handoff/frontend/src/styles/components-v2.css",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/src/styles/components-v2.css",
+      "role": "source_reference",
+      "sha256": "564c13491ae720933aeca75c68eb6ec67ca2218c8a831600f05cde77ee104504",
+      "previous_sha256": null,
+      "bytes": 23243
+    },
+    {
+      "archive_path": "handoff/mockups/Admin.dc.html",
+      "destination": "docs/ui-v2/mockups/Admin.dc.html",
+      "role": "design_reference",
+      "sha256": "f33ab82c60255554fa64ac0b4e555320c84361b28ddfcf6d563c76ddf14cde81",
+      "previous_sha256": null,
+      "bytes": 87463
+    },
+    {
+      "archive_path": "handoff/mockups/assets/maria-koval.webp",
+      "destination": "docs/ui-v2/mockups/assets/maria-koval.webp",
+      "role": "design_reference",
+      "sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605",
+      "previous_sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605",
+      "bytes": 35642
+    },
+    {
+      "archive_path": "handoff/mockups/Brand.dc.html",
+      "destination": "docs/ui-v2/mockups/Brand.dc.html",
+      "role": "design_reference",
+      "sha256": "122026852b919305240476dbcc7acc98c78e269d8870ba6bf961ccee8338bc60",
+      "previous_sha256": null,
+      "bytes": 22501
+    },
+    {
+      "archive_path": "handoff/mockups/Cabinet-Dashboard.dc.html",
+      "destination": "docs/ui-v2/mockups/Cabinet-Dashboard.dc.html",
+      "role": "design_reference",
+      "sha256": "b63e21e8fac7b7299862d962c849d3ba69a47863c25cf9b4af7a67d125dbc164",
+      "previous_sha256": null,
+      "bytes": 40475
+    },
+    {
+      "archive_path": "handoff/mockups/Cabinet-Drawer.dc.html",
+      "destination": "docs/ui-v2/mockups/Cabinet-Drawer.dc.html",
+      "role": "design_reference",
+      "sha256": "cd2000c5bf8e9699e89befccb8f44104e7eee7ee7fc2ca066e6b3d0662478407",
+      "previous_sha256": null,
+      "bytes": 40571
+    },
+    {
+      "archive_path": "handoff/mockups/Cabinet-Mobile.dc.html",
+      "destination": "docs/ui-v2/mockups/Cabinet-Mobile.dc.html",
+      "role": "design_reference",
+      "sha256": "3297d7a9d59f4fc72bcd620cb5d30473f8381a90061ab83c2bf3579822565f14",
+      "previous_sha256": null,
+      "bytes": 56581
+    },
+    {
+      "archive_path": "handoff/mockups/Client-Cabinet.dc.html",
+      "destination": "docs/ui-v2/mockups/Client-Cabinet.dc.html",
+      "role": "design_reference",
+      "sha256": "1904a84985679890ff26a30327ef00d19c3c54969287c909d6058a82297e06b5",
+      "previous_sha256": "744d995f62be8fee28a5f9e80753ae3f918aee2d7d51a40930df892b776733d1",
+      "bytes": 33912
+    },
+    {
+      "archive_path": "handoff/mockups/Client-Signup.dc.html",
+      "destination": "docs/ui-v2/mockups/Client-Signup.dc.html",
+      "role": "design_reference",
+      "sha256": "4b237ea1b0fbf805469ecd1ee7b85d6a2ff6a255e45695adb2378facea1c6249",
+      "previous_sha256": "b905c377dde7ebeb679cc800db814ec1cee25fecb5a7fea225a4787eb545e42a",
+      "bytes": 12238
+    },
+    {
+      "archive_path": "handoff/mockups/Clients.dc.html",
+      "destination": "docs/ui-v2/mockups/Clients.dc.html",
+      "role": "design_reference",
+      "sha256": "818e9baeff7db81cbc33fc2b045cd2b614161baeceedb6ca77f549c5b3dbfc64",
+      "previous_sha256": null,
+      "bytes": 61715,
+      "source_sha256": "73c67d2eb53457ac1274002fcf8ce1f1174c80b1bfda79c7213b7b9eec08fbe4",
+      "normalization": {
+        "operation": "strip trailing ASCII spaces/tabs only",
+        "source_lines": [
+          85,
+          272
+        ]
+      }
+    },
+    {
+      "archive_path": "handoff/mockups/Find-Specialist.dc.html",
+      "destination": "docs/ui-v2/mockups/Find-Specialist.dc.html",
+      "role": "design_reference",
+      "sha256": "98204a1bf4581ba4e7574cadc136c919d161d8263b653c2dc59987a65c515a71",
+      "previous_sha256": "e19962b8d63825a0a95f979f0ee11564a846af6466424297e0f6d8f74b50c7e8",
+      "bytes": 23858
+    },
+    {
+      "archive_path": "handoff/mockups/For-Clients.dc.html",
+      "destination": "docs/ui-v2/mockups/For-Clients.dc.html",
+      "role": "design_reference",
+      "sha256": "b31d4f4fcbb10bbc04eb5851b68e1028c7594c5d51aade01693d89bce16c59b8",
+      "previous_sha256": null,
+      "bytes": 25909
+    },
+    {
+      "archive_path": "handoff/mockups/Handoff-Spec.dc.html",
+      "destination": "docs/ui-v2/mockups/Handoff-Spec.dc.html",
+      "role": "design_reference",
+      "sha256": "cd442b6976575d7bb585160f875aacc7b34e480eaa9b71026f4ddda8ded78040",
+      "previous_sha256": "0b2a57d0ab10f4aa15361d0c67bf46415e19381756c9a042233150247b18b42c",
+      "bytes": 44754
+    },
+    {
+      "archive_path": "handoff/mockups/Home.dc.html",
+      "destination": "docs/ui-v2/mockups/Home.dc.html",
+      "role": "design_reference",
+      "sha256": "00822e105a758dd69d39b5755ba30e2de7aa27d1d78a6a759187ed3e1d425c22",
+      "previous_sha256": "6ea0f38358518b10b0ed56691abfe35942b594b390c8f22b33d84594adda22b0",
+      "bytes": 33480
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/apple-touch-icon.png",
+      "destination": "docs/ui-v2/mockups/public/brand/apple-touch-icon.png",
+      "role": "design_reference",
+      "sha256": "42c8513e7ae75a8b309503c405e512a7f46c3a8def1ede4e702af2fc0fb1ed92",
+      "previous_sha256": null,
+      "bytes": 10864
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/favicon-192.png",
+      "destination": "docs/ui-v2/mockups/public/brand/favicon-192.png",
+      "role": "design_reference",
+      "sha256": "fa91068d85b12b9bfabf67634eb1ca30bc5506d4e87b2740e2fac438030bcf0d",
+      "previous_sha256": null,
+      "bytes": 15348
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/favicon-32.png",
+      "destination": "docs/ui-v2/mockups/public/brand/favicon-32.png",
+      "role": "design_reference",
+      "sha256": "0af0ebc5efbb921405d2e0505a1098dd0bec50ddbf5d910655c5b98fecaff495",
+      "previous_sha256": null,
+      "bytes": 2142
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-band.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-band.png",
+      "role": "design_reference",
+      "sha256": "19f1ca55e2838701a7d88ba72d7ad92e55adf69de6052f4d15d6d410e2a81ac4",
+      "previous_sha256": null,
+      "bytes": 96333
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-deep.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-deep.png",
+      "role": "design_reference",
+      "sha256": "105a23c5b8029bb0e1356a4b48bc747aa2f6948ffda3f32ac496371e8e410476",
+      "previous_sha256": null,
+      "bytes": 96144
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-mask.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-mask.png",
+      "role": "design_reference",
+      "sha256": "e9b469dfccf750eb32cdc975d930a3331d54d05788be420b4061f5e7d911bba8",
+      "previous_sha256": null,
+      "bytes": 76749
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-mint.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-mint.png",
+      "role": "design_reference",
+      "sha256": "3955a02083318054564c1537df2ea5d87cf32270ea409bfecf88e9f4028d5587",
+      "previous_sha256": null,
+      "bytes": 96472
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-navy.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-navy.png",
+      "role": "design_reference",
+      "sha256": "474646f6d9ea9fd10afbd1e9347d2005ed3721d349c00911c58acf592a7b08d9",
+      "previous_sha256": null,
+      "bytes": 95525
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-pale.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-pale.png",
+      "role": "design_reference",
+      "sha256": "f753d19d614c0942b6e7225c74da57babdecdb5780659cbfedf586097ee639e8",
+      "previous_sha256": null,
+      "bytes": 96088
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-sand.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-sand.png",
+      "role": "design_reference",
+      "sha256": "dfceb2a88c25f82694f2e3321c2d2cfd55f17ee1a86762d2c50b584740a9aeb3",
+      "previous_sha256": null,
+      "bytes": 95938
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/mark-white.png",
+      "destination": "docs/ui-v2/mockups/public/brand/mark-white.png",
+      "role": "design_reference",
+      "sha256": "e18f4c97c8384a9617141a99350c85dd0129d155db38b99a5fbc4b1fbe12ca80",
+      "previous_sha256": null,
+      "bytes": 81252
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/proconsult-logo-dark.png",
+      "destination": "docs/ui-v2/mockups/public/brand/proconsult-logo-dark.png",
+      "role": "design_reference",
+      "sha256": "fa406630c9ec734240d0bf16b2827b6fb5d7759a6b4429db053f2bd343caa5e0",
+      "previous_sha256": "ace5c4f8dce721ec77ed7c9b930cd7b16e78601d70d5a7fb703bd9dc94d0cb96",
+      "bytes": 40403
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/proconsult-logo-light.png",
+      "destination": "docs/ui-v2/mockups/public/brand/proconsult-logo-light.png",
+      "role": "design_reference",
+      "sha256": "85b9acfda817fa05d3f766d4bf41f3baadb9b18242b33c06b302a4f53bf8fa8c",
+      "previous_sha256": "7bbc0b77556c81be9ae98d25871eaef4b5ecd07903df53250ddc602988921586",
+      "bytes": 32713
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/proconsult-mark-light.png",
+      "destination": "docs/ui-v2/mockups/public/brand/proconsult-mark-light.png",
+      "role": "design_reference",
+      "sha256": "56e2de484c4c50aa4159f7f54e8552dc226d377b7cb06d50dc1c66003c6a7b73",
+      "previous_sha256": null,
+      "bytes": 37169
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/proconsult-mark.png",
+      "destination": "docs/ui-v2/mockups/public/brand/proconsult-mark.png",
+      "role": "design_reference",
+      "sha256": "99c47107e98597b4909159f26ba74f2b1dc25db7c22804d56e3ef764481c0739",
+      "previous_sha256": "4c19a7dda6b68e58dc1d651c8767d4e8a6c021297cad7e9fbd40c4f78cc06169",
+      "bytes": 44720
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/wordmark-caps-ink.png",
+      "destination": "docs/ui-v2/mockups/public/brand/wordmark-caps-ink.png",
+      "role": "design_reference",
+      "sha256": "15aa3d5fd8de0b0a2ea8227ef1c71b04fbf4e5a2e5e4e13e08e506ccb19b0f09",
+      "previous_sha256": null,
+      "bytes": 51726
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/wordmark-caps-mask.png",
+      "destination": "docs/ui-v2/mockups/public/brand/wordmark-caps-mask.png",
+      "role": "design_reference",
+      "sha256": "2bc23140f0b236b239bc1339ab0324bb415e2eaa9bdbd2cbff25d940fe6293c1",
+      "previous_sha256": null,
+      "bytes": 40913
+    },
+    {
+      "archive_path": "handoff/mockups/public/brand/wordmark-mask.png",
+      "destination": "docs/ui-v2/mockups/public/brand/wordmark-mask.png",
+      "role": "design_reference",
+      "sha256": "0ae86cc9511d42354221884acf79172d5fa100a5f0f07f2630e45e742c42b88a",
+      "previous_sha256": null,
+      "bytes": 29638
+    },
+    {
+      "archive_path": "handoff/mockups/Sessions.dc.html",
+      "destination": "docs/ui-v2/mockups/Sessions.dc.html",
+      "role": "design_reference",
+      "sha256": "a0976e6c7986724c9735251d21791d3ba9fe659b84c8e7abb25368b0b3535c91",
+      "previous_sha256": null,
+      "bytes": 63735,
+      "source_sha256": "8f0835d52ac8423f7690abd35b2eec539139f327a18b556e792fd7e14faddc10",
+      "normalization": {
+        "operation": "strip trailing ASCII spaces/tabs only",
+        "source_lines": [
+          153
+        ]
+      }
+    },
+    {
+      "archive_path": "handoff/mockups/Signup.dc.html",
+      "destination": "docs/ui-v2/mockups/Signup.dc.html",
+      "role": "design_reference",
+      "sha256": "263c965ac31e8cdf4684973d4bfefbf7ad5b17d9ce34bf4268202ea939be8bb6",
+      "previous_sha256": "057467dc67ae14cdd890f2e084b632a92e91cf1248f9ea435073e2c24dc0da45",
+      "bytes": 19036
+    },
+    {
+      "archive_path": "handoff/mockups/Specialist-Profile.dc.html",
+      "destination": "docs/ui-v2/mockups/Specialist-Profile.dc.html",
+      "role": "design_reference",
+      "sha256": "3f1d667b9415c580e0c59b6e9400b6084c1423b69c07313f9138daad694a03de",
+      "previous_sha256": "af986bb4cfda31e9d5a26c762928f4cf8893400390cf7fd5ba6415e75857e8be",
+      "bytes": 28774
+    },
+    {
+      "archive_path": "Home-A-Calm-Letter.dc.html",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Home-A-Calm-Letter.dc.html",
+      "role": "archived_variant",
+      "sha256": "36b5eb57ecd4f3903fd3790ca62f99bb481075a5c1b57b5a03ab0c8879344767",
+      "previous_sha256": null,
+      "bytes": 9451
+    },
+    {
+      "archive_path": "Home-B-One-Path.dc.html",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Home-B-One-Path.dc.html",
+      "role": "archived_variant",
+      "sha256": "2714553a342f8a52fd93b681f1f871fb770d531a3b6c9754ae3bc681af831dc4",
+      "previous_sha256": null,
+      "bytes": 8855
+    },
+    {
+      "archive_path": "Home-C-Desk.dc.html",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Home-C-Desk.dc.html",
+      "role": "archived_variant",
+      "sha256": "75f7d33c4376d31937d81df10940130371bc03988328550b0f57eb8f41612d66",
+      "previous_sha256": null,
+      "bytes": 10417
+    },
+    {
+      "archive_path": "Practice-Block-Options.dc.html",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Practice-Block-Options.dc.html",
+      "role": "archived_variant",
+      "sha256": "c2e798e630f0a9ba6cd6144852a77bed7802c29eb4b7e593497479fc45d8a60e",
+      "previous_sha256": null,
+      "bytes": 18730
+    },
+    {
+      "archive_path": "Specialist-Dashboard.dc.html",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Specialist-Dashboard.dc.html",
+      "role": "archived_variant",
+      "sha256": "1c1a3cf59e386d93e65b0bc64a5ae1c186a1b777938687e72f5b816553e29dbc",
+      "previous_sha256": null,
+      "bytes": 79216
+    },
+    {
+      "archive_path": "public/brand/proconsult-logo-dark.png",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/public/brand/proconsult-logo-dark.png",
+      "role": "archived_variant_asset",
+      "sha256": "fa406630c9ec734240d0bf16b2827b6fb5d7759a6b4429db053f2bd343caa5e0",
+      "previous_sha256": null,
+      "bytes": 40403
+    },
+    {
+      "archive_path": "assets/maria-koval.webp",
+      "destination": "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/assets/maria-koval.webp",
+      "role": "archived_variant_asset",
+      "sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605",
+      "previous_sha256": null,
+      "bytes": 35642
+    }
+  ],
+  "previous_references": [
+    {
+      "git_path": "docs/ui-v2/mockups/assets/maria-koval.webp",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/assets/maria-koval.webp",
+      "sha256": "d4d001ad863ec49651ab430b728fac9dbc9205816f40417d7a1a0e3f3e905605"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Client-Cabinet.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Client-Cabinet.dc.html",
+      "sha256": "744d995f62be8fee28a5f9e80753ae3f918aee2d7d51a40930df892b776733d1"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Client-Signup.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Client-Signup.dc.html",
+      "sha256": "b905c377dde7ebeb679cc800db814ec1cee25fecb5a7fea225a4787eb545e42a"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Find-Specialist.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Find-Specialist.dc.html",
+      "sha256": "e19962b8d63825a0a95f979f0ee11564a846af6466424297e0f6d8f74b50c7e8"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Handoff-Spec.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Handoff-Spec.dc.html",
+      "sha256": "0b2a57d0ab10f4aa15361d0c67bf46415e19381756c9a042233150247b18b42c"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Home.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Home.dc.html",
+      "sha256": "6ea0f38358518b10b0ed56691abfe35942b594b390c8f22b33d84594adda22b0"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/public/brand/proconsult-logo-dark.png",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/public/brand/proconsult-logo-dark.png",
+      "sha256": "ace5c4f8dce721ec77ed7c9b930cd7b16e78601d70d5a7fb703bd9dc94d0cb96"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/public/brand/proconsult-logo-light.png",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/public/brand/proconsult-logo-light.png",
+      "sha256": "7bbc0b77556c81be9ae98d25871eaef4b5ecd07903df53250ddc602988921586"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/public/brand/proconsult-mark.png",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/public/brand/proconsult-mark.png",
+      "sha256": "4c19a7dda6b68e58dc1d651c8767d4e8a6c021297cad7e9fbd40c4f78cc06169"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Signup.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Signup.dc.html",
+      "sha256": "057467dc67ae14cdd890f2e084b632a92e91cf1248f9ea435073e2c24dc0da45"
+    },
+    {
+      "git_path": "docs/ui-v2/mockups/Specialist-Profile.dc.html",
+      "destination": "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Specialist-Profile.dc.html",
+      "sha256": "af986bb4cfda31e9d5a26c762928f4cf8893400390cf7fd5ba6415e75857e8be"
+    }
+  ],
+  "excluded_prototype_runtime": [
+    "./support.js",
+    "./brand-listen.js"
+  ],
+  "excluded_groups": [
+    "_ds/ (third-party runtime/design bundle)",
+    "scraps/ (working drafts)",
+    "uploads/ (unreferenced source uploads)",
+    ".thumbnail",
+    "github.md"
+  ],
+  "notes": [
+    "Original archive left unchanged; no bundled scripts executed.",
+    "Top-level and handoff copies of current mockups are byte-identical.",
+    "All imported files are documentation/reference only; none is runtime input.",
+    "Root-only variants are archived and not implementation targets.",
+    "Clients.dc.html lines 85/272 and Sessions.dc.html line 153 have trailing ASCII whitespace removed only in repository copies; source_sha256 retains ZIP hashes, sha256 records destination bytes."
+  ],
+  "changed_files": [
+    "AGENTS.md",
+    "docs/DESIGN_SYSTEM.md",
+    "docs/UI_MIGRATION_PLAN.md",
+    "docs/ui-v2/CODEX_TASKS.md",
+    "docs/ui-v2/DESIGN_SYNC_2026-10-23.md",
+    "docs/ui-v2/DESIGN_SYNC_CHECKLIST.md",
+    "docs/ui-v2/PROCONSULT_UI_V2_CODEX_MASTER_TZ.md",
+    "docs/ui-v2/README.md",
+    "docs/ui-v2/SNAPSHOT_MANIFEST.json",
+    "docs/ui-v2/TZ_CODEX.md",
+    "docs/ui-v2/mockups/Admin.dc.html",
+    "docs/ui-v2/mockups/Brand.dc.html",
+    "docs/ui-v2/mockups/Cabinet-Dashboard.dc.html",
+    "docs/ui-v2/mockups/Cabinet-Drawer.dc.html",
+    "docs/ui-v2/mockups/Cabinet-Mobile.dc.html",
+    "docs/ui-v2/mockups/Client-Cabinet.dc.html",
+    "docs/ui-v2/mockups/Client-Signup.dc.html",
+    "docs/ui-v2/mockups/Clients.dc.html",
+    "docs/ui-v2/mockups/Find-Specialist.dc.html",
+    "docs/ui-v2/mockups/For-Clients.dc.html",
+    "docs/ui-v2/mockups/Handoff-Spec.dc.html",
+    "docs/ui-v2/mockups/Home.dc.html",
+    "docs/ui-v2/mockups/Sessions.dc.html",
+    "docs/ui-v2/mockups/Signup.dc.html",
+    "docs/ui-v2/mockups/Specialist-Profile.dc.html",
+    "docs/ui-v2/mockups/public/brand/apple-touch-icon.png",
+    "docs/ui-v2/mockups/public/brand/favicon-192.png",
+    "docs/ui-v2/mockups/public/brand/favicon-32.png",
+    "docs/ui-v2/mockups/public/brand/mark-band.png",
+    "docs/ui-v2/mockups/public/brand/mark-deep.png",
+    "docs/ui-v2/mockups/public/brand/mark-mask.png",
+    "docs/ui-v2/mockups/public/brand/mark-mint.png",
+    "docs/ui-v2/mockups/public/brand/mark-navy.png",
+    "docs/ui-v2/mockups/public/brand/mark-pale.png",
+    "docs/ui-v2/mockups/public/brand/mark-sand.png",
+    "docs/ui-v2/mockups/public/brand/mark-white.png",
+    "docs/ui-v2/mockups/public/brand/proconsult-logo-dark.png",
+    "docs/ui-v2/mockups/public/brand/proconsult-logo-light.png",
+    "docs/ui-v2/mockups/public/brand/proconsult-mark-light.png",
+    "docs/ui-v2/mockups/public/brand/proconsult-mark.png",
+    "docs/ui-v2/mockups/public/brand/wordmark-caps-ink.png",
+    "docs/ui-v2/mockups/public/brand/wordmark-caps-mask.png",
+    "docs/ui-v2/mockups/public/brand/wordmark-mask.png",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/README.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Home-A-Calm-Letter.dc.html",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Home-B-One-Path.dc.html",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Home-C-Desk.dc.html",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Practice-Block-Options.dc.html",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/Specialist-Dashboard.dc.html",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/assets/maria-koval.webp",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/archive-variants/public/brand/proconsult-logo-dark.png",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/CODEX_TASKS.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/MIGRATION_PLAN_V2.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/README.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/TZ_CODEX.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/PATCHES.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/docs/DESIGN_SYSTEM.md",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/src/lib/uiVersion.ts",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/src/styles/components-v2.css",
+    "docs/ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/src/styles/tokens-v2.css",
+    "docs/ui-v2/snapshots/baseline-e4b903e/README.md",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Client-Cabinet.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Client-Signup.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Find-Specialist.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Handoff-Spec.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Home.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Signup.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/Specialist-Profile.dc.html",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/assets/maria-koval.webp",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/public/brand/proconsult-logo-dark.png",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/public/brand/proconsult-logo-light.png",
+    "docs/ui-v2/snapshots/baseline-e4b903e/mockups/public/brand/proconsult-mark.png"
+  ],
+  "validation_summary": {
+    "import_payloads_checked": 50,
+    "previous_references_checked": 11,
+    "html_files_checked": 27,
+    "static_local_references_resolved": 133,
+    "intentional_excluded_script_references": 34,
+    "markdown_links_checked": 75,
+    "protected_product_sections": "unchanged",
+    "v1_rules": "unchanged",
+    "runtime_diff": "none"
+  },
+  "archive_entry_count": 118
+}

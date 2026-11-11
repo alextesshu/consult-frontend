@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { applyUiVersion } from '../lib/uiVersion'
 import PublicSpecialistCard from './PublicSpecialistCard.vue'
 
 type CardItem = {
@@ -16,6 +17,7 @@ type CardItem = {
   offers_offline: boolean
   price: string | number | null
   price_currency: string | null
+  match_kind?: 'exact' | 'related' | 'fallback' | null
   photo_url: string | null
 }
 
@@ -52,6 +54,30 @@ async function renderCard(overrides: Partial<CardItem> = {}) {
 }
 
 describe('PublicSpecialistCard', () => {
+  beforeEach(() => applyUiVersion('v1'))
+
+  it('switches presentation reactively without changing public content or the single profile link', async () => {
+    const { container } = await renderCard({ price: null, offers_offline: false })
+    const before = container.innerHTML
+    let link = screen.getByRole('link', { name: 'Відкрити профіль Олена Коваль' })
+    expect(link).not.toHaveClass('pc2-specialist-card')
+    applyUiVersion('v2')
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Відкрити профіль Олена Коваль' })).toHaveClass('pc2-card', 'pc2-card--interactive'))
+    link = screen.getByRole('link', { name: 'Відкрити профіль Олена Коваль' })
+    expect(link).toHaveAttribute('href', '/s/olena')
+    expect(screen.queryByText('Київ')).not.toBeInTheDocument()
+    expect(screen.queryByText(/грн|рейтинг|найкращ/i)).not.toBeInTheDocument()
+    expect(container.querySelectorAll('a')).toHaveLength(1)
+    expect(container.querySelector('button')).toBeNull()
+    link.focus()
+    expect(link).toHaveFocus()
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.innerHTML).toBe(before))
+    link = screen.getByRole('link', { name: 'Відкрити профіль Олена Коваль' })
+    await fireEvent.click(link)
+    await waitFor(() => expect(link).toHaveAttribute('href', '/s/olena'))
+  })
+
   it('uses one accessible canonical whole-card profile link', async () => {
     const { container } = await renderCard()
 
@@ -106,5 +132,32 @@ describe('PublicSpecialistCard', () => {
     const { container } = await renderCard({ public_profile_summary: description })
 
     expect(container.querySelector('.result-card__summary')).toHaveTextContent(description)
+  })
+})
+
+
+describe('PublicSpecialistCard v5 data boundaries', () => {
+  beforeEach(() => applyUiVersion('v2'))
+  it('maps actual public values to the Claude card without fabricated slots or actions', async () => {
+    const { container } = await renderCard({ match_kind: 'exact' })
+    expect(screen.getByText('За вашим запитом')).toBeInTheDocument()
+    expect(screen.getByText('900 грн')).toBeInTheDocument()
+    expect(container.querySelector('.pc2-specialist-card__format')).toHaveTextContent('Онлайн та офлайн · Київ')
+    expect(container.querySelector('.pc2-specialist-card__entry')).toHaveTextContent('ЗверненняУ профілі спеціаліста')
+    expect(container).not.toHaveTextContent(/Найближче вікно|Пт 23|підтверджено|рейтинг/)
+    expect(container.querySelectorAll('a')).toHaveLength(1)
+    expect(container.querySelector('button')).toBeNull()
+  })
+  it.each([null, 'related', 'fallback'] as const)('does not infer an exact badge for %s', async match_kind => {
+    await renderCard({ match_kind })
+    expect(screen.queryByText('За вашим запитом')).not.toBeInTheDocument()
+  })
+  it('derives initials from the public name and omits absent price/location/topics', async () => {
+    const { container } = await renderCard({ public_display_name: '  Ірина  Мельник ', photo_url: null, price: null, offers_offline: false, specializations: [] })
+    expect(container.querySelector('.pc2-specialist-card__initials')).toHaveTextContent('ІМ')
+    expect(container.querySelector('.pc2-specialist-card__price')).toBeNull()
+    expect(container.querySelector('.pc2-specialist-card__meta ul')).toBeNull()
+    expect(container).not.toHaveTextContent('Київ')
+    expect(container.querySelector('.pc2-specialist-card__summary')).toHaveTextContent(baseItem.public_profile_summary!)
   })
 })

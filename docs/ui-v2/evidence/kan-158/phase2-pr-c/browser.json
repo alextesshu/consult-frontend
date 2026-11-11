@@ -1,0 +1,2483 @@
+{
+  "fixtureOnly": true,
+  "rows": [
+    {
+      "mode": "direct",
+      "width": 375,
+      "scrollWidth": 375,
+      "hero": {
+        "x": 24,
+        "y": 90,
+        "w": 327,
+        "h": 368.921875,
+        "bottom": 458.921875
+      },
+      "photo": {
+        "x": 24,
+        "y": 90,
+        "w": 88,
+        "h": 110,
+        "bottom": 200
+      },
+      "name": {
+        "x": 128,
+        "y": 90,
+        "w": 223,
+        "h": 62.71875,
+        "bottom": 152.71875
+      },
+      "contacts": {
+        "x": 24,
+        "y": 1605.609375,
+        "w": 327,
+        "h": 233.96875,
+        "bottom": 1839.578125
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 375,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 8,
+        "y": 2441.765625,
+        "w": 359,
+        "h": 556.171875,
+        "bottom": 2997.9375
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 85.453125,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 390,
+      "scrollWidth": 390,
+      "hero": {
+        "x": 24,
+        "y": 90,
+        "w": 342,
+        "h": 368.921875,
+        "bottom": 458.921875
+      },
+      "photo": {
+        "x": 24,
+        "y": 90,
+        "w": 88,
+        "h": 110,
+        "bottom": 200
+      },
+      "name": {
+        "x": 128,
+        "y": 90,
+        "w": 238,
+        "h": 62.71875,
+        "bottom": 152.71875
+      },
+      "contacts": {
+        "x": 24,
+        "y": 1554.0625,
+        "w": 342,
+        "h": 219.1875,
+        "bottom": 1773.25
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 390,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 8,
+        "y": 2375.4375,
+        "w": 374,
+        "h": 504.171875,
+        "bottom": 2879.609375
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 85.78125,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 767,
+      "scrollWidth": 767,
+      "hero": {
+        "x": 26,
+        "y": 92,
+        "w": 715,
+        "h": 329.484375,
+        "bottom": 421.484375
+      },
+      "photo": {
+        "x": 26,
+        "y": 92,
+        "w": 88,
+        "h": 110.4375,
+        "bottom": 202.4375
+      },
+      "name": {
+        "x": 130,
+        "y": 92,
+        "w": 611,
+        "h": 31.359375,
+        "bottom": 123.359375
+      },
+      "contacts": {
+        "x": 26,
+        "y": 1362.625,
+        "w": 715,
+        "h": 199.6875,
+        "bottom": 1562.3125
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 767,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 10,
+        "y": 2096,
+        "w": 747,
+        "h": 333.78125,
+        "bottom": 2429.78125
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 89.609375,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 768,
+      "scrollWidth": 768,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 684,
+        "h": 357.15625,
+        "bottom": 473.15625
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 180,
+        "h": 225,
+        "bottom": 341
+      },
+      "name": {
+        "x": 246,
+        "y": 116,
+        "w": 480,
+        "h": 84,
+        "bottom": 200
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1261.078125,
+        "w": 684,
+        "h": 199.6875,
+        "bottom": 1460.765625
+      },
+      "panel": {
+        "x": 42,
+        "y": 505.15625,
+        "w": 684,
+        "h": 735.921875,
+        "bottom": 1241.078125
+      },
+      "column": {
+        "x": 42,
+        "y": 505.15625,
+        "w": 684,
+        "h": 955.609375,
+        "bottom": 1460.765625
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 734,
+      "panelClientHeight": 734,
+      "footer": {
+        "x": 10,
+        "y": 2795.59375,
+        "w": 748,
+        "h": 253.78125,
+        "bottom": 3049.375
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 820,
+      "scrollWidth": 820,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 736,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 512,
+        "h": 42,
+        "bottom": 158
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1243.921875,
+        "w": 736,
+        "h": 199.6875,
+        "bottom": 1443.609375
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 736,
+        "h": 735.921875,
+        "bottom": 1223.921875
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 736,
+        "h": 955.609375,
+        "bottom": 1443.609375
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 734,
+      "panelClientHeight": 734,
+      "footer": {
+        "x": 10,
+        "y": 2778.4375,
+        "w": 800,
+        "h": 231.390625,
+        "bottom": 3009.828125
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 859,
+      "scrollWidth": 859,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 775,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 551,
+        "h": 42,
+        "bottom": 158
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1243.921875,
+        "w": 775,
+        "h": 199.6875,
+        "bottom": 1443.609375
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 775,
+        "h": 735.921875,
+        "bottom": 1223.921875
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 775,
+        "h": 955.609375,
+        "bottom": 1443.609375
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 734,
+      "panelClientHeight": 734,
+      "footer": {
+        "x": 10,
+        "y": 2778.4375,
+        "w": 839,
+        "h": 231.390625,
+        "bottom": 3009.828125
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 860,
+      "scrollWidth": 860,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 776,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 552,
+        "h": 40.796875,
+        "bottom": 156.796875
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1243.921875,
+        "w": 776,
+        "h": 199.6875,
+        "bottom": 1443.609375
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 776,
+        "h": 735.921875,
+        "bottom": 1223.921875
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 776,
+        "h": 955.609375,
+        "bottom": 1443.609375
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 734,
+      "panelClientHeight": 734,
+      "footer": {
+        "x": 10,
+        "y": 2863.375,
+        "w": 840,
+        "h": 231.390625,
+        "bottom": 3094.765625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 1099,
+      "scrollWidth": 1099,
+      "hero": {
+        "x": 45.1875,
+        "y": 120,
+        "w": 1008.625,
+        "h": 340,
+        "bottom": 460
+      },
+      "photo": {
+        "x": 45.1875,
+        "y": 120,
+        "w": 200,
+        "h": 250,
+        "bottom": 370
+      },
+      "name": {
+        "x": 269.1875,
+        "y": 120,
+        "w": 784.625,
+        "h": 40.796875,
+        "bottom": 160.796875
+      },
+      "contacts": {
+        "x": 45.1875,
+        "y": 1247.921875,
+        "w": 1008.625,
+        "h": 199.6875,
+        "bottom": 1447.609375
+      },
+      "panel": {
+        "x": 45.1875,
+        "y": 492,
+        "w": 1008.625,
+        "h": 735.921875,
+        "bottom": 1227.921875
+      },
+      "column": {
+        "x": 45.1875,
+        "y": 492,
+        "w": 1008.625,
+        "h": 955.609375,
+        "bottom": 1447.609375
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 734,
+      "panelClientHeight": 734,
+      "footer": {
+        "x": 13.1875,
+        "y": 2836.75,
+        "w": 1072.625,
+        "h": 215.390625,
+        "bottom": 3052.140625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 1100,
+      "scrollWidth": 1100,
+      "hero": {
+        "x": 57.1875,
+        "y": 128,
+        "w": 537.625,
+        "h": 415.5625,
+        "bottom": 543.5625
+      },
+      "photo": {
+        "x": 57.1875,
+        "y": 128,
+        "w": 225.796875,
+        "h": 282.234375,
+        "bottom": 410.234375
+      },
+      "name": {
+        "x": 306.984375,
+        "y": 128,
+        "w": 287.828125,
+        "h": 89.28125,
+        "bottom": 217.28125
+      },
+      "contacts": {
+        "x": 642.8125,
+        "y": 820.8125,
+        "w": 400,
+        "h": 219.1875,
+        "bottom": 1040
+      },
+      "panel": {
+        "x": 642.8125,
+        "y": 128,
+        "w": 400,
+        "h": 672.8125,
+        "bottom": 800.8125
+      },
+      "column": {
+        "x": 642.8125,
+        "y": 128,
+        "w": 400,
+        "h": 912,
+        "bottom": 1040
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "auto",
+      "panelScrollHeight": 752,
+      "panelClientHeight": 671,
+      "footer": {
+        "x": 13.1875,
+        "y": 2176.75,
+        "w": 1073.625,
+        "h": 215.390625,
+        "bottom": 2392.140625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "direct",
+      "width": 1280,
+      "scrollWidth": 1280,
+      "hero": {
+        "x": 63.359375,
+        "y": 128,
+        "w": 705.28125,
+        "h": 436.25,
+        "bottom": 564.25
+      },
+      "photo": {
+        "x": 63.359375,
+        "y": 128,
+        "w": 296.203125,
+        "h": 370.25,
+        "bottom": 498.25
+      },
+      "name": {
+        "x": 383.5625,
+        "y": 128,
+        "w": 385.078125,
+        "h": 114.21875,
+        "bottom": 242.21875
+      },
+      "contacts": {
+        "x": 816.640625,
+        "y": 820.8125,
+        "w": 400,
+        "h": 219.1875,
+        "bottom": 1040
+      },
+      "panel": {
+        "x": 816.640625,
+        "y": 128,
+        "w": 400,
+        "h": 672.8125,
+        "bottom": 800.8125
+      },
+      "column": {
+        "x": 816.640625,
+        "y": 128,
+        "w": 400,
+        "h": 912,
+        "bottom": 1040
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "auto",
+      "panelScrollHeight": 760,
+      "panelClientHeight": 671,
+      "footer": {
+        "x": 20,
+        "y": 2111.421875,
+        "w": 1240,
+        "h": 215.390625,
+        "bottom": 2326.8125
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 375,
+      "scrollWidth": 375,
+      "hero": {
+        "x": 24,
+        "y": 90,
+        "w": 327,
+        "h": 368.921875,
+        "bottom": 458.921875
+      },
+      "photo": {
+        "x": 24,
+        "y": 90,
+        "w": 88,
+        "h": 110,
+        "bottom": 200
+      },
+      "name": {
+        "x": 128,
+        "y": 90,
+        "w": 223,
+        "h": 62.71875,
+        "bottom": 152.71875
+      },
+      "contacts": {
+        "x": 24,
+        "y": 1605.609375,
+        "w": 327,
+        "h": 233.96875,
+        "bottom": 1839.578125
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 375,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 8,
+        "y": 2352.5625,
+        "w": 359,
+        "h": 556.171875,
+        "bottom": 2908.734375
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 85.65625,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 390,
+      "scrollWidth": 390,
+      "hero": {
+        "x": 24,
+        "y": 90,
+        "w": 342,
+        "h": 368.921875,
+        "bottom": 458.921875
+      },
+      "photo": {
+        "x": 24,
+        "y": 90,
+        "w": 88,
+        "h": 110,
+        "bottom": 200
+      },
+      "name": {
+        "x": 128,
+        "y": 90,
+        "w": 238,
+        "h": 62.71875,
+        "bottom": 152.71875
+      },
+      "contacts": {
+        "x": 24,
+        "y": 1554.0625,
+        "w": 342,
+        "h": 219.1875,
+        "bottom": 1773.25
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 390,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 8,
+        "y": 2286.234375,
+        "w": 374,
+        "h": 504.171875,
+        "bottom": 2790.40625
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 84.984375,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 767,
+      "scrollWidth": 767,
+      "hero": {
+        "x": 26,
+        "y": 92,
+        "w": 715,
+        "h": 329.484375,
+        "bottom": 421.484375
+      },
+      "photo": {
+        "x": 26,
+        "y": 92,
+        "w": 88,
+        "h": 110.4375,
+        "bottom": 202.4375
+      },
+      "name": {
+        "x": 130,
+        "y": 92,
+        "w": 611,
+        "h": 31.359375,
+        "bottom": 123.359375
+      },
+      "contacts": {
+        "x": 26,
+        "y": 1362.625,
+        "w": 715,
+        "h": 199.6875,
+        "bottom": 1562.3125
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 767,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 10,
+        "y": 2039.609375,
+        "w": 747,
+        "h": 333.78125,
+        "bottom": 2373.390625
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 89,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 768,
+      "scrollWidth": 768,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 684,
+        "h": 357.15625,
+        "bottom": 473.15625
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 180,
+        "h": 225,
+        "bottom": 341
+      },
+      "name": {
+        "x": 246,
+        "y": 116,
+        "w": 480,
+        "h": 84,
+        "bottom": 200
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1322.015625,
+        "w": 684,
+        "h": 199.6875,
+        "bottom": 1521.703125
+      },
+      "panel": {
+        "x": 42,
+        "y": 505.15625,
+        "w": 684,
+        "h": 796.859375,
+        "bottom": 1302.015625
+      },
+      "column": {
+        "x": 42,
+        "y": 505.15625,
+        "w": 684,
+        "h": 1016.546875,
+        "bottom": 1521.703125
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 795,
+      "panelClientHeight": 795,
+      "footer": {
+        "x": 10,
+        "y": 2800.140625,
+        "w": 748,
+        "h": 253.78125,
+        "bottom": 3053.921875
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 820,
+      "scrollWidth": 820,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 736,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 512,
+        "h": 42,
+        "bottom": 158
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1304.859375,
+        "w": 736,
+        "h": 199.6875,
+        "bottom": 1504.546875
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 736,
+        "h": 796.859375,
+        "bottom": 1284.859375
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 736,
+        "h": 1016.546875,
+        "bottom": 1504.546875
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 795,
+      "panelClientHeight": 795,
+      "footer": {
+        "x": 10,
+        "y": 2782.984375,
+        "w": 800,
+        "h": 231.390625,
+        "bottom": 3014.375
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 859,
+      "scrollWidth": 859,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 775,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 551,
+        "h": 42,
+        "bottom": 158
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1304.859375,
+        "w": 775,
+        "h": 199.6875,
+        "bottom": 1504.546875
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 775,
+        "h": 796.859375,
+        "bottom": 1284.859375
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 775,
+        "h": 1016.546875,
+        "bottom": 1504.546875
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 795,
+      "panelClientHeight": 795,
+      "footer": {
+        "x": 10,
+        "y": 2782.984375,
+        "w": 839,
+        "h": 231.390625,
+        "bottom": 3014.375
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 860,
+      "scrollWidth": 860,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 776,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 552,
+        "h": 40.796875,
+        "bottom": 156.796875
+      },
+      "contacts": {
+        "x": 42,
+        "y": 1304.859375,
+        "w": 776,
+        "h": 199.6875,
+        "bottom": 1504.546875
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 776,
+        "h": 796.859375,
+        "bottom": 1284.859375
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 776,
+        "h": 1016.546875,
+        "bottom": 1504.546875
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 795,
+      "panelClientHeight": 795,
+      "footer": {
+        "x": 10,
+        "y": 2867.921875,
+        "w": 840,
+        "h": 231.390625,
+        "bottom": 3099.3125
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 1099,
+      "scrollWidth": 1099,
+      "hero": {
+        "x": 45.1875,
+        "y": 120,
+        "w": 1008.625,
+        "h": 340,
+        "bottom": 460
+      },
+      "photo": {
+        "x": 45.1875,
+        "y": 120,
+        "w": 200,
+        "h": 250,
+        "bottom": 370
+      },
+      "name": {
+        "x": 269.1875,
+        "y": 120,
+        "w": 784.625,
+        "h": 40.796875,
+        "bottom": 160.796875
+      },
+      "contacts": {
+        "x": 45.1875,
+        "y": 1308.859375,
+        "w": 1008.625,
+        "h": 199.6875,
+        "bottom": 1508.546875
+      },
+      "panel": {
+        "x": 45.1875,
+        "y": 492,
+        "w": 1008.625,
+        "h": 796.859375,
+        "bottom": 1288.859375
+      },
+      "column": {
+        "x": 45.1875,
+        "y": 492,
+        "w": 1008.625,
+        "h": 1016.546875,
+        "bottom": 1508.546875
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 795,
+      "panelClientHeight": 795,
+      "footer": {
+        "x": 13.1875,
+        "y": 2841.296875,
+        "w": 1072.625,
+        "h": 215.390625,
+        "bottom": 3056.6875
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 1100,
+      "scrollWidth": 1100,
+      "hero": {
+        "x": 57.1875,
+        "y": 128,
+        "w": 537.625,
+        "h": 415.5625,
+        "bottom": 543.5625
+      },
+      "photo": {
+        "x": 57.1875,
+        "y": 128,
+        "w": 225.796875,
+        "h": 282.234375,
+        "bottom": 410.234375
+      },
+      "name": {
+        "x": 306.984375,
+        "y": 128,
+        "w": 287.828125,
+        "h": 89.28125,
+        "bottom": 217.28125
+      },
+      "contacts": {
+        "x": 642.8125,
+        "y": 820.8125,
+        "w": 400,
+        "h": 219.1875,
+        "bottom": 1040
+      },
+      "panel": {
+        "x": 642.8125,
+        "y": 128,
+        "w": 400,
+        "h": 672.8125,
+        "bottom": 800.8125
+      },
+      "column": {
+        "x": 642.8125,
+        "y": 128,
+        "w": 400,
+        "h": 912,
+        "bottom": 1040
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "auto",
+      "panelScrollHeight": 860,
+      "panelClientHeight": 671,
+      "footer": {
+        "x": 13.1875,
+        "y": 2204.015625,
+        "w": 1073.625,
+        "h": 215.390625,
+        "bottom": 2419.40625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "empty",
+      "width": 1280,
+      "scrollWidth": 1280,
+      "hero": {
+        "x": 63.359375,
+        "y": 128,
+        "w": 705.28125,
+        "h": 436.25,
+        "bottom": 564.25
+      },
+      "photo": {
+        "x": 63.359375,
+        "y": 128,
+        "w": 296.203125,
+        "h": 370.25,
+        "bottom": 498.25
+      },
+      "name": {
+        "x": 383.5625,
+        "y": 128,
+        "w": 385.078125,
+        "h": 114.21875,
+        "bottom": 242.21875
+      },
+      "contacts": {
+        "x": 816.640625,
+        "y": 820.8125,
+        "w": 400,
+        "h": 219.1875,
+        "bottom": 1040
+      },
+      "panel": {
+        "x": 816.640625,
+        "y": 128,
+        "w": 400,
+        "h": 672.8125,
+        "bottom": 800.8125
+      },
+      "column": {
+        "x": 816.640625,
+        "y": 128,
+        "w": 400,
+        "h": 912,
+        "bottom": 1040
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "auto",
+      "panelScrollHeight": 868,
+      "panelClientHeight": 671,
+      "footer": {
+        "x": 20,
+        "y": 2077.234375,
+        "w": 1240,
+        "h": 215.390625,
+        "bottom": 2292.625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 375,
+      "scrollWidth": 375,
+      "hero": {
+        "x": 24,
+        "y": 90,
+        "w": 327,
+        "h": 368.921875,
+        "bottom": 458.921875
+      },
+      "photo": {
+        "x": 24,
+        "y": 90,
+        "w": 88,
+        "h": 110,
+        "bottom": 200
+      },
+      "name": {
+        "x": 128,
+        "y": 90,
+        "w": 223,
+        "h": 62.71875,
+        "bottom": 152.71875
+      },
+      "contacts": {
+        "x": 24,
+        "y": 1605.609375,
+        "w": 327,
+        "h": 233.96875,
+        "bottom": 1839.578125
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 375,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 8,
+        "y": 2371.40625,
+        "w": 359,
+        "h": 556.171875,
+        "bottom": 2927.578125
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 85.8125,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 390,
+      "scrollWidth": 390,
+      "hero": {
+        "x": 24,
+        "y": 90,
+        "w": 342,
+        "h": 368.921875,
+        "bottom": 458.921875
+      },
+      "photo": {
+        "x": 24,
+        "y": 90,
+        "w": 88,
+        "h": 110,
+        "bottom": 200
+      },
+      "name": {
+        "x": 128,
+        "y": 90,
+        "w": 238,
+        "h": 62.71875,
+        "bottom": 152.71875
+      },
+      "contacts": {
+        "x": 24,
+        "y": 1554.0625,
+        "w": 342,
+        "h": 219.1875,
+        "bottom": 1773.25
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 390,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 8,
+        "y": 2305.078125,
+        "w": 374,
+        "h": 504.171875,
+        "bottom": 2809.25
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 85.140625,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 767,
+      "scrollWidth": 767,
+      "hero": {
+        "x": 26,
+        "y": 92,
+        "w": 715,
+        "h": 329.484375,
+        "bottom": 421.484375
+      },
+      "photo": {
+        "x": 26,
+        "y": 92,
+        "w": 88,
+        "h": 110.4375,
+        "bottom": 202.4375
+      },
+      "name": {
+        "x": 130,
+        "y": 92,
+        "w": 611,
+        "h": 31.359375,
+        "bottom": 123.359375
+      },
+      "contacts": {
+        "x": 26,
+        "y": 1362.625,
+        "w": 715,
+        "h": 199.6875,
+        "bottom": 1562.3125
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "column": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0,
+        "bottom": 0
+      },
+      "bar": {
+        "x": 0,
+        "y": 735,
+        "w": 767,
+        "h": 77,
+        "bottom": 812
+      },
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 0,
+      "panelClientHeight": 0,
+      "footer": {
+        "x": 10,
+        "y": 2058.453125,
+        "w": 747,
+        "h": 333.78125,
+        "bottom": 2392.234375
+      },
+      "bodyPadding": "77px",
+      "actualContactsVisible": true,
+      "footerClearance": 89.15625,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 768,
+      "scrollWidth": 768,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 684,
+        "h": 357.15625,
+        "bottom": 473.15625
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 180,
+        "h": 225,
+        "bottom": 341
+      },
+      "name": {
+        "x": 246,
+        "y": 116,
+        "w": 480,
+        "h": 84,
+        "bottom": 200
+      },
+      "contacts": {
+        "x": 42,
+        "y": 920.125,
+        "w": 684,
+        "h": 199.6875,
+        "bottom": 1119.8125
+      },
+      "panel": {
+        "x": 42,
+        "y": 505.15625,
+        "w": 684,
+        "h": 394.96875,
+        "bottom": 900.125
+      },
+      "column": {
+        "x": 42,
+        "y": 505.15625,
+        "w": 684,
+        "h": 614.65625,
+        "bottom": 1119.8125
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 393,
+      "panelClientHeight": 393,
+      "footer": {
+        "x": 10,
+        "y": 2417.09375,
+        "w": 748,
+        "h": 253.78125,
+        "bottom": 2670.875
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 820,
+      "scrollWidth": 820,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 736,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 512,
+        "h": 42,
+        "bottom": 158
+      },
+      "contacts": {
+        "x": 42,
+        "y": 902.96875,
+        "w": 736,
+        "h": 199.6875,
+        "bottom": 1102.65625
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 736,
+        "h": 394.96875,
+        "bottom": 882.96875
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 736,
+        "h": 614.65625,
+        "bottom": 1102.65625
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 393,
+      "panelClientHeight": 393,
+      "footer": {
+        "x": 10,
+        "y": 2399.9375,
+        "w": 800,
+        "h": 231.390625,
+        "bottom": 2631.328125
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 859,
+      "scrollWidth": 859,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 775,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 551,
+        "h": 42,
+        "bottom": 158
+      },
+      "contacts": {
+        "x": 42,
+        "y": 902.96875,
+        "w": 775,
+        "h": 199.6875,
+        "bottom": 1102.65625
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 775,
+        "h": 394.96875,
+        "bottom": 882.96875
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 775,
+        "h": 614.65625,
+        "bottom": 1102.65625
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 393,
+      "panelClientHeight": 393,
+      "footer": {
+        "x": 10,
+        "y": 2381.09375,
+        "w": 839,
+        "h": 231.390625,
+        "bottom": 2612.484375
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 860,
+      "scrollWidth": 860,
+      "hero": {
+        "x": 42,
+        "y": 116,
+        "w": 776,
+        "h": 340,
+        "bottom": 456
+      },
+      "photo": {
+        "x": 42,
+        "y": 116,
+        "w": 200,
+        "h": 250,
+        "bottom": 366
+      },
+      "name": {
+        "x": 266,
+        "y": 116,
+        "w": 552,
+        "h": 40.796875,
+        "bottom": 156.796875
+      },
+      "contacts": {
+        "x": 42,
+        "y": 902.96875,
+        "w": 776,
+        "h": 199.6875,
+        "bottom": 1102.65625
+      },
+      "panel": {
+        "x": 42,
+        "y": 488,
+        "w": 776,
+        "h": 394.96875,
+        "bottom": 882.96875
+      },
+      "column": {
+        "x": 42,
+        "y": 488,
+        "w": 776,
+        "h": 614.65625,
+        "bottom": 1102.65625
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 393,
+      "panelClientHeight": 393,
+      "footer": {
+        "x": 10,
+        "y": 2484.875,
+        "w": 840,
+        "h": 231.390625,
+        "bottom": 2716.265625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 1099,
+      "scrollWidth": 1099,
+      "hero": {
+        "x": 45.1875,
+        "y": 120,
+        "w": 1008.625,
+        "h": 340,
+        "bottom": 460
+      },
+      "photo": {
+        "x": 45.1875,
+        "y": 120,
+        "w": 200,
+        "h": 250,
+        "bottom": 370
+      },
+      "name": {
+        "x": 269.1875,
+        "y": 120,
+        "w": 784.625,
+        "h": 40.796875,
+        "bottom": 160.796875
+      },
+      "contacts": {
+        "x": 45.1875,
+        "y": 906.96875,
+        "w": 1008.625,
+        "h": 199.6875,
+        "bottom": 1106.65625
+      },
+      "panel": {
+        "x": 45.1875,
+        "y": 492,
+        "w": 1008.625,
+        "h": 394.96875,
+        "bottom": 886.96875
+      },
+      "column": {
+        "x": 45.1875,
+        "y": 492,
+        "w": 1008.625,
+        "h": 614.65625,
+        "bottom": 1106.65625
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "visible",
+      "panelScrollHeight": 393,
+      "panelClientHeight": 393,
+      "footer": {
+        "x": 13.1875,
+        "y": 2442.765625,
+        "w": 1072.625,
+        "h": 215.390625,
+        "bottom": 2658.15625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 1100,
+      "scrollWidth": 1100,
+      "hero": {
+        "x": 57.1875,
+        "y": 128,
+        "w": 537.625,
+        "h": 415.5625,
+        "bottom": 543.5625
+      },
+      "photo": {
+        "x": 57.1875,
+        "y": 128,
+        "w": 225.796875,
+        "h": 282.234375,
+        "bottom": 410.234375
+      },
+      "name": {
+        "x": 306.984375,
+        "y": 128,
+        "w": 287.828125,
+        "h": 89.28125,
+        "bottom": 217.28125
+      },
+      "contacts": {
+        "x": 642.8125,
+        "y": 576.90625,
+        "w": 400,
+        "h": 219.1875,
+        "bottom": 796.09375
+      },
+      "panel": {
+        "x": 642.8125,
+        "y": 128,
+        "w": 400,
+        "h": 428.90625,
+        "bottom": 556.90625
+      },
+      "column": {
+        "x": 642.8125,
+        "y": 128,
+        "w": 400,
+        "h": 668.09375,
+        "bottom": 796.09375
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "auto",
+      "panelScrollHeight": 427,
+      "panelClientHeight": 427,
+      "footer": {
+        "x": 13.1875,
+        "y": 2241.703125,
+        "w": 1073.625,
+        "h": 215.390625,
+        "bottom": 2457.09375
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    },
+    {
+      "mode": "request",
+      "width": 1280,
+      "scrollWidth": 1280,
+      "hero": {
+        "x": 63.359375,
+        "y": 128,
+        "w": 705.28125,
+        "h": 436.25,
+        "bottom": 564.25
+      },
+      "photo": {
+        "x": 63.359375,
+        "y": 128,
+        "w": 296.203125,
+        "h": 370.25,
+        "bottom": 498.25
+      },
+      "name": {
+        "x": 383.5625,
+        "y": 128,
+        "w": 385.078125,
+        "h": 114.21875,
+        "bottom": 242.21875
+      },
+      "contacts": {
+        "x": 816.640625,
+        "y": 584.90625,
+        "w": 400,
+        "h": 219.1875,
+        "bottom": 804.09375
+      },
+      "panel": {
+        "x": 816.640625,
+        "y": 128,
+        "w": 400,
+        "h": 436.90625,
+        "bottom": 564.90625
+      },
+      "column": {
+        "x": 816.640625,
+        "y": 128,
+        "w": 400,
+        "h": 676.09375,
+        "bottom": 804.09375
+      },
+      "bar": null,
+      "contactsCount": 1,
+      "contactsInPanel": false,
+      "contactsDisplay": "grid",
+      "panelOverflow": "auto",
+      "panelScrollHeight": 435,
+      "panelClientHeight": 435,
+      "footer": {
+        "x": 20,
+        "y": 2077.234375,
+        "w": 1240,
+        "h": 215.390625,
+        "bottom": 2292.625
+      },
+      "bodyPadding": "",
+      "actualContactsVisible": true,
+      "footerClearance": null,
+      "pageErrors": []
+    }
+  ],
+  "interactions": [
+    {
+      "mode": "direct",
+      "width": 375,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "direct",
+      "width": 390,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "direct",
+      "width": 767,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "direct",
+      "width": 768,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "direct",
+      "width": 820,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "direct",
+      "width": 859,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "direct",
+      "width": 860,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "direct",
+      "width": 1099,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "direct",
+      "width": 1100,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "direct",
+      "width": 1280,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 375,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "empty",
+      "width": 390,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "empty",
+      "width": 767,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "empty",
+      "width": 768,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 820,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 859,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 860,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 1099,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 1100,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "empty",
+      "width": 1280,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 375,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "request",
+      "width": 390,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "request",
+      "width": 767,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": true,
+      "phoneBackdropAndTabWrap": true
+    },
+    {
+      "mode": "request",
+      "width": 768,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 820,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 859,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 860,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 1099,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 1100,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    },
+    {
+      "mode": "request",
+      "width": 1280,
+      "singleInterceptedPost": true,
+      "offerType": "intro",
+      "aboutEscapeFocus": true,
+      "shareEscapeFocus": true,
+      "phoneSheetResizeIsolation": false,
+      "phoneBackdropAndTabWrap": false
+    }
+  ],
+  "shortDesktop": [
+    {
+      "mode": "direct",
+      "width": 1280,
+      "height": 600,
+      "contactsVisibleByDocumentScroll": true
+    },
+    {
+      "mode": "empty",
+      "width": 1280,
+      "height": 600,
+      "contactsVisibleByDocumentScroll": true
+    },
+    {
+      "mode": "request",
+      "width": 1280,
+      "height": 600,
+      "contactsVisibleByDocumentScroll": true
+    }
+  ],
+  "parity": [
+    {
+      "mode": "direct",
+      "width": 375,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 390,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 767,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 768,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 820,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 859,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 860,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 1099,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 1100,
+      "changedPixels": 0
+    },
+    {
+      "mode": "direct",
+      "width": 1280,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 375,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 390,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 767,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 768,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 820,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 859,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 860,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 1099,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 1100,
+      "changedPixels": 0
+    },
+    {
+      "mode": "empty",
+      "width": 1280,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 375,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 390,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 767,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 768,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 820,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 859,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 860,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 1099,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 1100,
+      "changedPixels": 0
+    },
+    {
+      "mode": "request",
+      "width": 1280,
+      "changedPixels": 0
+    }
+  ]
+}

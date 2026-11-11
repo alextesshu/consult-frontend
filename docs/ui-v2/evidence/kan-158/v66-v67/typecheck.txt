@@ -1,0 +1,16 @@
+
+> frontend@0.0.0 typecheck
+> vue-tsc -b --force
+
+src/lib/specialistDiscoveryApi.spec.ts(22,7): error TS2353: Object literal may only specify known properties, and 'page_size' does not exist in type 'RotatedPublicSpecialistDiscoveryParams'.
+src/views/AdminWorkQueueView.spec.ts(823,13): error TS2561: Object literal may only specify known properties, but 'specialist_slug' does not exist in type 'AdminWorkQueueRelated'. Did you mean to write 'specialist_id'?
+src/views/AdminWorkQueueView.vue(790,19): error TS18048: 'path' is possibly 'undefined'.
+src/views/AdminWorkQueueView.vue(845,10): error TS2532: Object is possibly 'undefined'.
+src/views/AdminWorkQueueView.vue(852,16): error TS2532: Object is possibly 'undefined'.
+src/views/TherapistClientsView.spec.ts(1676,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.
+  Type 'undefined' is not assignable to type 'Window | Document | Element'.
+src/views/TherapistClientsView.spec.ts(3909,27): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Element'.
+  Type 'undefined' is not assignable to type 'Window | Document | Element'.
+src/views/TherapistClientsView.vue(6789,27): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/views/TherapistClientsView.vue(6789,33): error TS18048: 'month' is possibly 'undefined'.

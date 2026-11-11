@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input,textarea{font:inherit;color:inherit}input::placeholder,textarea::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="height:100vh;overflow:hidden;display:grid;grid-template-columns:{{ cols }};background:#FBF9F5">
+
+  <aside style="display:{{ sideDisp }};flex-direction:column;gap:{{ side.gap }};padding:{{ side.pad }};border-right:1px solid #EDE7DE;min-height:0">
+    <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:{{ side.logo }};width:auto;align-self:flex-start;margin-left:4px">
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="7">
+        <a href="{{ n.href }}" style="display:flex;justify-content:space-between;align-items:center;padding:{{ n.pad }};border-radius:12px;font-size:{{ n.fs }};background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }};transition:background .2s" style-hover="box-shadow:inset 0 0 0 1px #D4CCC2">{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></a>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:4px 8px">
+      <span style="width:32px;height:32px;border-radius:50%;background:{{ me.bg }};background-image:{{ me.img }};background-size:cover;background-position:50% 18%;color:#1F5E5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">{{ me.ini }}</span>
+      <div style="font-size:14px;line-height:1.3">{{ me.name }}<div style="font-size:12px;color:#8B95A7">{{ me.sub }}</div></div>
+    </div>
+  </aside>
+
+  <div style="min-height:0;display:grid;grid-template-columns:{{ paneCols }}">
+    <section style="display:{{ listDisp }};flex-direction:column;min-height:0;border-right:1px solid #EDE7DE;background:#FBF9F5">
+      <div style="padding:{{ listPad }};display:flex;flex-direction:column;gap:14px">
+        <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;align-self:flex-start;margin-left:-6px"></sc-if>
+        <h1 style="font-weight:500;font-size:clamp(26px,2.6vw,32px);letter-spacing:-0.03em;line-height:1.1;margin:0">{{ title }}</h1>
+        <sc-if value="{{ isSpec }}" hint-placeholder-val="{{ false }}">
+          <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Пошук клієнта" aria-label="Пошук клієнта" style="height:44px;padding:0 16px;border-radius:999px;border:1.5px solid #E6E0D8;background:#fff;font-size:15px;outline:none" style-focus="border-color:#12345A">
+        </sc-if>
+        <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start" role="tablist">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+            <span onClick="{{ t.on }}" role="tab" aria-selected="{{ t.sel }}" style="display:flex;gap:6px;align-items:center;padding:7px 16px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ t.bg }};box-shadow:{{ t.sh }};transition:all .25s">{{ t.label }}<span style="font-size:12px;color:#8B95A7">{{ t.n }}</span></span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:0 12px 16px;display:flex;flex-direction:column;gap:2px">
+        <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 4px;padding:24px 20px;border-radius:16px;background:#F6F1EA;color:#5A6578;font-size:14px;line-height:1.5;display:flex;gap:14px;align-items:center"><img src="public/brand/mark-pale.png" alt="" style="width:40px;height:40px">{{ emptyL }}</div></sc-if>
+        <sc-for list="{{ threads }}" as="t" hint-placeholder-count="4">
+          <div style="max-height:{{ t.mh }}px;opacity:{{ t.op }};overflow:hidden;transition:max-height .4s ease .3s,opacity .3s ease">
+            <div onClick="{{ t.on }}" style="position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border-radius:16px;cursor:pointer;background:{{ t.bg }};transition:background .2s" style-hover="box-shadow:inset 0 0 0 1px #E6E0D8">
+              <span style="width:44px;height:44px;border-radius:14px;background:{{ t.tint }};background-image:{{ t.img }};background-size:cover;background-position:50% 18%;color:#12345A;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ t.ini }}</span>
+              <div style="min-width:0">
+                <div style="font-size:15px;font-weight:{{ t.fw }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.name }}</div>
+                <div style="font-size:13px;color:{{ t.pFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.preview }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                <span style="font-size:12px;color:#8B95A7;white-space:nowrap">{{ t.time }}</span>
+                <sc-if value="{{ t.unread }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ t.unread }}</span></sc-if>
+              </div>
+            </div>
+          </div>
+          <sc-if value="{{ t.sep }}" hint-placeholder-val="{{ false }}"><div style="height:1px;background:#EDE7DE;margin:6px 12px"></div></sc-if>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showTabbar }}" hint-placeholder-val="{{ false }}"><div style="height:72px;flex-shrink:0"></div></sc-if>
+    </section>
+
+    <section style="display:{{ convDisp }};flex-direction:column;min-height:0;background:#fff">
+      <sc-if value="{{ noThread }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#8B95A7;font-size:15px;padding:24px;text-align:center"><img src="public/brand/mark-pale.png" alt="" style="width:56px;height:56px">Оберіть розмову зліва</div>
+      </sc-if>
+      <sc-if value="{{ hasThread }}" hint-placeholder-val="{{ true }}">
+        <header style="display:flex;align-items:center;gap:12px;padding:{{ headPad }};border-bottom:1px solid #F1EBE2">
+          <sc-if value="{{ single }}" hint-placeholder-val="{{ false }}"><span onClick="{{ back }}" role="button" aria-label="Назад до розмов" style="width:44px;height:44px;margin-left:-10px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer" style-hover="background:#F1EBE2">‹</span></sc-if>
+          <span style="width:44px;height:44px;border-radius:14px;flex-shrink:0;background:{{ at.tint }};background-image:{{ at.img }};background-size:cover;background-position:50% 18%;color:#12345A;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ at.ini }}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ at.name }}</div>
+            <div style="font-size:13px;color:#8B95A7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ at.sub }}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:1;min-width:0">
+            <sc-for list="{{ at.links }}" as="l" hint-placeholder-count="2">
+              <a href="{{ l.href }}" style="padding:9px 14px;border-radius:999px;border:1px solid #E6E0D8;font-size:14px;white-space:nowrap;color:#12233A" style-hover="border-color:#12345A;color:#12233A">{{ l.label }}</a>
+            </sc-for>
+            <sc-if value="{{ canArchive }}" hint-placeholder-val="{{ true }}"><span onClick="{{ archiveActive }}" role="button" title="Перенести в архів" style="padding:9px 14px;border-radius:999px;font-size:14px;color:#5A6578;cursor:pointer;white-space:nowrap" style-hover="background:#F1EBE2">В архів</span></sc-if>
+          </div>
+        </header>
+        <div id="chat-msgs" style="flex:1;min-height:0;overflow-y:auto;padding:{{ msgPad }};display:flex;flex-direction:column;gap:4px;background:#FBF9F5">
+          <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="6">
+            <sc-if value="{{ m.day }}" hint-placeholder-val="{{ false }}"><div style="align-self:center;margin:14px 0 8px;font-size:12px;color:#8B95A7;padding:4px 12px;border-radius:999px;background:#F1EBE2">{{ m.day }}</div></sc-if>
+            <div style="display:flex;flex-direction:column;align-items:{{ m.al }};margin-top:{{ m.mt }}">
+              <sc-if value="{{ m.who }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#8B95A7;margin:0 6px 3px">{{ m.who }}</span></sc-if>
+              <div style="display:flex;align-items:center;gap:6px;flex-direction:{{ m.dir }};max-width:min(78%,560px)">
+                <div style="padding:10px 14px;border-radius:{{ m.r }};background:{{ m.bg }};color:{{ m.fg }};border:1px solid {{ m.bd }};font-size:15px;line-height:1.5;white-space:pre-wrap;word-break:break-word;font-style:{{ m.fst }}">{{ m.text }}</div>
+                <sc-if value="{{ m.canDel }}" hint-placeholder-val="{{ false }}"><span onClick="{{ m.del }}" role="button" aria-label="Видалити повідомлення" title="Видалити" style="width:32px;height:32px;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#A0A8B6;cursor:pointer" style-hover="background:#F1EBE2;color:#B83232">×</span></sc-if>
+              </div>
+              <sc-if value="{{ m.showTime }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:#8B95A7;margin:3px 6px 0">{{ m.time }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ archived }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-top:1px solid #F1EBE2;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;background:#F6F1EA">
+            <span style="font-size:14px;color:#5A6578">{{ archL }}</span>
+            <span onClick="{{ unarchive }}" style="padding:10px 16px;border-radius:999px;border:1px solid #D4CCC2;background:#fff;font-size:14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#12345A">Повернути з архіву</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ canWrite }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:{{ compPad }};border-top:1px solid #F1EBE2;display:flex;flex-direction:column;gap:8px">
+            <sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:12px;color:#8B95A7;margin-right:2px">Тема:</span><sc-for list="{{ supTopics }}" as="c" hint-placeholder-count="4"><span onClick="{{ c.on }}" style="padding:6px 12px;border-radius:999px;font-size:13px;white-space:nowrap;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }}">{{ c.l }}</span></sc-for></div></sc-if>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <textarea value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" rows="{{ rows }}" placeholder="Повідомлення" aria-label="Повідомлення" style="flex:1;min-height:48px;max-height:160px;padding:12px 16px;border-radius:20px;border:1.5px solid #E6E0D8;background:#FBF9F5;font-size:15px;line-height:1.45;resize:none;overflow-y:{{ taOv }};outline:none" style-focus="border-color:#12345A;background:#fff"></textarea>
+              <span onClick="{{ send }}" role="button" aria-label="Надіслати" style="height:48px;padding:0 20px;border-radius:999px;display:flex;align-items:center;font-size:15px;font-weight:500;color:#fff;background:{{ sendBg }};cursor:{{ sendCur }};transition:background .2s;white-space:nowrap">Надіслати</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:#8B95A7">
+              <span>{{ compHint }}</span>
+              <sc-if value="{{ isClient }}" hint-placeholder-val="{{ true }}"><span>Чат — не для екстрених ситуацій. Якщо потрібна допомога зараз — <span style="color:#5A6578">112</span> або <span style="color:#5A6578">7333</span></span></sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+    </section>
+  </div>
+
+  <div style="position:fixed;left:{{ toastLeft }};bottom:{{ toastBottom }};transform:translate(-50%,{{ toastY }});opacity:{{ toastOp }};pointer-events:{{ toastPe }};display:flex;align-items:center;gap:16px;padding:12px 14px 12px 20px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);transition:all .35s cubic-bezier(.2,.8,.2,1);z-index:60">{{ toastMsg }}<span onClick="{{ undo }}" style="padding:6px 12px;border-radius:999px;color:#F7B77E;cursor:pointer">Скасувати</span></div>
+
+  <sc-if value="{{ showTabbar }}" hint-placeholder-val="{{ false }}">
+    <nav style="position:fixed;left:0;right:0;bottom:0;z-index:30;height:72px;padding:6px 6px 14px;background:#fff;border-top:1px solid #EDE7DE;display:grid;grid-template-columns:repeat(5,1fr)">
+      <sc-for list="{{ tabbar }}" as="n" hint-placeholder-count="5">
+        <a href="{{ n.href }}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:{{ n.fg }};font-weight:{{ n.fw }}"><span style="width:22px;height:22px;border-radius:7px;border:1.8px solid {{ n.fg }};background:{{ n.ibg }}"></span>{{ n.label }}</a>
+      </sc-for>
+    </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;client&quot;,&quot;specialist&quot;],&quot;default&quot;:&quot;client&quot;,&quot;tsType&quot;:&quot;'client'|'specialist'&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
+const TODAY_L = '23 жовтня';
+const PEOPLE = {
+  olena: { name: 'Олена П.', full: 'Олена Петренко', ini: 'ОП', tint: '#FFE2C4', sub: 'Клієнтка · 6 сесій · наступна чт, 29 жовтня 18:00' },
+  andriy: { name: 'Андрій К.', ini: 'АК', tint: '#DDF1EF', sub: 'Клієнт · 3 сесії · наступна пт, 30 жовтня 10:00' },
+  iryna: { name: 'Ірина С.', ini: 'ІС', tint: '#EEF4FA', sub: 'Клієнтка · 11 сесій' },
+  taras: { name: 'Тарас Б.', ini: 'ТБ', tint: '#F1EBE2', sub: 'Клієнт · 2 сесії' },
+  natalia: { name: 'Наталія Г.', ini: 'НГ', tint: '#EEF8F1', sub: 'Робота завершена у вересні' },
+  maria: { name: 'Марія Коваль', ini: 'МК', img: 'url(assets/maria-koval.webp)', sub: 'Психологиня · зазвичай відповідає протягом дня' },
+  support: { name: 'Підтримка Pro Consult', ini: '', img: 'url(public/brand/mark-navy.png)', tint: '#EEF4FA', sub: 'Відповідаємо пн–пт, 9:00–19:00, зазвичай протягом кількох годин' },
+  lysenko: { name: 'Андрій Лисенко', ini: 'АЛ', tint: '#DDF1EF', sub: 'Ознайомча сесія · березень 2026' },
+};
+const MSG0 = {
+  support: [
+    ['21 жовтня', '10:02', 'A', 'Вітаємо! Це чат з командою Pro Consult. Опишіть питання — відповімо тут і продублюємо на пошту. Не надсилайте паролі й дані карток.'],
+    ['21 жовтня', '10:15', 'M', 'Не приходить лист підтвердження email.'],
+    ['21 жовтня', '10:41', 'A', 'Надіслали ще раз — перевірте «Промоакції» та «Спам». Якщо за 10 хвилин не буде, напишіть сюди.'],
+    [TODAY_L, '09:30', 'A', 'Додали нагадування про сесії за 1 годину — увімкнути можна в налаштуваннях сповіщень.'],
+  ],
+  olena: [
+    ['22 жовтня', '20:10', 's', 'Олено, надіслала вам вправу «Щоденник думок» — вона в матеріалах.'],
+    ['22 жовтня', '20:32', 'c', 'Дякую! Спробую цього тижня.'],
+    [TODAY_L, '08:52', 'c', 'Маріє, доброго ранку. Прокинулась о 5 з тривогою — подихала 4–7–8, допомогло.'],
+    [TODAY_L, '08:53', 'c', 'Можна обговорити це в четвер?'],
+    [TODAY_L, '12:15', 's', 'Звісно. Позначте запис у щоденнику «до сесії» — я його побачу.'],
+    [TODAY_L, '21:40', 'c', 'Дякую! Тоді до четверга'],
+  ],
+  andriy: [['22 жовтня', '13:50', 's', 'Андрію, нагадую про сесію в п’ятницю о 10:00.'], [TODAY_L, '14:05', 'c', 'Можна перенести на 11:00? Ранок зайнятий.']],
+  iryna: [['21 жовтня', '19:02', 'c', 'Надіслала записи за тиждень.'], ['21 жовтня', '19:40', 's', 'Дякую, Ірино, подивлюся до сесії.']],
+  taras: [['19 жовтня', '10:11', 's', 'Тарасе, посилання на сесію — в кабінеті.'], ['19 жовтня', '10:30', 'c', 'Добре, зрозумів.']],
+  natalia: [['12 вересня', '18:00', 's', 'Наталіє, дякую за роботу. Якщо захочете повернутися — пишіть.'], ['12 вересня', '18:20', 'c', 'Дякую вам за все!']],
+  lysenko: [['14 березня', '12:00', 's', 'Дякую за ознайомчу зустріч. Якщо вирішите продовжити — пишіть.'], ['14 березня', '12:40', 'c', 'Дякую, подумаю.']],
+};
+const NAV_C = [['Головна', 'Client-Cabinet.dc.html'], ['Матеріали', 'Client-Pages.dc.html'], ['Мої спеціалісти', 'Client-Pages.dc.html'], ['Мій щоденник', 'Client-Pages.dc.html'], ['Повідомлення', '#'], ['Профіль', 'Client-Pages.dc.html']];
+const NAV_S = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати', 'Групові події', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
+const HREF_S = { 'Кабінет': 'Cabinet-Dashboard.dc.html', 'Профіль': 'Profile-Edit.dc.html', 'Клієнти': 'Clients.dc.html', 'Сесії': 'Sessions.dc.html', 'Розклад': 'Schedule.dc.html', 'Тарифи і доступ': 'Billing.dc.html', 'Налаштування': 'Settings.dc.html', 'Завдання': 'Specialist-Tools.dc.html', 'Відгуки': 'Specialist-Tools.dc.html', 'Аналітика': 'Specialist-Tools.dc.html', 'Групові події': 'Specialist-Tools.dc.html', 'Власний блог': 'Specialist-Tools.dc.html', 'Запити': 'Inquiries.dc.html', 'Чати': 'Chat.dc.html' };
+class Component extends DCLogic {
+  state = { active: null, mobOpen: false, tab: 'active', q: '', draft: '', msgs: null, arch: { natalia: true, lysenko: true }, read: {}, del: {}, leaving: {}, toast: false, toastMsg: '', snap: null, topic: null, w: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() { this.onResize = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onResize); this.scrollEnd(); }
+  componentDidUpdate(p, s) { p = p || {}; s = s || {}; if (p.role !== this.props.role) this.setState({ active: null, mobOpen: false, tab: 'active', draft: '' }); if (s.active !== this.state.active || s.mobOpen !== this.state.mobOpen || s.tab !== this.state.tab || (this.state.msgs && s.msgs && this.cnt !== this.lastCnt)) this.scrollEnd(); this.lastCnt = this.cnt; }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearTimeout(this.tt); clearTimeout(this.st); }
+  scrollEnd() { clearTimeout(this.st); let n = 0; const go = () => { const el = document.getElementById('chat-msgs'); if (el && el.clientHeight) el.scrollTop = el.scrollHeight; else if (n++ < 10) this.st = setTimeout(go, 30); }; this.st = setTimeout(go, 0); }
+  toast(msg, snap) { clearTimeout(this.tt); this.setState({ toast: true, toastMsg: msg, snap }); this.tt = setTimeout(() => this.setState({ toast: false, snap: null }), 5000); }
+  renderVals() {
+    const S = this.state, nar = S.w < 768, single = S.w < 1024, spec = (this.props.role ?? 'client') === 'specialist';
+    const me = spec ? 's' : 'c';
+    const ids = spec ? ['support', 'olena', 'andriy', 'iryna', 'taras', 'natalia'] : ['support', 'maria', 'lysenko'];
+    const MS = S.msgs || MSG0;
+    const key = id => id === 'support' ? 'support' : spec ? id : (id === 'maria' ? 'olena' : 'lysenko');
+    const msgsOf = id => (MS[key(id)] || []).map(m => m[2] === 'M' ? [m[0], m[1], me, m[3]] : m);
+    const unreadOf = id => { if (S.read[id] || S.arch[id]) return 0; const ms = msgsOf(id); let n = 0; for (let i = ms.length - 1; i >= 0 && ms[i][2] !== me; i--) if (ms[i][0] === TODAY_L) n++; return n; };
+    const q = S.q.trim().toLowerCase();
+    const listIds = ids.filter(id => (S.tab === 'archived') === !!S.arch[id] && (!q || PEOPLE[id].name.toLowerCase().includes(q)));
+    const def = listIds.find(id => !S.leaving[id]) || null;
+    const active = S.active && ids.includes(S.active) ? S.active : (single ? null : def);
+    const A = active ? PEOPLE[active] : null;
+    const ms = active ? msgsOf(active) : [];
+    this.cnt = ms.length;
+    const totalUnread = ids.reduce((a, id) => a + unreadOf(id), 0);
+    const showConv = !single || S.mobOpen;
+    const canSend = S.draft.trim().length > 0;
+    const send = () => { if (!canSend || !active) return; const n = new Date(); const t = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); const k = key(active); this.setState({ draft: '', msgs: { ...MS, [k]: [...(MS[k] || []), [TODAY_L, t, me, S.draft.trim()]] } }); };
+    const archiveThread = id => { const prev = { arch: S.arch, leaving: S.leaving, active: S.active }; this.setState({ leaving: { ...S.leaving, [id]: true } }); setTimeout(() => this.setState(s => ({ arch: { ...s.arch, [id]: true }, leaving: { ...s.leaving, [id]: false }, active: s.active === id ? null : s.active })), 700); this.toast(`Чат з ${PEOPLE[id].name} в архіві`, prev); };
+    const navActive = spec ? 'Чати' : 'Повідомлення';
+    return {
+      cols: nar ? 'minmax(0,1fr)' : (spec ? '220px minmax(0,1fr)' : '232px minmax(0,1fr)'), sideDisp: nar ? 'none' : 'flex', narrow: nar, isSpec: spec, isClient: !spec,
+      side: spec ? { gap: '20px', pad: '20px 12px', logo: '32px' } : { gap: '28px', pad: '24px 16px', logo: '36px' },
+      nav: (spec ? NAV_S.map(l => [l, HREF_S[l] || '#']) : NAV_C).map(([label, href]) => { const on = label === navActive; return { label, href, pad: spec ? '8px 12px' : '11px 14px', fs: spec ? '14px' : '15px', bg: on ? '#12345A' : 'transparent', fg: on ? '#fff' : '#3F4B5E', fw: on || !spec ? (on ? 500 : 400) : 400, hov: on ? '#12345A' : '#F1EBE2', badge: on && totalUnread ? String(totalUnread) : (spec && label === 'Запити' ? '2' : '') }; }),
+      me: spec ? { name: 'Марія Коваль', sub: 'Pro', ini: '', bg: '#DDF1EF', img: 'url(assets/maria-koval.webp)' } : { name: 'Олена', sub: 'Кабінет клієнта', ini: 'О', bg: '#DDF1EF', img: 'none' },
+      paneCols: single ? 'minmax(0,1fr)' : 'minmax(260px,320px) minmax(0,1fr)', single, listDisp: !single || !S.mobOpen ? 'flex' : 'none', convDisp: showConv ? 'flex' : 'none',
+      listPad: nar ? '20px 16px 12px' : '24px 20px 14px', headPad: nar ? '10px 16px' : '14px 24px', msgPad: nar ? '12px 14px 16px' : '16px 28px 20px', compPad: nar ? '10px 12px 14px' : '14px 24px 18px',
+      title: spec ? 'Чати' : 'Повідомлення', q: S.q, onQ: e => this.setState({ q: e.target.value }),
+      tabs: [['active', 'Активні'], ['archived', 'Архів']].map(([k, label]) => ({ label, sel: S.tab === k ? 'true' : 'false', n: String(ids.filter(id => (k === 'archived') === !!S.arch[id]).length), bg: S.tab === k ? '#fff' : 'transparent', sh: S.tab === k ? '0 1px 2px rgba(18,35,58,.1)' : 'none', on: () => this.setState({ tab: k, active: null }) })),
+      listEmpty: listIds.length === 0, emptyL: q ? 'Нікого не знайдено за цим запитом.' : S.tab === 'archived' ? 'В архіві порожньо.' : spec ? 'Чати з’являються, коли клієнт стає активним.' : 'Тут буде переписка зі спеціалістом.',
+      threads: listIds.map((id, ti) => { const t = PEOPLE[id], m = msgsOf(id), last = m[m.length - 1], un = unreadOf(id), on = id === active && !single; return { name: t.name, ini: t.img ? '' : t.ini, tint: t.tint || '#DDF1EF', img: t.img || 'none', preview: last ? (last[2] === me ? 'Ви: ' : '') + (S.del[key(id) + (m.length - 1)] ? 'Повідомлення видалено' : last[3]) : 'Ще немає повідомлень', time: last ? (last[0] === TODAY_L ? last[1] : last[0].replace(/ \S+$/, m2 => ' ' + m2.trim().slice(0, 3))) : '', unread: un ? String(un) : '', fw: un ? 600 : 500, pFg: un ? '#12233A' : '#8B95A7', bg: on ? '#fff' : 'transparent', hov: on ? '#fff' : '#F1EBE2', sep: id === 'support' && listIds.length > 1, mh: S.leaving[id] ? 0 : 110, op: S.leaving[id] ? 0 : 1, on: () => this.setState({ active: id, mobOpen: true, read: { ...S.read, [id]: true }, draft: '' }) }; }),
+      noThread: showConv && !A, hasThread: !!A,
+      back: () => this.setState({ mobOpen: false }),
+      at: A ? { name: spec ? (A.full || A.name) : A.name, ini: A.img ? '' : A.ini, tint: A.tint || '#DDF1EF', img: A.img || 'none', sub: A.sub, dat: spec ? A.name.split(' ')[0] : (active === 'maria' ? 'Марії' : 'Андрія'),
+        links: active === 'support' ? [] : spec ? [{ label: 'Картка клієнта', href: 'Clients.dc.html' }, { label: 'Сесії', href: 'Sessions.dc.html' }].slice(0, S.w < 1180 ? 0 : 2) : (active === 'maria' && S.w >= 1180 ? [{ label: 'Сесія 29 жовтня', href: 'Client-Cabinet.dc.html#sessions' }] : []) } : { links: [] },
+      msgs: ms.map((m, i) => { const mine = m[2] === me, prev = ms[i - 1], next = ms[i + 1], dk = key(active) + i, gone = !!S.del[dk]; const sameNext = next && next[2] === m[2] && next[0] === m[0]; const samePrev = prev && prev[2] === m[2] && prev[0] === m[0];
+        return { who: active === 'support' && !mine && !samePrev ? (i === 0 ? 'Pro Consult' : 'Ксенія · підтримка') : '', day: !prev || prev[0] !== m[0] ? (m[0] === TODAY_L ? 'Сьогодні' : m[0]) : '', text: gone ? 'Повідомлення видалено' : m[3], time: m[1], showTime: !sameNext, mt: samePrev ? '0px' : '8px', al: mine ? 'flex-end' : 'flex-start', dir: mine ? 'row-reverse' : 'row',
+          bg: gone ? 'transparent' : mine ? '#12345A' : '#fff', fg: gone ? '#8B95A7' : mine ? '#fff' : '#12233A', bd: gone ? '#E6E0D8' : mine ? '#12345A' : '#EDE7DE', fst: gone ? 'italic' : 'normal',
+          r: mine ? `18px ${samePrev ? 6 : 18}px ${sameNext ? 6 : 18}px 18px` : `${samePrev ? 6 : 18}px 18px 18px ${sameNext ? 6 : 18}px`,
+          canDel: mine && !gone && !S.arch[active], del: () => { const prev2 = { del: S.del }; this.setState({ del: { ...S.del, [dk]: true } }); this.toast('Повідомлення видалено', prev2); } }; }),
+      isSupport: active === 'support', canArchive: !!(active && !S.arch[active] && active !== 'support'),
+      supTopics: ['Технічна проблема', 'Оплата і тариф', 'Дані й приватність', 'Ідея чи відгук'].map(l => { const on = S.topic === l; return { l, bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#3F4B5E', bd: on ? '#12345A' : '#E6E0D8', on: () => this.setState({ topic: on ? null : l }) }; }),
+      archived: !!(active && S.arch[active]), archL: spec ? 'Чат в архіві — писати не можна. Клієнт бачить історію.' : 'Розмова в архіві. Історія збережена.',
+      unarchive: () => { this.setState({ arch: { ...S.arch, [active]: false }, tab: 'active' }); },
+      canWrite: !!(active && !S.arch[active]), draft: S.draft, onDraft: e => this.setState({ draft: e.target.value }),
+      onKey: e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } },
+      taOv: S.draft.split('\n').length >= 5 ? 'auto' : 'hidden', rows: Math.min(5, Math.max(1, S.draft.split('\n').length)), send, sendBg: canSend ? '#12345A' : '#B7C0CC', sendCur: canSend ? 'pointer' : 'default',
+      compHint: nar ? 'Shift+Enter — новий рядок' : 'Enter — надіслати · Shift+Enter — новий рядок',
+      archiveActive: () => active && archiveThread(active),
+      toastMsg: S.toastMsg, toastOp: S.toast ? 1 : 0, toastY: S.toast ? '0px' : '24px', toastPe: S.toast ? 'auto' : 'none', toastLeft: nar ? '50%' : `calc(50% + ${spec ? 110 : 116}px)`, toastBottom: nar && !S.mobOpen && !spec ? '88px' : '24px',
+      undo: () => { clearTimeout(this.tt); this.setState({ ...(S.snap || {}), toast: false, snap: null }); },
+      showTabbar: nar && !spec && !S.mobOpen,
+      tabbar: [['Головна', 'Client-Cabinet.dc.html'], ['Матеріали', 'Client-Pages.dc.html'], ['Щоденник', 'Client-Pages.dc.html'], ['Чат', '#'], ['Ще', 'Client-Pages.dc.html']].map(([label, href]) => { const on = label === 'Чат'; return { label, href, fg: on ? '#12345A' : '#8B95A7', fw: on ? 500 : 400, ibg: on ? '#DDF1EF' : 'transparent' }; }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,42 @@
 <template>
-  <section class="availability-rules">
+  <section v-if="uiV2" class="pc2-schedule-editor">
+    <ScheduleHeroV2 :active="isVacationView ? 'vacation' : 'rules'" :title="isVacationView ? 'Відпустка й паузи' : 'Робочі години'" subtitle="Шаблон, створені вікна та сесії — окремі стани розкладу." :busy="busyV2" />
+    <p v-if="navigationWarning" role="alert">{{ navigationWarning }}</p>
+    <ScheduleRulesV2 v-if="!isVacationView" :rules="rules" :busy="busyV2" :error="error" :editing="editingRuleId" :toggling="togglingRuleId" @reload="loadRules" @add="openRuleCreate" @edit="startEdit" @toggle="onToggleRuleStatus" @remove="onDeleteRule">
+      <template #edit="{ rule }"><form class="pc2-editor-form" @submit.prevent="onSaveRule(rule.id)"><fieldset :disabled="busyV2"><ScheduleRuleFieldsV2 :model-value="editForm" /><div class="pc2-editor-actions"><button type="submit">Зберегти проміжок</button><button type="button" @click="cancelEdit">Скасувати</button></div></fieldset></form></template>
+      <template #generation>
+        <section class="pc2-generation" aria-label="Генерація вікон">
+          <h2>Створити вікна з робочих годин</h2>
+          <p>Перегляд не створює вікон. Застосування може видалити незаброньовані вікна. Публічний запис визначається налаштуваннями й правилами сервера.</p>
+          <div class="pc2-editor-actions"><label>З<input v-model="generationPeriod.date_from" type="date" :disabled="busyV2" /></label><label>По<input v-model="generationPeriod.date_to" type="date" :disabled="busyV2" /></label></div>
+          <button type="button" :disabled="busyV2 || !hasActiveRules || hasUnsavedV2" @click="onPreviewGeneration">Переглянути генерацію</button>
+          <p v-if="!busyV2 && !hasActiveRules">Для генерації додайте або увімкніть хоча б один робочий проміжок.</p>
+          <p v-if="hasUnsavedV2">Спочатку збережіть або скасуйте зміни проміжку.</p>
+          <p v-if="generationLoading" role="status">Обробляємо генерацію…</p><p v-if="generationError" role="alert">{{ generationError }}</p><p v-if="generationSuccess" role="status">{{ generationSuccess }}</p>
+          <div v-if="previewResult" class="pc2-generation__preview">
+            <h3>Попередній перегляд — не створені вікна</h3>
+            <p>{{ previewResult.date_range.date_from }} — {{ previewResult.date_range.date_to }}</p>
+            <p>До створення: {{ previewResult.to_create_count }} · До видалення: {{ previewResult.to_delete_count }} · Без змін: {{ previewResult.existing_count }}</p>
+            <p>Конфлікти із заброньованими: {{ previewResult.booked_conflicts_count }} · Пропущено: {{ previewResult.skipped_duplicate_or_conflict_count }}</p>
+            <p>Сервер повторно перевірить стан під час застосування. Результат може змінитися.</p>
+            <button type="button" :disabled="busyV2 || hasUnsavedV2" @click="onApplyGeneration">Підтвердити генерацію</button>
+          </div>
+          <RouterLink to="/cabinet/slots?tab=availability">Перевірити створені вікна →</RouterLink>
+        </section>
+      </template>
+    </ScheduleRulesV2>
+    <ScheduleVacationV2 v-else :exceptions="exceptions" :busy="busyV2" :error="exceptionError" :editing="editingExceptionId" :format="formatSlotExample" @reload="loadExceptions" @edit="startEditException" @remove="onDeleteException">
+      <template #create><form class="pc2-editor-form" @submit.prevent="onCreateException"><fieldset :disabled="busyV2"><ScheduleExceptionFieldsV2 :model-value="exceptionForm" /><p>Час — у часовому поясі пристрою: {{ deviceTimezone }}. Для цілоденної паузи вкажіть межі від 00:00 до 00:00 наступного дня.</p><button type="submit">Додати паузу</button></fieldset></form></template>
+      <template #edit="{ item }"><form class="pc2-editor-form" @submit.prevent="onUpdateException(item.id)"><fieldset :disabled="busyV2"><ScheduleExceptionFieldsV2 :model-value="exceptionEditForm" /><div class="pc2-editor-actions"><button type="submit">Зберегти паузу</button><button type="button" @click="cancelEditException">Скасувати</button></div></fieldset></form></template>
+    </ScheduleVacationV2>
+    <ScheduleSlotDialogV2 v-if="ruleCreateOpen" label="Новий робочий проміжок" @close="closeRuleCreate">
+      <button ref="ruleCloseButton" class="pc2-schedule-dialog__close" type="button" aria-label="Закрити" @click="closeRuleCreate">×</button><h2>Новий проміжок</h2>
+      <div v-if="ruleClosePending" class="pc2-editor-form" role="alert"><p>Є незбережені зміни проміжку.</p><div class="pc2-editor-actions"><button ref="keepRuleButton" type="button" @click="keepRuleCreate">Продовжити редагування</button><button type="button" @click="discardRuleCreate">Відкинути зміни</button></div></div>
+      <form class="pc2-editor-form" @submit.prevent="onCreateRule"><fieldset :disabled="busyV2 || ruleClosePending"><ScheduleRuleFieldsV2 :model-value="createForm" /><button type="submit">Зберегти проміжок</button></fieldset><p v-if="error" role="alert">{{ error }}</p><p v-if="navigationWarning" role="alert">{{ navigationWarning }}</p></form>
+    </ScheduleSlotDialogV2>
+    <ConfirmModal :open="confirmModal.open" :title="confirmModal.title" :message="confirmModal.message" :confirm-text="confirmModal.confirmText" :cancel-text="confirmModal.cancelText" :tone="confirmModal.tone" @confirm="confirmModal.confirm" @cancel="confirmModal.closeConfirm" />
+  </section>
+  <section v-else class="availability-rules">
     <header class="availability-rules__header">
       <div>
         <h1 class="title availability-rules__title">{{ isVacationView ? 'Відпустка' : 'Налаштування розкладу' }}</h1>
@@ -493,9 +530,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { apiDelete, apiGet, apiPatch, apiPost, fetchSpecialistProfile } from '../lib/api'
+import { isUiV2 } from '../lib/uiVersion'
+import ScheduleHeroV2 from '../components/schedule/ScheduleHeroV2.vue'
+import ScheduleRulesV2 from '../components/schedule/ScheduleRulesV2.vue'
+import ScheduleVacationV2 from '../components/schedule/ScheduleVacationV2.vue'
+import ScheduleRuleFieldsV2 from '../components/schedule/ScheduleRuleFieldsV2.vue'
+import ScheduleExceptionFieldsV2 from '../components/schedule/ScheduleExceptionFieldsV2.vue'
+import ScheduleSlotDialogV2 from '../components/schedule/ScheduleSlotDialogV2.vue'
+import { previewAvailabilityGeneration, applyAvailabilityGeneration } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { getApiErrorMessage } from '../lib/errors'
@@ -641,6 +686,59 @@ const exceptionEditForm = reactive({
 const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
 const isVacationView = computed(() => route.name === 'cabinet-schedule-vacation')
 
+
+const deviceTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const uiV2 = computed(isUiV2)
+const readingRulesV2 = ref(false)
+const initializingV2 = ref(true)
+const ruleCreateOpen = ref(false)
+const ruleClosePending = ref(false)
+const keepRuleButton = ref<HTMLButtonElement | null>(null)
+const ruleCloseButton = ref<HTMLButtonElement | null>(null)
+const navigationWarning = ref('')
+const generationPeriod = reactive({ date_from: new Date().toLocaleDateString('en-CA'), date_to: new Date(Date.now() + 29 * 86400000).toLocaleDateString('en-CA') })
+const busyV2 = computed(() => initializingV2.value || loading.value || togglingRuleId.value !== null || generationLoading.value || exceptionsLoading.value || exceptionSubmitting.value)
+type DraftKey = 'createForm' | 'editForm' | 'exceptionForm' | 'exceptionEditForm'
+const draftSnapshot = reactive<Partial<Record<DraftKey, string>>>({})
+function drafts() { return { createForm, editForm, exceptionForm, exceptionEditForm } }
+function markClean(keys: DraftKey[] = ['createForm', 'editForm', 'exceptionForm', 'exceptionEditForm']) {
+  for (const key of keys) draftSnapshot[key] = JSON.stringify(drafts()[key])
+  navigationWarning.value = ''
+}
+const hasUnsavedV2 = computed(() => uiV2.value && (Object.keys(draftSnapshot) as DraftKey[]).some(key => draftSnapshot[key] !== JSON.stringify(drafts()[key])))
+function allowDiscard() {
+  if (!uiV2.value) return true
+  if ((loading.value && !readingRulesV2.value) || togglingRuleId.value !== null || generationLoading.value || exceptionSubmitting.value) { navigationWarning.value = 'Зачекайте завершення операції.'; return false }
+  return !hasUnsavedV2.value || window.confirm('Незбережені зміни буде втрачено. Продовжити?')
+}
+function openRuleCreate(day: number) {
+  if (!allowDiscard()) return
+  editingRuleId.value = null
+  resetCreateForm(); createForm.weekday = day; ruleClosePending.value = false; ruleCreateOpen.value = true; error.value = ''; markClean(['createForm', 'editForm'])
+}
+function closeRuleCreate() {
+  if (busyV2.value) { navigationWarning.value = 'Зачекайте завершення операції.'; return }
+  if (hasUnsavedV2.value) { ruleClosePending.value = true; void nextTick(() => keepRuleButton.value?.focus()); return }
+  discardRuleCreate()
+}
+function discardRuleCreate() { ruleCreateOpen.value = false; ruleClosePending.value = false; resetCreateForm(); markClean(['createForm']) }
+function keepRuleCreate() { ruleClosePending.value = false; void nextTick(() => ruleCloseButton.value?.focus()) }
+function beforeUnload(event: BeforeUnloadEvent) { if (uiV2.value && (hasUnsavedV2.value || busyV2.value)) { event.preventDefault(); event.returnValue = '' } }
+onBeforeRouteLeave(() => allowDiscard())
+onBeforeRouteUpdate((to, from) => to.fullPath === from.fullPath || allowDiscard())
+onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
+watch([generationPeriod, rules], () => { if (uiV2.value) previewResult.value = null }, { deep: true })
+
+function validateV2Rule(form: typeof createForm) {
+  if (!form.start_time || !form.end_time || form.start_time >= form.end_time) { error.value = 'Кінець проміжку має бути пізніше за початок.'; return false }
+  if (!Number.isInteger(form.session_duration_minutes) || form.session_duration_minutes < 5 || !Number.isInteger(form.buffer_minutes) || form.buffer_minutes < 0) { error.value = 'Перевірте тривалість і паузу.'; return false }
+  return true
+}
+function validateV2Exception(form: typeof exceptionForm) {
+  const start = combineDateTimeToIso(form.start_date, form.start_time), end = combineDateTimeToIso(form.end_date, form.end_time)
+  if (!start || !end || start >= end) { exceptionError.value = 'Кінець паузи має бути пізніше за початок.'; return false }
+  return true
+}
 function openPicker(event: Event) {
   const target = event.target as HTMLInputElement | null
   if (!target) return
@@ -687,6 +785,7 @@ function normalizeRule(rule: AvailabilityRule): AvailabilityRule {
 }
 
 async function loadRules() {
+  readingRulesV2.value = true
   loading.value = true
   error.value = ''
   try {
@@ -696,6 +795,7 @@ async function loadRules() {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити налаштування розкладу.')
   } finally {
     loading.value = false
+    readingRulesV2.value = false
   }
 }
 
@@ -760,6 +860,8 @@ function resetExceptionForm() {
 }
 
 function startEditException(item: AvailabilityException) {
+  if (uiV2.value && !allowDiscard()) return
+  if (uiV2.value && draftSnapshot.exceptionForm !== JSON.stringify(exceptionForm)) { resetExceptionForm(); markClean(['exceptionForm']) }
   editingExceptionId.value = item.id
   const start = splitIsoToDateTimeParts(item.starts_at)
   const end = splitIsoToDateTimeParts(item.ends_at)
@@ -770,13 +872,17 @@ function startEditException(item: AvailabilityException) {
   exceptionEditForm.is_all_day = item.is_all_day
   exceptionEditForm.note = item.note || ''
   exceptionEditForm.is_active = item.is_active
+  if (uiV2.value) markClean(['exceptionEditForm'])
 }
 
 function cancelEditException() {
+  if (uiV2.value && !allowDiscard()) return
   editingExceptionId.value = null
+  if (uiV2.value) markClean(['exceptionEditForm'])
 }
 
 async function onCreateException() {
+  if (uiV2.value && (busyV2.value || !validateV2Exception(exceptionForm))) return
   exceptionSubmitting.value = true
   exceptionError.value = ''
   try {
@@ -794,6 +900,7 @@ async function onCreateException() {
       is_active: exceptionForm.is_active,
     })
     resetExceptionForm()
+    if (uiV2.value) markClean(['exceptionForm'])
     await loadExceptions()
     generationSuccess.value = ''
   } catch (err) {
@@ -804,6 +911,7 @@ async function onCreateException() {
 }
 
 async function onUpdateException(id: number) {
+  if (uiV2.value && (busyV2.value || !validateV2Exception(exceptionEditForm))) return
   exceptionSubmitting.value = true
   exceptionError.value = ''
   try {
@@ -823,7 +931,8 @@ async function onUpdateException(id: number) {
       note: exceptionEditForm.note,
       is_active: exceptionEditForm.is_active,
     })
-    cancelEditException()
+    editingExceptionId.value = null
+    if (uiV2.value) markClean(['exceptionEditForm'])
     await loadExceptions()
     generationSuccess.value = ''
   } catch (err) {
@@ -844,7 +953,10 @@ async function onDeleteException(id: number) {
       exceptionError.value = ''
       try {
         await apiDelete(`/cabinet/availability-exceptions/${id}/`)
-        if (editingExceptionId.value === id) cancelEditException()
+        if (editingExceptionId.value === id) {
+          if (uiV2.value) { editingExceptionId.value = null; markClean(['exceptionEditForm']) }
+          else cancelEditException()
+        }
         await loadExceptions()
         generationSuccess.value = ''
       } catch (err) {
@@ -866,6 +978,7 @@ function resetCreateForm() {
 }
 
 async function onCreateRule() {
+  if (uiV2.value && (busyV2.value || ruleClosePending.value || !validateV2Rule(createForm))) return
   loading.value = true
   error.value = ''
   try {
@@ -874,6 +987,7 @@ async function onCreateRule() {
     )
     rules.value = [...rules.value, created].sort((a, b) => a.id - b.id)
     resetCreateForm()
+    if (uiV2.value) { ruleCreateOpen.value = false; markClean(['createForm']) }
     generationSuccess.value = ''
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочі години.')
@@ -883,6 +997,7 @@ async function onCreateRule() {
 }
 
 function startEdit(rule: AvailabilityRule) {
+  if (uiV2.value && !allowDiscard()) return
   editingRuleId.value = rule.id
   editForm.weekday = rule.weekday
   editForm.start_time = normalizeRuleTime(rule.start_time)
@@ -890,10 +1005,13 @@ function startEdit(rule: AvailabilityRule) {
   editForm.session_duration_minutes = rule.session_duration_minutes
   editForm.buffer_minutes = rule.buffer_minutes
   editForm.is_active = rule.is_active
+  if (uiV2.value) markClean(['editForm'])
 }
 
 function cancelEdit() {
+  if (uiV2.value && !allowDiscard()) return
   editingRuleId.value = null
+  if (uiV2.value) markClean(['editForm'])
 }
 
 async function onToggleRuleStatus(rule: AvailabilityRule) {
@@ -918,6 +1036,7 @@ async function onToggleRuleStatus(rule: AvailabilityRule) {
 }
 
 async function onSaveRule(ruleId: number) {
+  if (uiV2.value && (busyV2.value || !validateV2Rule(editForm))) return
   loading.value = true
   error.value = ''
   try {
@@ -925,7 +1044,8 @@ async function onSaveRule(ruleId: number) {
       await apiPatch<AvailabilityRule>(`/cabinet/availability-rules/${ruleId}/`, editForm)
     )
     rules.value = rules.value.map((rule) => (rule.id === ruleId ? updated : rule))
-    cancelEdit()
+    editingRuleId.value = null
+    if (uiV2.value) markClean(['editForm'])
     generationSuccess.value = ''
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося оновити робочі години.')
@@ -947,7 +1067,8 @@ async function onDeleteRule(ruleId: number) {
         await apiDelete(`/cabinet/availability-rules/${ruleId}/`)
         rules.value = rules.value.filter((rule) => rule.id !== ruleId)
         if (editingRuleId.value === ruleId) {
-          cancelEdit()
+          if (uiV2.value) { editingRuleId.value = null; markClean(['editForm']) }
+          else cancelEdit()
         }
         generationSuccess.value = ''
       } catch (err) {
@@ -997,11 +1118,15 @@ function intervalsWord(count: number): string {
 }
 
 async function onPreviewGeneration() {
+  if (uiV2.value && (busyV2.value || hasUnsavedV2.value)) return
+  if (uiV2.value && (!generationPeriod.date_from || !generationPeriod.date_to || generationPeriod.date_to < generationPeriod.date_from)) { generationError.value = 'Вкажіть коректний період генерації.'; return }
+  if (uiV2.value) previewResult.value = null
   if (!hasActiveRules.value) return
   generationLoading.value = true
   generationError.value = ''
   generationSuccess.value = ''
   try {
+    if (uiV2.value) { previewResult.value = await previewAvailabilityGeneration({ ...generationPeriod }); return }
     previewResult.value = await apiPost<AvailabilityGenerationPreview>(
       '/cabinet/availability-rules/preview-generation/',
       { days_ahead: 30 }
@@ -1014,6 +1139,7 @@ async function onPreviewGeneration() {
 }
 
 async function onApplyGeneration() {
+  if (uiV2.value && (busyV2.value || hasUnsavedV2.value)) return
   if (!previewResult.value) return
   if (previewResult.value.to_delete_count > 0) {
     confirmModal.openConfirm({
@@ -1032,6 +1158,19 @@ async function onApplyGeneration() {
 }
 
 async function applyGeneration() {
+  if (uiV2.value && (!previewResult.value || busyV2.value || hasUnsavedV2.value)) return
+  if (uiV2.value) {
+    generationLoading.value = true; generationError.value = ''; generationSuccess.value = ''
+    try {
+      const result = await applyAvailabilityGeneration({ ...generationPeriod })
+      previewResult.value = null
+      generationSuccess.value = `Створено: ${result.created_count} · Видалено: ${result.deleted_count} · Без змін: ${result.existing_count} · Конфлікти: ${result.booked_conflicts_count}.`
+      try { await apiGet('/cabinet/slots/') } catch { generationError.value = 'Генерацію застосовано, але створені вікна не вдалося оновити. Перевірте їх окремо.' }
+      await loadRules()
+    } catch (err) { previewResult.value = null; generationError.value = getApiErrorMessage(err, 'Не вдалося застосувати генерацію. Оновіть перегляд перед повторною спробою.') }
+    finally { generationLoading.value = false }
+    return
+  }
   generationLoading.value = true
   generationError.value = ''
   generationSuccess.value = ''
@@ -1065,10 +1204,23 @@ watch(
   }
 )
 
-onMounted(loadScheduleContext)
+onMounted(async () => { window.addEventListener('beforeunload', beforeUnload); await loadScheduleContext(); initializingV2.value = false; markClean() })
 </script>
 
 <style scoped>
+.pc2-schedule-editor { display:grid; gap:16px; font-family:var(--pc-font); color:var(--pc-text-main); min-width:0; }
+.pc2-editor-form { width:100%; min-width:0; } .pc2-editor-form fieldset { border:0; padding:0; margin:0; display:grid; gap:14px; min-width:0; }
+.pc2-editor-actions { display:flex; flex-wrap:wrap; align-items:end; gap:10px; }
+.pc2-editor-form button, .pc2-generation button, .pc2-generation input { min-height:44px; padding:10px 14px; border:1px solid var(--pc-border); border-radius:12px; font:inherit; background:var(--pc-bg-card); color:var(--pc-text-main); }
+.pc2-editor-form button[type="submit"], .pc2-generation > button { background:var(--pc-navy-900); color:#fff; justify-self:start; cursor:pointer; }
+.pc2-generation { border-top:1px solid var(--pc-border); padding-top:20px; display:grid; gap:14px; min-width:0; }
+.pc2-generation h2 { font-size:19px; font-weight:500; } .pc2-generation h3 { font-size:16px; }
+.pc2-generation label { display:grid; gap:6px; min-width:0; flex:1 1 150px; } .pc2-generation input { min-width:0; width:100%; }
+.pc2-generation__preview { padding:14px; background:var(--pc-bg-soft); border-radius:16px; }
+.pc2-schedule-editor :focus-visible { outline:3px solid var(--pc-navy-900); outline-offset:3px; }
+.pc2-schedule-editor button:disabled { opacity:.6; cursor:default; }
+@media(max-width:767px) { .pc2-schedule-editor { margin-inline:-16px; } }
+
 .availability-rules {
   display: grid;
   gap: 18px;

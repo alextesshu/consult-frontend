@@ -1,0 +1,139 @@
+[
+  {
+    "width": 375,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "width": 768,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "width": 1099,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "width": 1100,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "width": 1101,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "width": 1280,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "metrics": {
+      "ui": "v2",
+      "overflow": false,
+      "headers": 1,
+      "footers": 1,
+      "hero": "rgb(238, 248, 247)",
+      "text": "rgb(31, 94, 90)",
+      "font": "Onest, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "logo": 32
+    },
+    "focus": {
+      "width": "2px",
+      "style": "solid"
+    },
+    "scenarios": "layout, FAQ Enter/Space/pointer, Tab/Shift+Tab, header menu/selected, refresh, invalid/valid q, history, client CTA",
+    "errors": []
+  },
+  {
+    "fontFailure": "mount and no overflow PASS",
+    "fixtures": "All API responses are 401; no real signup, booking, support or backend workflow acceptance."
+  }
+]

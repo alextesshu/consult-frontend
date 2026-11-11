@@ -1,0 +1,23 @@
+const {chromium}=require('C:/Users/admin/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/node_modules/playwright-core'); const fs=require('fs'),path=require('path'),assert=require('assert');
+const repo=require('path').resolve(__dirname,'../../../../..'),out=repo+'/docs/ui-v2/evidence/kan-158/v66-v67';fs.mkdirSync(out,{recursive:true});
+const source='/docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/';const base='http://127.0.0.1:5362';
+const fixture=JSON.parse(fs.readFileSync(out+'/fixture.json','utf8'));
+Object.assign(fixture.profile,{slug:'olena',public_slug:'olena',display_name:'Марія Коваль',public_display_name:'Марія Коваль',public_profile_summary:'Працюю з тривогою, вигоранням і змінами. Допомагаю повернути відчуття опори та знайти свій темп.',photo_url:source+'assets/maria-koval.webp',bio_about:'Я психологиня з 9-річним досвідом, працюю в когнітивно-поведінковому підході та терапії прийняття і відповідальності.\n\nУ роботі мені важливі ясність і повага до вашого темпу. Ми разом формулюємо цілі та переглядаємо прогрес.',bio_work:'Знайомство. Говоримо про запит і очікування.\n\nСпільний план. Формулюємо цілі й обираємо ритм.\n\nРегулярні сесії. Працюємо з думками й реакціями.',bio_approach:'',bio_for_whom:'Тривога і панічні атаки\nПрофесійне вигорання\nПереїзд і зміни',bio_other:'Не працюю з гострими психіатричними станами.',specializations:['Психологиня','КПТ','тривожність','вигорання','адаптація до змін'],languages:['українська','англійська'],experience_years:9,location:'Київ',price:'1400',intro_price:'500',intro_duration_minutes:20,couple_session_enabled:true,couple_session_price:'2000',couple_session_price_currency:'UAH',couple_session_duration_minutes:80,education_items:['2015 · Психологія, магістр · Київський національний університет','2018 · Когнітивно-поведінкова терапія · Дворічна програма'],professional_development_items:['2021 · Терапія прийняття та відповідальності'],profile_documents:[{id:1,title:'Диплом магістра',file_url:source+'assets/maria-koval.webp',document_kind:'education'}],sections:{faq:{items:[{id:'first',question:'Як проходить перша сесія?',answer:'Знайомимося, говоримо про ваш запит і очікування.'},{id:'pay',question:'Як відбувається оплата?',answer:'Напряму спеціалісту після підтвердження часу.'}]}}});
+fixture.slots=[['2026-10-26T10:00:00+02:00','2026-10-26T10:50:00+02:00'],['2026-10-27T14:00:00+02:00','2026-10-27T14:50:00+02:00'],['2026-10-29T11:00:00+02:00','2026-10-29T12:20:00+02:00']].map(([start_at,end_at],i)=>({id:100+i,start_at,end_at}));
+fs.writeFileSync(out+'/fixture.json',JSON.stringify(fixture,null,2));
+async function setup(browser,width,motion='no-preference',video=false,mode='normal'){
+ const c=await browser.newContext({viewport:{width,height:width===375?677:900},reducedMotion:motion,...(video?{recordVideo:{dir:process.env.TEMP+'/kan158-v67-video',size:{width,height:width===375?677:900}}}:{})});
+ await c.addInitScript(()=>localStorage.setItem('proconsult.product_analytics_consent.v1',JSON.stringify({version:1,preference:'denied'})));
+ const posts=[],errors=[];
+ await c.route('**/*',r=>{const h=new URL(r.request().url()).hostname;return ['127.0.0.1','fonts.googleapis.com','fonts.gstatic.com'].includes(h)?r.continue():r.abort()});
+ await c.route('**/api/**',async r=>{const u=new URL(r.request().url()).pathname;
+ if(u.endsWith('/s/olena/')||u.endsWith('/public/specialists/olena/')||u.endsWith('/public/therapists/olena/')) return r.fulfill({status:mode==='404'?404:200,json:mode==='404'?{}:{...fixture.profile,...mode==='request-only'?{public_booking_mode:'request_only',show_public_availability:false,public_direct_booking_enabled:false}: {}}});
+ if(u.endsWith('/booking/slots/'))return r.fulfill({json:mode==='empty'?[]:fixture.slots});
+ if(u.includes('/guest-booking-requests/')){posts.push(r.request().postDataJSON());return r.fulfill({status:201,json:{request:{id:1,status:'PENDING',created_at:'2026-10-24T00:00:00Z',next_step:null}}})}
+ return r.fulfill({status:u.includes('/auth/')?401:200,json:[]})});
+ await c.route('**/assets/maria-koval.webp',r=>r.fulfill({contentType:'image/webp',body:fs.readFileSync(repo+source+'assets/maria-koval.webp')}));
+ const p=await c.newPage();p.setDefaultTimeout(15000);p.on('pageerror',e=>errors.push(e.message));return{c,p,posts,errors}
+}
+async function ready(p){await p.getByRole('heading',{name:'Марія Коваль',level:1}).waitFor();await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(650)}
+async function shot(p,name){await p.screenshot({path:out+'/'+name+'.png'})}
+module.exports={chromium,fs,path,assert,repo,out,source,base,fixture,setup,ready,shot};

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500&family=Onest:wght@400;500&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#F6F1EA;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="max-width:1280px;margin:0 auto;padding:20px 32px 0">
+  <header style="display:flex;align-items:center;gap:16px;height:64px;padding:0 12px 0 24px;border-radius:999px;background:#FFFFFF">
+    <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:36px;width:auto;display:block;margin-left:-10px">
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:14px">
+      <span style="color:#8B95A7">Ви —</span>
+      <span style="padding:7px 14px;border-radius:999px;background:#12345A;color:#fff">спеціаліст</span>
+      <span style="padding:7px 14px;border-radius:999px;color:#12233A;cursor:pointer" style-hover="background:#F1EBE2">клієнт</span>
+    </div>
+    <div style="width:1px;height:24px;background:#E6E0D8;margin:0 8px"></div>
+    <span style="font-size:14px;color:#657287;padding:0 8px">Увійти</span>
+    <span style="padding:11px 20px;border-radius:999px;white-space:nowrap;flex-shrink:0;background:#F7B77E;color:#12233A;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F3A462">Почати безкоштовно</span>
+  </header>
+
+  <section style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:40px;align-items:center;padding:80px 24px 88px">
+    <div>
+      <h1 style="font-family:Geologica,sans-serif;font-weight:300;font-size:68px;line-height:1.02;letter-spacing:-0.04em;margin:0 0 28px;text-wrap:balance">Приватна практика, яка <span style="font-weight:500">тримається</span> сама</h1>
+      <p style="font-size:18px;line-height:1.6;color:#4A5568;margin:0 0 32px;max-width:460px;text-wrap:pretty">Клієнти знаходять вашу сторінку, залишають запит — а розклад, нотатки й оплати вже на своїх місцях.</p>
+      <div style="display:flex;gap:10px">
+        <span style="padding:16px 26px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;cursor:pointer" style-hover="background:#0E2D52">Створити свій простір</span>
+        <span style="padding:16px 22px;border-radius:999px;border:1px solid #D4CCC2;font-size:16px;cursor:pointer" style-hover="border-color:#12345A">Знайти спеціаліста</span>
+      </div>
+    </div>
+    <div style="position:relative;height:520px">
+      <div style="position:absolute;left:8%;top:6%;width:78%;height:86%;border-radius:40px;background:#DDF1EF"></div>
+      <div style="position:absolute;left:0;top:28px;width:300px;background:#fff;border-radius:22px;padding:22px;box-shadow:0 24px 60px rgba(18,35,58,.10);transform:translate(0,{{ y1 }});transition:transform 3.2s ease-in-out">
+        <img src="assets/maria-koval.webp" alt="Марія Коваль" style="width:100%;height:120px;border-radius:14px;object-fit:cover;object-position:50% 22%;display:block;margin-bottom:14px">
+        <div style="font-family:Geologica,sans-serif;font-size:19px;font-weight:500">Марія Коваль</div>
+        <div style="font-size:14px;color:#657287;margin:2px 0 14px">Психологиня · КПТ</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span style="font-size:12px;padding:5px 10px;border-radius:999px;background:#F6F1EA">тривожність</span>
+          <span style="font-size:12px;padding:5px 10px;border-radius:999px;background:#F6F1EA">вигорання</span>
+        </div>
+      </div>
+      <div style="position:absolute;right:0;top:0;width:280px;background:#fff;border-radius:22px;padding:20px;box-shadow:0 24px 60px rgba(18,35,58,.10);transform:translate(0,{{ y2 }});transition:transform 3.2s ease-in-out">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span style="font-size:14px;font-weight:500">Четвер, 23</span>
+          <span style="font-size:12px;color:#8B95A7">3 сесії</span>
+        </div>
+        <sc-for list="{{ day }}" as="d" hint-placeholder-count="3">
+          <div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #F1EBE2">
+            <span style="font-size:13px;color:#8B95A7;width:42px">{{ d.t }}</span>
+            <span style="width:3px;height:28px;border-radius:3px;background:{{ d.c }}"></span>
+            <span style="font-size:14px">{{ d.n }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="position:absolute;right:40px;bottom:30px;width:330px;background:#12345A;color:#fff;border-radius:22px;padding:20px 22px;box-shadow:0 24px 60px rgba(18,35,58,.18);transform:translate(0,{{ y3 }});transition:transform 3.2s ease-in-out">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+          <span style="width:8px;height:8px;border-radius:50%;background:#F7B77E"></span>
+          <span style="font-size:13px;opacity:.75">Новий запит · щойно</span>
+        </div>
+        <div style="font-size:16px;line-height:1.5;margin-bottom:16px">«Шукаю підтримку після переїзду, бажано вечорами»</div>
+        <div style="display:flex;gap:8px">
+          <span style="font-size:13px;padding:8px 14px;border-radius:999px;background:#fff;color:#12345A">Запропонувати час</span>
+          <span style="font-size:13px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3)">Пізніше</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin:0 24px;border-radius:32px;background:#12345A;color:#fff;padding:56px;display:grid;grid-template-columns:minmax(0,1.2fr) repeat(3,minmax(0,1fr));gap:40px;align-items:end">
+    <h2 style="font-family:Geologica,sans-serif;font-weight:300;font-size:36px;line-height:1.1;letter-spacing:-0.03em;margin:0">Чесні умови для вашої практики</h2>
+    <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+      <div style="border-top:1px solid rgba(255,255,255,.2);padding-top:18px">
+        <div style="font-family:Geologica,sans-serif;font-size:40px;font-weight:300;letter-spacing:-0.03em;margin-bottom:6px">{{ f.big }}</div>
+        <div style="font-size:15px;opacity:.75;line-height:1.5">{{ f.copy }}</div>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="padding:96px 24px 120px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+      <div style="background:#fff;border-radius:28px;padding:36px">
+        <h3 style="font-family:Geologica,sans-serif;font-weight:400;font-size:28px;letter-spacing:-0.02em;margin:0 0 20px">{{ g.title }}</h3>
+        <sc-for list="{{ g.items }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.onClick }}" style="border-top:1px solid #F1EBE2;padding:16px 0;cursor:pointer">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:17px">
+              <span>{{ row.title }}</span>
+              <span style="color:#8B95A7;transform:rotate({{ row.rot }});transition:transform .3s;font-size:20px;line-height:1">+</span>
+            </div>
+            <div style="overflow:hidden;max-height:{{ row.h }};opacity:{{ row.op }};transition:all .4s ease">
+              <p style="font-size:15px;line-height:1.55;color:#657287;margin:10px 0 0">{{ row.copy }}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ph: 0, open: 'Професійна сторінка' };
+  componentDidMount() { this.t = setInterval(() => this.setState(s => ({ ph: 1 - s.ph })), 3200);  }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const { ph, open } = this.state;
+    const G = [
+      ['Покажіть свою практику', [
+        ['Професійна сторінка', 'Хто ви, з чим працюєте, як консультуєте та як до вас звернутись.'],
+        ['Звернення без реєстрації', 'Клієнту не потрібно створювати кабінет для першого запиту.'],
+        ['Власний блог', 'Тексти, що допомагають зрозуміти ваш підхід ще до першої консультації.']]],
+      ['Ведіть свою практику', [
+        ['Сесії та календар', 'Погоджуйте час і тримайте розклад в одному місці.'],
+        ['Приватні нотатки та матеріали', 'Внутрішні записи бачите лише ви; клієнт бачить тільки опубліковане.'],
+        ['Оплати під контролем', 'Клієнт платить напряму вам — ви лише відмічаєте статус.']]],
+    ];
+    return {
+      y1: ph ? '-8px' : '6px', y2: ph ? '8px' : '-6px', y3: ph ? '-6px' : '8px',
+      day: [{ t: '10:00', n: 'Ірина К.', c: '#8FCBC8' }, { t: '14:30', n: 'Андрій П.', c: '#F7B77E' }, { t: '18:00', n: 'Олена М.', c: '#12345A' }],
+      facts: [{ big: '0%', copy: 'комісії з консультацій' }, { big: '30 днів', copy: 'Pro безкоштовно' }, { big: '0', copy: 'рейтингів і платного просування' }],
+      groups: G.map(([title, items]) => ({ title, items: items.map(([t, c]) => ({
+        title: t, copy: c, onClick: () => this.setState({ open: open === t ? null : t }),
+        h: open === t ? '120px' : '0px', op: open === t ? 1 : 0, rot: open === t ? '45deg' : '0deg' })) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

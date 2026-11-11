@@ -1,0 +1,73 @@
+[
+  {
+    "width": 768,
+    "reduced": {
+      "phase": "show",
+      "animations": 0,
+      "timers": 0,
+      "overflow": false
+    },
+    "faqStyle": {
+      "outline": "2px",
+      "transition": "0s"
+    },
+    "errors": [],
+    "scenarios": "Reduced no loops/timers; explicit demo submission; manual input separation; FAQ keyboard/inert/focus; OS preference change; v1 fallback"
+  },
+  {
+    "width": 375,
+    "reduced": {
+      "phase": "show",
+      "animations": 0,
+      "timers": 0,
+      "overflow": false
+    },
+    "faqStyle": {
+      "outline": "2px",
+      "transition": "0s"
+    },
+    "errors": [],
+    "scenarios": "Reduced no loops/timers; explicit demo submission; manual input separation; FAQ keyboard/inert/focus; OS preference change; v1 fallback"
+  },
+  {
+    "width": 1280,
+    "reduced": {
+      "phase": "show",
+      "animations": 0,
+      "timers": 0,
+      "overflow": false
+    },
+    "faqStyle": {
+      "outline": "2px",
+      "transition": "0s"
+    },
+    "errors": [],
+    "scenarios": "Reduced no loops/timers; explicit demo submission; manual input separation; FAQ keyboard/inert/focus; OS preference change; v1 fallback"
+  },
+  {
+    "width": 1440,
+    "reduced": {
+      "phase": "show",
+      "animations": 0,
+      "timers": 0,
+      "overflow": false
+    },
+    "faqStyle": {
+      "outline": "2px",
+      "transition": "0s"
+    },
+    "errors": [],
+    "scenarios": "Reduced no loops/timers; explicit demo submission; manual input separation; FAQ keyboard/inert/focus; OS preference change; v1 fallback"
+  },
+  {
+    "visibility": "Browser visibilitychange fixture (document.hidden overridden); actual WAAPI animations paused and resumed, typing freezes without catch-up",
+    "states": [
+      "paused",
+      "paused",
+      "paused",
+      "paused"
+    ],
+    "navigationTimers": 0,
+    "errors": []
+  }
+]

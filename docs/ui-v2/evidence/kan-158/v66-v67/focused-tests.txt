@@ -1,0 +1,75 @@
+
+> frontend@0.0.0 test:run
+> vitest run src/views/PublicProfileView.spec.ts src/components/public-profile src/composables/useProfileMotion.spec.ts src/styles/publicProfileV2.spec.ts src/components/ShareDialog.spec.ts src/lib/publicMetadata.spec.ts src/lib/publicBookingRecovery.spec.ts src/lib/uiVersion.spec.ts src/__tests__/app.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_ui_v2_stage2_1_public_profile
+
+ ✓ src/views/PublicProfileView.spec.ts (142 tests) 21057ms
+   ✓ PublicProfileView > renders the main public profile sections from loaded data 745ms
+   ✓ PublicProfileView > opens guest booking request flow from slot click without auth 320ms
+   ✓ PublicProfileView > shows consultation offer selector and submits standard offer_type by default 651ms
+   ✓ PublicProfileView > submits intro offer_type when intro offer is selected 382ms
+   ✓ PublicProfileView > keeps the chosen request option visible and editable without clearing the request draft 366ms
+   ✓ PublicProfileView > keeps the selected request option on dialog reopen and resets it after success 324ms
+   ✓ PublicProfileView > allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal 346ms
+   ✓ PublicProfileView > filters available times by selected offer duration 314ms
+   ✓ PublicProfileView > shows calm Ukrainian copy for backend offer duration mismatch 316ms
+   ✓ PublicProfileView > renders simplified request topic and message copy while keeping topic selection stable 648ms
+   ✓ PublicProfileView > keeps the request input simple when the Other topic is selected 386ms
+   ✓ PublicProfileView > submits a valid guest booking request and renders success state copy 314ms
+   ✓ PublicProfileView > shows friendly unavailable slot error for guest booking request 324ms
+   ✓ PublicProfileView > does not re-prompt booking rules after successful acceptance for repeated booking actions 340ms
+   ✓ PublicProfileView > requires guest booking rules checkbox when active rules are present 321ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > restores the original calendar and preserves entered values through v2/v1 switches 310ms
+npm : stderr | src/__tests__/app.spec.ts > App shell > allows guests to open /specialists without redirect to signup-cl
+ient
+At line:2 char:1
++ npm run test:run -- src/views/PublicProfileView.spec.ts src/component ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/__...o signup-client:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+ ✓ src/__tests__/app.spec.ts (78 tests) 15005ms
+   ✓ App shell > keeps analytics off by default and lets a visitor change the saved choice from the footer 959ms
+   ✓ App shell > renders product footer on public routes 414ms
+   ✓ App shell > shows specialist sidebar on cabinet routes with main workspace links 368ms
+   ✓ App shell > shows pending scheduled sessions count on the specialist sessions sidebar badge 1364ms
+   ✓ App shell > hides the specialist sessions sidebar badge when there are no scheduled sessions 602ms
+   ✓ App shell > does not use unread session notifications for the specialist sessions sidebar badge 479ms
+   ✓ App shell > highlights active specialist sidebar item for nested cabinet routes 337ms
+   ✓ App shell > opens a specialist mobile drawer with cabinet links 742ms
+   ✓ App shell > keeps existing cabinet routes rendering inside the specialist shell 461ms
+   ✓ App shell > renders restricted-access notification without broken characters 518ms
+   ✓ App shell > uses active-client slot payload for over-limit notification copy 333ms
+   ✓ App shell > uses the server global unread count when the loaded page is partial 857ms
+   ✓ App shell > renders proposed-time acceptance copy and routes to the canonical session target 772ms
+   ✓ App shell > keeps read-all and unknown fallback behavior for reminder events 745ms
+   ✓ App shell > renders public guest request notifications without a selected slot and routes to external sessions 753ms
+   ✓ App shell > routes admin work queue notification targets through Vue Router without a hard link 374ms
+ ✓ src/components/public-profile/PublicProfileAboutSection.spec.ts (20 tests) 252ms
+ ✓ src/components/ShareDialog.spec.ts (11 tests) 327ms
+ ✓ src/components/public-profile/PublicProfileTrustSection.spec.ts (7 tests) 264ms
+ ✓ src/lib/uiVersion.spec.ts (21 tests) 772ms
+   ✓ UI version selection > resolves query  / storage v1 / env true as v1 487ms
+ ✓ src/components/public-profile/PublicProfileOverlay.spec.ts (6 tests) 386ms
+ ✓ src/lib/publicMetadata.spec.ts (5 tests) 67ms
+ ✓ src/components/public-profile/PublicProfileIdentityRail.spec.ts (5 tests) 239ms
+ ✓ src/composables/useProfileMotion.spec.ts (5 tests) 34ms
+ ✓ src/styles/publicProfileV2.spec.ts (5 tests) 37ms
+ ✓ src/lib/publicBookingRecovery.spec.ts (8 tests) 6ms
+ ✓ src/components/public-profile/PublicProfileHeroSection.spec.ts (2 tests) 196ms
+
+ Test Files  13 passed (13)
+      Tests  315 passed (315)
+   Start at  01:02:06
+   Duration  67.73s (transform 7.37s, setup 2.68s, collect 12.33s, tests 38.64s, environment 9.89s, prepare 1.49s)

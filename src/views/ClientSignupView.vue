@@ -1,6 +1,16 @@
 <template>
-  <section class="auth">
+  <section class="auth" :class="{ 'pc2-client-signup': uiV2 }" @focusin="ensureVisibleFocus">
     <div class="auth__card">
+      <nav v-if="uiV2" class="pc2-account-types" aria-label="Тип акаунта">
+        <RouterLink :to="accountTypeLink('/signup')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="undefined">
+          <span class="pc2-account-types__label">Я спеціаліст</span>
+          <span class="pc2-account-types__description">Для ведення консультацій і власної практики.</span>
+        </RouterLink>
+        <RouterLink :to="accountTypeLink('/signup-client')" class="pc2-account-types__option" active-class="" exact-active-class="" :aria-current="uiV2 ? 'page' : undefined">
+          <span class="pc2-account-types__label">Я клієнт</span>
+          <span class="pc2-account-types__description">Для звернень до спеціалістів і керування запитами.</span>
+        </RouterLink>
+      </nav>
       <div class="badge">Реєстрація</div>
       <h1 class="title auth__title">Створіть клієнтський акаунт</h1>
       <p class="muted auth__subtitle">
@@ -10,7 +20,7 @@
         Ви створюєте акаунт клієнта за запрошенням спеціаліста. Після реєстрації ви зможете підтвердити підключення до клієнтської картки.
       </p>
 
-      <form class="form" @submit.prevent="onSubmit">
+      <form class="form" :aria-busy="uiV2 ? loading : undefined" @submit.prevent="onSubmit">
         <label class="field">
           <span>Ел. пошта</span>
           <input
@@ -68,7 +78,7 @@
             </button>
           </div>
         </label>
-        <p v-if="error" class="form-error">{{ error }}</p>
+        <p v-if="error" class="form-error" :role="uiV2 ? 'alert' : undefined" :aria-atomic="uiV2 ? 'true' : undefined">{{ error }}</p>
         <button class="btn" type="submit" :disabled="loading">
           {{ loading ? 'Створення акаунта...' : 'Створити акаунт' }}
         </button>
@@ -76,7 +86,7 @@
           Вже маєте акаунт?
           <RouterLink to="/login">Увійти</RouterLink>
         </p>
-        <p class="muted auth__footer">
+        <p v-if="!uiV2" class="muted auth__footer">
           Потрібен акаунт спеціаліста?
           <RouterLink to="/signup">Реєстрація спеціаліста</RouterLink>
         </p>
@@ -87,9 +97,35 @@
           <RouterLink to="/privacy">Політикою конфіденційності</RouterLink>.
         </p>
       </form>
+      <div v-if="uiV2" class="pc2-client-discovery">
+        <p>Хочете просто звернутися до спеціаліста? Кабінет для цього не обов’язковий.</p>
+        <RouterLink :to="{ path: '/specialists', query: { ui: 'v2' } }">Знайти спеціаліста →</RouterLink>
+      </div>
     </div>
 
-    <aside class="auth__aside">
+    <aside v-if="uiV2" class="pc2-client-preview" aria-labelledby="client-preview-title">
+      <div class="pc2-client-preview__content">
+        <p class="pc2-client-preview__eyebrow">Приклад кабінету клієнта</p>
+        <h2 id="client-preview-title">Ваші запити й сесії — в одному місці</h2>
+        <p class="pc2-client-preview__note">Ілюстрація інтерфейсу. Це не ваші дані та не підтверджене бронювання.</p>
+        <div class="pc2-client-preview__card pc2-client-preview__card--navy">
+          <h3>Сесії</h3>
+          <p>Інформація про зустріч з’явиться після погодження зі спеціалістом.</p>
+          <div class="pc2-client-preview__lines" aria-hidden="true"><span></span><span></span></div>
+        </div>
+        <div class="pc2-client-preview__card">
+          <h3>Ваші запити</h3>
+          <p>Звернення до спеціалістів та відповіді на них.</p>
+          <div class="pc2-client-preview__lines" aria-hidden="true"><span></span><span></span></div>
+        </div>
+        <div class="pc2-client-preview__card">
+          <h3>Історія сесій</h3>
+          <p>Попередні зустрічі зібрані в кабінеті.</p>
+        </div>
+        <p class="pc2-client-preview__disclaimer">Це сервіс для організації консультацій. Рішення про співпрацю та вартість приймаються клієнтом і спеціалістом самостійно.</p>
+      </div>
+    </aside>
+    <aside v-else class="auth__aside">
       <div class="aside-card">
         <div class="aside-title">Що далі</div>
         <ul class="aside-list">
@@ -114,7 +150,9 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
+import { isUiV2 } from '../lib/uiVersion'
 
+const uiV2 = computed(isUiV2)
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
@@ -129,6 +167,35 @@ const isClientInviteRedirect = computed(() => {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect.trim() : ''
   return redirect.startsWith('/client/invite/')
 })
+
+// Forward only query values consumed by these flows; never copy credential parameters.
+function accountTypeLink(path: '/signup' | '/signup-client') {
+  const query: Record<string, string> = { ui: 'v2' }
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+    const value = route.query[key]
+    if (typeof value === 'string') query[key] = value
+  }
+  const redirect = route.query.redirect
+  if (typeof redirect === 'string') {
+    const trimmed = redirect.trim()
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !/[\\\u0000-\u001f\u007f]/.test(trimmed)) {
+      query.redirect = trimmed
+    }
+  }
+  return { path, query }
+}
+
+function ensureVisibleFocus(event: FocusEvent) {
+  const target = event.target
+  if (!uiV2.value || !(target instanceof HTMLElement) || !target.matches(':focus-visible')) return
+  // Native focus scrolling can place a field behind the existing sticky header.
+  requestAnimationFrame(() => {
+    if (!uiV2.value || document.activeElement !== target) return
+    const offset = parseFloat(getComputedStyle(target).scrollMarginTop) || 0
+    const top = target.getBoundingClientRect().top
+    if (top < offset) window.scrollBy({ top: top - offset, behavior: 'instant' })
+  })
+}
 
 function safeRedirectPath() {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect.trim() : ''
@@ -254,5 +321,77 @@ async function onSubmit() {
   .auth {
     grid-template-columns: 1fr;
   }
+}
+</style>
+
+<style>
+/* Page-only overrides; the original v1 stylesheet and submission contract stay intact. */
+
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pc-space-3); margin-bottom: var(--pc-space-6); }
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types__option { display: flex; flex-direction: column; gap: var(--pc-space-2); min-width: 0; padding: var(--pc-space-4) var(--pc-space-3); border: 1.5px solid var(--pc-border); border-radius: var(--pc-radius-md); background: var(--pc-bg-card); color: var(--pc-navy-900); font-family: var(--pc-font); font-weight: var(--pc-fw-medium); text-decoration: none; line-height: var(--pc-lh-body); }
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types__label { font-size: var(--pc-fs-ui); }
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types__description { color: var(--pc-text-body); font-size: var(--pc-fs-meta); font-weight: var(--pc-fw-regular); overflow-wrap: anywhere; }
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types__option[aria-current="page"] { border-color: var(--pc-navy-900); background: var(--pc-bg-soft); }
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types__option:hover { border-color: var(--pc-navy-900); background: var(--pc-bg-soft); color: var(--pc-navy-900); }
+html[data-ui="v2"] .pc2-client-signup .pc2-account-types__option:focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+
+html[data-ui="v2"] .pc2-client-signup.auth { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: var(--pc-space-10); padding-block: var(--pc-space-8); background: var(--pc-bg-main); color: var(--pc-text-body); font-family: var(--pc-font); }
+html[data-ui="v2"] .pc2-client-signup .auth__card { width: 100%; max-width: calc(var(--pc-space-24) * 5); margin-inline: auto; padding: var(--pc-space-6) 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: var(--pc-text-body); min-width: 0; }
+html[data-ui="v2"] .pc2-client-signup .badge { display: none; }
+html[data-ui="v2"] .pc2-client-signup .auth__title { color: var(--pc-text-main); font-size: var(--pc-fs-h1); font-weight: var(--pc-fw-medium); line-height: var(--pc-lh-head); letter-spacing: var(--pc-ls-head); margin-block: var(--pc-space-5) var(--pc-space-4); }
+html[data-ui="v2"] .pc2-client-signup .auth__subtitle { max-width: none; margin-block: 0 var(--pc-space-6); color: var(--pc-text-body); font-size: var(--pc-fs-body); line-height: var(--pc-lh-body); }
+html[data-ui="v2"] .pc2-client-signup .form { display: grid; gap: var(--pc-space-5); }
+html[data-ui="v2"] .pc2-client-signup .field { display: flex; flex-direction: column; gap: var(--pc-space-2); }
+html[data-ui="v2"] .pc2-client-signup .field > span { color: var(--pc-text-main); font-size: var(--pc-fs-small); font-weight: var(--pc-fw-medium); }
+html[data-ui="v2"] .pc2-client-signup .input { height: var(--pc-control-h-lg); min-height: var(--pc-control-h-lg); width: 100%; min-width: 0; padding: 0 var(--pc-space-4); background: var(--pc-bg-card); color: var(--pc-text-main); border: 1.5px solid var(--pc-border); border-radius: var(--pc-radius-sm); font: var(--pc-fw-regular) var(--pc-fs-body)/var(--pc-lh-body) var(--pc-font); box-shadow: none; }
+html[data-ui="v2"] .pc2-client-signup .input:hover { border-color: var(--pc-border-strong); }
+html[data-ui="v2"] .pc2-client-signup .input::placeholder { color: var(--pc-text-muted); opacity: 1; }
+html[data-ui="v2"] .pc2-client-signup .input:focus { border-color: var(--pc-navy-900); box-shadow: var(--pc-ring); }
+html[data-ui="v2"] .pc2-client-signup .password-input-wrap { position: relative; min-width: 0; }
+html[data-ui="v2"] .pc2-client-signup .password-input { padding-right: var(--pc-space-24); }
+html[data-ui="v2"] .pc2-client-signup .password-toggle { position: absolute; right: var(--pc-space-1); top: 50%; transform: translateY(-50%); min-height: var(--pc-control-h); height: var(--pc-control-h); padding: 0 var(--pc-space-3); background: transparent; border: 0; border-radius: var(--pc-radius-xs); color: var(--pc-navy-900); font: var(--pc-fw-medium) var(--pc-fs-meta)/var(--pc-lh-body) var(--pc-font); cursor: pointer; }
+html[data-ui="v2"] .pc2-client-signup .password-toggle:hover { background: var(--pc-bg-soft); color: var(--pc-navy-950); }
+html[data-ui="v2"] .pc2-client-signup .btn { min-height: var(--pc-control-h-lg); padding: var(--pc-space-4) var(--pc-space-6); width: 100%; border: 1px solid var(--pc-navy-900); border-radius: var(--pc-radius-pill); background: var(--pc-navy-900); color: var(--pc-bg-card); font: var(--pc-fw-medium) var(--pc-fs-body)/var(--pc-lh-head) var(--pc-font); box-shadow: none; white-space: normal; text-align: center; }
+html[data-ui="v2"] .pc2-client-signup .btn:hover:not(:disabled) { background: var(--pc-navy-950); border-color: var(--pc-navy-950); }
+html[data-ui="v2"] .pc2-client-signup .btn:active:not(:disabled) { background: var(--pc-navy-800); }
+html[data-ui="v2"] .pc2-client-signup .btn:disabled { opacity: .45; cursor: default; }
+html[data-ui="v2"] .pc2-client-signup .auth__footer,
+html[data-ui="v2"] .pc2-client-signup .auth__legal { color: var(--pc-text-muted); font-size: var(--pc-fs-small); line-height: var(--pc-lh-body); margin: 0; }
+html[data-ui="v2"] .pc2-client-signup .auth__legal { overflow-wrap: anywhere; }
+html[data-ui="v2"] .pc2-client-signup a { color: var(--pc-navy-900); font-weight: var(--pc-fw-medium); text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: var(--pc-space-1); }
+html[data-ui="v2"] .pc2-client-signup a:hover { color: var(--pc-navy-950); }
+html[data-ui="v2"] .pc2-client-signup .form-error { margin: 0; padding: var(--pc-space-3) var(--pc-space-4); border: 1px solid var(--pc-danger); border-radius: var(--pc-radius-sm); background: var(--pc-danger-soft); color: var(--pc-danger); font-size: var(--pc-fs-small); line-height: var(--pc-lh-body); overflow-wrap: anywhere; }
+
+html[data-ui="v2"] .pc2-client-signup .auth__invite-note { margin-block: 0 var(--pc-space-6); padding: var(--pc-space-4); border: 1px solid var(--pc-teal-200); border-radius: var(--pc-radius-md); background: var(--pc-teal-100); color: var(--pc-teal-ink); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-discovery { margin-top: var(--pc-space-6); padding-top: var(--pc-space-6); border-top: 1px solid var(--pc-border-hair); font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-discovery p { margin: 0 0 var(--pc-space-3); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-discovery a { display: inline-flex; align-items: center; min-height: var(--pc-control-h); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview { display: flex; align-items: center; min-width: 0; padding: var(--pc-space-10); border-radius: var(--pc-radius-lg); background: var(--pc-teal-100); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__content { display: grid; gap: var(--pc-space-4); width: 100%; max-width: calc(var(--pc-space-24) * 4); margin-inline: auto; }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__eyebrow { color: var(--pc-teal-ink); font-size: var(--pc-fs-meta); margin: 0; }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview h2 { margin: 0; color: var(--pc-teal-ink); font-size: var(--pc-fs-h2); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__note,
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__disclaimer { color: var(--pc-teal-ink); font-size: var(--pc-fs-meta); margin: 0; }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__card { padding: var(--pc-space-6); border: 1px solid var(--pc-border-hair); border-radius: var(--pc-radius-md); background: var(--pc-bg-card); color: var(--pc-text-body); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__card h3 { margin: 0 0 var(--pc-space-3); font-size: var(--pc-fs-h3); color: var(--pc-text-main); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__card p { margin: 0; font-size: var(--pc-fs-small); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__card--navy { background: var(--pc-navy-900); border-color: var(--pc-navy-900); color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__card--navy h3 { color: var(--pc-bg-card); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__lines { display: grid; gap: var(--pc-space-2); margin-top: var(--pc-space-5); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__lines span { display: block; height: var(--pc-space-2); border-radius: var(--pc-radius-pill); background: var(--pc-teal-200); }
+html[data-ui="v2"] .pc2-client-signup .pc2-client-preview__lines span:last-child { width: 60%; }
+html[data-ui="v2"] .pc2-client-signup :focus-visible { outline: var(--pc-focus-width) solid var(--pc-navy-900); outline-offset: var(--pc-focus-offset); }
+html[data-ui="v2"] .pc2-client-signup :is(input, button, a) { scroll-margin-top: var(--pc-header-anchor-offset); scroll-margin-bottom: var(--pc-space-6); }
+@media (max-width: 900px) {
+  html[data-ui="v2"] .pc2-client-signup.auth { grid-template-columns: minmax(0, 1fr); gap: var(--pc-space-6); padding-block: var(--pc-space-6); }
+  html[data-ui="v2"] .pc2-client-signup .pc2-client-preview { width: 100%; max-width: calc(var(--pc-space-24) * 6); margin-inline: auto; }
+}
+@media (max-width: 600px) {
+  html[data-ui="v2"] .pc2-client-signup .pc2-client-preview { padding: var(--pc-space-5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui="v2"] .pc2-client-signup *,
+  html[data-ui="v2"] .pc2-client-signup *::before,
+  html[data-ui="v2"] .pc2-client-signup *::after { animation: none; transition: none; }
 }
 </style>

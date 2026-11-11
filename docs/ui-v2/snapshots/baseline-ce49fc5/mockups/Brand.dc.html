@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#F1EBE2;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}
+@keyframes pcRing{0%{transform:scale(1.04);opacity:.55}100%{transform:scale(1.9);opacity:0}}
+@keyframes pcBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+</helmet>
+<div style="padding:56px clamp(20px,4vw,64px) 96px;display:flex;flex-direction:column;gap:64px;max-width:1520px">
+
+  <header style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px 48px;align-items:flex-end">
+    <div style="display:flex;flex-direction:column;gap:14px;max-width:640px">
+      <span style="font-size:13px;color:#5A6578">UI v2 · бренд</span>
+      <h1 style="margin:0;font-weight:500;font-size:48px;letter-spacing:-0.04em;line-height:1.02">Фенек, який уважно слухає</h1>
+      <p style="margin:0;font-size:17px;line-height:1.6;color:#3F4B5E;text-wrap:pretty">Фенек чує найтихіші звуки. Для платформи, де найважливіше — вислухати, це і є образ. Тому лого працює не лише як підпис: його вуха й коло стають мотивом очікування, порожніх станів і моментів «вас почули».</p>
+    </div>
+    <div style="flex:0 1 auto;display:flex;gap:10px;flex-wrap:wrap">
+      <span style="padding:6px 12px;border-radius:999px;background:#fff;font-size:13px">Усі сторінки вже з новим лого</span>
+      <span style="padding:6px 12px;border-radius:999px;background:#fff;font-size:13px">Старі файли — public/brand/legacy/</span>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <h2 style="margin:0;font-weight:500;font-size:26px;letter-spacing:-0.02em">Варіанти лого</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:16px">
+      <div style="height:200px;border-radius:24px;background:#FBF9F5;border:1px solid #EDE7DE;display:flex;flex-direction:column;justify-content:space-between;padding:20px 24px">
+        <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="width:300px;max-width:100%;margin-left:-12px;display:block">
+        <span style="font-size:12px;color:#5A6578">Основний · на світлому · proconsult-logo-dark.png</span>
+      </div>
+      <div style="height:200px;border-radius:24px;background:#12345A;display:flex;flex-direction:column;justify-content:space-between;padding:20px 24px">
+        <img src="public/brand/proconsult-logo-light.png" alt="Pro Consult" style="width:300px;max-width:100%;margin-left:-12px;display:block">
+        <span style="font-size:12px;color:#C9D4E3">На темному · proconsult-logo-light.png</span>
+      </div>
+      <div style="height:200px;border-radius:24px;background:#346A9C;display:flex;flex-direction:column;justify-content:space-between;padding:20px 24px">
+        <img src="public/brand/proconsult-logo-light.png" alt="Pro Consult" style="width:300px;max-width:100%;margin-left:-12px;display:block">
+        <span style="font-size:12px;color:#fff">На синьому лого · #346A9C</span>
+      </div>
+      <div style="height:200px;border-radius:24px;background:#fff;border:1px solid #EDE7DE;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:20px 24px">
+        <img src="public/brand/mark-navy.png" alt="" style="width:104px;aspect-ratio:1028/1016;;display:block;height:auto">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:500">Лише знак</span><span style="font-size:13px;line-height:1.45;color:#5A6578">Іконка, згорнуте меню, аватар системи. Фенек — прозорий: крізь нього видно фон.</span></div>
+      </div>
+      <div style="height:200px;border-radius:24px;background:#FBF9F5;border:1px solid #EDE7DE;display:flex;flex-direction:column;justify-content:space-between;padding:24px">
+        <div style="display:flex;align-items:center;gap:18px">
+          <img src="public/brand/mark-navy.png" alt="" style="width:64px;aspect-ratio:1028/1016;;display:block;height:auto">
+          <img src="public/brand/wordmark-caps-ink.png" alt="PRO CONSULT" style="height:22px;width:auto;display:block">
+        </div>
+        <span style="font-size:12px;color:#5A6578">Капітель — лише друк і документи (договір, рахунок)</span>
+      </div>
+      <div style="height:200px;border-radius:24px;background:#fff;border:1px solid #EDE7DE;padding:20px 24px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:15px;font-weight:500">Кольори знака</span>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1">
+          <div style="border-radius:14px;background:#0F2D52;color:#fff;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;font-size:12px">Темно-синій<span style="font-family:ui-monospace,monospace;opacity:.8">#0F2D52</span></div>
+          <div style="border-radius:14px;background:#346A9C;color:#fff;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;font-size:12px">Синій<span style="font-family:ui-monospace,monospace;opacity:.8">#346A9C</span></div>
+          <div style="border-radius:14px;background:#fff;border:1px solid #E6E0D8;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;font-size:12px">Білий<span style="font-family:ui-monospace,monospace;color:#5A6578">#FFFFFF</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 32px;font-size:14px;line-height:1.5;color:#3F4B5E;padding:4px 4px 0">
+      <span>· Вільне поле навколо = ¼ висоти знака.</span>
+      <span>· Мінімум: знак 16px (фавікон), лого зі словом — 96px завширшки.</span>
+      <span>· Слово «Pro Consult» — лише з файлу; не набирати шрифтом сайту.</span>
+      <span>· Не заливати фенека, не додавати градієнт, обводку, тінь, не повертати.</span>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-weight:500;font-size:26px;letter-spacing:-0.02em">Як обіграти на сайті</h2><span style="font-size:15px;color:#5A6578">Пропозиції — оберіть, що переносимо в сторінки.</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:20px">
+
+      <div id="1a" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="position:relative;height:300px;background:#FBF9F5;display:grid;grid-template-columns:minmax(0,1fr) 200px;align-items:center;gap:16px;padding:0 32px;overflow:hidden">
+          <div style="display:flex;flex-direction:column;gap:12px"><span style="font-size:12px;color:#2F8C86">Для психологів, терапевтів і консультантів</span><span style="font-size:30px;font-weight:500;letter-spacing:-0.04em;line-height:1.05">Менше адміністрування. Більше уваги клієнтам.</span></div>
+          <div style="display:flex;align-items:center;justify-content:center">{{ listenHero }}</div>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">1a</span><span style="font-size:16px;font-weight:500">Hero «Слухає»</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Знак поруч із заголовком, від нього повільно розходяться кола, як звук. Головний образ бренду, без ілюстрацій. Hero стає двоколонковим (на мобільному знак над заголовком, 96px).</span></div>
+      </div>
+
+      <div id="1b" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="position:relative;height:300px;background:#FBF9F5;padding:28px 32px 0;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden">
+          <div style="position:relative;border-radius:24px 24px 0 0;background:#12345A;color:#fff;padding:22px 24px 26px;display:flex;flex-direction:column;gap:6px">
+            <div style="position:absolute;right:28px;top:-58px;width:120px;height:58px;overflow:hidden"><img src="public/brand/mark-band.png" alt="" style="width:120px;aspect-ratio:1028/1016;;display:block;height:auto"></div>
+            <span style="font-size:22px;letter-spacing:-0.03em">Чесні умови для вашої практики</span><span style="font-size:13px;color:#C9D4E3">Без комісії з сесій · дані ваші · скасування будь-коли</span>
+          </div>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">1b</span><span style="font-size:16px;font-weight:500">«Визирає»</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Верхівка знака з вухами виростає з темного блоку, у його ж кольорі. Тихий жарт, один на сторінку: блок «Чесні умови» на головній і футер.</span></div>
+      </div>
+
+      <div id="2" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;background:#FBF9F5;display:grid;grid-template-columns:1fr 1fr;gap:1px;background-color:#EDE7DE">
+          <div style="background:#FBF9F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px">{{ listenLoad }}<span style="font-size:14px;color:#3F4B5E">Шукаємо вільні вікна…</span></div>
+          <div style="background:#FBF9F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center">
+            <img src="public/brand/mark-pale.png" alt="" style="width:56px;aspect-ratio:1028/1016;;display:block;height:auto">
+            <span style="font-size:16px;font-weight:500">Запитів поки немає</span><span style="font-size:13px;line-height:1.45;color:#5A6578;max-width:200px">Повідомимо, щойно хтось звернеться</span>
+          </div>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">2</span><span style="font-size:16px;font-weight:500">Очікування й порожні стани</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Довге очікування (&gt; 1 с: пошук, оплата, відправка) — знак, що «дихає», з колами. Скелетони лишаються для списків. Порожні стани — знак у кольорі #E3DBCF, 56px.</span></div>
+      </div>
+
+      <div id="3" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;background:#EEF8F7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center">
+          {{ listenOk }}
+          <span style="font-size:22px;font-weight:500;letter-spacing:-0.02em">Запит надіслано</span>
+          <span style="font-size:14px;line-height:1.5;color:#3D5A58;max-width:300px">Марія Коваль побачить його в кабінеті й відповість листом на ваш email.</span>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">3</span><span style="font-size:16px;font-weight:500">«Вас почули»</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Екран після запиту клієнта і після реєстрації спеціаліста: знак з одним колом-хвилею, що розходиться один раз. Замість галочки — образ того, що повідомлення дійшло.</span></div>
+      </div>
+
+      <div id="4" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;background:#FBF9F5;display:grid;grid-template-columns:64px minmax(0,1fr);overflow:hidden">
+          <div style="background:#fff;border-right:1px solid #EDE7DE;display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:18px">
+            <img src="public/brand/mark-navy.png" alt="" style="width:32px;aspect-ratio:1028/1016;;display:block;height:auto">
+            <span style="width:36px;height:36px;border-radius:12px;background:#DDF1EF"></span><span style="width:36px;height:36px;border-radius:12px;border:1.5px solid #D4CCC2"></span><span style="width:36px;height:36px;border-radius:12px;border:1.5px solid #D4CCC2"></span>
+          </div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:500">Чати</span>
+            <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:center;padding:12px;border-radius:14px;background:#fff;border:1px solid #EDE7DE">
+              <span style="width:40px;height:40px;border-radius:999px;background:#0F2D52;display:flex;align-items:center;justify-content:center"><img src="public/brand/mark-white.png" alt="" style="width:26px;height:auto;display:block"></span>
+              <div style="min-width:0"><div style="font-size:14px;font-weight:500">Pro Consult · підтримка</div><div style="font-size:13px;color:#5A6578;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Пробний період Pro триває ще 3 дні</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:center;padding:12px;border-radius:14px;background:#fff;border:1px solid #EDE7DE">
+              <span style="width:40px;height:40px;border-radius:999px;background:#DDF1EF;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">ІТ</span>
+              <div style="min-width:0"><div style="font-size:14px;font-weight:500">Ірина Ткаченко</div><div style="font-size:13px;color:#5A6578">Дякую, до п’ятниці!</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">4</span><span style="font-size:16px;font-weight:500">Кабінет</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Згорнуте меню (768–1099px) — лише знак. Системні повідомлення й підтримка в чатах — білий знак на темно-синьому колі.</span></div>
+      </div>
+
+      <div id="5" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;background:#FBF9F5;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden">
+          <div style="position:relative;margin:0 24px;padding:24px 24px 28px;border-top:1px solid #EDE7DE;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;overflow:hidden;height:180px">
+            <div style="display:flex;flex-direction:column;gap:10px;position:relative">
+              <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="width:150px;margin-left:-6px;display:block">
+              <div style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:#5A6578;max-width:240px"><span>Блог</span><span>Часті питання</span><span>Конфіденційність</span><span>Підтримка</span></div>
+            </div>
+            <img src="public/brand/mark-sand.png" alt="" style="position:absolute;right:-30px;bottom:-110px;width:260px;aspect-ratio:1028/1016;;display:block;height:auto">
+          </div>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">5</span><span style="font-size:16px;font-weight:500">Футер</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Великий знак тоном-у-тон (#EFE8DD), обрізаний кутом. Видно вуха, текст не перекриває. Лише на публічних сторінках.</span></div>
+      </div>
+
+      <div id="6" style="border-radius:24px;background:#fff;border:1px solid #EDE7DE;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;background:#FBF9F5;padding:24px;display:flex;flex-direction:column;gap:20px">
+          <div style="align-self:flex-start;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px 10px 0 0;background:#fff;border:1px solid #EDE7DE;border-bottom:0;font-size:13px">
+            <img src="public/brand/favicon-32.png" alt="" style="width:16px;height:16px;display:block">Марія Коваль · Pro Consult
+          </div>
+          <div style="display:flex;gap:20px;align-items:flex-end">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><img src="public/brand/apple-touch-icon.png" alt="" style="width:76px;height:76px;border-radius:18px;display:block;box-shadow:0 4px 14px rgba(18,35,58,.12)"><span style="font-size:12px;color:#5A6578">Pro Consult</span></div>
+            <div style="flex:1;min-width:0;height:130px;border-radius:14px;background:#12345A;position:relative;overflow:hidden;padding:16px">
+              <img src="public/brand/proconsult-logo-light.png" alt="Pro Consult" style="width:140px;margin-left:-6px;display:block;position:relative">
+              <span style="position:absolute;left:16px;bottom:14px;font-size:13px;color:#C9D4E3">Сторінка спеціаліста</span>
+              <img src="public/brand/mark-deep.png" alt="" style="position:absolute;right:-24px;bottom:-34px;width:150px;aspect-ratio:1028/1016;;display:block;height:auto">
+            </div>
+          </div>
+        </div>
+        <div style="padding:18px 22px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="padding:2px 8px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">6</span><span style="font-size:16px;font-weight:500">Іконки й прев’ю посилань</span></div><span style="font-size:14px;line-height:1.5;color:#3F4B5E">Фавікон і іконка на екрані телефона вже готові. Прев’ю посилання (1200×630) — темно-синій фон, біле лого, великий знак тоном-у-тон у кутку.</span></div>
+      </div>
+
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const MASK = 'url(public/brand/mark-mask.png) center/contain no-repeat';
+const h = React.createElement;
+// rings keep the logo's opening at the bottom (neck gap ≈ 160°–196°)
+const GAP = 'conic-gradient(#000 0 156deg, transparent 156deg 198deg, #000 198deg)';
+function Listen({ size, color, ring, rings = 3, dur = 3.2, once = false, breath = true }) {
+  const ringEls = Array.from({ length: rings }, (_, i) => h('span', { key: i, style: {
+    position: 'absolute', inset: 0, borderRadius: '50%', border: `1.5px solid ${ring}`,
+    WebkitMask: GAP, mask: GAP,
+    animation: `pcRing ${dur}s cubic-bezier(.2,.6,.3,1) ${(i * dur) / rings}s ${once ? '1 both' : 'infinite'}`,
+  } }));
+  return h('span', { style: { position: 'relative', width: size, height: size, display: 'inline-block', flexShrink: 0 } },
+    ...ringEls,
+    h('img', { src: 'public/brand/mark-navy.png', alt: '', style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', animation: breath ? 'pcBreath 3.2s ease-in-out infinite' : 'none' } }));
+}
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      listenHero: h(Listen, { size: 150, color: '#0F2D52', ring: '#F7B77E' }),
+      listenLoad: h(Listen, { size: 72, color: '#0F2D52', ring: '#8FCBC8', dur: 2.4 }),
+      listenOk: h(Listen, { size: 88, color: '#0F2D52', ring: '#2F8C86', rings: 2, dur: 2.2, breath: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+{
+  "before_commit": "b9bf9df9e81747f1e3d398fdc6bb5910aa3b9811",
+  "reference": "User-approved header screenshot: compact lockup with larger separation before audience tabs",
+  "browser": [
+    {
+      "width": 375,
+      "height": 677,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 157.515625,
+        "height": 32,
+        "headerHeight": 76,
+        "scrollWidth": 375,
+        "audienceGap": null
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 157.515625,
+        "height": 32,
+        "headerHeight": 76,
+        "scrollWidth": 375,
+        "audienceGap": null
+      }
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 196.90625,
+        "height": 40,
+        "headerHeight": 76,
+        "scrollWidth": 768,
+        "audienceGap": null
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 157.515625,
+        "height": 32,
+        "headerHeight": 76,
+        "scrollWidth": 768,
+        "audienceGap": null
+      }
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 196.90625,
+        "height": 40,
+        "headerHeight": 76,
+        "scrollWidth": 1280,
+        "audienceGap": 24
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 157.515625,
+        "height": 32,
+        "headerHeight": 76,
+        "scrollWidth": 1280,
+        "audienceGap": 80
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 196.90625,
+        "height": 40,
+        "headerHeight": 76,
+        "scrollWidth": 1440,
+        "audienceGap": 24
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 157.515625,
+        "height": 32,
+        "headerHeight": 76,
+        "scrollWidth": 1440,
+        "audienceGap": 80
+      }
+    }
+  ],
+  "parity": [
+    {
+      "width": 375,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 375,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 768,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 768,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1280,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1280,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1440,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1440,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    }
+  ],
+  "intermediate_widths": [
+    1100,
+    1101,
+    1120,
+    1920
+  ],
+  "intermediate_checks": "76px header; 32px logo; no overflow; 80px logo-to-audience box gap above 1100px",
+  "focused_tests": "91/91 PASS",
+  "build": "PASS",
+  "typecheck": "9 unchanged baseline errors; 0 new",
+  "limitations": "API fixtures; footer element comparison captured with 1100px height clear of sticky header; v1 reveal transitions settled before full-page comparison"
+}

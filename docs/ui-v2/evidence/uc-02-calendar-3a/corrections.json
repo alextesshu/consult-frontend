@@ -1,0 +1,548 @@
+{
+  "problems": [],
+  "rows": [
+    {
+      "check": "grid-height",
+      "width": 1440,
+      "range": "Показано 09:00–13:00 — поза цим часом подій немає",
+      "bodyHeight": 320,
+      "scrollBox": 320,
+      "innerScroll": false,
+      "hourLabels": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "halfLines": true,
+      "events": [
+        "10:00–10:50, Сесія, Одна Година, Підтверджено"
+      ],
+      "full": {
+        "range": "Показано 00:00–24:00",
+        "bodyHeight": 1248,
+        "scrollBox": 630,
+        "innerScroll": true,
+        "hourLabels": [
+          "00:00",
+          "01:00",
+          "02:00",
+          "03:00",
+          "04:00",
+          "05:00",
+          "06:00",
+          "07:00",
+          "08:00",
+          "09:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "13:00",
+          "14:00",
+          "15:00",
+          "16:00",
+          "17:00",
+          "18:00",
+          "19:00",
+          "20:00",
+          "21:00",
+          "22:00",
+          "23:00",
+          "24:00"
+        ],
+        "halfLines": false,
+        "events": [
+          "10:00–10:50, Сесія, Одна Година, Підтверджено"
+        ]
+      },
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 1440,
+      "range": "Показано 09:00–14:00 — поза цим часом подій немає",
+      "bodyHeight": 400,
+      "scrollBox": 400,
+      "innerScroll": false,
+      "hourLabels": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00"
+      ],
+      "halfLines": true,
+      "events": [
+        "09:00–09:50, Сесія, Ранкова, Підтверджено",
+        "13:00–13:50, Сесія, Обідня, Підтверджено"
+      ],
+      "full": null,
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 1440,
+      "range": "Показано 07:00–19:00 — поза цим часом подій немає",
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "hourLabels": [
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "halfLines": false,
+      "events": [
+        "07:00–07:50, Сесія, Рання, Підтверджено",
+        "18:00–18:50, Сесія, Вечірня, Підтверджено"
+      ],
+      "full": null,
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 1280,
+      "range": "Показано 09:00–13:00 — поза цим часом подій немає",
+      "bodyHeight": 320,
+      "scrollBox": 320,
+      "innerScroll": false,
+      "hourLabels": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "halfLines": true,
+      "events": [
+        "10:00–10:50, Сесія, Одна Година, Підтверджено"
+      ],
+      "full": {
+        "range": "Показано 00:00–24:00",
+        "bodyHeight": 1248,
+        "scrollBox": 630,
+        "innerScroll": true,
+        "hourLabels": [
+          "00:00",
+          "01:00",
+          "02:00",
+          "03:00",
+          "04:00",
+          "05:00",
+          "06:00",
+          "07:00",
+          "08:00",
+          "09:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "13:00",
+          "14:00",
+          "15:00",
+          "16:00",
+          "17:00",
+          "18:00",
+          "19:00",
+          "20:00",
+          "21:00",
+          "22:00",
+          "23:00",
+          "24:00"
+        ],
+        "halfLines": false,
+        "events": [
+          "10:00–10:50, Сесія, Одна Година, Підтверджено"
+        ]
+      },
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 1280,
+      "range": "Показано 09:00–14:00 — поза цим часом подій немає",
+      "bodyHeight": 400,
+      "scrollBox": 400,
+      "innerScroll": false,
+      "hourLabels": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00"
+      ],
+      "halfLines": true,
+      "events": [
+        "09:00–09:50, Сесія, Ранкова, Підтверджено",
+        "13:00–13:50, Сесія, Обідня, Підтверджено"
+      ],
+      "full": null,
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 1280,
+      "range": "Показано 07:00–19:00 — поза цим часом подій немає",
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "hourLabels": [
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "halfLines": false,
+      "events": [
+        "07:00–07:50, Сесія, Рання, Підтверджено",
+        "18:00–18:50, Сесія, Вечірня, Підтверджено"
+      ],
+      "full": null,
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 768,
+      "range": "Показано 09:00–13:00 — поза цим часом подій немає",
+      "bodyHeight": 320,
+      "scrollBox": 320,
+      "innerScroll": false,
+      "hourLabels": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "halfLines": true,
+      "events": [
+        "10:00–10:50, Сесія, Одна Година, Підтверджено"
+      ],
+      "full": {
+        "range": "Показано 00:00–24:00",
+        "bodyHeight": 1248,
+        "scrollBox": 630,
+        "innerScroll": true,
+        "hourLabels": [
+          "00:00",
+          "01:00",
+          "02:00",
+          "03:00",
+          "04:00",
+          "05:00",
+          "06:00",
+          "07:00",
+          "08:00",
+          "09:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "13:00",
+          "14:00",
+          "15:00",
+          "16:00",
+          "17:00",
+          "18:00",
+          "19:00",
+          "20:00",
+          "21:00",
+          "22:00",
+          "23:00",
+          "24:00"
+        ],
+        "halfLines": false,
+        "events": [
+          "10:00–10:50, Сесія, Одна Година, Підтверджено"
+        ]
+      },
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 768,
+      "range": "Показано 09:00–14:00 — поза цим часом подій немає",
+      "bodyHeight": 400,
+      "scrollBox": 400,
+      "innerScroll": false,
+      "hourLabels": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00"
+      ],
+      "halfLines": true,
+      "events": [
+        "09:00–09:50, Сесія, Ранкова, Підтверджено",
+        "13:00–13:50, Сесія, Обідня, Підтверджено"
+      ],
+      "full": null,
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      }
+    },
+    {
+      "check": "grid-height",
+      "width": 768,
+      "range": "Показано 07:00–19:00 — поза цим часом подій немає",
+      "bodyHeight": 630,
+      "scrollBox": 630,
+      "innerScroll": false,
+      "hourLabels": [
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "halfLines": false,
+      "events": [
+        "07:00–07:50, Сесія, Рання, Підтверджено",
+        "18:00–18:50, Сесія, Вечірня, Підтверджено"
+      ],
+      "full": null,
+      "errors": [],
+      "overflow": {
+        "scrollWidth": 768,
+        "innerWidth": 768,
+        "ok": true
+      }
+    },
+    {
+      "check": "empty-labels",
+      "width": 1440,
+      "days": [
+        {
+          "day": "Понеділок, 19 жовтня",
+          "empty": "Порожній день"
+        },
+        {
+          "day": "Вівторок, 20 жовтня",
+          "empty": "Порожній день"
+        },
+        {
+          "day": "Середа, 21 жовтня",
+          "empty": "Немає вільних слотів · є зайняті події"
+        },
+        {
+          "day": "Четвер, 22 жовтня, сьогодні",
+          "empty": null
+        },
+        {
+          "day": "П’ятниця, 23 жовтня",
+          "empty": null
+        },
+        {
+          "day": "Субота, 24 жовтня",
+          "empty": null
+        },
+        {
+          "day": "Неділя, 25 жовтня",
+          "empty": null
+        }
+      ]
+    },
+    {
+      "check": "next-action",
+      "width": 1440,
+      "current": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 156,
+        "button": "157x36"
+      },
+      "nextWeek": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв · поза вибраним тижнем",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 176,
+        "button": "157x36"
+      }
+    },
+    {
+      "check": "next-action",
+      "width": 768,
+      "current": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 156,
+        "button": "157x36"
+      },
+      "nextWeek": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв · поза вибраним тижнем",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 156,
+        "button": "157x36"
+      }
+    },
+    {
+      "check": "next-action",
+      "width": 390,
+      "current": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 168,
+        "button": "157x44"
+      },
+      "nextWeek": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв · поза вибраним тижнем",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 168,
+        "button": "157x44"
+      }
+    },
+    {
+      "check": "next-action",
+      "width": 375,
+      "current": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 168,
+        "button": "157x44"
+      },
+      "nextWeek": {
+        "meta": "Найближча з усіх дій · сьогодні 18:00 · через 1 год 10 хв · поза вибраним тижнем",
+        "who": "Андрій Савчук",
+        "truncated": false,
+        "height": 168,
+        "button": "157x44"
+      }
+    },
+    {
+      "check": "view-sheet",
+      "width": 375,
+      "height": 600,
+      "sheet": {
+        "headTop": 91,
+        "headVisible": true,
+        "close": "44x44",
+        "closeVisible": true,
+        "bodyScrolls": true,
+        "bodyScrollTop": 385,
+        "pageScrollY": 0,
+        "rootOverflow": "hidden",
+        "panelWidth": 375
+      },
+      "pageScrollBefore": 0,
+      "overflow": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "ok": true
+      },
+      "afterEsc": {
+        "focus": "Вигляд календаря",
+        "rootOverflow": ""
+      },
+      "afterClose": {
+        "open": false,
+        "focus": "Вигляд календаря"
+      },
+      "errors": []
+    },
+    {
+      "check": "view-sheet",
+      "width": 390,
+      "height": 844,
+      "sheet": {
+        "headTop": 128,
+        "headVisible": true,
+        "close": "44x44",
+        "closeVisible": true,
+        "bodyScrolls": true,
+        "bodyScrollTop": 158,
+        "pageScrollY": 0,
+        "rootOverflow": "hidden",
+        "panelWidth": 390
+      },
+      "pageScrollBefore": 0,
+      "overflow": {
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "ok": true
+      },
+      "afterEsc": {
+        "focus": "Вигляд календаря",
+        "rootOverflow": ""
+      },
+      "afterClose": {
+        "open": false,
+        "focus": "Вигляд календаря"
+      },
+      "errors": []
+    }
+  ]
+}

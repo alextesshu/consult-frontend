@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#EFEAE2;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<section style="padding:48px;display:flex;flex-direction:column;gap:48px">
+  <div>
+    <h1 style="font-weight:500;font-size:32px;letter-spacing:-0.03em;margin:0 0 8px">Блок «Покажіть / Ведіть свою практику» — три варіанти</h1>
+    <p style="font-size:16px;color:#5A6578;margin:0">Замість восьми розкривних рядків. Наведіть або клікніть — усе живе.</p>
+  </div>
+
+  <div id="2a" style="display:flex;flex-direction:column;gap:12px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#12345A;color:#fff">2a · Перемикач + живий приклад</span>
+    <div style="width:1240px;background:#FBF9F5;border-radius:24px;padding:72px 48px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:40px">
+        <h2 style="font-weight:500;font-size:44px;letter-spacing:-0.035em;line-height:1.08;margin:0;max-width:560px">Дві сторони одного простору</h2>
+        <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px">
+          <span onClick="{{ sideShow }}" style="padding:10px 20px;border-radius:999px;font-size:15px;cursor:pointer;background:{{ a.showBg }};box-shadow:{{ a.showSh }};transition:all .25s">Покажіть практику</span>
+          <span onClick="{{ sideWork }}" style="padding:10px 20px;border-radius:999px;font-size:15px;cursor:pointer;background:{{ a.workBg }};box-shadow:{{ a.workSh }};transition:all .25s">Ведіть практику</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:48px;align-items:center">
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ a.items }}" as="it" hint-placeholder-count="4">
+            <div onMouseEnter="{{ it.on }}" onClick="{{ it.on }}" style="display:flex;gap:20px;align-items:baseline;padding:20px 0;border-top:1px solid #EDE7DE;cursor:pointer">
+              <span style="font-size:14px;color:{{ it.numC }};width:24px;transition:color .3s">0{{ it.n }}</span>
+              <div>
+                <div style="font-size:22px;font-weight:500;letter-spacing:-0.02em;color:{{ it.titleC }};transition:color .3s">{{ it.title }}</div>
+                <div style="display:grid;grid-template-rows:{{ it.rows }};transition:grid-template-rows .4s ease"><div style="overflow:hidden"><p style="font-size:15px;line-height:1.55;color:#657287;margin:8px 0 0">{{ it.copy }}</p></div></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position:relative;height:400px;border-radius:24px;background:#F1EBE2;overflow:hidden">
+          <div style="position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:{{ a.blob }};transition:background .6s"></div>
+          <sc-for list="{{ a.previews }}" as="p" hint-placeholder-count="8">
+            <div style="position:absolute;left:40px;right:40px;top:50%;transform:translateY(calc(-50% + {{ p.y }}));opacity:{{ p.op }};transition:opacity .45s ease,transform .45s ease;background:#fff;border-radius:18px;padding:22px;box-shadow:0 16px 40px rgba(18,35,58,.08);display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:13px;color:#8B95A7">{{ p.kicker }}</div>
+              <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:#FBF9F5">
+                  <span style="font-size:15px">{{ r.a }}</span>
+                  <span style="font-size:12px;padding:4px 10px;border-radius:999px;background:{{ r.bg }};white-space:nowrap">{{ r.b }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="2b" style="display:flex;flex-direction:column;gap:12px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#12345A;color:#fff">2b · Публічне / приватне</span>
+    <div style="width:1240px;background:#FBF9F5;border-radius:24px;padding:72px 48px">
+      <h2 style="font-weight:500;font-size:44px;letter-spacing:-0.035em;line-height:1.08;margin:0 0 12px;max-width:640px">Що бачить клієнт — і що бачите лише ви</h2>
+      <p style="font-size:17px;color:#5A6578;margin:0 0 40px;max-width:560px">Один простір, чітка межа між публічним і приватним.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-radius:28px;overflow:hidden">
+        <div style="background:#fff;border:1px solid #EDE7DE;border-right:0;border-radius:28px 0 0 28px;padding:40px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#8FCBC8"></span>
+            <span style="font-size:14px;color:#2F8C86">Бачить клієнт</span>
+          </div>
+          <h3 style="font-weight:500;font-size:28px;letter-spacing:-0.02em;margin:0 0 24px">Покажіть свою практику</h3>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <sc-for list="{{ b.pub }}" as="x" hint-placeholder-count="4">
+              <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;transition:background .25s,transform .25s" style-hover="background:#EEF8F7;transform:translateX(4px)">
+                <span style="font-size:17px">{{ x.t }}</span>
+                <span style="font-size:14px;color:#8B95A7;text-align:right">{{ x.s }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#12345A;color:#fff;padding:40px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#F7B77E"></span>
+            <span style="font-size:14px;color:#FFD9B5">Бачите лише ви</span>
+          </div>
+          <h3 style="font-weight:500;font-size:28px;letter-spacing:-0.02em;margin:0 0 24px">Ведіть свою практику</h3>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <sc-for list="{{ b.priv }}" as="x" hint-placeholder-count="4">
+              <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;transition:background .25s,transform .25s" style-hover="background:rgba(255,255,255,.08);transform:translateX(4px)">
+                <span style="font-size:17px">{{ x.t }}</span>
+                <span style="font-size:14px;color:#A9B8CC;text-align:right">{{ x.s }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="2c" style="display:flex;flex-direction:column;gap:12px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#12345A;color:#fff">2c · Бенто з міні-інтерфейсами</span>
+    <div style="width:1240px;background:#FBF9F5;border-radius:24px;padding:72px 48px">
+      <h2 style="font-weight:500;font-size:44px;letter-spacing:-0.035em;line-height:1.08;margin:0 0 40px;max-width:640px">Усе для практики — без зайвого</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:220px;gap:16px">
+        <div style="grid-column:span 2;background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:28px;display:flex;justify-content:space-between;gap:24px;transition:transform .35s ease,box-shadow .35s" style-hover="transform:translateY(-4px);box-shadow:0 16px 40px rgba(18,35,58,.08)">
+          <div style="display:flex;flex-direction:column;justify-content:space-between">
+            <span style="font-size:13px;color:#2F8C86">Публічне</span>
+            <div><div style="font-size:22px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Професійна сторінка</div><div style="font-size:15px;color:#657287">Підхід, теми, формат і вартість</div></div>
+          </div>
+          <div style="width:210px;flex-shrink:0;background:#F6F1EA;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:10px;align-items:center"><img src="assets/maria-koval.webp" alt="Марія Коваль" style="width:36px;height:36px;border-radius:10px;object-fit:cover;object-position:50% 20%;display:block"><div style="font-size:13px;font-weight:500">Марія Коваль<div style="font-weight:400;color:#8B95A7;font-size:12px">КПТ</div></div></div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap"><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#EEF8F7">тривожність</span><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#EEF8F7">вигорання</span></div>
+            <span style="margin-top:auto;font-size:12px;padding:7px;border-radius:999px;background:#12345A;color:#fff;text-align:center">Залишити запит</span>
+          </div>
+        </div>
+        <div style="background:#EEF8F7;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
+          <span style="font-size:13px;color:#2F8C86">Публічне</span>
+          <div><div style="font-size:20px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Запит без реєстрації</div><div style="font-size:14px;color:#3D5A58">Клієнту не обов’язково мати кабінет</div></div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
+          <span style="font-size:13px;color:#2F8C86">Публічне</span>
+          <div><div style="font-size:20px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Блог і пошук</div><div style="font-size:14px;color:#657287">Вас знаходять без рейтингів</div></div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7DE;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
+          <span style="font-size:13px;color:#B5651F">Приватне</span>
+          <div><div style="font-size:20px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Нотатки</div><div style="font-size:14px;color:#657287">Бачите лише ви</div></div>
+        </div>
+        <div style="grid-column:span 2;background:#12345A;color:#fff;border-radius:24px;padding:28px;display:flex;justify-content:space-between;gap:24px;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
+          <div style="display:flex;flex-direction:column;justify-content:space-between">
+            <span style="font-size:13px;color:#FFD9B5">Приватне</span>
+            <div><div style="font-size:22px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Сесії та календар</div><div style="font-size:15px;color:#C9D4E3">Час, посилання, підтвердження</div></div>
+          </div>
+          <div style="width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;justify-content:center">
+            <sc-for list="{{ c.day }}" as="d" hint-placeholder-count="3">
+              <div style="display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,{{ d.a }});transition:background .6s">
+                <span style="font-size:12px;color:#A9B8CC;width:38px">{{ d.t }}</span><span style="font-size:13px">{{ d.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#FFF1E3;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
+          <span style="font-size:13px;color:#B5651F">Приватне</span>
+          <div><div style="font-size:20px;font-weight:500;letter-spacing:-0.02em;margin-bottom:6px">Оплати</div><div style="font-size:14px;color:#7A4A1E">Напряму вам, статуси тут</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { side: 0, k: 0, tick: 0 };
+  componentDidMount() { this.t = setInterval(() => this.setState(s => ({ tick: (s.tick + 1) % 3 })), 1800); }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const { side, k, tick } = this.state;
+    const SH = [
+      ['Професійна сторінка', 'Хто ви, з чим працюєте і як до вас звернутись.', 'Ваша сторінка', [['Когнітивно-поведінкова терапія', 'Підхід', '#DDF1EF'], ['Онлайн · 50 хв', 'Формат', '#EEF4FA'], ['1 400 грн', 'Вартість', '#FFF1E3']]],
+      ['Звернення без реєстрації', 'Клієнту не потрібно створювати кабінет для першого запиту.', 'Нові запити', [['Олена · тривожність', 'Новий', '#FFE2C4'], ['Андрій · стосунки', 'Новий', '#FFE2C4'], ['Ірина · вигорання', 'Переглянуто', '#EEF4FA']]],
+      ['Власний блог', 'Тексти, що допомагають зрозуміти ваш підхід до першої сесії.', 'Публікації', [['Як зрозуміти, що терапія підходить', 'Стаття', '#EEF8F7'], ['Що буде на першій сесії', 'Питання', '#EEF4FA'], ['Вправа: автоматичні думки', 'Матеріал', '#FFF1E3']]],
+      ['Пошук спеціалістів', 'Клієнти знаходять вас за запитом — без рейтингів.', 'Клієнт шукає', [['Тривожність · онлайн', 'Запит', '#F6F1EA'], ['Марія Коваль', 'Збіг', '#DDF1EF'], ['Ще 4 спеціалісти', 'Без рейтингу', '#EEF4FA']]],
+    ];
+    const WK = [
+      ['Сесії та календар', 'Погоджуйте час і тримайте розклад в одному місці.', 'Четвер, 23', [['10:00 · Ірина К.', 'Підтверджено', '#EEF8F1'], ['14:30 · Андрій П.', 'Очікує', '#FFF5DF'], ['18:00 · Олена М.', 'Підтверджено', '#EEF8F1']]],
+      ['Приватні нотатки', 'Внутрішні записи бачите лише ви.', 'Олена · сесія 6', [['Нотатка після сесії', 'Приватно', '#EEF4FA'], ['Гіпотеза для роботи', 'Приватно', '#EEF4FA'], ['Вправа «Щоденник думок»', 'Опубліковано', '#DDF1EF']]],
+      ['Задачі та організація', 'Плануйте роботу без окремих таблиць.', 'Цей тиждень', [['Підготувати матеріал', 'Сьогодні', '#FFF1E3'], ['Супервізія', 'Пт', '#EEF4FA'], ['Оновити сторінку', 'Пізніше', '#F6F1EA']]],
+      ['Оплати під контролем', 'Клієнт платить напряму вам — ви бачите статуси.', 'Жовтень', [['Олена · 4 сесії', 'Отримано', '#EEF8F1'], ['Андрій · 2 сесії', 'Очікує', '#FFF5DF'], ['Ірина · 3 сесії', 'Отримано', '#EEF8F1']]],
+    ];
+    const set = side === 0 ? SH : WK;
+    const on = (s) => ({ bg: side === s ? '#fff' : 'transparent', sh: side === s ? '0 1px 2px rgba(18,35,58,.1)' : 'none' });
+    return {
+      sideShow: () => this.setState({ side: 0, k: 0 }), sideWork: () => this.setState({ side: 1, k: 0 }),
+      a: {
+        showBg: on(0).bg, showSh: on(0).sh, workBg: on(1).bg, workSh: on(1).sh,
+        blob: side === 0 ? '#DDF1EF' : '#FFE2C4',
+        items: set.map((d, i) => ({ n: i + 1, title: d[0], copy: d[1], on: () => this.setState({ k: i }),
+          rows: i === k ? '1fr' : '0fr', titleC: i === k ? '#12233A' : '#8B95A7', numC: i === k ? '#12345A' : '#C4CAD4' })),
+        previews: [...SH, ...WK].map((d, i) => {
+          const active = (side === 0 ? i : i - 4) === k && (side === 0 ? i < 4 : i >= 4);
+          return { kicker: d[2], op: active ? 1 : 0, y: active ? '0px' : '14px', rows: d[3].map(([a, b, bg]) => ({ a, b, bg })) };
+        }),
+      },
+      b: {
+        pub: [{ t: 'Професійна сторінка', s: 'підхід, теми, вартість' }, { t: 'Запит без реєстрації', s: 'одним повідомленням' }, { t: 'Власний блог', s: 'знайомство до сесії' }, { t: 'Пошук спеціалістів', s: 'без рейтингів' }],
+        priv: [{ t: 'Сесії та календар', s: 'час і посилання' }, { t: 'Приватні нотатки', s: 'тільки для вас' }, { t: 'Задачі', s: 'без окремих таблиць' }, { t: 'Оплати', s: 'напряму вам' }],
+      },
+      c: { day: [['10:00', 'Ірина К.'], ['14:30', 'Андрій П.'], ['18:00', 'Олена М.']].map(([t, n], i) => ({ t, n, a: i === tick ? '.16' : '.06' })) },
+    };
+  }
+}
+</script>
+</body>
+</html>

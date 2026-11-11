@@ -1,0 +1,42 @@
+[
+  {
+    "page": "direct-1280",
+    "changedPixels": 2047,
+    "bbox": [
+      69,
+      131,
+      1163,
+      2593
+    ]
+  },
+  {
+    "page": "direct-375",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "directEmpty-1280",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "directEmpty-375",
+    "changedPixels": 0,
+    "bbox": null
+  },
+  {
+    "page": "request-1280",
+    "changedPixels": 1543,
+    "bbox": [
+      74,
+      131,
+      1174,
+      1679
+    ]
+  },
+  {
+    "page": "request-375",
+    "changedPixels": 0,
+    "bbox": null
+  }
+]

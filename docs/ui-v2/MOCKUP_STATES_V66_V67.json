@@ -1,0 +1,745 @@
+{
+  "snapshot_id": "claude-design-2026-10-23-4ff7cedd",
+  "references": [
+    {
+      "reference": "handoff/mockups/Admin.dc.html",
+      "props": {
+        "startScreen": {
+          "editor": "enum",
+          "options": [
+            "specs",
+            "queue",
+            "inbox",
+            "support",
+            "billing",
+            "spec"
+          ],
+          "default": "specs",
+          "tsType": "'specs'|'queue'|'inbox'|'support'|'billing'|'spec'"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Auth.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "login",
+            "forgot",
+            "reset",
+            "verify",
+            "change"
+          ],
+          "default": "login",
+          "tsType": "'login'|'forgot'|'reset'|'verify'|'change'",
+          "section": "Сценарій"
+        },
+        "from": {
+          "editor": "enum",
+          "options": [
+            "unknown",
+            "client",
+            "specialist"
+          ],
+          "default": "unknown",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "loginIssue": {
+          "editor": "enum",
+          "options": [
+            "none",
+            "unverified",
+            "blocked"
+          ],
+          "default": "none",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "linkResult": {
+          "editor": "enum",
+          "options": [
+            "ok",
+            "expired",
+            "used"
+          ],
+          "default": "ok",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "invite": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Billing.dc.html",
+      "props": {
+        "access": {
+          "editor": "enum",
+          "options": [
+            "trial",
+            "pending",
+            "approved",
+            "pro",
+            "expired",
+            "start"
+          ],
+          "default": "trial",
+          "tsType": "string",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Brand.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Cabinet-Dashboard.dc.html",
+      "props": {
+        "scenario": {
+          "editor": "enum",
+          "options": [
+            "before",
+            "soon",
+            "live"
+          ],
+          "default": "before",
+          "tsType": "'before'|'soon'|'live'",
+          "section": "Сценарій"
+        },
+        "readiness": {
+          "editor": "enum",
+          "options": [
+            "closed",
+            "partial",
+            "ready"
+          ],
+          "default": "partial",
+          "tsType": "'closed'|'partial'|'ready'",
+          "section": "Сценарій"
+        },
+        "emptyQueue": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Cabinet-Drawer.dc.html",
+      "props": {
+        "$preview": {
+          "width": "1000px",
+          "height": "760px"
+        },
+        "kind": {
+          "editor": "enum",
+          "options": [
+            "create",
+            "reply",
+            "link",
+            "note",
+            "profile",
+            "plan",
+            "trial",
+            "payment",
+            "override",
+            "reject"
+          ],
+          "default": "create",
+          "tsType": "string"
+        },
+        "field": {
+          "editor": "enum",
+          "options": [
+            "name",
+            "about",
+            "spec",
+            "format",
+            "price",
+            "intake"
+          ],
+          "default": "price",
+          "tsType": "'name'|'about'|'spec'|'format'|'price'|'intake'"
+        },
+        "current": {
+          "editor": "enum",
+          "options": [
+            "Start",
+            "Pro",
+            "Leader"
+          ],
+          "default": "Start",
+          "tsType": "'Start'|'Pro'|'Leader'"
+        },
+        "ctx": {
+          "editor": "text",
+          "default": "Три кроки: клієнт, час, формат",
+          "tsType": "string"
+        },
+        "onClose": {
+          "editor": null,
+          "tsType": "() => void"
+        },
+        "onDone": {
+          "editor": null,
+          "tsType": "(payload: object) => void"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Cabinet-Mobile-2.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Cabinet-Mobile.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Chat.dc.html",
+      "props": {
+        "role": {
+          "editor": "enum",
+          "options": [
+            "client",
+            "specialist"
+          ],
+          "default": "client",
+          "tsType": "'client'|'specialist'",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Client-Cabinet.dc.html",
+      "props": {
+        "heroState": {
+          "editor": "enum",
+          "options": [
+            "upcoming",
+            "live",
+            "pending",
+            "none"
+          ],
+          "default": "upcoming",
+          "tsType": "'upcoming'|'live'|'pending'|'none'",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Client-Mobile.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Client-Pages.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "materials",
+            "diary",
+            "specialists",
+            "profile",
+            "feedback",
+            "event"
+          ],
+          "default": "materials",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "deleteBlocked": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Сценарій"
+        },
+        "feedbackLimit": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Сценарій"
+        },
+        "eventState": {
+          "editor": "enum",
+          "options": [
+            "scheduled",
+            "live",
+            "completed",
+            "cancelled"
+          ],
+          "default": "scheduled",
+          "tsType": "string",
+          "section": "Групова подія"
+        },
+        "eventMode": {
+          "editor": "enum",
+          "options": [
+            "meeting",
+            "broadcast"
+          ],
+          "default": "meeting",
+          "tsType": "string",
+          "section": "Групова подія"
+        },
+        "eventRecorded": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Групова подія"
+        },
+        "eventHideNames": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Групова подія"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Client-Signup.dc.html",
+      "props": {
+        "invited": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Clients.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Emails.dc.html",
+      "props": {
+        "mail": {
+          "editor": "enum",
+          "options": [
+            "verify",
+            "reset",
+            "emailchange",
+            "guest",
+            "proposal",
+            "reminder",
+            "request",
+            "group",
+            "pro",
+            "welcome"
+          ],
+          "default": "verify",
+          "tsType": "string"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Find-Specialist.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/For-Clients.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Guest.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "session",
+            "proposal",
+            "group"
+          ],
+          "default": "session",
+          "tsType": "'session'|'proposal'|'group'"
+        },
+        "state": {
+          "editor": "enum",
+          "options": [
+            "open",
+            "done",
+            "expired"
+          ],
+          "default": "open",
+          "tsType": "'open'|'done'|'expired'"
+        },
+        "format": {
+          "editor": "enum",
+          "options": [
+            "online",
+            "offline"
+          ],
+          "default": "online",
+          "tsType": "'online'|'offline'"
+        },
+        "signedIn": {
+          "editor": "boolean",
+          "default": true,
+          "tsType": "boolean"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Handoff-Spec.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Home.dc.html",
+      "props": {
+        "autoplay": {
+          "editor": "boolean",
+          "default": true,
+          "tsType": "boolean",
+          "section": "Анімація"
+        },
+        "stepSeconds": {
+          "editor": "range",
+          "default": 3.4,
+          "min": 2,
+          "max": 8,
+          "step": 0.2,
+          "unit": "с",
+          "tsType": "number",
+          "section": "Анімація"
+        },
+        "reveal": {
+          "editor": "boolean",
+          "default": true,
+          "tsType": "boolean",
+          "section": "Анімація"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Inquiries.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Notifications.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Onboarding.dc.html",
+      "props": {
+        "stage": {
+          "editor": "enum",
+          "options": [
+            "wizard",
+            "checklist",
+            "skipped"
+          ],
+          "default": "wizard",
+          "tsType": "string"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Profile-Edit.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Public-Content.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "journal",
+            "post",
+            "collection",
+            "faq"
+          ],
+          "default": "journal",
+          "tsType": "'journal'|'post'|'collection'|'faq'"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Public-Mobile.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Schedule.dc.html",
+      "props": {
+        "tab": {
+          "editor": "enum",
+          "options": [
+            "slots",
+            "rules",
+            "vac"
+          ],
+          "default": "slots",
+          "tsType": "'slots'|'rules'|'vac'",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Service-Pages.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "legal",
+            "403",
+            "404"
+          ],
+          "default": "legal",
+          "tsType": "'legal'|'403'|'404'"
+        },
+        "doc": {
+          "editor": "enum",
+          "options": [
+            "terms",
+            "privacy",
+            "disclaimer",
+            "feedback",
+            "support"
+          ],
+          "default": "terms",
+          "tsType": "string"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Session-Pages.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "client",
+            "external",
+            "invite"
+          ],
+          "default": "client",
+          "tsType": "'client'|'external'|'invite'"
+        },
+        "status": {
+          "editor": "enum",
+          "options": [
+            "upcoming",
+            "pending",
+            "moving",
+            "past",
+            "cancelled"
+          ],
+          "default": "upcoming",
+          "tsType": "string",
+          "section": "Деталі сесії клієнта"
+        },
+        "format": {
+          "editor": "enum",
+          "options": [
+            "online",
+            "offline"
+          ],
+          "default": "online",
+          "tsType": "'online'|'offline'"
+        },
+        "inviteState": {
+          "editor": "enum",
+          "options": [
+            "open",
+            "done",
+            "expired"
+          ],
+          "default": "open",
+          "tsType": "string",
+          "section": "Запрошення в кабінет"
+        },
+        "signedIn": {
+          "editor": "boolean",
+          "default": true,
+          "tsType": "boolean",
+          "section": "Запрошення в кабінет"
+        },
+        "asSpecialist": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean",
+          "section": "Запрошення в кабінет"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Sessions.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Settings.dc.html",
+      "props": {
+        "tab": {
+          "editor": "enum",
+          "options": [
+            "pay",
+            "notif",
+            "acc"
+          ],
+          "default": "pay",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "plan": {
+          "editor": "enum",
+          "options": [
+            "pro",
+            "start"
+          ],
+          "default": "pro",
+          "tsType": "string",
+          "section": "Сценарій"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Share-Card.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Signup.dc.html",
+      "props": {},
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Specialist-Profile-Mobile.dc.html",
+      "props": {
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "profile",
+            "sheet",
+            "about",
+            "share"
+          ],
+          "default": "profile",
+          "tsType": "string"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Specialist-Profile.dc.html",
+      "props": {
+        "status": {
+          "editor": "enum",
+          "options": [
+            "published",
+            "preview",
+            "hidden"
+          ],
+          "default": "published",
+          "tsType": "string"
+        },
+        "contacts": {
+          "editor": "boolean",
+          "default": true,
+          "tsType": "boolean"
+        },
+        "noSlots": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean"
+        },
+        "rulesAccepted": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean"
+        },
+        "question": {
+          "editor": "enum",
+          "options": [
+            "none",
+            "form",
+            "sent",
+            "answered"
+          ],
+          "default": "none",
+          "tsType": "string"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    },
+    {
+      "reference": "handoff/mockups/Specialist-Tools.dc.html",
+      "props": {
+        "taskView": {
+          "editor": "enum",
+          "options": [
+            "time",
+            "status"
+          ],
+          "default": "time",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "screen": {
+          "editor": "enum",
+          "options": [
+            "tasks",
+            "events",
+            "blog",
+            "reviews",
+            "analytics"
+          ],
+          "default": "tasks",
+          "tsType": "string",
+          "section": "Сценарій"
+        },
+        "analyticsPlan": {
+          "editor": "enum",
+          "options": [
+            "start",
+            "pro"
+          ],
+          "default": "pro",
+          "tsType": "string"
+        },
+        "analyticsEmpty": {
+          "editor": "boolean",
+          "default": false,
+          "tsType": "boolean"
+        }
+      },
+      "notes": "No data-props means source board/state handlers still require source inspection, not absence of states."
+    }
+  ]
+}
