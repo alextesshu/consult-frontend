@@ -1,0 +1,98 @@
+{
+  "profile": {
+    "therapist_id": 12,
+    "public_slug": "olena",
+    "public_booking_mode": "direct_booking",
+    "show_public_availability": true,
+    "public_direct_booking_enabled": true,
+    "display_name": "Марія Коваль",
+    "public_display_name": "Марія Коваль",
+    "offers_online": true,
+    "offers_offline": false,
+    "bio_about": "Я психологиня з 9-річним досвідом, працюю в когнітивно-поведінковому підході та терапії прийняття і відповідальності.\n\nУ роботі мені важливі ясність і повага до вашого темпу. Ми разом формулюємо цілі та переглядаємо прогрес.",
+    "bio_work": "Знайомство. Говоримо про запит і очікування.\n\nСпільний план. Формулюємо цілі й обираємо ритм.\n\nРегулярні сесії. Працюємо з думками й реакціями.",
+    "bio_approach": "",
+    "bio_for_whom": "Тривога і панічні атаки\nПрофесійне вигорання\nПереїзд і зміни",
+    "specializations": [
+      "Психологиня",
+      "КПТ",
+      "тривожність",
+      "вигорання",
+      "адаптація до змін"
+    ],
+    "languages": [
+      "українська",
+      "англійська"
+    ],
+    "location": "Київ",
+    "experience_years": 9,
+    "price": "1400",
+    "price_currency": "UAH",
+    "standard_session_duration_minutes": 50,
+    "intro_duration_minutes": 20,
+    "intro_price": "500",
+    "intro_price_currency": "UAH",
+    "couple_session_enabled": true,
+    "couple_session_price": "2000",
+    "contact_actions": [],
+    "profile_documents": [
+      {
+        "id": 1,
+        "title": "Диплом магістра",
+        "file_url": "/docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/assets/maria-koval.webp",
+        "document_kind": "education"
+      }
+    ],
+    "booking_rules": {
+      "show_prompt": false,
+      "reason_codes": [],
+      "items": []
+    },
+    "slug": "olena",
+    "public_profile_summary": "Працюю з тривогою, вигоранням і змінами. Допомагаю повернути відчуття опори та знайти свій темп.",
+    "photo_url": "/docs/ui-v2/snapshots/2026-10-23-4ff7cedd/handoff/mockups/assets/maria-koval.webp",
+    "bio_other": "Не працюю з гострими психіатричними станами.",
+    "couple_session_price_currency": "UAH",
+    "couple_session_duration_minutes": 80,
+    "education_items": [
+      "2015 · Психологія, магістр · Київський національний університет",
+      "2018 · Когнітивно-поведінкова терапія · Дворічна програма"
+    ],
+    "professional_development_items": [
+      "2021 · Терапія прийняття та відповідальності"
+    ],
+    "sections": {
+      "faq": {
+        "items": [
+          {
+            "id": "first",
+            "question": "Як проходить перша сесія?",
+            "answer": "Знайомимося, говоримо про ваш запит і очікування."
+          },
+          {
+            "id": "pay",
+            "question": "Як відбувається оплата?",
+            "answer": "Напряму спеціалісту після підтвердження часу."
+          }
+        ]
+      }
+    }
+  },
+  "slots": [
+    {
+      "id": 100,
+      "start_at": "2026-10-26T10:00:00+02:00",
+      "end_at": "2026-10-26T10:50:00+02:00"
+    },
+    {
+      "id": 101,
+      "start_at": "2026-10-27T14:00:00+02:00",
+      "end_at": "2026-10-27T14:50:00+02:00"
+    },
+    {
+      "id": 102,
+      "start_at": "2026-10-29T11:00:00+02:00",
+      "end_at": "2026-10-29T12:20:00+02:00"
+    }
+  ]
+}

@@ -126,13 +126,13 @@
           <section class="profile-link-callout" aria-label="Ваше посилання">
             <div class="profile-link-callout__label">Ваше посилання</div>
             <code class="slug profile-link-callout__url" title="Повне посилання, яким можна ділитися з клієнтами.">
-              {{ publicUrl || 'Посилання буде доступне після збереження slug.' }}
+              {{ publicCopyUrl || 'Посилання буде доступне після збереження slug.' }}
             </code>
             <div class="slug-row">
               <button
                 class="btn btn--ghost"
                 type="button"
-                :disabled="!isPublicProfilePublished || !publicUrl"
+                :disabled="!isPublicProfilePublished || !publicCopyUrl"
                 title="Скопіювати посилання в буфер обміну."
                 @click="onCopyLink"
               >
@@ -746,14 +746,21 @@
           <details class="details" open data-readiness-key="about">
             <summary>Про мене</summary>
             <label class="field">
-              <span class="field-label">Коротке професійне представлення</span>
+              <span id="publicProfileSummaryLabel" class="field-label">Коротке професійне представлення</span>
               <textarea
+                id="publicProfileSummary"
                 v-model="profile.public_profile_summary"
                 class="input"
                 rows="3"
-                maxlength="240"
+                aria-labelledby="publicProfileSummaryLabel"
+                aria-describedby="publicProfileSummaryCounter publicProfileSummaryNotice"
+                :aria-invalid="Boolean(summaryError)"
                 placeholder="Наприклад: Психологиня, гештальт-психотерапевтка. Працюю з дорослими, які переживають тривогу, життєві кризи або труднощі у стосунках."
               ></textarea>
+              <div id="publicProfileSummaryCounter" class="field-help">{{ summaryLength }} / 160</div>
+              <div id="publicProfileSummaryNotice" :class="summaryError ? 'field-error' : 'field-help'" aria-live="polite">
+                {{ summaryError || (isUnchangedLegacySummary ? 'Збережений опис перевищує новий ліміт. Його можна залишити без змін; після редагування — не більше 160 символів.' : 'Не більше 160 символів.') }}
+              </div>
               <div class="field-help">У 1–2 реченнях напишіть, хто ви як спеціаліст, з ким працюєте та що є важливим у вашому підході. Цей текст клієнт побачить одразу під вашим ім’ям.</div>
             </label>
             <div class="field">
@@ -1403,7 +1410,10 @@
       @cancel="documentPendingDelete = null"
     />
 
-    <ShareDialog
+    <PublicProfileShare v-if="profileShareUiV2" v-model:open="profileShareDialogOpen"
+      :canonical-url="canonicalProfileShareUrl" :name="profile.public_display_name || profile.display_name || 'Спеціаліст'"
+      :anchor="profileShareButtonRef" @shared="trackProfileShare" />
+    <ShareDialog v-else
       :open="profileShareDialogOpen"
       :canonical-url="canonicalProfileShareUrl"
       :title="profileShareTitle"
@@ -1466,6 +1476,9 @@ import {
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ProfileVisibilityControl from '../components/ProfileVisibilityControl.vue'
 import ShareDialog from '../components/ShareDialog.vue'
+import PublicProfileShare from '../components/public-profile/PublicProfileShare.vue'
+import { isUiV2 } from '../lib/uiVersion'
+import { canonicalPublicProfileShareUrl as buildProfileShareUrl } from '../lib/publicProfileSharing'
 import { productAnalytics, type ProductAnalyticsProperties } from '../lib/productAnalytics'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
@@ -1494,6 +1507,7 @@ const error = ref('')
 const success = ref('')
 const copyStatus = ref('')
 const profileShareDialogOpen = ref(false)
+const profileShareUiV2 = computed(() => isUiV2())
 const profileShareButtonRef = ref<HTMLButtonElement | null>(null)
 const showDisablePublicProfileConfirm = ref(false)
 const secondaryPhoneExpanded = ref(false)
@@ -2236,7 +2250,10 @@ function buildProfilePayload() {
     public_display_name: publicDisplayName,
     display_name: publicDisplayName,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
-    public_profile_summary: (profile.public_profile_summary || '').trim(),
+    // Omit unchanged legacy text so backend normalization cannot rewrite it.
+    ...(isUnchangedLegacySummary.value
+      ? {}
+      : { public_profile_summary: profile.public_profile_summary || '' }),
     setting_text: (profile.setting_text || '').trim(),
     bio_about: profile.bio_about,
     bio_work: profile.bio_work,
@@ -2461,6 +2478,7 @@ const publicUrl = computed(() => {
   if (!publicPath.value) return ''
   return `${window.location.origin}${publicPath.value}`
 })
+const publicCopyUrl = computed(() => buildProfileShareUrl(resolvedSlug.value))
 
 const fallbackPublicProfileReadiness: PublicProfileReadiness = {
   is_ready: false,
@@ -2690,9 +2708,7 @@ const slugPreviewPath = computed(() => {
 const isPublicProfilePublished = computed(() => Boolean(persistedPublicProfileEnabled.value && publicUrl.value))
 const canonicalPublicProfileSlug = computed(() => String(profile.slug || '').trim())
 const canonicalProfileShareUrl = computed(() =>
-  canonicalPublicProfileSlug.value
-    ? `${window.location.origin}/s/${canonicalPublicProfileSlug.value}`
-    : ''
+  buildProfileShareUrl(canonicalPublicProfileSlug.value)
 )
 const profileShareTitle = computed(() =>
   `${String(profile.public_display_name || profile.display_name || 'Спеціаліст').trim()} — Pro Consult`
@@ -3070,6 +3086,17 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
 
 const dirtySnapshot = useDirtySnapshot<ProfileFormSnapshot>(createProfileFormSnapshot)
 
+const summaryLength = computed(() => Array.from(profile.public_profile_summary || '').length)
+const isUnchangedLegacySummary = computed(() =>
+  summaryLength.value > 160 &&
+  profile.public_profile_summary === dirtySnapshot.getSavedSnapshot()?.public_profile_summary
+)
+const summaryError = computed(() =>
+  summaryLength.value > 160 && !isUnchangedLegacySummary.value
+    ? 'Скоротіть коротке професійне представлення до 160 символів.'
+    : ''
+)
+
 function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
   const {
     education_items_text,
@@ -3192,6 +3219,12 @@ async function loadProfile() {
 }
 
 async function onSave() {
+  if (summaryError.value) {
+    error.value = summaryError.value
+    success.value = ''
+    document.getElementById('publicProfileSummary')?.focus()
+    return
+  }
   const analyticsPrevious = profileAnalyticsSnapshot()
   const publicationAttempted = isPendingPublication.value
   saving.value = true
@@ -3348,12 +3381,12 @@ async function onCopyLink() {
     copyStatus.value = 'Посилання стане доступним клієнтам після публікації сторінки.'
     return
   }
-  if (!publicUrl.value) {
+  if (!publicCopyUrl.value) {
     copyStatus.value = 'Публічного посилання ще немає.'
     return
   }
   try {
-    await navigator.clipboard.writeText(publicUrl.value)
+    await navigator.clipboard.writeText(publicCopyUrl.value)
     copyStatus.value = 'Посилання скопійовано'
   } catch {
     copyStatus.value = 'Не вдалося скопіювати.'

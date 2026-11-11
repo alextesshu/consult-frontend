@@ -1,0 +1,24 @@
+[
+  {
+    "width": 375,
+    "focusedCard": {
+      "opacity": "1",
+      "transform": "none",
+      "transition": "0s",
+      "outline": "2px"
+    },
+    "versionExitTimerCleanup": true,
+    "returnAfterFocusedInputResumes": true
+  },
+  {
+    "width": 1440,
+    "focusedCard": {
+      "opacity": "1",
+      "transform": "none",
+      "transition": "0s",
+      "outline": "2px"
+    },
+    "versionExitTimerCleanup": true,
+    "returnAfterFocusedInputResumes": true
+  }
+]

@@ -1,0 +1,230 @@
+{
+  "snapshot_id": "claude-design-2026-10-23-4ff7cedd",
+  "html_references": [
+    {
+      "reference": "Admin.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Auth.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Billing.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Brand.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Cabinet-Dashboard.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Cabinet-Drawer.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Cabinet-Mobile-2.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Cabinet-Mobile.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Chat.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Client-Cabinet.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Client-Mobile.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Client-Pages.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Client-Signup.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Clients.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Emails.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Find-Specialist.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "For-Clients.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Guest.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Handoff-Spec.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Home.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Inquiries.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Notifications.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Onboarding.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Profile-Edit.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Public-Content.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Public-Mobile.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Schedule.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Service-Pages.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Session-Pages.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Sessions.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Settings.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Share-Card.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Signup.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Specialist-Profile-Mobile.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Specialist-Profile.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    },
+    {
+      "reference": "Specialist-Tools.dc.html",
+      "status": "DESIGN READY",
+      "source": "CHANGELOG current status table and START_HERE screen map",
+      "implementation_approval": false
+    }
+  ],
+  "ready_count": 36,
+  "in_progress_count": 0,
+  "followups_now_ready": [
+    "Support Chat",
+    "Expanded Blog Editor",
+    "Public Profile follow-up"
+  ],
+  "tour": "NOT REQUIRED: preserve existing redirect",
+  "client_dashboard": "HOLD"
+}

@@ -1,0 +1,32 @@
+> frontend@0.0.0 test:run
+> vitest run src/views/SpecialistInquiriesView.spec.ts src/styles/inquiriesV2.spec.ts src/__tests__/app.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_specialist_inquiries_v2
+
+npm : stderr | src/__tests__/app.spec.ts > App shell > allows guests to open /specialists without redirect to signup-cl
+ient
+At line:2 char:470
++ ... |app.spec'; npm run test:run -- src/views/SpecialistInquiriesView.spe ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/__...o signup-client:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+ ✓ src/__tests__/app.spec.ts (93 tests) 5355ms
+   ✓ App shell > UI v2 branding follows the UI version for every role > shows the approved fennec in v2 header and footer for roles ["SPECIALIST"] 304ms
+ ✓ src/views/SpecialistInquiriesView.spec.ts (18 tests) 609ms
+ ✓ src/styles/inquiriesV2.spec.ts (2 tests) 13ms
+
+ Test Files  3 passed (3)
+      Tests  113 passed (113)
+   Start at  18:57:54
+   Duration  17.36s (transform 5.94s, setup 271ms, collect 7.75s, tests 5.98s, environment 2.34s, prepare 350ms)

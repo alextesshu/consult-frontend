@@ -1,0 +1,141 @@
+{
+  "before_commit": "324152f6968a75dfde863f2cb2f5a9e59061a7ff",
+  "browser": [
+    {
+      "width": 375,
+      "height": 677,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-lockup.svg",
+        "loaded": true,
+        "width": 46.625,
+        "height": 56,
+        "headerHeight": 76,
+        "scrollWidth": 375
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 157.515625,
+        "height": 32,
+        "headerHeight": 76,
+        "scrollWidth": 375
+      }
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-lockup.svg",
+        "loaded": true,
+        "width": 46.625,
+        "height": 56,
+        "headerHeight": 76,
+        "scrollWidth": 768
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 196.90625,
+        "height": 40,
+        "headerHeight": 76,
+        "scrollWidth": 768
+      }
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-lockup.svg",
+        "loaded": true,
+        "width": 46.625,
+        "height": 56,
+        "headerHeight": 76,
+        "scrollWidth": 1280
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 196.90625,
+        "height": 40,
+        "headerHeight": 76,
+        "scrollWidth": 1280
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "before": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-lockup.svg",
+        "loaded": true,
+        "width": 46.625,
+        "height": 56,
+        "headerHeight": 76,
+        "scrollWidth": 1440
+      },
+      "after": {
+        "src": "/src/assets/brand-v2/proconsult-fennec-header.svg",
+        "loaded": true,
+        "width": 196.90625,
+        "height": 40,
+        "headerHeight": 76,
+        "scrollWidth": 1440
+      }
+    }
+  ],
+  "pixel_parity": [
+    {
+      "width": 375,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 375,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 768,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 768,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1280,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1280,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1440,
+      "kind": "v1",
+      "pixel_identical": true,
+      "diff_bbox": null
+    },
+    {
+      "width": 1440,
+      "kind": "footer",
+      "pixel_identical": true,
+      "diff_bbox": null
+    }
+  ],
+  "notes": "API fixtures only. V1 450ms reveal transitions settled before capture. Footer element captured below the sticky header to exclude header occlusion. Symbol paths, glyph definitions and glyph placements remain identical to approved source elements; only outer component viewport placement/scale changes.",
+  "focused_tests": "90/90 PASS: App and uiV2 CSS/asset contracts",
+  "build": "PASS",
+  "typecheck": "9 unchanged baseline errors; 0 new",
+  "footer_capture_viewport_height": 1100,
+  "footer_capture_reason": "Element-only pixel comparison with footer fully below sticky header; width and styles unchanged."
+}

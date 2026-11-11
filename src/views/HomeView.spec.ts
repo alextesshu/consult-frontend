@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HomeView from './HomeView.vue'
+import { applyUiVersion } from '../lib/uiVersion'
 import { useAuthStore } from '../stores/auth'
 import { productAnalytics } from '../lib/productAnalytics'
 
@@ -15,6 +16,7 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
     { path: '/', component: HomeView },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/s/:slug', component: { template: '<div>Public Profile</div>' } },
+    { path: '/for-clients', component: { template: '<div>For Clients</div>' } },
     { path: '/specialists', component: { template: '<div>Specialist Search</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
     { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
@@ -59,6 +61,9 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
 
   return { router, ...result }
 }
+
+beforeEach(() => { applyUiVersion('v1'); vi.clearAllMocks() })
+afterEach(() => { vi.unstubAllGlobals(); applyUiVersion('v1') })
 
 describe('HomeView', () => {
   it('captures the client discovery CTA once without properties', async () => {
@@ -354,5 +359,154 @@ describe('HomeView', () => {
     await waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe('/cabinet')
     })
+  })
+})
+
+
+describe('HomeView v2', () => {
+  beforeEach(() => { applyUiVersion('v2') })
+
+  it('adds the Public-Mobile P1 step strip from the same four journey steps, with keyboard dots', async () => {
+    const { container } = await renderHome()
+    const cards = container.querySelectorAll('.pc2-home__strip-card')
+    expect(Array.from(cards, (card) => card.querySelector('h3')?.textContent)).toEqual(['Покажіть, хто ви', 'Клієнт звертається напряму', 'Час — в одному календарі', 'Контекст кожного клієнта'])
+    expect(cards[0]).toHaveTextContent('Крок 1 з 4')
+    const track = container.querySelector('.pc2-home__strip-track') as HTMLElement
+    expect(track).toHaveAttribute('tabindex', '0')
+    track.scrollTo = vi.fn() as any
+    const dots = screen.getAllByRole('button', { name: /^Крок \d з 4:/ })
+    expect(dots).toHaveLength(4)
+    expect(dots[0]).toHaveAttribute('aria-current', 'step')
+    await fireEvent.click(dots[2]!)
+    expect(dots[2]).toHaveAttribute('aria-current', 'step')
+    expect(dots[0]).not.toHaveAttribute('aria-current')
+    expect(track.scrollTo).toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Створити свій простір Створити простір безкоштовно' })).toHaveAttribute('href', '/signup')
+    expect(screen.getByRole('link', { name: 'Як це працює' })).toHaveAttribute('href', '/#how-it-works')
+  })
+
+  it('renders the current snapshot composition with explicitly labelled examples and working client links', async () => {
+    const { container } = await renderHome()
+    expect(container.querySelector('.pc2-home__hero-mark')).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelector('.pc2-home__peek img')).toHaveAttribute('alt', '')
+    const features = container.querySelectorAll('.pc2-home__bento > article')
+    expect(features).toHaveLength(6)
+    expect(Array.from(features, (feature) => feature.querySelector('h3')?.textContent)).toEqual([
+      'Професійна сторінка', 'Запит без реєстрації', 'Блог і пошук', 'Нотатки', 'Сесії та календар', 'Оплати',
+    ])
+    expect(container.querySelector('.pc2-home__feature--notes')).toHaveTextContent('Матеріали для клієнта публікуються окремо')
+    expect(container.querySelector('.pc2-home__feature--payments')).toHaveTextContent('фіксуєте й підтверджуєте статуси оплат')
+    expect(screen.getByRole('list', { name: 'Можливості власного блогу' }).children).toHaveLength(3)
+    expect(container.querySelector('.pc2-home__blog a')).toBeNull()
+    const clientEntry = container.querySelector('.pc2-home__client') as HTMLElement
+    expect(within(clientEntry).getByRole('heading', { name: 'Шукаєте спеціаліста для себе?' })).toBeInTheDocument()
+    expect(within(clientEntry).getByRole('link', { name: 'Для клієнтів →' })).toHaveAttribute('href', '/for-clients')
+    expect(container.querySelector('a[href="/for-clients"]')).toBeInTheDocument()
+    expect(container.textContent).not.toMatch(/1 400|протягом доби|автоматична оплата|гарантовані клієнти/)
+  })
+
+  it('keeps labelled illustration states non-actionable and preserves the selected step across UI versions', async () => {
+    const { container } = await renderHome()
+    const controls = within(screen.getByRole('group', { name: 'Етапи роботи' })).getAllByRole('button')
+    await fireEvent.click(controls[1]!)
+    expect(screen.getByRole('list', { name: 'Шлях звернення' })).toHaveTextContent('ЗапитУзгодженняСесія')
+    await fireEvent.click(controls[3]!)
+    expect(container.querySelector('.pc2-home__work-preview')).toHaveTextContent('Лише опубліковані')
+    expect(container.querySelector('.pc2-home__illustration a, .pc2-home__illustration button')).toBeNull()
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.querySelector('.home-lite')).toBeInTheDocument())
+    expect(container.querySelector('.pc2-home__hero-mark')).toBeNull()
+    applyUiVersion('v2')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Робота' })).toHaveAttribute('aria-pressed', 'true'))
+  })
+
+  it('offers four manual journey steps with illustrative, request-first content', async () => {
+    const { container } = await renderHome()
+    expect(container.querySelector('.home-lite')).toBeNull()
+    const controls = within(screen.getByRole('group', { name: 'Етапи роботи' })).getAllByRole('button')
+    expect(controls).toHaveLength(4)
+    for (const control of controls) {
+      await fireEvent.click(control)
+      expect(control).toHaveAttribute('aria-pressed', 'true')
+      expect(controls.filter((button) => button.getAttribute('aria-pressed') === 'true')).toHaveLength(1)
+      expect(screen.getByText('Ілюстрація роботи сервісу')).toBeInTheDocument()
+    }
+    await fireEvent.click(controls[1]!)
+    expect(screen.getByRole('region', { name: 'Опис обраного етапу' })).toHaveTextContent('Запит не є підтвердженим записом')
+    expect(container.querySelector('.pc2-home__illustration')).toHaveTextContent('Ілюстрація роботи сервісу')
+    expect(container.querySelector('.pc2-home__demo-profile')).toHaveTextContent('Марія Коваль · приклад')
+    expect(container.querySelector('.pc2-home__illustration button')).toBeNull()
+    expect(container.textContent).not.toContain('Олена Коваль')
+  })
+
+  it('retains pricing, limits, conditions, anchors and CTA destinations', async () => {
+    const { container } = await renderHome()
+    expect(screen.getByText('0 грн')).toBeInTheDocument()
+    expect(screen.getByText('990 грн/міс')).toBeInTheDocument()
+    for (const limit of ['3 активні клієнти включено', 'Можна розширити ліміт до 6 клієнтів', '20 активних клієнтів включено', 'Можна розширити ліміт до 26 клієнтів']) expect(screen.getByText(limit)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Рік' }))
+    expect(screen.getByText('9 900 грн/рік')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Рік' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('link', { name: 'Обговорити формат' })).toHaveAttribute('href', '/support-and-data-requests')
+    expect(screen.getByRole('link', { name: 'Спробувати Pro 30 днів безкоштовно' })).toHaveAttribute('href', '/signup')
+    expect(container.querySelectorAll('#client-entry-title')).toHaveLength(1)
+    expect(container.querySelectorAll('#pricing')).toHaveLength(1)
+    expect(container.querySelectorAll('.pc2-home__plan')).toHaveLength(2)
+    expect(container.textContent).not.toMatch(/Leader|рейтинг спеціалістів/)
+    // '/#how-it-works' is the Public-Mobile P1 secondary hero action (an existing anchor, same as /tour).
+    for (const link of container.querySelectorAll('a')) expect(['/signup', '/specialists', '/for-clients', '/support-and-data-requests', '/#how-it-works']).toContain(link.getAttribute('href'))
+  })
+
+  it('keeps billing and one-shot analytics state when switching versions', async () => {
+    const { container } = await renderHome()
+    await fireEvent.click(screen.getByRole('button', { name: 'Рік' }))
+    await fireEvent.click(screen.getAllByRole('link', { name: 'Знайти спеціаліста' })[0]!)
+    applyUiVersion('v1')
+    await waitFor(() => expect(container.querySelector('.home-lite')).toBeInTheDocument())
+    expect(screen.getByText('9 900 грн/рік')).toBeInTheDocument()
+    await fireEvent.click(screen.getAllByRole('link', { name: 'Знайти спеціаліста' })[1]!)
+    applyUiVersion('v2')
+    await waitFor(() => expect(container.querySelector('.pc2-home')).toBeInTheDocument())
+    expect(screen.getByText('9 900 грн/рік')).toBeInTheDocument()
+    expect(productAnalytics.capture).toHaveBeenCalledTimes(1)
+    expect(productAnalytics.capture).toHaveBeenCalledWith('client_entry_cta_clicked')
+  })
+
+  it('reattaches and cleans up legacy reveal observation after v2 → v1', async () => {
+    const observe = vi.fn(), disconnect = vi.fn(), unobserve = vi.fn()
+    let callback: IntersectionObserverCallback | undefined
+    vi.stubGlobal('IntersectionObserver', vi.fn().mockImplementation((cb: IntersectionObserverCallback) => {
+      callback = cb
+      return { observe, disconnect, unobserve }
+    }))
+    const { container, unmount } = await renderHome()
+    expect(observe).not.toHaveBeenCalled()
+    applyUiVersion('v1')
+    await waitFor(() => expect(observe).toHaveBeenCalled())
+    const targets = Array.from(container.querySelectorAll('.reveal'))
+    expect(observe).toHaveBeenCalledTimes(targets.length)
+    callback!(targets.map((target) => ({ target, isIntersecting: true })) as IntersectionObserverEntry[], {} as IntersectionObserver)
+    expect(targets.every((target) => target.classList.contains('is-visible'))).toBe(true)
+    applyUiVersion('v2')
+    await waitFor(() => expect(disconnect).toHaveBeenCalledTimes(1))
+    unmount()
+  })
+
+  it.each([
+    [['SPECIALIST'], '/cabinet'], [['THERAPIST'], '/cabinet'], [['CLIENT'], '/client'],
+    [['ADMIN'], '/login'], [['CLIENT', 'SPECIALIST', 'ADMIN'], '/cabinet'],
+  ])('preserves existing role priority for %j', async (roles, destination) => {
+    const { container, router } = await renderHome({ authenticated: true, roles: roles as string[] })
+    await fireEvent.click(within(container.querySelector('.pc2-home__hero') as HTMLElement).getByRole('button', { name: 'Перейти до кабінету' }))
+    await waitFor(() => expect(router.currentRoute.value.path).toBe(destination))
+  })
+
+  it('retains the login fallback when loading the current user fails', async () => {
+    const { router } = await renderHome({ authenticated: true })
+    const auth = useAuthStore()
+    auth.me = null
+    vi.spyOn(auth, 'loadMe').mockRejectedValueOnce(new Error('unavailable'))
+    await fireEvent.click(screen.getByRole('button', { name: 'Перейти до кабінету' }))
+    await waitFor(() => expect(router.currentRoute.value.path).toBe('/login'))
   })
 })

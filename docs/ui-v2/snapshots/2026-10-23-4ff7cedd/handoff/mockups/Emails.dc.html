@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#E9E4DC;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh;display:grid;grid-template-columns:{{ cols }}">
+  <aside style="background:#FBF9F5;border-right:1px solid #DDD5CA;padding:20px 12px;display:flex;flex-direction:{{ navDir }};gap:2px;overflow-x:auto">
+    <span style="font-size:12px;color:#8B95A7;padding:4px 12px 10px;display:{{ navHeadD }}">Листи · {{ count }}</span>
+    <sc-for list="{{ list }}" as="m" hint-placeholder-count="8">
+      <div onClick="{{ m.on }}" style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;cursor:pointer;background:{{ m.bg }};min-width:{{ itemMin }}" style-hover="background:#F1EBE2">
+        <span style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.subject }}</span>
+        <span style="font-size:12px;color:#8B95A7;white-space:nowrap">{{ m.to }}</span>
+      </div>
+    </sc-for>
+  </aside>
+
+  <main style="padding:clamp(16px,3vw,40px) clamp(12px,3vw,32px);display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0">
+    <div style="width:100%;max-width:600px;display:flex;flex-direction:column;gap:2px;font-size:13px;color:#5A6578;padding:0 4px">
+      <span><span style="color:#8B95A7">Від:</span> Pro Consult &lt;hello@proconsult.space&gt;</span>
+      <span><span style="color:#8B95A7">Тема:</span> <span style="color:#12233A;font-weight:500">{{ e.subject }}</span></span>
+      <span><span style="color:#8B95A7">Прев’ю:</span> {{ e.pre }}</span>
+    </div>
+
+    <div style="width:100%;max-width:600px;background:#FBF9F5;border-radius:20px;overflow:hidden">
+      <div style="padding:28px 32px 0"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:26px;width:auto;display:block;margin-left:-4px"></div>
+      <div style="padding:28px 32px 8px;display:flex;flex-direction:column;gap:16px">
+        <h1 style="font-weight:500;font-size:28px;line-height:1.15;letter-spacing:-0.02em;margin:0">{{ e.h }}</h1>
+        <sc-for list="{{ e.paras }}" as="p" hint-placeholder-count="1"><p style="font-size:16px;line-height:1.6;color:#3F4B5E;margin:0">{{ p }}</p></sc-for>
+
+        <sc-if value="{{ e.hasTicket }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:16px 18px;display:flex;gap:16px;align-items:center">
+            <div style="width:56px;flex-shrink:0;text-align:center;padding:6px 0;border-radius:12px;background:#EEF4FA"><div style="font-size:11px;color:#5A6578">{{ e.t.dow }}</div><div style="font-size:22px;font-weight:500;color:#12345A;line-height:1.1">{{ e.t.day }}</div><div style="font-size:11px;color:#5A6578">{{ e.t.mon }}</div></div>
+            <div><div style="font-size:18px;font-weight:500">{{ e.t.time }}</div><div style="font-size:14px;color:#5A6578;margin-top:2px">{{ e.t.meta }}</div></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ e.hasOptions }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:6px 18px">
+            <sc-for list="{{ e.options }}" as="o" hint-placeholder-count="3"><div style="padding:10px 0;border-top:1px solid {{ o.bd }};font-size:16px">{{ o.l }}</div></sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ e.hasQuote }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:14px 16px;border-radius:14px;background:#F1EBE2;font-size:15px;line-height:1.55;color:#12233A">{{ e.quote }}</div>
+        </sc-if>
+
+        <sc-if value="{{ e.hasRows }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:4px 18px">
+            <sc-for list="{{ e.rows }}" as="r" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid {{ r.bd }};font-size:15px"><span style="color:#8B95A7">{{ r.k }}</span><span style="text-align:right">{{ r.v }}</span></div></sc-for>
+          </div>
+        </sc-if>
+
+        <div style="padding:6px 0 4px"><a href="#" style="display:inline-block;padding:14px 26px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500">{{ e.cta }}</a></div>
+        <sc-if value="{{ e.hasNote }}" hint-placeholder-val="{{ true }}"><p style="font-size:14px;line-height:1.55;color:#8B95A7;margin:0">{{ e.note }}</p></sc-if>
+        <p style="font-size:13px;line-height:1.5;color:#8B95A7;margin:0;overflow-wrap:anywhere">Кнопка не працює? Скопіюйте посилання: <span style="color:#5A6578">{{ e.url }}</span></p>
+      </div>
+      <div style="margin-top:20px;padding:20px 32px 28px;border-top:1px solid #EDE7DE;font-size:12px;line-height:1.6;color:#8B95A7;display:flex;flex-direction:column;gap:4px">
+        <span>{{ e.why }}</span>
+        <span>Питання — <a href="#" style="color:#5A6578">support@proconsult.space</a>{{ e.unsub }}</span>
+        <span>Pro Consult · proconsult.space</span>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mail&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;verify&quot;,&quot;reset&quot;,&quot;emailchange&quot;,&quot;guest&quot;,&quot;proposal&quot;,&quot;reminder&quot;,&quot;request&quot;,&quot;group&quot;,&quot;pro&quot;,&quot;welcome&quot;],&quot;default&quot;:&quot;verify&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const T = { dow: 'вт', day: '28', mon: 'жовт', time: '18:00–18:50', meta: 'Онлайн · Олена Коваль · 50 хв' };
+const SYS = 'Це службовий лист — його не можна вимкнути.';
+const MAILS = [
+  { k: 'verify', subject: 'Підтвердіть email у Pro Consult', to: 'усім · реєстрація', pre: 'Один клік — і акаунт активний.', h: 'Підтвердіть email', paras: ['Натисніть кнопку, щоб підтвердити, що ця адреса належить вам. Після цього можна записуватися на сесії й отримувати нагадування.'], cta: 'Підтвердити email', note: 'Посилання дійсне 24 години. Якщо ви не реєструвалися в Pro Consult — просто проігноруйте лист.', url: 'proconsult.space/verify-email#token=…', why: SYS },
+  { k: 'reset', subject: 'Скидання пароля', to: 'усім', pre: 'Посилання дійсне 1 годину.', h: 'Новий пароль', paras: ['Ми отримали запит на скидання пароля для цього акаунта. Натисніть кнопку й задайте новий.'], cta: 'Задати новий пароль', note: 'Не запитували? Нічого не робіть — пароль залишиться старим.', url: 'proconsult.space/reset-password/…', why: SYS },
+  { k: 'emailchange', subject: 'Підтвердіть новий email у Pro Consult', to: 'усім · налаштування', pre: 'Після підтвердження вхід — з нової адреси.', h: 'Підтвердіть нову адресу', paras: ['Ви змінюєте email для входу на цю адресу. Підтвердіть зміну — і далі входьте з неї.'], cta: 'Підтвердити зміну', note: 'Якщо це були не ви — нічого не натискайте й змініть пароль.', url: 'proconsult.space/account/email-change#token=…', why: SYS },
+  { k: 'guest', subject: 'Олена Коваль запрошує вас на сесію', to: 'клієнту без реєстрації', pre: 'Вт, 28 жовтня, 18:00 · онлайн', h: 'Вас запрошено на сесію', paras: ['Олена Коваль призначила консультацію. Реєстрація не потрібна — за посиланням є час, реквізити для оплати й кнопка входу в зустріч.'], ticket: true, cta: 'Відкрити запрошення', note: 'Посилання персональне — не пересилайте його.', url: 'proconsult.space/guest/external-session/…', why: 'Ви отримали цей лист, бо спеціаліст вказав вашу адресу для запису.' },
+  { k: 'proposal', subject: 'Нові варіанти часу для консультації', to: 'клієнту без реєстрації', pre: 'Оберіть один — і він закріпиться за вами.', h: 'Олена пропонує інший час', paras: ['Оберіть зручний варіант за посиланням. Реєстрація не потрібна.'], options: ['чт, 30 жовтня · 10:00', 'чт, 30 жовтня · 18:00', 'пт, 31 жовтня · 12:00'], quote: '«Вибачте, у вівторок не вийде — ось кілька інших варіантів.»', cta: 'Обрати час', note: 'Пропозиція дійсна до 29 жовтня, 23:59.', url: 'proconsult.space/guest/booking-time-proposal/…', why: 'Ви отримали цей лист, бо залишили запит на сесію.' },
+  { k: 'reminder', subject: 'Завтра о 18:00 — сесія з Оленою Коваль', to: 'клієнту · нагадування', pre: 'Посилання на зустріч — у листі.', h: 'Нагадуємо про сесію', paras: ['Завтра у вас консультація. Якщо плани змінились — перенесіть або скасуйте в кабінеті заздалегідь.'], ticket: true, cta: 'Приєднатися до зустрічі', note: 'Перенести чи скасувати — у кабінеті, розділ «Сесії».', url: 'meet.google.com/kxp-trvb-qwe', why: 'Нагадування про сесії можна вимкнути в налаштуваннях сповіщень.', unsub: true },
+  { k: 'request', subject: 'Новий запит на сесію з обраним часом', to: 'спеціалісту', pre: 'Андрій · вт, 28 жовтня, 18:00', h: 'Новий запит на сесію', paras: ['Клієнт обрав вільне вікно у вашому розкладі. Підтвердіть або запропонуйте інший час.'], ticket: true, rows: [['Клієнт', 'Андрій · без реєстрації'], ['Контакт', 'andriy.p@gmail.com'], ['Тема', 'Тривога, сон']], cta: 'Відкрити запит', note: 'Відповісти бажано протягом доби — клієнт чекає.', url: 'proconsult.space/cabinet/sessions?…', why: 'Сповіщення про запити налаштовуються в кабінеті.', unsub: true },
+  { k: 'group', subject: 'Запрошення до групової події', to: 'клієнту', pre: 'Коло підтримки: тривога · пн, 27 жовтня', h: 'Коло підтримки: тривога', paras: ['Олена Коваль запрошує вас на групову зустріч. Можна просто слухати — говорити не обов’язково.'], ticket: true, tk: { dow: 'пн', day: '27', mon: 'жовт', time: '19:00–20:30', meta: 'Онлайн · група до 12 людей' }, cta: 'Прийняти запрошення', note: 'Приймаючи запрошення, ви стаєте клієнтом Олени в Pro Consult.', url: 'proconsult.space/invite/…', why: 'Ви отримали цей лист, бо спеціаліст надіслав вам запрошення.' },
+  { k: 'pro', subject: 'Оплату Pro підтверджено', to: 'спеціалісту', pre: 'Pro активний до 23 листопада.', h: 'Pro активовано', paras: ['Дякуємо! Оплату отримано, усі функції Pro вже доступні.'], rows: [['Тариф', 'Pro'], ['Діє до', '23 листопада 2026'], ['Активних клієнтів', 'до 25']], cta: 'Перейти в кабінет', note: '', url: 'proconsult.space/cabinet/billing', why: SYS },
+  { k: 'welcome', subject: 'Вітаємо у Pro Consult — налаштуйте свій простір', to: 'спеціалісту · онбординг', pre: 'Три кроки до першого запису.', h: 'Ласкаво просимо', paras: ['Ваш кабінет готовий. Щоб клієнти могли записатися, залишилось три кроки: фото й опис у профілі, робочі години, реквізити для оплати.', 'Це займе близько 15 хвилин.'], rows: [['1', 'Профіль — фото, теми, підхід'], ['2', 'Розклад — робочі години'], ['3', 'Реквізити для оплати']], cta: 'Налаштувати профіль', note: '', url: 'proconsult.space/cabinet/profile', why: 'Ви отримали цей лист після реєстрації спеціалістом.', unsub: true },
+];
+
+class Component extends DCLogic {
+  state = { sel: null, w: 1280 };
+  componentDidMount() { this.rs = () => this.setState({ w: window.innerWidth }); this.rs(); window.addEventListener('resize', this.rs); }
+  componentWillUnmount() { window.removeEventListener('resize', this.rs); }
+  componentDidUpdate(pp) { if (pp.mail !== this.props.mail) this.setState({ sel: null }); }
+  renderVals() {
+    const k = this.state.sel ?? this.props.mail ?? 'verify', wide = this.state.w >= 900;
+    const m = MAILS.find(x => x.k === k) || MAILS[0];
+    return {
+      cols: wide ? '280px minmax(0,1fr)' : 'minmax(0,1fr)', navDir: wide ? 'column' : 'row', navHeadD: wide ? 'block' : 'none', itemMin: wide ? '0' : '200px', count: String(MAILS.length),
+      list: MAILS.map(x => ({ subject: x.subject, to: x.to, bg: x.k === m.k ? '#F1EBE2' : 'transparent', on: () => this.setState({ sel: x.k }) })),
+      e: { ...m, hasTicket: !!m.ticket, t: m.tk || T, hasOptions: !!m.options, options: (m.options || []).map((l, i) => ({ l, bd: i ? '#F1EBE2' : 'transparent' })),
+        hasQuote: !!m.quote, hasRows: !!m.rows, rows: (m.rows || []).map(([kk, v], i) => ({ k: kk, v, bd: i ? '#F1EBE2' : 'transparent' })),
+        hasNote: !!m.note, unsub: m.unsub ? ' · Налаштувати сповіщення' : '' },
+    };
+  }
+}
+</script>
+</body>
+</html>

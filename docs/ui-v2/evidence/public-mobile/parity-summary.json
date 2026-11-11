@@ -1,0 +1,962 @@
+[
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 52764,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        52764,
+        0,
+        52764
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 19,
+    "perRun": [
+      [
+        19,
+        19,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        19,
+        19
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "login",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1455,
+        1455,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 375,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 2270,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        2270,
+        2270
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2270,
+        2270,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 1984,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1984,
+        1984
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 13685,
+    "maxBaselineNoise": 153282,
+    "perRun": [
+      [
+        75230,
+        156831,
+        153282
+      ],
+      [
+        13685,
+        71712,
+        58176
+      ],
+      [
+        156727,
+        154457,
+        76248
+      ],
+      [
+        154457,
+        154457,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 21,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        21,
+        21
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "login",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 768,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 2014,
+    "perRun": [
+      [
+        0,
+        2014,
+        2014
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 200652,
+    "perRun": [
+      [
+        0,
+        190879,
+        190879
+      ],
+      [
+        58387,
+        195566,
+        191179
+      ],
+      [
+        0,
+        200652,
+        200652
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 50,
+    "perRun": [
+      [
+        0,
+        50,
+        50
+      ],
+      [
+        0,
+        50,
+        50
+      ],
+      [
+        88,
+        88,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "login",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1280,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2310,
+        2310,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 235236,
+    "perRun": [
+      [
+        70274,
+        70274,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        235236,
+        235236
+      ],
+      [
+        7558,
+        0,
+        7558
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 50,
+    "perRun": [
+      [
+        0,
+        50,
+        50
+      ],
+      [
+        50,
+        0,
+        50
+      ],
+      [
+        3786,
+        3786,
+        0
+      ],
+      [
+        50,
+        50,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "login",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v1",
+    "width": 1440,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 768,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1280,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "home",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "for-clients",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "discovery",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "ui": "v2",
+    "width": 1440,
+    "page": "profile",
+    "runs": 4,
+    "bestCandidateDiff": 0,
+    "maxBaselineNoise": 0,
+    "perRun": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ]
+  }
+]

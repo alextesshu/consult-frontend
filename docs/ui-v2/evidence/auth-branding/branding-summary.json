@@ -1,0 +1,93 @@
+{
+  "problems": [],
+  "matrix": {
+    "v1 guest": [
+      [
+        "-",
+        "-"
+      ],
+      [
+        "proconsult-logo-dark.png",
+        "proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-logo-dark.png",
+        "proconsult-logo-light.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "proconsult-logo-light.png"
+      ]
+    ],
+    "v2 guest": [
+      [
+        "proconsult-fennec-header.svg",
+        "proconsult-fennec-lockup.svg"
+      ]
+    ],
+    "v1 specialist": [
+      [
+        "proconsult-logo-dark.png",
+        "cabinet:proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-logo-dark.png",
+        "proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-logo-dark.png",
+        "proconsult-logo-light.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "cabinet:proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "proconsult-logo-light.png"
+      ]
+    ],
+    "v2 specialist": [
+      [
+        "proconsult-fennec-header.svg",
+        "cabinet:proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-fennec-header.svg",
+        "proconsult-fennec-lockup.svg"
+      ]
+    ],
+    "v1 client": [
+      [
+        "proconsult-logo-dark.png",
+        "proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-logo-dark.png",
+        "proconsult-logo-light.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "proconsult-logo-dark.png"
+      ],
+      [
+        "proconsult-mark.png",
+        "proconsult-logo-light.png"
+      ]
+    ],
+    "v2 client": [
+      [
+        "proconsult-fennec-header.svg",
+        "proconsult-fennec-lockup.svg"
+      ]
+    ]
+  }
+}

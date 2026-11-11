@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,500&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FAF7F2;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="max-width:1280px;margin:0 auto;padding:0 48px">
+  <header style="display:flex;align-items:center;gap:24px;height:84px">
+    <div style="display:flex;align-items:center;gap:10px;flex:1">
+      <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:40px;width:auto;display:block;margin-left:-8px">
+    </div>
+    <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;white-space:nowrap;flex-shrink:0">
+      <span style="padding:8px 16px;border-radius:999px;background:#fff;font-size:14px;font-weight:500;box-shadow:0 1px 2px rgba(18,35,58,.08)">Я спеціаліст</span>
+      <span style="padding:8px 16px;border-radius:999px;font-size:14px;color:#657287;cursor:pointer" style-hover="color:#12233A">Шукаю спеціаліста</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;flex:1;justify-content:flex-end;white-space:nowrap">
+      <span style="font-size:15px;color:#657287">Тарифи</span>
+      <span style="font-size:15px;color:#657287">Увійти</span>
+      <span style="padding:11px 18px;border-radius:12px;white-space:nowrap;flex-shrink:0;background:#12345A;color:#fff;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:#0E2D52">Створити простір</span>
+    </div>
+  </header>
+
+  <section style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:64px;align-items:center;padding:72px 0 96px">
+    <div>
+      <div style="display:flex;gap:8px;margin-bottom:28px">
+        <span style="font-size:13px;padding:6px 12px;border-radius:999px;background:#EEF8F7;color:#1F5E5A">0% комісії з консультацій</span>
+        <span style="font-size:13px;padding:6px 12px;border-radius:999px;background:#FFF1E3;color:#8A4B16">Без рейтингів</span>
+      </div>
+      <h1 style="font-family:Literata,serif;font-weight:400;font-size:66px;line-height:1.04;letter-spacing:-0.025em;margin:0 0 24px;text-wrap:balance">Ваша практика — в одному спокійному просторі</h1>
+      <p style="font-size:19px;line-height:1.6;color:#4A5568;margin:0 0 36px;max-width:500px;text-wrap:pretty">Сторінка, яку клієнт розуміє з першого погляду. Запити, сесії й нотатки — там, де ви на них чекаєте.</p>
+      <div style="display:flex;gap:12px;align-items:center">
+        <span style="padding:15px 24px;border-radius:14px;background:#12345A;color:#fff;font-size:16px;font-weight:500;cursor:pointer" style-hover="background:#0E2D52">Створити свій простір →</span>
+        <span style="padding:15px 20px;font-size:16px;color:#12345A;cursor:pointer;border-radius:14px" style-hover="background:#F1EBE2">Як це працює</span>
+      </div>
+      <p style="font-size:14px;color:#8B95A7;margin:20px 0 0">30 днів Pro безкоштовно · без картки</p>
+    </div>
+
+    <div style="position:relative;height:520px">
+      <div style="position:absolute;inset:40px 0 0 40px;border-radius:32px;background:#F1EBE2"></div>
+      <div style="position:absolute;right:-20px;top:0;width:180px;height:180px;border-radius:50%;background:#FFE2C4;opacity:.7"></div>
+      <div style="position:absolute;left:0;top:70px;right:40px;background:#fff;border-radius:20px;box-shadow:0 24px 80px rgba(18,35,58,.12);padding:28px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+          <span style="font-size:13px;color:#8B95A7">Запит від клієнта</span>
+          <span style="font-size:12px;padding:5px 10px;border-radius:999px;background:{{ statusBg }};color:{{ statusFg }};transition:all .6s ease">{{ statusLabel }}</span>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;margin-bottom:20px">
+          <span style="width:44px;height:44px;border-radius:50%;background:#DDF1EF;display:flex;align-items:center;justify-content:center;font-weight:600;color:#1F5E5A">О</span>
+          <div>
+            <div style="font-weight:500;font-size:17px">Олена, 34</div>
+            <div style="font-size:14px;color:#657287">Тривожність · онлайн</div>
+          </div>
+        </div>
+        <p style="font-family:Literata,serif;font-size:17px;line-height:1.55;color:#12233A;margin:0 0 24px">«Хочу навчитися спокійніше реагувати на зміни на роботі. Зручно ввечері.»</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="height:3px;border-radius:3px;background:#EEE8DF;overflow:hidden"><div style="height:100%;width:{{ s.fill }};background:#12345A;transition:width .9s ease"></div></div>
+              <span style="font-size:13px;color:{{ s.color }};transition:color .6s">{{ s.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position:absolute;left:90px;bottom:24px;right:0;background:#12345A;color:#fff;border-radius:18px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;opacity:{{ sessionOp }};transform:translateY({{ sessionY }});transition:all .8s cubic-bezier(.2,.7,.2,1)">
+        <div>
+          <div style="font-size:13px;opacity:.7;margin-bottom:4px">Сесія в календарі</div>
+          <div style="font-size:17px;font-weight:500">Четвер, 18:00 · 50 хв</div>
+        </div>
+        <span style="font-size:13px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14)">Посилання надіслано</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:24px 0 120px">
+    <h2 style="font-family:Literata,serif;font-weight:400;font-size:42px;letter-spacing:-0.02em;margin:0 0 40px;max-width:640px">Від першого знайомства — до регулярної роботи</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+        <div onClick="{{ t.onClick }}" style="cursor:pointer;border-radius:20px;padding:28px;background:{{ t.bg }};color:{{ t.fg }};min-height:240px;display:flex;flex-direction:column;transition:background .4s ease,color .4s ease">
+          <span style="font-size:14px;opacity:.6;margin-bottom:40px">0{{ t.n }}</span>
+          <h3 style="font-family:Literata,serif;font-weight:400;font-size:26px;margin:0 0 12px">{{ t.title }}</h3>
+          <p style="font-size:15px;line-height:1.55;margin:0;opacity:{{ t.copyOp }};transition:opacity .4s">{{ t.copy }}</p>
+          <span style="margin-top:auto;padding-top:20px;font-size:14px;opacity:.7">{{ t.more }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { step: 0, tab: 1 };
+  componentDidMount() { this.t = setInterval(() => this.setState(s => ({ step: (s.step + 1) % 4 })), 2400); }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const { step, tab } = this.state;
+    const st = [
+      ['Новий', '#FFF1E3', '#8A4B16'], ['Ви переглянули', '#EEF4FA', '#2F6FA8'],
+      ['Час узгоджено', '#EEF8F7', '#1F5E5A'], ['Сесію заплановано', '#EEF8F1', '#2F7A55']][step];
+    const labels = ['Запит', 'Узгодження часу', 'Сесія'];
+    const tabsData = [
+      ['Покажіть себе', 'Професійна сторінка: підхід, теми, формат і вартість — без зайвого.'],
+      ['Отримайте звернення', 'Клієнт залишає запит без реєстрації. Ви вирішуєте, коли й як відповісти.'],
+      ['Ведіть практику', 'Сесії, календар, приватні нотатки та матеріали — в контексті кожного клієнта.']];
+    return {
+      statusLabel: st[0], statusBg: st[1], statusFg: st[2],
+      steps: labels.map((label, i) => ({ label, fill: step > i ? '100%' : step === i ? '50%' : '0%', color: step >= i ? '#12233A' : '#A0A8B6' })),
+      sessionOp: step === 3 ? 1 : 0, sessionY: step === 3 ? '0px' : '16px',
+      tabs: tabsData.map(([title, copy], i) => ({
+        n: i + 1, title, copy, onClick: () => this.setState({ tab: i }),
+        bg: tab === i ? '#12345A' : '#fff', fg: tab === i ? '#fff' : '#12233A',
+        copyOp: tab === i ? 1 : 0.55, more: tab === i ? 'Детальніше →' : '',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

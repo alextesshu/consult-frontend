@@ -1,0 +1,24 @@
+## Current delivery plan override - KAN-154 (2026-10-24)
+
+The historical plan below is retained. Its next-candidate and IN PROGRESS claims are superseded by [current follow-up plan](FOLLOWUP_PLAN_V66_V67.md), [matrix](IMPLEMENTATION_MATRIX_V66_V67.md), [verified PR evidence](PR_EVIDENCE_V66_V67.json) and [gates](JIRA_ALIGNMENT_V66_V67.md). Exact current source plan: [v6.6/v6.7](snapshots/2026-10-23-4ff7cedd/handoff/MIGRATION_PLAN_V2.md). Home/For Clients/Discovery and branding already merged; do not repeat them. KAN-160 HOLD; no default-v2 rollout.
+
+---
+
+# UI v2 — integrated v5 implementation routing
+
+Current snapshot `claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. [Exact source plan](snapshots/2026-10-23-7570f1ad/handoff/MIGRATION_PLAN_V2.md), [readiness](DESIGN_READINESS_V5.json), [matrix](IMPLEMENTATION_MATRIX_V5.md), [audit](DESIGN_SYNC_2026-10-23_V5.md), [historical migration record](../UI_MIGRATION_PLAN.md).
+
+V5 supplies stages 0–11. Stage 0 is completed history; source default-rollout Stage 5 is distinct from 5a/5b screen IDs and never authorizes default-v2/deployment. The stale generic source footer about pages without mockups is superseded for explicitly mapped references; no claim that every router edge case has been verified follows from it.
+
+1. Review this incremental sync in existing Draft #60; preserve #54–#57/#59/#63, runtime and historical sources. No duplicate Home (#59), profile (#55), discovery (#56) or registration work.
+2. **Exact next eligible candidate: KAN-158 v2-only public header/footer branding** in App.vue, separately named v2 assets and focused tests. Unchanged Home/Brand references are READY, existing navigation needs no new contract. Exclude HomeView/#59, public-profile/#55 and authenticated/minimal shells. Preserve v1 logos and working destinations; exact scope needs its own authorized task.
+3. KAN-156 For Clients: READY, contract/copy/crisis/query-handoff gates remain. Approved support address is copy only, no guarantee of monitored support. Do not automatically make it next.
+4. KAN-157: preserve #56; Psychological Support is an existing discovery landing, not a new page/endpoint. Review actual direction versus proposed preselected topics and visual reuse under a dedicated scope. No semantic matching/nearest slots inferred.
+5. KAN-159: keep #54/#63 backend-first registration rollout; unchanged signup references do not reset work. KAN-160 Client Dashboard and client-related Session-Pages integration remain HOLD until required UX/backend acceptance; published-material/private-note boundaries are unchanged.
+6. KAN-161: split READY cabinet/auth/tools/guest screens into independent visual tasks after DTO/permission checks. Current AuthorJournal 8.6 is READY; Expanded Blog Editor and Support Chat are IN PROGRESS and cannot be implemented. New diary/magic login/real undo remain separately gated.
+7. KAN-162: Stage 10.1 public journal/list/post/collection and 10.2 standalone FAQ now have READY Public-Content references. Separate visual tasks can be planned after actual DTO/copy/accessibility review. FAQ privacy, guest rescheduling, nearest-slot and crisis claims must be reconciled; do not publish literally.
+8. Stage 10.3–10.5 Session-Pages: map existing client session detail, external specialist detail and account invitation flows; preserve canJoinMeeting/server status/recovery/payment/token/role semantics. Cancellation rules/undo and guest-history transfer require explicit evidence. 10.6 legal presentation must retain current legal content; 10.7 404 is a separate routing behavior change. Tour already redirects; no Tour redesign is planned.
+9. Stage 11 is **backend work in a separately authorized repository task**, not runtime readiness: first provider/html payload mapping + plain-text fallback, then verify/reset/email-change, guest/proposal/reminder/group/request/Pro and onboarding. Keep actual expiry/subject/copy, idempotency, suppression and webhook semantics; verify mailbox/sender/assets and mail-client rendering separately. Do not launch from this frontend PR.
+10. Future Public Profile follow-up is IN PROGRESS; current #55/2.1 remains READY. Integration/default rollout remains separately approved after accepted slices. No merge/deployment follows from reference sync.
+
+This roadmap is a recommendation, not Jira mutation or implementation authorization. The source archive preserves every original stage and chronology.

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}</style>
+</helmet>
+<div style="position:relative;width:100%;height:100vh;overflow:hidden;background:#FBF9F5;display:grid;grid-template-columns:220px minmax(0,1fr)">
+        <aside style="display:flex;flex-direction:column;gap:20px;padding:20px 12px;border-right:1px solid #EDE7DE;min-height:0">
+          <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:32px;width:auto;align-self:flex-start;margin-left:6px">
+          <nav style="display:flex;flex-direction:column;gap:1px">
+            <sc-for list="{{ nav }}" as="n" hint-placeholder-count="13">
+              <span style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:12px;font-size:14px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};transition:box-shadow .2s" style-hover="box-shadow:inset 0 0 0 1px #D4CCC2">{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#F7B77E;color:#12233A;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.badge }}</span></sc-if></span>
+            </sc-for>
+          </nav>
+          <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:4px 8px">
+            <span style="width:32px;height:32px;border-radius:999px;background-image:url(assets/maria-koval.webp);background-size:cover;background-position:50% 18%"></span>
+            <div style="font-size:14px;line-height:1.3">Марія Коваль<div style="font-size:12px;color:#5A6578">Pro</div></div>
+          </div>
+        </aside>
+        <main style="overflow-y:auto;padding:24px 32px 56px;min-height:0;display:flex;flex-direction:column;gap:24px">
+          <sc-if value="{{ vc.loading }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:20px;opacity:{{ skelOp }};transition:opacity .9s ease">
+              <div style="height:340px;border-radius:24px;background:#DCE2EA"></div>
+              <div style="display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px"><div style="height:320px;border-radius:16px;background:#EDE7DE"></div><div style="height:320px;border-radius:16px;background:#EDE7DE"></div></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ vc.ready }}" hint-placeholder-val="{{ true }}">
+            <section style="border-radius:24px;background:{{ vc.heroBg }};color:#fff;padding:28px 32px 24px;display:flex;flex-direction:column;gap:24px;opacity:{{ vc.o }};transform:translateY({{ vc.y }}px) scale({{ vc.sc }});transition:opacity .6s ease,transform .8s cubic-bezier(.2,.7,.2,1),background .6s ease">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:14px;color:#C9D4E3">Четвер, 22 жовтня · Добрий день, Маріє</span>
+                <span onClick="{{ vc.create }}" style="padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.3);font-size:14px;white-space:nowrap;cursor:pointer;transition:all .2s" style-hover="background:rgba(255,255,255,.1)" style-active="transform:scale(.97)">+ Нова сесія</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:24px 32px;align-items:end">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#C9D4E3"><span style="width:8px;height:8px;border-radius:999px;background:{{ vc.dotC }};opacity:{{ pulseOp }};transition:opacity .9s"></span>{{ vc.kicker }}</div>
+                  <div style="font-size:40px;font-weight:500;letter-spacing:-0.035em;line-height:1.05">Андрій Савчук</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:15px;color:#C9D4E3">16:30–17:20 · 7-ма сесія<span style="padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.1);font-size:13px">вигорання</span><span style="padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.1);font-size:13px">сон</span></div>
+                  <div onClick="{{ vc.revealNote }}" style="position:relative;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.07);display:flex;flex-direction:column;gap:4px;max-width:480px;cursor:{{ vc.noteCur }}">
+                    <span style="font-size:12px;color:#A9B8CC">Остання нотатка · 15 жовтня</span>
+                    <span style="font-size:15px;line-height:1.45;filter:blur({{ vc.noteBlur }}px);user-select:{{ vc.noteSel }};transition:filter .35s">Домовились відстежувати сон тиждень і повернутися до теми меж на роботі.</span>
+                    <sc-if value="{{ vc.noteHidden }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;right:14px;top:12px;font-size:12px;color:#F7B77E">Показати</span></sc-if>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px;min-width:0">
+                  <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:#C9D4E3">
+                    <span>{{ vc.cdLabel }}</span>
+                    <span onClick="{{ vc.toggleTimer }}" title="{{ vc.timerTitle }}" style="padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.2);color:#C9D4E3;cursor:pointer;white-space:nowrap;transition:all .2s" style-hover="background:rgba(255,255,255,.1);color:#fff">{{ vc.timerBtn }}</span>
+                  </div>
+                  <span style="font-size:88px;font-weight:400;letter-spacing:-0.05em;line-height:.9;font-variant-numeric:tabular-nums">{{ vc.cd }}</span>
+                  <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px">
+                    <span style="padding:13px 24px;border-radius:999px;font-size:15px;font-weight:500;white-space:nowrap;background:{{ vc.joinBgD }};color:{{ vc.joinFgD }};cursor:{{ vc.joinCur }};transition:all .4s">Приєднатися</span>
+                    <span style="padding:13px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.3);font-size:15px;white-space:nowrap;cursor:pointer;transition:background .2s" style-hover="background:rgba(255,255,255,.1)">Відкрити сесію</span>
+                  </div>
+                  <span style="font-size:12px;color:#A9B8CC">{{ vc.joinHint }}</span>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+                <sc-for list="{{ vc.today }}" as="s" hint-placeholder-count="4">
+                  <div style="padding:10px 14px;border-radius:12px;background:{{ s.pillBg }};border:1px solid {{ s.pillBd }};opacity:{{ s.pillOp }};display:flex;flex-direction:column;gap:2px;transition:all .5s">
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span style="font-variant-numeric:tabular-nums">{{ s.t }}</span><sc-if value="{{ s.hasFlag }}" hint-placeholder-val="{{ false }}"><span style="width:7px;height:7px;border-radius:999px;background:#F7B77E"></span></sc-if></div>
+                    <span style="font-size:14px;font-weight:500">{{ s.name }}</span>
+                    <span style="font-size:12px;color:#A9B8CC">{{ s.stLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:20px;align-items:start">
+              <section style="display:flex;flex-direction:column;gap:12px;opacity:{{ vc.o }};transform:translateY({{ vc.y }}px);transition:opacity .6s ease .15s,transform .8s cubic-bezier(.2,.7,.2,1) .15s">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <h2 style="margin:0;font-weight:500;font-size:20px;letter-spacing:-0.015em">Потребує уваги</h2>
+                  <span style="min-width:24px;height:24px;padding:0 8px;border-radius:999px;background:#FFE2C4;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center">{{ vc.qCount }}</span>
+                </div>
+                <sc-if value="{{ vc.qEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:32px;border-radius:16px;background:#EEF8F1;font-size:15px;color:#2F7A55;display:flex;align-items:center;gap:16px"><img src="public/brand/mark-mint.png" alt="" style="width:40px;height:auto;display:block;flex-shrink:0"><span>Усе зроблено — черга порожня.</span></div></sc-if>
+                <sc-for list="{{ vc.queue }}" as="q" hint-placeholder-count="5">
+                  <div style="max-height:{{ q.mh }}px;opacity:{{ q.op }};overflow:hidden;transition:max-height .45s ease .5s,opacity .3s ease .55s">
+                    <div style="padding:16px 18px;border-radius:16px;background:{{ q.cardBg }};border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:10px;transition:background .3s,box-shadow .25s,transform .25s" style-hover="box-shadow:0 8px 24px rgba(18,35,58,.08);transform:translateY(-1px)">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                        <span style="font-size:12px;padding:4px 10px;border-radius:999px;background:{{ q.tagBg }};color:{{ q.tagFg }}">{{ q.tag }}</span>
+                        <div style="display:flex;gap:4px">
+                          <sc-for list="{{ q.topicList }}" as="tp" hint-placeholder-count="0"><span style="font-size:12px;color:#5A6578">#{{ tp.t }}</span></sc-for>
+                        </div>
+                      </div>
+                      <sc-if value="{{ q.notLeaving }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 16px">
+                          <div style="min-width:min(100%,220px);flex:1"><div style="font-size:16px;font-weight:500">{{ q.title }}</div><div style="font-size:13px;color:#5A6578;margin-top:2px">{{ q.body }}</div></div>
+                          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+                            <sc-if value="{{ q.hasSecondary }}" hint-placeholder-val="{{ false }}"><span onClick="{{ q.onSecondary }}" style="font-size:14px;color:#12345A;cursor:pointer">{{ q.secondary }}</span></sc-if>
+                            <span onClick="{{ q.onPrimary }}" style="padding:9px 16px;border-radius:999px;background:#12345A;color:#fff;font-size:14px;white-space:nowrap;cursor:pointer;transition:all .2s" style-hover="background:#0E2D52" style-active="transform:scale(.95)">{{ q.primary }}</span>
+                          </div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ q.isLeaving }}" hint-placeholder-val="{{ false }}"><div style="font-size:16px;color:#1F5E5A;padding:4px 0">{{ q.leaveMsg }}</div></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </section>
+              <div style="display:flex;flex-direction:column;gap:16px;opacity:{{ vc.o }};transform:translateY({{ vc.y }}px);transition:opacity .6s ease .25s,transform .8s cubic-bezier(.2,.7,.2,1) .25s">
+                <div style="display:flex;flex-direction:column">
+                  <div style="max-height:{{ vc.rd.mh }}px;opacity:{{ vc.rd.op }};overflow:hidden;transition:max-height .5s ease .9s,opacity .4s ease .9s">
+                    <section style="padding:20px;border-radius:16px;background:{{ vc.rd.bg }};border:1px solid {{ vc.rd.bd }};display:flex;flex-direction:column;gap:14px;transition:background .4s,border-color .4s">
+                      <div style="display:flex;gap:14px;align-items:center">
+                        <span style="position:relative;width:48px;height:48px;flex-shrink:0;display:block">
+                      <svg width="48" height="48" viewBox="0 0 48 48" style="display:block"><circle cx="24" cy="24" r="18" fill="none" style="stroke:#EDE0CF;stroke-width:5"></circle><circle cx="24" cy="24" r="18" fill="none" transform="rotate(-90 24 24)" style="stroke:{{ vc.rd.ringC }};stroke-width:5;stroke-linecap:round;stroke-dasharray:113.10;stroke-dashoffset:{{ vc.rd.off48 }};transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.2,1),stroke .4s"></circle></svg>
+                      <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums">{{ vc.rd.n }}/6</span>
+                    </span>
+                        <div style="min-width:0"><h2 style="margin:0;font-weight:500;font-size:17px">Готовність до звернень</h2><div style="font-size:13px;color:#5A6578;margin-top:2px">{{ vc.rd.status }}</div></div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:2px">
+                        <sc-for list="{{ vc.rd.steps }}" as="st" hint-placeholder-count="6">
+                          <div onClick="{{ st.on }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin:0 -10px;border-radius:10px;cursor:{{ st.cur }};background:{{ st.bg }};transition:background 1.2s ease" style-hover="background:rgba(255,255,255,.7)">
+                            <span style="width:20px;height:20px;border-radius:999px;border:1.5px solid {{ st.chkBd }};background:{{ st.chkBg }};color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .35s">{{ st.mark }}</span>
+                            <span style="flex:1;font-size:14px;color:{{ st.fg }}">{{ st.l }}</span>
+                            <sc-if value="{{ st.todo }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#12345A">Заповнити →</span></sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ vc.rd.isPublish }}" hint-placeholder-val="{{ false }}"><span onClick="{{ vc.rd.publish }}" style="align-self:flex-start;padding:10px 18px;border-radius:999px;background:#12345A;color:#fff;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s" style-hover="background:#0E2D52" style-active="transform:scale(.97)">Опублікувати профіль</span></sc-if>
+                    </section>
+                  </div>
+                  <sc-if value="{{ vc.rd.compact }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:#EEF8F1;font-size:14px;color:#2F7A55"><span style="width:8px;height:8px;border-radius:999px;background:#2F7A55"></span>Профіль опублікований і приймає звернення</div></sc-if>
+                </div>
+                <section style="background:#fff;border:1px solid #EDE7DE;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h2 style="margin:0;font-weight:500;font-size:17px">Практика</h2>
+                    <div style="display:flex;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px">
+                      <sc-for list="{{ vc.ranges }}" as="r" hint-placeholder-count="3"><span onClick="{{ r.on }}" style="padding:5px 11px;border-radius:999px;font-size:12px;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }};box-shadow:{{ r.sh }};transition:all .25s">{{ r.label }}</span></sc-for>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px">
+                    <div><div style="font-size:32px;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;line-height:1.1">{{ vc.m.c }}</div><div style="font-size:13px;color:#5A6578">завершено сесій</div></div>
+                    <div><div style="font-size:32px;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;line-height:1.1">{{ vc.m.r }}</div><div style="font-size:13px;color:#5A6578">нових запитів</div></div>
+                    <div><div style="font-size:24px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1.1">{{ vc.m.paid }} грн</div><div style="font-size:13px;color:#5A6578">оплачено</div></div>
+                    <div><div style="font-size:24px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1.1;color:#8A5A12">{{ vc.m.un }} грн</div><div style="font-size:13px;color:#5A6578">не підтверджено</div></div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;color:#5A6578"><span>Активні клієнти</span><span style="font-variant-numeric:tabular-nums">{{ vc.clN }} з 20</span></div>
+                    <div style="height:6px;border-radius:999px;background:#F1EBE2;overflow:hidden"><div style="height:100%;width:{{ vc.clW }}%;border-radius:999px;background:#12345A"></div></div>
+                  </div>
+                </section>
+                <section style="background:#F1EBE2;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:4px">
+                  <h2 style="margin:0 0 8px;font-weight:500;font-size:17px">Попереду</h2>
+                  <sc-for list="{{ vc.upcoming }}" as="u" hint-placeholder-count="3">
+                    <div style="display:grid;grid-template-columns:52px 48px minmax(0,1fr);gap:10px;padding:8px 10px;margin:0 -10px;border-radius:10px;font-size:14px;background:{{ u.bg }};transition:background 1.2s ease">
+                      <span style="color:#5A6578">{{ u.d }}</span><span style="font-variant-numeric:tabular-nums">{{ u.t }}</span><span style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                    </div>
+                  </sc-for>
+                </section>
+              </div>
+            </div>
+          </sc-if>
+        </main>
+        <div style="position:absolute;left:calc(50% + 110px);bottom:24px;transform:translate(-50%,{{ vc.toastY }}px);opacity:{{ vc.toastOp }};pointer-events:{{ vc.toastPe }};transition:all .35s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;gap:16px;padding:12px 14px 12px 20px;border-radius:999px;background:#12233A;color:#fff;font-size:14px;white-space:nowrap;box-shadow:0 12px 32px rgba(18,35,58,.25);z-index:20">
+          {{ vc.toastMsg }}<span onClick="{{ vc.undo }}" style="padding:6px 12px;border-radius:999px;color:#F7B77E;cursor:pointer;transition:background .2s" style-hover="background:rgba(255,255,255,.1)">Скасувати</span>
+        </div>
+        <sc-if value="{{ vc.drawerOpen }}" hint-placeholder-val="{{ false }}">
+          <dc-import name="Cabinet-Drawer" kind="{{ vc.dKind }}" ctx="{{ vc.dCtx }}" field="{{ vc.dField }}" on-close="{{ vc.dClose }}" on-done="{{ vc.dDone }}" style="position:absolute;inset:0" hint-size="100%,100%"></dc-import>
+        </sc-if>
+      </div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;scenario&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;before&quot;,&quot;soon&quot;,&quot;live&quot;],&quot;default&quot;:&quot;before&quot;,&quot;tsType&quot;:&quot;'before'|'soon'|'live'&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;readiness&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;closed&quot;,&quot;partial&quot;,&quot;ready&quot;],&quot;default&quot;:&quot;partial&quot;,&quot;tsType&quot;:&quot;'closed'|'partial'|'ready'&quot;,&quot;section&quot;:&quot;Сценарій&quot;},&quot;emptyQueue&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Сценарій&quot;}}">
+const NAV = ['Кабінет', 'Профіль', 'Клієнти', 'Розклад', 'Сесії', 'Запити', 'Завдання', 'Відгуки', 'Чати', 'Групові події', 'Власний блог', 'Аналітика', 'Тарифи і доступ', 'Налаштування'];
+const BADGE = { 'Запити': '2', 'Чати': '1' };
+const QUEUE = [
+  { k: 'q1', type: 'request', kind: 'accept', tag: 'Новий запит', title: 'Катерина Лук’янчук', body: 'Хоче пт, 23 жовтня о 11:00 · онлайн · перша зустріч', topics: ['тривога', 'сон'], primary: 'Прийняти', secondary: 'Інший час', dctx: 'Катерина Лук’янчук · тривога, сон' },
+  { k: 'q2', type: 'request', kind: 'reply', tag: 'Запит без часу', title: 'Дмитро Вовк', body: 'Просить запропонувати час для першої зустрічі', topics: ['стосунки'], primary: 'Запропонувати час', dctx: 'Дмитро Вовк · запит без часу · стосунки' },
+  { k: 'q3', type: 'link', kind: 'link', tag: 'Немає посилання', title: 'Олена Гнатюк · сьогодні о 18:00', body: 'Без посилання клієнтка не зможе приєднатися', primary: 'Додати посилання', dctx: 'Олена Гнатюк · сьогодні, 18:00 · онлайн' },
+  { k: 'q4', type: 'pay', kind: 'pay', tag: 'Оплата', title: 'Олег Мельник · сьогодні о 13:00', body: '1 200 грн · оплату ще не підтверджено', primary: 'Підтвердити оплату' },
+  { k: 'q5', type: 'note', kind: 'note', tag: 'Без нотатки', title: 'Ірина Ткаченко · сьогодні о 10:00', body: 'Запишіть, поки свіже — нотатки бачите лише ви', primary: 'Додати нотатку', dctx: 'Ірина Ткаченко · сьогодні, 10:00' },
+];
+const TAG = { request: ['#FFE2C4', '#8A4B12'], pay: ['#FFF5DF', '#8A5A12'], link: ['#EEF4FA', '#2F6FA8'], note: ['#EEF8F7', '#1F5E5A'] };
+const TODAY = [
+  { id: 's1', t: '10:00', m: 600, name: 'Ірина Ткаченко', ini: 'ІТ', fmt: 'онлайн', done: true, flagKey: 'q5', flag: 'без нотатки' },
+  { id: 's2', t: '13:00', m: 780, name: 'Олег Мельник', ini: 'ОМ', fmt: 'онлайн', done: true, flagKey: 'q4', flag: 'перевірити оплату' },
+  { id: 's3', t: '16:30', m: 990, name: 'Андрій Савчук', ini: 'АС', fmt: 'онлайн' },
+  { id: 's4', t: '18:00', m: 1080, name: 'Олена Гнатюк', ini: 'ОГ', fmt: 'онлайн', flagKey: 'q3', flag: 'без посилання' },
+];
+const UP = [
+  { id: 'u1', d: 'Пт 23', t: '09:30', name: 'Максим Бойко', ord: 1 },
+  { id: 'u2', d: 'Пт 23', t: '15:00', name: 'Ірина Ткаченко', ord: 1 },
+  { id: 'u3', d: 'Пн 26', t: '10:00', name: 'Олег Мельник', ord: 2 },
+];
+const KAT = { id: 'kat', d: 'Пт 23', t: '11:00', name: 'Катерина Лук’янчук', ord: 1 };
+const R = {
+  zero: { c: 0, x: 0, n: 0, r: 0, paid: 0, un: 0, uc: 0, load: 0 },
+  '7d': { c: 11, x: 1, n: 0, r: 3, paid: 12600, un: 1200, uc: 1, load: 68 },
+  '30d': { c: 42, x: 3, n: 1, r: 9, paid: 48600, un: 2400, uc: 2, load: 74 },
+  '90d': { c: 118, x: 9, n: 4, r: 23, paid: 139200, un: 2400, uc: 2, load: 71 },
+};
+const STEPS = [{ k: 'name', l: 'Публічне ім’я' }, { k: 'about', l: 'Короткий опис' }, { k: 'spec', l: 'Спеціалізації' }, { k: 'format', l: 'Формат роботи' }, { k: 'price', l: 'Базова ціна' }, { k: 'intake', l: 'Запис або запит' }];
+const BASE = { closed: ['name', 'spec', 'format'], partial: ['name', 'spec', 'format', 'intake'], ready: ['name', 'about', 'spec', 'format', 'price', 'intake'] };
+const joinUk = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' і ' + a[a.length - 1];
+const RL = [['7d', '7 днів'], ['30d', '30 днів'], ['90d', '90 днів']];
+const plural = (n, f) => { const a = n % 10, b = n % 100; return f[a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? 1 : 2]; };
+const fmtN = n => n.toLocaleString('uk-UA');
+const mmss = n => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(Math.floor(n % 60)).padStart(2, '0');
+const hhmm = m => Math.floor(m / 60) + ':' + String(Math.floor(m % 60)).padStart(2, '0');
+const pos = m => (m - 540) / 660 * 100;
+const V = () => ({ loading: true, revealed: false, range: '30d', from: 'zero', p: 0, gone: {}, leaving: {}, drawer: null, toast: false, toastMsg: '', undo: null, added: [], flash: null, filter: 'all', filled: {}, published: false });
+
+class Component extends DCLogic {
+  state = { el: 0, pulse: false, noteAt: 0, c: V(), hideTimer: (() => { try { return localStorage.getItem('pc:dashboard:hideTimer') !== '0'; } catch (e) { return true; } })() };
+  T = []; raf = {}; tt = {};
+  later(fn, ms) { const id = setTimeout(fn, ms); this.T.push(id); return id; }
+  componentDidMount() {
+    this.iv = setInterval(() => this.setState(s => ({ el: s.el + 1, pulse: !s.pulse })), 1000);
+    this.load('c', 900);
+  }
+  componentWillUnmount() { clearInterval(this.iv); this.T.forEach(clearTimeout); Object.values(this.tt).forEach(clearTimeout); Object.values(this.raf).forEach(cancelAnimationFrame); }
+  setV(k, p) { this.setState(s => ({ [k]: { ...s[k], ...(typeof p === 'function' ? p(s[k]) : p) } })); }
+  load(k, ms = 1200) {
+    this.setV(k, { loading: true, revealed: false, p: 0, from: 'zero' });
+    this.later(() => { this.setV(k, { loading: false }); this.later(() => { this.setV(k, { revealed: true }); this.count(k); }, 50); }, ms);
+  }
+  count(k) {
+    cancelAnimationFrame(this.raf[k]);
+    const t0 = performance.now();
+    const step = t => { const p = Math.min(1, (t - t0) / 900); this.setV(k, { p }); if (p < 1) this.raf[k] = requestAnimationFrame(step); };
+    this.raf[k] = requestAnimationFrame(step);
+  }
+  toast(k, msg, undo) {
+    this.setV(k, { toast: true, toastMsg: msg, undo });
+    clearTimeout(this.tt[k]); this.tt[k] = setTimeout(() => this.setV(k, { toast: false }), 5000);
+  }
+  leave(k, key, msg, after) {
+    this.setV(k, v => ({ leaving: { ...v.leaving, [key]: msg } }));
+    this.later(() => { this.setV(k, v => ({ gone: { ...v.gone, [key]: true } })); after && after(); }, 1050);
+  }
+  restore(k, key, addedId) {
+    this.setV(k, v => { const g = { ...v.gone }, l = { ...v.leaving }; delete g[key]; delete l[key]; return { gone: g, leaving: l, added: v.added.filter(a => a.id !== addedId), toast: false }; });
+  }
+  flash(k, id) { this.setV(k, { flash: id }); this.later(() => this.setV(k, v => v.flash === id ? { flash: null } : {}), 2600); }
+  act(k, q, w) {
+    if (w === 's') return this.setV(k, { drawer: { kind: 'reply', ctx: q.dctx, k: q.k } });
+    if (q.kind === 'accept') {
+      return this.leave(k, q.k, '✓ Прийнято — додаю в розклад на п’ятницю, 11:00', () => {
+        this.setV(k, v => ({ added: [...v.added, KAT] })); this.flash(k, 'kat');
+        this.toast(k, 'Сесію створено · Катерина Лук’янчук, пт 23 жовтня, 11:00', () => this.restore(k, q.k, 'kat'));
+      });
+    }
+    if (q.kind === 'pay') return this.leave(k, q.k, '✓ Оплату 1 200 грн підтверджено', () => this.toast(k, 'Оплату за сесію о 13:00 підтверджено', () => this.restore(k, q.k)));
+    this.setV(k, { drawer: { kind: q.kind, ctx: q.dctx, k: q.k } });
+  }
+  openStep(k, s) { const i = STEPS.indexOf(s); this.setV(k, { drawer: { kind: 'profile', field: s.k, ctx: `Крок ${i + 1} з 6 · видно на вашій публічній сторінці` } }); }
+  drawerDone(k, p) {
+    const d = this.state[k].drawer; this.setV(k, { drawer: null }); if (!d) return;
+    if (d.kind === 'profile') {
+      const f = d.field; this.setV(k, v => ({ filled: { ...v.filled, [f]: true } })); this.flash(k, 'st-' + f);
+      this.toast(k, `Збережено в профілі · ${STEPS.find(s => s.k === f).l}`, () => this.setV(k, v => { const x = { ...v.filled }; delete x[f]; return { filled: x, toast: false }; }));
+      return;
+    }
+    if (d.kind === 'create') {
+      const id = 'c' + Date.now();
+      this.setV(k, v => ({ added: [...v.added, { id, d: p.d, t: p.t, name: p.client, ord: p.ord }] })); this.flash(k, id);
+      this.toast(k, `Сесію створено · ${p.client}, ${p.d.toLowerCase()}, ${p.t}`, () => this.setV(k, v => ({ added: v.added.filter(a => a.id !== id), toast: false })));
+      return;
+    }
+    const M = { reply: ['✓ Пропозицію надіслано', `Пропозицію надіслано · ${p.count} ${plural(p.count || 0, ['вікно', 'вікна', 'вікон'])}`], link: ['✓ Посилання додано', 'Посилання додано до сесії о 18:00'], note: ['✓ Нотатку збережено', 'Нотатку до сесії о 10:00 збережено'] };
+    const [a, b] = M[d.kind];
+    this.leave(k, d.k, a, () => this.toast(k, b, () => this.restore(k, d.k)));
+  }
+  build(k) {
+    const S = this.state, v = S[k], sc = this.props.scenario ?? 'before', empty = !!this.props.emptyQueue;
+    const live = sc === 'live';
+    const rem = live ? 0 : Math.max(0, (sc === 'soon' ? 580 : 2262) - S.el);
+    const canJoin = live || rem <= 600;
+    const nowMin = (live ? 994 : sc === 'soon' ? 980 : 952) + S.el / 60;
+    const e = 1 - Math.pow(1 - v.p, 3);
+    const paidDone = !!v.gone.q4;
+    const adj = (r, z) => z ? r : { ...r, paid: r.paid + (paidDone ? 1200 : 0), un: Math.max(0, r.un - (paidDone ? 1200 : 0)), uc: Math.max(0, r.uc - (paidDone ? 1 : 0)) };
+    const cur = adj(R[v.range]), from = adj(R[v.from], v.from === 'zero');
+    const tw = f => Math.round(from[f] + (cur[f] - from[f]) * e);
+    const first = v.from === 'zero' ? e : 1;
+    const vis = empty ? [] : QUEUE.filter(q => !v.gone[q.k]);
+    const cnt = t => vis.filter(q => q.type === t).length;
+    const shown = vis.filter(q => v.filter === 'all' || q.type === v.filter);
+    const today = TODAY.map(s => {
+      const st = s.id === 's3' ? (live ? 'live' : 'next') : s.done ? 'done' : 'later';
+      const flag = s.flagKey && !v.gone[s.flagKey] && !(empty) ? s.flag : '';
+      return { ...s, flag, hasFlag: !!flag,
+        stLabel: st === 'done' ? 'Завершено' : st === 'live' ? 'Триває зараз' : st === 'next' ? (S.hideTimer ? 'Наступна' : `Наступна · через ${mmss(rem)}`) : 'Підтверджено',
+        stFg: st === 'next' || st === 'live' ? '#12345A' : '#5A6578',
+        left: pos(s.m).toFixed(2), w: (pos(s.m + 50) - pos(s.m)).toFixed(2),
+        blockBg: { done: '#E6E0D8', next: '#12345A', live: '#F7B77E', later: '#BFE3E0' }[st],
+        blockFg: { done: '#5A6578', next: '#fff', live: '#12233A', later: '#1F5E5A' }[st],
+        dotC: { done: '#B7C0CC', next: '#12345A', live: '#F7B77E', later: '#8FCBC8' }[st],
+        rowOp: st === 'done' ? 0.62 : 1,
+        pillBg: st === 'next' ? 'rgba(247,183,126,.16)' : st === 'live' ? 'rgba(247,183,126,.3)' : 'rgba(255,255,255,.06)',
+        pillBd: st === 'next' || st === 'live' ? '#F7B77E' : 'rgba(255,255,255,.12)',
+        pillOp: st === 'done' ? 0.6 : 1, isSession: true, isNow: false };
+    });
+    const nowRow = { isNow: true, isSession: false, label: `Зараз ${hhmm(nowMin)}` };
+    const rows = live ? [...today.slice(0, 3), nowRow, today[3]] : [...today.slice(0, 2), nowRow, ...today.slice(2)];
+    const upcoming = [...UP, ...v.added].sort((a, b) => a.ord - b.ord || a.t.localeCompare(b.t)).map(u => ({ ...u, bg: v.flash === u.id ? '#DDF1EF' : 'transparent' }));
+    const total = cur.paid + cur.un || 1;
+    const rdMode = this.props.readiness ?? 'partial', base = BASE[rdMode] || BASE.partial;
+    const isDone = s => base.includes(s.k) || !!v.filled[s.k];
+    const nDone = STEPS.filter(isDone).length, published = rdMode !== 'closed' || v.published;
+    const rs = nDone === 6 && published ? 'ready' : nDone === 6 ? 'publish' : 'missing';
+    const missing = STEPS.filter(s => !isDone(s));
+    const frac = nDone / 6 * first;
+    const rd = {
+      mh: rs === 'ready' ? 0 : 520, op: rs === 'ready' ? 0 : 1, compact: rs === 'ready', notCompact: rs !== 'ready', isPublish: rs === 'publish',
+      n: nDone, off56: (138.23 * (1 - frac)).toFixed(2), off48: (113.1 * (1 - frac)).toFixed(2),
+      ringC: rs === 'missing' ? '#F7B77E' : '#2F7A55',
+      bg: rs === 'missing' ? '#FFF6EC' : '#EEF8F1', bd: rs === 'missing' ? '#F3DCC0' : '#CDE8D6',
+      status: rs === 'ready' ? '✓ профіль приймає звернення' : rs === 'publish' ? 'основні дані готові — залишилось опублікувати' : published ? 'профіль опублікований, але клієнтам бракує деталей' : 'профіль ще не опублікований — клієнти вас не бачать',
+      summary: rs === 'missing' ? 'Залишилось: ' + joinUk(missing.map(s => s.l.toLowerCase())) + '.' : rs === 'publish' ? 'Після публікації сторінка з’явиться в пошуку спеціалістів.' : 'Усе готово.',
+      missing: missing.map(s => ({ l: s.l, on: () => this.openStep(k, s) })),
+      steps: STEPS.map(s => { const d = isDone(s); return { l: s.l, todo: !d, mark: d ? '✓' : '', chkBg: d ? '#2F7A55' : 'transparent', chkBd: d ? '#2F7A55' : '#D9B48C', fg: d ? '#5A6578' : '#12233A',
+        bg: v.flash === 'st-' + s.k ? '#DDF1EF' : 'transparent', cur: d ? 'default' : 'pointer', on: () => { if (!d) this.openStep(k, s); } }; }),
+      publish: () => { this.setV(k, { published: true }); this.toast(k, 'Профіль опубліковано — тепер вас видно в пошуку', () => this.setV(k, { published: false, toast: false })); },
+    };
+    return {
+      loading: v.loading, ready: !v.loading,
+      o: v.revealed ? 1 : 0, y: v.revealed ? 0 : 16, sc: v.revealed ? 1 : 0.985,
+      replay: () => this.load(k),
+      create: () => this.setV(k, { drawer: { kind: 'create', ctx: 'Три кроки: клієнт, час, формат' } }),
+      noteBlur: S.el - S.noteAt < 30 && S.noteAt ? 0 : 6, noteSel: S.el - S.noteAt < 30 && S.noteAt ? 'text' : 'none', noteHidden: !(S.el - S.noteAt < 30 && S.noteAt), noteCur: S.el - S.noteAt < 30 && S.noteAt ? 'text' : 'pointer',
+      revealNote: () => this.setState(s => ({ noteAt: s.el || 0.001 })),
+      heroLine: live ? 'Зараз триває сесія з Андрієм Савчуком.' : 'Далі — Андрій Савчук о 16:30.',
+      cd: S.hideTimer ? '16:30' : live ? mmss(252 + S.el) : mmss(rem),
+      cdLabel: S.hideTimer ? (live ? 'триває з' : canJoin ? 'початок о · можна приєднатися' : 'початок о') : live ? 'від початку сесії' : canJoin ? 'до початку — можна приєднатися' : 'до початку',
+      timerBtn: S.hideTimer ? 'Показати таймер' : 'Сховати таймер',
+      timerTitle: S.hideTimer ? 'Показувати зворотний відлік до сесії' : 'Показувати лише час початку',
+      toggleTimer: () => this.setState(s => { const v = !s.hideTimer; try { localStorage.setItem('pc:dashboard:hideTimer', v ? '1' : '0'); } catch (e) {} return { hideTimer: v }; }),
+      kpiLabel: live ? 'Триває' : 'До наступної сесії',
+      kicker: live ? 'Сесія триває · онлайн' : 'Наступна сесія · онлайн',
+      heroBg: live ? '#0E2D52' : '#12345A',
+      dotC: live ? '#F7B77E' : '#8FCBC8',
+      joinBg: canJoin ? '#12345A' : '#E6E0D8', joinFg: canJoin ? '#fff' : '#8B95A7', joinCur: canJoin ? 'pointer' : 'default',
+      joinBgD: canJoin ? '#F7B77E' : 'rgba(255,255,255,.12)', joinFgD: canJoin ? '#12233A' : '#A9B8CC',
+      joinHint: canJoin ? 'Посилання вже в клієнта' : 'Стане активною за 10 хв до початку',
+      nowL: pos(nowMin).toFixed(2),
+      hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(h => ({ l: pos(h * 60).toFixed(2), t: h + ':00' })),
+      today, rows, upcoming, rd,
+      doneN: Math.round(2 * first), dayW: (50 * first).toFixed(1),
+      queue: shown.map(q => { const lv = v.leaving[q.k]; return { ...q, tagBg: TAG[q.type][0], tagFg: TAG[q.type][1], topicList: (q.topics || []).map(t => ({ t })),
+        isLeaving: !!lv, notLeaving: !lv, leaveMsg: lv || '', mh: lv ? 0 : 240, op: lv ? 0 : 1, rowBg: lv ? '#DDF1EF' : 'transparent', cardBg: lv ? '#DDF1EF' : '#fff',
+        hasSecondary: !!q.secondary, onPrimary: () => !lv && this.act(k, q, 'p'), onSecondary: () => !lv && this.act(k, q, 's') }; }),
+      qCount: vis.length, qEmpty: vis.length === 0,
+      qSummary: [['request', 'запити'], ['pay', 'оплата'], ['link', 'посилання'], ['note', 'нотатки']].filter(([t]) => cnt(t)).map(([t, l]) => `${l} ${cnt(t)}`).join(' · ') || 'усе зроблено',
+      filters: [['all', 'Усі', vis.length], ['request', 'Запити', cnt('request')], ['pay', 'Оплати', cnt('pay')], ['link', 'Посилання', cnt('link')], ['note', 'Нотатки', cnt('note')]]
+        .filter(([id, , n]) => id === 'all' || n > 0).map(([id, label, n]) => ({ label, n, on: () => this.setV(k, { filter: id }), bg: v.filter === id ? '#12345A' : '#F1EBE2', fg: v.filter === id ? '#fff' : '#3F4B5E' })),
+      m: { c: tw('c'), x: tw('x'), n: tw('n'), r: tw('r'), paid: fmtN(tw('paid')), un: fmtN(tw('un')), load: tw('load') },
+      cW: plural(cur.c, ['завершена сесія', 'завершені сесії', 'завершених сесій']),
+      rW: plural(cur.r, ['новий запит', 'нові запити', 'нових запитів']),
+      rangeShort: { '7d': '7 днів', '30d': '30 днів', '90d': '90 днів' }[v.range],
+      ranges: RL.map(([id, label]) => ({ label, on: () => { if (id === v.range) return; this.setV(k, { from: v.range, range: id, p: 0 }); this.count(k); },
+        bg: id === v.range ? '#fff' : 'transparent', fg: id === v.range ? '#12233A' : '#5A6578', sh: id === v.range ? '0 1px 2px rgba(18,35,58,.12)' : 'none' })),
+      paidW: (cur.paid / total * 100 * first).toFixed(1), unW: (cur.un / total * 100 * first).toFixed(1),
+      clN: Math.round(14 * first), clW: (70 * first).toFixed(1), gN: Math.round(3 * first), gW: (30 * first).toFixed(1),
+      toastOp: v.toast ? 1 : 0, toastY: v.toast ? 0 : 24, toastPe: v.toast ? 'auto' : 'none', toastMsg: v.toastMsg,
+      undo: () => { clearTimeout(this.tt[k]); v.undo && v.undo(); },
+      drawerOpen: !!v.drawer, dKind: v.drawer ? v.drawer.kind : 'create', dCtx: v.drawer ? v.drawer.ctx : '', dField: v.drawer && v.drawer.field ? v.drawer.field : 'price',
+      dClose: () => this.setV(k, { drawer: null }), dDone: p => this.drawerDone(k, p),
+    };
+  }
+  renderVals() {
+    return {
+      nav: NAV.map((label, i) => ({ label, badge: BADGE[label] || '', bg: i === 0 ? '#12345A' : 'transparent', fg: i === 0 ? '#fff' : '#3F4B5E' })),
+      pulseOp: this.state.pulse ? 1 : 0.3,
+      skelOp: this.state.pulse ? 1 : 0.55,
+      vc: this.build('c'),
+    };
+  }
+}
+</script>
+</body>
+</html>

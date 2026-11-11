@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<style>body{margin:0;background:#F1EBE2;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}</style>
+</helmet>
+<section style="padding:48px 56px 72px;display:flex;flex-direction:column;gap:36px">
+  <div style="max-width:660px;display:flex;flex-direction:column;gap:10px">
+    <span style="font-size:13px;color:#5A6578">UI v2 · публічні сторінки · &lt; 768px</span>
+    <h1 style="margin:0;font-weight:500;font-size:40px;letter-spacing:-0.035em;line-height:1.05">Публічні сторінки на мобільному</h1>
+    <p style="margin:0;font-size:16px;line-height:1.55;color:#3F4B5E;text-wrap:pretty">Десктопні макети вже адаптивні; тут — місця, де мобільна розкладка інша: меню, hero, сітки карток, фільтри пошуку, форми входу й реєстрації.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px 32px;align-items:flex-start">
+
+    <div id="p1" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">P1</span><span style="font-size:15px;font-weight:500">Головна (для спеціалістів)</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>10:12</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-bottom:1px solid #EDE7DE"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;margin-left:-4px"><div style="display:flex;align-items:center;gap:4px"><span style="height:40px;padding:0 14px;border-radius:999px;background:#12345A;color:#fff;font-size:14px;font-weight:500;display:flex;align-items:center">Створити</span><span style="width:44px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px"><span style="width:20px;height:2px;border-radius:2px;background:#12233A"></span><span style="width:20px;height:2px;border-radius:2px;background:#12233A"></span></span></div></div>
+        <div style="flex:1;overflow-y:auto;padding:28px 20px 40px;display:flex;flex-direction:column;gap:18px">
+          <div style="align-self:center;width:72px;height:72px;border-radius:50%;background:#EEF4FA;display:flex;align-items:center;justify-content:center"><img src="public/brand/mark-navy.png" alt="" style="width:44px;height:auto"></div>
+          <p style="margin:0;font-size:13px;letter-spacing:.04em;color:#2F8C86;text-align:center">Для психологів, терапевтів і консультантів</p>
+          <h2 style="margin:0;font-weight:500;font-size:36px;line-height:1.05;letter-spacing:-0.045em;text-align:center;text-wrap:balance">Менше адміністрування. Більше уваги до клієнта.</h2>
+          <p style="margin:0;font-size:16px;line-height:1.55;color:#5A6578;text-align:center;text-wrap:pretty">Публічна сторінка, запити, сесії й нотатки — один зрозумілий шлях від першого звернення до регулярної роботи.</p>
+          <div style="display:flex;flex-direction:column;gap:8px"><span style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Створити простір безкоштовно</span><span style="height:48px;border-radius:999px;border:1px solid #E6E0D8;font-size:15px;display:flex;align-items:center;justify-content:center">Як це працює</span></div>
+          <div style="display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px -20px 0;padding:0 20px">
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4"><div style="flex:0 0 82%;scroll-snap-align:start;padding:18px;border-radius:20px;background:#fff;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:#8B95A7">Крок {{ s.n }} з 4</span><span style="font-size:19px;font-weight:500;letter-spacing:-0.02em">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#5A6578">{{ s.c }}</span></div></sc-for>
+          </div>
+          <div style="display:flex;justify-content:center;gap:6px"><sc-for list="{{ dots }}" as="d" hint-placeholder-count="4"><span style="width:{{ d.w }};height:6px;border-radius:999px;background:{{ d.c }}"></span></sc-for></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="p2" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">P2</span><span style="font-size:15px;font-weight:500">Меню (бургер)</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>10:12</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-bottom:1px solid #EDE7DE"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;margin-left:-4px"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:24px">×</span></div>
+        <div style="flex:1;padding:16px 20px 32px;display:flex;flex-direction:column;gap:20px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px"><span style="height:40px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(18,35,58,.1);font-size:14px;display:flex;align-items:center;justify-content:center">Для спеціалістів</span><span style="height:40px;font-size:14px;display:flex;align-items:center;justify-content:center;color:#5A6578">Для клієнтів</span></div>
+          <nav style="display:flex;flex-direction:column"><sc-for list="{{ menu }}" as="m" hint-placeholder-count="5"><span style="display:flex;justify-content:space-between;align-items:center;min-height:56px;border-bottom:1px solid #EDE7DE;font-size:20px;letter-spacing:-0.01em">{{ m }}<span style="color:#8B95A7;font-size:16px">→</span></span></sc-for></nav>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:8px"><span style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Створити простір</span><span style="height:48px;border-radius:999px;border:1px solid #E6E0D8;font-size:15px;display:flex;align-items:center;justify-content:center">Увійти</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="p3" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">P3</span><span style="font-size:15px;font-weight:500">Для клієнтів</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>10:12</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-bottom:1px solid #EDE7DE"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;margin-left:-4px"><div style="display:flex;align-items:center;gap:4px"><span style="height:40px;padding:0 12px;font-size:14px;display:flex;align-items:center;color:#12345A">Увійти</span><span style="width:44px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px"><span style="width:20px;height:2px;border-radius:2px;background:#12233A"></span><span style="width:20px;height:2px;border-radius:2px;background:#12233A"></span></span></div></div>
+        <div style="flex:1;overflow-y:auto;padding:24px 20px 40px;display:flex;flex-direction:column;gap:16px;background:linear-gradient(180deg,#EEF8F7 0,#FBF9F5 360px)">
+          <p style="margin:0;font-size:13px;letter-spacing:.04em;color:#2F8C86">Психологи, психотерапевти, консультанти</p>
+          <h2 style="margin:0;font-weight:500;font-size:36px;line-height:1.04;letter-spacing:-0.045em;text-wrap:balance">Знайдіть спеціаліста, який вас почує</h2>
+          <p style="margin:0;font-size:16px;line-height:1.55;color:#3D5A58;text-wrap:pretty">Опишіть своїми словами, що турбує. Звернутися можна одразу, без реєстрації.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:22px;background:#fff;border:1px solid #DCEDEB;box-shadow:0 12px 32px rgba(18,35,58,.06)">
+            <div style="min-height:52px;padding:14px;font-size:16px;color:#8B95A7;line-height:1.4">Наприклад: не можу впоратися з тривогою</div>
+            <span style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Знайти спеціаліста</span>
+          </div>
+          <div style="display:flex;gap:6px;overflow-x:auto;margin:0 -20px;padding:0 20px"><sc-for list="{{ topics }}" as="t" hint-placeholder-count="6"><span style="flex-shrink:0;white-space:nowrap;height:40px;padding:0 14px;border-radius:999px;background:#fff;border:1px solid #DCEDEB;font-size:14px;display:flex;align-items:center">{{ t }}</span></sc-for></div>
+          <h3 style="margin:16px 0 0;font-weight:500;font-size:24px;letter-spacing:-0.03em">Від запиту до першої зустрічі</h3>
+          <sc-for list="{{ csteps }}" as="s" hint-placeholder-count="3"><div style="flex-shrink:0;display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;padding:14px 0;border-top:1px solid #EDE7DE"><span style="width:32px;height:32px;border-radius:50%;background:#EEF8F7;color:#1F5E5A;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center">{{ s.n }}</span><div><div style="font-size:16px;font-weight:500">{{ s.t }}</div><div style="font-size:14px;line-height:1.5;color:#5A6578">{{ s.c }}</div></div></div></sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div id="p4" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#2F8C86;color:#fff;font-size:12px;font-weight:500">P4</span><span style="font-size:15px;font-weight:500">Пошук + лист фільтрів</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>10:12</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="flex-shrink:0;padding:8px 16px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #EDE7DE;background:#FBF9F5">
+          <div style="display:flex;gap:8px"><div style="flex:1;height:48px;padding:0 16px;border-radius:999px;border:1.5px solid #12345A;background:#fff;display:flex;align-items:center;font-size:15px">тривога, погано сплю</div><span onClick="{{ fOpen }}" style="position:relative;width:48px;height:48px;border-radius:50%;border:1px solid #E6E0D8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">≡<span style="position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#12345A;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">2</span></span></div>
+          <div style="display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px"><sc-for list="{{ quick }}" as="q" hint-placeholder-count="4"><span style="flex-shrink:0;white-space:nowrap;height:34px;padding:0 12px;border-radius:999px;font-size:13px;display:flex;align-items:center;background:{{ q.bg }};color:{{ q.fg }};border:1px solid {{ q.bd }}">{{ q.l }}</span></sc-for></div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:13px;color:#5A6578">12 спеціалістів · спершу з найближчим вільним часом</span>
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+            <div style="flex-shrink:0;padding:14px;border-radius:20px;background:#fff;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:12px"><span style="width:64px;height:64px;flex-shrink:0;border-radius:16px;background-color:{{ c.tint }};background-image:{{ c.img }};background-size:cover;background-position:50% 18%;font-size:18px;font-weight:500;display:flex;align-items:center;justify-content:center;color:#12345A">{{ c.ini }}</span><div style="min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;color:#2F8C86">{{ c.role }}</span><span style="font-size:17px;font-weight:500">{{ c.name }}</span><span style="font-size:13px;color:#5A6578">{{ c.fmt }} · від {{ c.price }}</span></div></div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap"><sc-for list="{{ c.tags }}" as="t" hint-placeholder-count="2"><span style="white-space:nowrap;font-size:12px;padding:4px 9px;border-radius:999px;background:#EEF8F7;color:#1F5E5A">{{ t }}</span></sc-for></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #F1EBE2;font-size:13px"><span style="color:#5A6578">Найближче: <b style="font-weight:500;color:#12233A">{{ c.next }}</b></span><span style="color:#12345A">Профіль →</span></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(18,35,58,.42);opacity:{{ fDim }};pointer-events:{{ fPe }};transition:opacity .3s" onClick="{{ fClose }}"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:72%;background:#fff;border-radius:28px 28px 0 0;transform:translateY({{ fY }});transition:transform .4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column">
+          <div style="padding:10px 0 4px;display:flex;justify-content:center"><span style="width:40px;height:5px;border-radius:999px;background:#D4CCC2"></span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 16px 8px"><span style="font-size:19px;font-weight:500">Фільтри</span><span style="font-size:14px;color:#12345A">Скинути</span></div>
+          <div style="flex:1;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px">
+            <sc-for list="{{ fgroups }}" as="g" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#657287">{{ g.h }}</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3"><span style="white-space:nowrap;height:40px;padding:0 14px;border-radius:999px;font-size:14px;display:flex;align-items:center;background:{{ o.bg }};color:{{ o.fg }};border:1px solid {{ o.bd }}">{{ o.l }}</span></sc-for></div></div></sc-for>
+          </div>
+          <div style="padding:12px 16px 28px;border-top:1px solid #F1EBE2"><span onClick="{{ fClose }}" style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer">Показати 12 спеціалістів</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="p5" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">P5</span><span style="font-size:15px;font-weight:500">Вхід</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>10:12</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:56px;flex-shrink:0;display:flex;align-items:center;padding:0 20px"><img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:28px;width:auto;margin-left:-4px"></div>
+        <div style="flex:1;overflow-y:auto;padding:20px 20px 32px;display:flex;flex-direction:column;gap:16px">
+          <h2 style="margin:0;font-weight:500;font-size:32px;letter-spacing:-0.035em">Вхід</h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:999px;background:#F1EBE2;gap:2px"><span style="height:40px;border-radius:999px;font-size:14px;display:flex;align-items:center;justify-content:center;color:#5A6578">Я клієнт</span><span style="height:40px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(18,35,58,.1);font-size:14px;display:flex;align-items:center;justify-content:center">Я спеціаліст</span></div>
+          <div style="display:flex;gap:18px;border-bottom:1px solid #EDE7DE"><span style="padding:10px 0;border-bottom:2px solid #12345A;font-size:15px;font-weight:500">Пароль</span><span style="padding:10px 0;font-size:15px;color:#5A6578">Посилання на email</span></div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Ел. пошта або логін<span style="height:54px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;color:#12233A;display:flex;align-items:center">maria.koval@gmail.com</span></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287"><span style="display:flex;justify-content:space-between">Пароль<span style="color:#12345A">Забули пароль?</span></span><span style="height:54px;padding:0 8px 0 16px;border-radius:14px;border:1.5px solid #12345A;background:#fff;font-size:16px;color:#12233A;display:flex;align-items:center;justify-content:space-between">••••••••••<span style="height:38px;padding:0 12px;display:flex;align-items:center;border-radius:10px;font-size:13px;color:#12345A">Показати</span></span></label>
+          <span style="display:flex;align-items:center;gap:10px;min-height:44px;font-size:14px"><span style="width:20px;height:20px;border-radius:6px;background:#12345A;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">✓</span>Запам’ятати мене</span>
+          <span style="height:54px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Увійти</span>
+          <span style="font-size:14px;color:#5A6578;text-align:center;margin-top:8px">Ще немає простору? <span style="color:#12345A">Створити безкоштовно</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="p6" style="display:flex;flex-direction:column;gap:12px;width:375px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="padding:3px 9px;border-radius:8px;background:#12345A;color:#fff;font-size:12px;font-weight:500">P6</span><span style="font-size:15px;font-weight:500">Реєстрація спеціаліста — крок 2</span></div>
+      <div style="position:relative;width:375px;height:780px;border-radius:36px;border:1px solid #D4CCC2;background:#FBF9F5;overflow:hidden;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column">
+        <div style="height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500"><span>10:12</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid #12233A"></span></div>
+        <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#12345A">‹</span><span style="font-size:13px;color:#5A6578">Крок 2 з 3 · Напрям</span><span style="width:44px"></span></div>
+        <div style="padding:0 20px"><div style="display:flex;gap:6px"><span style="flex:1;height:4px;border-radius:999px;background:#12345A"></span><span style="flex:1;height:4px;border-radius:999px;background:#12345A"></span><span style="flex:1;height:4px;border-radius:999px;background:#E6E0D8"></span></div></div>
+        <div style="flex:1;overflow-y:auto;padding:24px 20px 120px;display:flex;flex-direction:column;gap:16px">
+          <h2 style="margin:0;font-weight:500;font-size:32px;line-height:1.08;letter-spacing:-0.035em">З чим ви працюєте?</h2>
+          <p style="margin:0;font-size:15px;line-height:1.55;color:#5A6578">Оберіть напрям — решту профілю заповните пізніше.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ dirs }}" as="d" hint-placeholder-count="8"><span style="white-space:nowrap;height:44px;padding:0 16px;border-radius:999px;font-size:15px;display:flex;align-items:center;background:{{ d.bg }};color:{{ d.fg }};border:1px solid {{ d.bd }}">{{ d.l }}</span></sc-for></div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 20px 28px;background:rgba(251,249,245,.96);border-top:1px solid #EDE7DE"><span style="height:54px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Далі</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section style="max-width:900px;display:flex;flex-direction:column;gap:10px">
+    <h2 style="margin:0;font-weight:500;font-size:24px;letter-spacing:-0.02em">Правила</h2>
+    <sc-for list="{{ rules }}" as="r" hint-placeholder-count="6"><div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;padding:12px 16px;border-radius:14px;background:#fff;font-size:14px;line-height:1.55;color:#3F4B5E"><span style="font-weight:600;color:#12345A">{{ r.m }}</span><span>{{ r.t }}</span></div></sc-for>
+  </section>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { f: true };
+  renderVals() {
+    const S = this.state;
+    const chip = (l, a) => ({ l, bg: a ? '#12345A' : '#fff', fg: a ? '#fff' : '#12233A', bd: a ? '#12345A' : '#E6E0D8' });
+    return {
+      steps: [['1', 'Сторінка за 5 хвилин', 'Фото, напрям, ціни — і посилання, яким можна ділитися.'], ['2', 'Запити без переписки', 'Клієнт обирає вільне вікно, ви підтверджуєте.'], ['3', 'Сесії й нотатки', 'Усе про клієнта в одній картці.'], ['4', 'Оплата напряму', 'Без комісії — реквізити в листі.']].map(([n, t, c]) => ({ n, t, c })),
+      dots: [0, 1, 2, 3].map(i => ({ w: i === 0 ? '18px' : '6px', c: i === 0 ? '#12345A' : '#D4CCC2' })),
+      menu: ['Як це працює', 'Можливості', 'Тарифи', 'Блог', 'Часті питання'],
+      topics: ['Тривога', 'Вигорання', 'Стосунки', 'Самооцінка', 'Втрата', 'Сон'],
+      csteps: [['1', 'Опишіть запит', 'Своїми словами або темою.'], ['2', 'Оберіть спеціаліста', 'Фото, підхід, ціна, найближчий час.'], ['3', 'Надішліть запит', 'Без реєстрації — відповідь на email.']].map(([n, t, c]) => ({ n, t, c })),
+      quick: [chip('Тривога', true), chip('Онлайн', true), chip('до 1 500 грн'), chip('Цього тижня')],
+      cards: [['Психологиня · КПТ', 'Марія Коваль', 'Онлайн', '500 грн', 'вт, 27 жовт', ['тривога', 'вигорання'], 'url(assets/maria-koval.webp)', '', '#F6F1EA'], ['Психолог · гештальт', 'Андрій Лисенко', 'Онлайн · Київ', '900 грн', 'чт, 29 жовт', ['тривога', 'стосунки'], 'none', 'АЛ', '#DDF1EF']]
+        .map(([role, name, fmt, price, next, tags, img, ini, tint]) => ({ role, name, fmt, price, next, tags, img, ini, tint })),
+      fOpen: () => this.setState({ f: true }), fClose: () => this.setState({ f: false }), fY: S.f ? '0' : '105%', fDim: S.f ? 1 : 0, fPe: S.f ? 'auto' : 'none',
+      fgroups: [['Формат', [['Онлайн', true], ['Офлайн'], ['Будь-який']]], ['Ціна за сесію', [['до 800 грн'], ['до 1 500 грн'], ['будь-яка', true]]], ['Коли', [['Цього тижня'], ['Наступного'], ['Неважливо', true]]], ['Мова', [['українська', true], ['англійська'], ['російська']]]].map(([h, o]) => ({ h, opts: o.map(([l, a]) => chip(l, a)) })),
+      dirs: [['Психолог', true], ['Психотерапевт'], ['Психоаналітик'], ['Коуч'], ['Сімейний терапевт'], ['Дитячий психолог'], ['Сексолог'], ['Інше']].map(([l, a]) => chip(l, a)),
+      rules: [
+        { m: 'Шапка', t: '60px: лого 30px, одна головна дія (спеціалісти — «Створити», клієнти — «Увійти») і бургер 44px. Меню — на весь екран: перемикач аудиторії, пункти 56px, дії внизу.' },
+        { m: 'P1', t: 'Головна: hero по центру, знак 72px замість 112px, кнопки на всю ширину. «Як це працює» — горизонтальна стрічка карток з точками замість липкого блоку з кроками. Бенто-сітка «Усе для практики» — один стовпчик, тарифи — картки одна під одною.' },
+        { m: 'P3', t: 'Для клієнтів: поле запиту і кнопка — стовпчиком у картці; теми — стрічка; кроки — список. Посилання на пошук передає ?q= і ?topic= як на десктопі.' },
+        { m: 'P4', t: 'Пошук: поле + кнопка фільтрів з лічильником вгорі (липко); швидкі фільтри стрічкою; решта — у листі знизу з кнопкою «Показати N». Картка — фото 64px, роль, ім’я, формат і ціна, 2 теми, найближчий час.' },
+        { m: 'P5', t: 'Вхід: лише форма (ілюстрація схована), перемикач ролі на всю ширину, поля 54px, «Забули пароль?» у підписі поля.' },
+        { m: 'P6', t: 'Реєстрація: «‹» і «Крок N з 3» у шапці, прогрес-смуги, кнопка «Далі» в липкому футері. Те саме для реєстрації клієнта.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

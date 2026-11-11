@@ -1,0 +1,98 @@
+{
+  "backend": "47d57b5791e750cb3a47846be67f9e2e655bb3ec",
+  "database": "uc_integration",
+  "realResponses": true,
+  "signals": "controlled focus/visibility; trusted clicks; real responses held, not replaced",
+  "results": [
+    {
+      "name": "focus GET pending -> immediate mode click -> one real PATCH; stable status geometry",
+      "result": "PASS",
+      "detail": {
+        "getRevision": 11,
+        "patch": {
+          "mode": "availability",
+          "expected_revision": 11
+        },
+        "modeTopBefore": 279.96875,
+        "modeTopDuring": 279.96875,
+        "layoutShift": 0,
+        "patchCount": 1
+      }
+    },
+    {
+      "name": "visibility GET pending -> immediate layer click; late GET cannot undo it",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "name": "real 409 recovery remains authoritative while older GET is pending",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "name": "selected preview tab / return / refresh / history never implicitly persist",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "name": "375/390 mobile menu has Day/List only, Week projects Day without PATCH",
+      "result": "PASS",
+      "detail": [
+        {
+          "width": 375,
+          "options": [
+            "day",
+            "list"
+          ],
+          "selected": "day",
+          "writes": 0,
+          "overflow": false
+        },
+        {
+          "width": 390,
+          "options": [
+            "day",
+            "list"
+          ],
+          "selected": "day",
+          "writes": 0,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "logout/specialist switch while a real background GET is pending",
+      "result": "PASS",
+      "detail": null
+    }
+  ],
+  "patches": [
+    {
+      "mode": "availability",
+      "expected_revision": 11
+    },
+    {
+      "layers": {
+        "external_guest_sessions": true
+      },
+      "expected_revision": 12
+    },
+    {
+      "regular_view": "day",
+      "expected_revision": 13
+    },
+    {
+      "mode": "workday",
+      "expected_revision": 13
+    },
+    {
+      "mode": "workday",
+      "expected_revision": 14
+    },
+    {
+      "regular_view": "week",
+      "expected_revision": 15
+    }
+  ],
+  "errors": []
+}

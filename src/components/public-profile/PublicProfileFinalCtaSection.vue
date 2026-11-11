@@ -1,10 +1,11 @@
 <template>
-  <section class="panel panel--footer-cta">
+  <section class="panel panel--footer-cta" :class="{ 'pc2-final-cta': uiV2 }">
     <div class="closing-cta">
       <div class="closing-cta__copy">
-        <h2 class="closing-cta__title">Готові зробити перший крок?</h2>
-        <p class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
+        <h2 class="closing-cta__title">{{ uiV2 && title ? title : 'Готові зробити перший крок?' }}</h2>
+        <p v-if="!uiV2" class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
         <p class="closing-cta__next-step">{{ primaryActionNextStepCopy }}</p>
+        <p v-if="uiV2 && offersSummary" class="pc2-final-cta__summary">{{ offersSummary }}</p>
       </div>
       <div class="closing-cta__actions">
         <button v-if="showChatCta" class="btn btn--primary" type="button" @click="$emit('chat-action')">
@@ -51,6 +52,11 @@
 type ClosingSecondaryKind = 'sessions' | 'slots' | 'contact' | 'none'
 
 type Props = {
+  uiV2?: boolean
+  /** UI v2 heading for the current booking mode; UI v1 keeps its fixed heading. */
+  title?: string
+  /** UI v2 offers line, e.g. «3 формати · від 500 грн». */
+  offersSummary?: string
   closingCtaSupportLine: string
   primaryActionNextStepCopy: string
   closingPrimaryLabel: string
@@ -63,6 +69,9 @@ type Props = {
 }
 
 withDefaults(defineProps<Props>(), {
+  uiV2: false,
+  title: '',
+  offersSummary: '',
   showChatCta: false,
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,

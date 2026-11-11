@@ -67,12 +67,13 @@
           <span>{{ documentsExpanded ? 'Згорнути документи' : 'Показати документи' }}</span>
           <span class="documents-block__toggle-count">{{ publicDocuments.length }}</span>
           <span class="documents-block__toggle-chevron" aria-hidden="true">
-            {{ documentsExpanded ? '⌃' : '⌄' }}
+            {{ uiV2 ? '↓' : documentsExpanded ? '⌃' : '⌄' }}
           </span>
         </button>
       </div>
 
-      <div v-if="documentsExpanded" :id="documentsGridId" class="documents-grid">
+      <div v-if="uiV2 || documentsExpanded" class="pc2-profile-documents" :class="{ 'is-open': documentsExpanded }" :inert="uiV2 && !documentsExpanded ? true : undefined" :aria-hidden="uiV2 && !documentsExpanded ? true : undefined">
+      <div :id="documentsGridId" class="documents-grid">
         <article
           v-for="document in publicDocuments"
           :key="document.id"
@@ -111,6 +112,7 @@
           <div v-else class="document-card__missing">Перегляд файла тимчасово недоступний.</div>
         </article>
       </div>
+      </div>
     </section>
   </section>
 </template>
@@ -127,6 +129,7 @@ type PublicDocument = {
 }
 
 type Props = {
+  uiV2?: boolean
   educationSummary: string
   educationItems: string[]
   professionalDevelopmentItems: string[]

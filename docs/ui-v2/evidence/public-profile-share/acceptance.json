@@ -1,0 +1,696 @@
+{
+  "base": "9a46d8e602eb50e21962281e65bfda9f2c264f6a",
+  "engine": "145.0.7632.6",
+  "environment": "Windows Chromium headless, local synthetic auth/API/clipboard/native share; social popups intercepted",
+  "browser_baseline_cases": 2,
+  "browser_candidate_pass": 26,
+  "browser_fail": 0,
+  "focused_vitest_pass": 318,
+  "typecheck_baseline": 9,
+  "typecheck_new": 0,
+  "provider_verification": {
+    "threads_doc": "https://developers.facebook.com/documentation/threads/threads-web-intents",
+    "status": 200,
+    "contains_post_intent": true,
+    "contains_current_host": true,
+    "facebook_endpoint": "https://www.facebook.com/sharer/sharer.php",
+    "telegram_doc": "https://core.telegram.org/widgets/share",
+    "scope": "Documentation and GET-only routing verification; no social authentication or publishing",
+    "parameters_confirmed": {
+      "text": true,
+      "url": true
+    }
+  },
+  "rows": [
+    {
+      "baseline": true,
+      "width": 375,
+      "nativeCalls": 1,
+      "result": "BASELINE"
+    },
+    {
+      "baseline": true,
+      "width": 1280,
+      "nativeCalls": 0,
+      "result": "BASELINE"
+    },
+    {
+      "width": 375,
+      "role": "guest",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "specialist",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "specialist",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "client",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "client",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "guest",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "specialist",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "specialist",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "client",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "client",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "guest",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "specialist",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "specialist",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "client",
+      "ui": "v1",
+      "mode": "success",
+      "cabinet": false,
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "client",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "fallback",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "failure",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 205.9375,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 694.0625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "fallback",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "failure",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 390,
+        "viewport": 390,
+        "dialog": {
+          "x": 0,
+          "y": 205.9375,
+          "right": 390,
+          "bottom": 900,
+          "w": 390,
+          "h": 694.0625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "fallback",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "guest",
+      "ui": "v2",
+      "mode": "failure",
+      "cabinet": false,
+      "initial": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 63.359375,
+          "y": 468,
+          "right": 443.359375,
+          "bottom": 884,
+          "w": 380,
+          "h": 416
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 375,
+      "role": "specialist",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": true,
+      "initial": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 475.921875,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 424.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 375,
+        "viewport": 375,
+        "dialog": {
+          "x": 0,
+          "y": 301.734375,
+          "right": 375,
+          "bottom": 900,
+          "w": 375,
+          "h": 598.265625
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "role": "specialist",
+      "ui": "v2",
+      "mode": "success",
+      "cabinet": true,
+      "initial": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 884,
+          "y": 308.15625,
+          "right": 1264,
+          "bottom": 724.234375,
+          "w": 380,
+          "h": 416.078125
+        },
+        "focusInside": true
+      },
+      "expanded": {
+        "scrollWidth": 1280,
+        "viewport": 1280,
+        "dialog": {
+          "x": 884,
+          "y": 308.15625,
+          "right": 1264,
+          "bottom": 884,
+          "w": 380,
+          "h": 575.84375
+        },
+        "focusInside": true
+      },
+      "result": "PASS"
+    }
+  ],
+  "external_share_targets": [
+    "https://t.me/share/url?url=https%3A%2F%2Fproconsult.space%2Fs%2Fspecialist-2&text=%D0%9E%D0%BB%D0%B5%D0%BD%D0%B0",
+    "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fproconsult.space%2Fs%2Fspecialist-2",
+    "https://www.threads.com/intent/post?text=%D0%9E%D0%BB%D0%B5%D0%BD%D0%B0&url=https%3A%2F%2Fproconsult.space%2Fs%2Fspecialist-2"
+  ],
+  "restriction": "All auth/API/clipboard/native Web Share fixtures are synthetic; external social destinations intercepted. No publishing, real registration or booking.",
+  "full_vitest_pass": 2350,
+  "build": "PASS"
+}

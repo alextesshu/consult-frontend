@@ -1,4 +1,51 @@
+## Current design source override - KAN-154 (2026-10-24)
+
+Current reference is `claude-design-2026-10-23-4ff7cedd`, archive v6.6 with contents through v6.7; SHA-256 `4ff7cedd41f829306facd154e0a2af189b2e2cce3af3c786b6e4fb913149a347`. See [entry point](ui-v2/START_HERE.md), [audit](ui-v2/DESIGN_SYNC_2026-10-24_V66_V67.md), [matrix](ui-v2/IMPLEMENTATION_MATRIX_V66_V67.md). This supersedes older current-snapshot/readiness/next-task prose below, which remains historical. All 36 references READY; former support/blog/profile future deltas now READY but contract-gated. Home/For Clients/Discovery desktop references unchanged and integrated. KAN-160 HOLD and v1 default remain. The approved fennec override below remains authoritative. No product rules, typography/tokens, runtime files or prior snapshots are replaced. KAN-158 public profile and the summary field follow the scoped overlay `claude-design-2026-10-26-1dbb9008` (v6.9.1, SHA-256 `1dbb900845f830cc5fb9833d08f97c173f4500b05155faa00e12f723dabe152d`); see [audit](ui-v2/DESIGN_SYNC_2026-10-26_V691_CANDIDATE.md) and [matrix](ui-v2/IMPLEMENTATION_MATRIX_V691_KAN158.json).
+
+---
+
 # PRO CONSULT — Design System & Visual Migration Guide
+
+## Approved UI v2 brand override — KAN-158 (2026-10-23)
+
+### Approved Header 07 override (2026-11-07)
+
+The product-owner-approved `handoff/HEADER_07_SPEC.md` and Concept 07 from the
+2026-11-07 supplied ZIP (SHA-256
+`a21ce5959cef28374ce5a5b89cb48df01e1d3b372e760ebf6fdd36fe96150511`)
+supersede the previous **header-only** lockup/typography: unchanged official
+fennec SVG, single-line `PRO CONSULT` in Manrope 800, segmented navigation and
+the responsive slogan. UI text remains Onest. This approval does not change
+footer typography, historical artwork, favicons, UI v1 or the active snapshot.
+See [source, provenance and validation](ui-v2/evidence/header-07/README.md).
+
+The user-approved minimalist fennec in `logo.rar` supersedes older Claude artwork for the public UI v2 header/footer. Preserve the original PDF symbol/glyph geometry, negative space and supplied colors; use the user-approved horizontal header composition and retain the original stacked footer lockup. The Montserrat wordmark remains outlined; UI typography/layout/navigation still follow Claude v5. See [source PDFs, hashes, conversion and acceptance](ui-v2/brand/approved-fennec-2026-10-23/README.md). Keep separately named v2 assets; preserve existing v1 logos, global icons/favicons and all runtime/product safeguards. This override does not authorize replacing brand artwork inside other pages or source snapshots.
+
+## Current supplied snapshot — v5 incremental overlay
+
+`claude-design-2026-10-23-7570f1ad`, SHA-256 `7570f1ad67c93020ad2df6889c5b3e7fd671e8146b8d4fbe37b4bfa626fe0caf`. See [current entry point](ui-v2/START_HERE.md), [v5 audit](ui-v2/DESIGN_SYNC_2026-10-23_V5.md), [manifest](ui-v2/SNAPSHOT_MANIFEST_V5.json) and [matrix](ui-v2/IMPLEMENTATION_MATRIX_V5.md).
+
+This overlay supersedes older readiness/current-snapshot claims below; historical product rules and accepted runtime safeguards remain intact. Public Journal/FAQ now have READY Public-Content references; Tour remains its existing redirect. New Session-Pages/Service-Pages and Emails are READY references, not backend approval. Support Chat, Expanded Blog Editor and Public Profile follow-up are IN PROGRESS; current editor/profile references stay READY. Client Dashboard remains HOLD. No source Step 0, email implementation, support service or psychological-support routing is authorized here. Preserve v1, product sections 1–4, all runtime files, open PR branches and historical snapshots.
+
+> **UI v2 Stage 0B - opt-in infrastructure (2026-10-21).** Default remains v1.
+> Sections 5-12 and 15 describe opt-in v2 and explicitly preserved v1 rules.
+> Sections 1-4 and all other product/safety policies are unchanged. Stage 0B is locally implemented, awaiting acceptance; page redesign and rollout
+> require separate approval; see [UI v2 handoff](ui-v2/README.md) and
+> [Master TZ](ui-v2/PROCONSULT_UI_V2_CODEX_MASTER_TZ.md).
+
+## Claude snapshot integration — 2026-10-23
+
+Historical v1 UX/UI reference is `claude-design-2026-10-23-265f221a`, SHA-256 `265f221a95ac9fc521a33138b06376b51ad4a822c79fd05e30f7303ef6b10948`. See [sync audit](ui-v2/DESIGN_SYNC_2026-10-23.md), [exact supplied design-system document](ui-v2/snapshots/2026-10-23-265f221a/handoff/frontend/docs/DESIGN_SYSTEM.md) and [future-task checklist](ui-v2/DESIGN_SYNC_CHECKLIST.md).
+
+Comparison finds the existing core palette/Onest/radius/button/card scales retained. Source §5/§10 soft-text usage conflicts with the repository's existing accessibility findings; muted-text/focus rules below remain implementation safeguards, not a redesigned source mockup. Source §8 overgeneralizes v1 shape history; §12 omits the repository's legacy/signup contract gate. Preserve these documented corrections, all v1 rule blocks and product §§1–4. No design file or runtime color is silently corrected in this sync.
+
+New cabinet/session/client/admin components, responsive patterns and fennec brand are described in the supplied source TZ/CSS and active reference pages. They are reference intent, not classes/assets already activated in production. Current runtime tokens/components and logos are unchanged; no prototype dependency is introduced. New behavior must pass the audit contract gates. Further Client Dashboard work is HOLD until updated UX and backend dependencies are approved/verified.
+
+## Current supplied snapshot — v3
+
+Current reference: `claude-design-2026-10-23-e43f5f80`, SHA-256 `e43f5f80342e013e3dbb47decbabb472fb1e30bd21a1ac3373cc78957e3a5801`. See [entry point](ui-v2/START_HERE.md), [v3 audit](ui-v2/DESIGN_SYNC_2026-10-23_V3.md) and [source design system](ui-v2/snapshots/2026-10-23-e43f5f80/handoff/frontend/docs/DESIGN_SYSTEM.md). The source design system, tokens, components and feature-flag source are byte-identical to the preceding export. Existing v1 blocks, product sections 1–4 and runtime contrast/storage/isolation corrections remain intact. Earlier snapshot integration notes above are historical.
+
+DESIGN READY is a screen-reference status; it is not backend approval. Public Journal, standalone FAQ and Tour remain IN PROGRESS. Do not replace runtime files, logos or historical docs from source Step 0. New auth, diary, undo, timed-task, legal and crisis claims require separate contract review.
 
 ## 1. Purpose
 
@@ -210,7 +257,46 @@ Do not casually change:
 
 ---
 
-## 5. Brand Color Palette
+## 5. Color — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+> UI v2 (active under `<html data-ui="v2">`). Tokens live in `src/styles/tokens-v2.css`. Never hard-code a hex in components — use the variable.
+
+| Role | Token | Value | Use |
+| --- | --- | --- | --- |
+| Primary | `--pc-navy-900` | #12345A | Primary buttons, active nav, links, focus ring, progress |
+| Primary hover | `--pc-navy-950` | #0E2D52 | Hover of primary |
+| Primary pressed | `--pc-navy-800` | #183E68 | :active |
+| Page | `--pc-bg-main` | #FBF9F5 | Default background, all pages (flat — no radial gradients) |
+| Card | `--pc-bg-card` | #FFFFFF | Cards, inputs, panels |
+| Soft | `--pc-bg-soft` | #F6F1EA | Inset blocks, segmented bg, ghost hover |
+| Sunk | `--pc-bg-sunk` | #F1EBE2 | Idle chips, step bars, skeletons |
+| Text main | `--pc-text-main` | #12233A | Headings, body on light |
+| Text body | `--pc-text-body` | #3F4B5E | Long paragraphs |
+| Text muted | `--pc-text-muted` | #657287 | Secondary copy (≥13px) |
+| Text soft | `--pc-text-soft` | #8B95A7 | Decorative/disabled use only; readable text uses muted |
+| Hairline | `--pc-border-hair` | #EDE7DE | Card borders, header divider |
+| Border | `--pc-border` | #E6E0D8 | Input idle |
+| Border strong | `--pc-border-strong` | #D4CCC2 | Input hover, card hover |
+| Teal tint / ink | `--pc-teal-100` / `--pc-teal-ink` | #EEF8F7 / #1F5E5A | Soft positive tags, icon wells |
+| Peach tint / ink | `--pc-peach-100` / `--pc-peach-ink` | #FFF1E3 / #8A4B16 | Warm highlights, "new" |
+| Success | `--pc-success` / `-soft` | #2F7A55 / #EEF8F1 | Paid, confirmed |
+| Warning | `--pc-warning` / `-soft` | #B5651F / #FFF1E3 | Awaiting, pending |
+| Danger | `--pc-danger` / `-soft` | #B83232 / #FDE8E8 | Destructive, unpaid, errors |
+| Info | `--pc-info` / `-soft` | #2F6FA8 / #EEF4FA | Planned, neutral info |
+
+Rules:
+- Navy is the only action color. Teal/peach are tints with their own ink color — never a button fill, never text on cream.
+- Text on a tint always uses that tint's ink token (contrast ≥ 4.5:1).
+- `--pc-text-soft` fails 4.5:1 on cream at body size. Placeholders, kickers and navigation use `--pc-text-muted`; informational text must meet readable contrast.
+- Status color never carries meaning alone; the label says the state.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Use CSS variables where possible.
 
@@ -332,7 +418,37 @@ Do not use red for decorative purposes.
 
 ---
 
-## 6. Typography
+</details>
+
+## 6. Typography — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+Font: **Onest** 400 / 500 / 600 (Google Fonts, cyrillic subset). Replaces Inter in v2. Chosen for Cyrillic quality and a warmer, less generic texture than Inter.
+
+| Token | Size | LH | Weight | Use |
+| --- | --- | --- | --- | --- |
+| `--pc-fs-display` | clamp(40px, 5vw, 60px) | 1.08, ls −0.03em | 500 | Home hero h1 only |
+| `--pc-fs-h1` | clamp(32px, 3.4vw, 42px) | 1.18, ls −0.02em | 500 | Page / section titles |
+| `--pc-fs-h2` | clamp(26px, 2.6vw, 32px) | 1.18 | 500 | Sub-sections, cabinet page title |
+| `--pc-fs-h3` | 20px | 1.3 | 500 | Card titles |
+| `--pc-fs-lead` | clamp(17px, 1.6vw, 19px) | 1.6 | 400 | Intro paragraph under h1 |
+| `--pc-fs-body` | 16px | 1.6 | 400 | Body, inputs |
+| `--pc-fs-ui` | 15px | 1 | 500 | Buttons, in-app controls |
+| `--pc-fs-small` | 14px | 1.5 | 400/500 | Lists, nav, chips, labels |
+| `--pc-fs-meta` | 13px | 1.45 | 400 | Meta, hints, tags |
+| `--pc-fs-micro` | 12px | 1.3 | 500, uppercase, ls .08em | Kickers only |
+
+Rules:
+- Headings are **500**, never 700. Hierarchy comes from size and space. 600 only for numbers (dashboard counters, prices).
+- Body weight is 400 (v1 used 200 — unreadable in Cyrillic at 14–16px).
+- `text-wrap: balance` on headings, `pretty` on paragraphs.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### General rule
 
@@ -424,7 +540,25 @@ line-height: 1.5;
 
 ---
 
-## 7. Layout System
+</details>
+
+## 7. Layout System — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+- Container: `--pc-container` 1240px, gutter `clamp(20px, 4vw, 48px)`.
+- Spacing: 4px base — 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48 / 64 / 80 / 96 (`--pc-space-*`).
+- Section rhythm: `--pc-section-y` = clamp(56px, 8vw, 104px).
+- Public pages are left-aligned; content hugs the left, whitespace on the right. Centered text only for single short CTAs.
+- Public profile: `minmax(0,1fr) 380px` with the request panel sticky at top 96px; below 860px the panel becomes a bottom sheet.
+- Cabinet: `minmax(0,1fr) minmax(320px, 400px)`, gap 24px; single column below 960px.
+- Prefer flex/grid + `gap` over margins between siblings.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### Page containers
 
@@ -512,7 +646,40 @@ grid-template-columns: 1fr;
 
 ---
 
-## 8. Shape, Radius, Shadow
+</details>
+
+## 8. Shape, Radius, Shadow — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+Decision: **16px is the card radius**, inside a scale. Supersedes the v1 shape rules for v2 only. `UI_SHAPE_STANDARD.md` describes 6–20px radii; v1 workspace tokens also use 2–4px. Both remain valid for v1.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--pc-radius-xs` | 8px | Tags, small badges, avatar thumbs, password toggle |
+| `--pc-radius-sm` | 12px | Inputs, square buttons, menus, dropdowns |
+| `--pc-radius-md` | **16px** | Cards, panels, sticky request panel, list items |
+| `--pc-radius-lg` | 24px | Hero blocks, large section cards, dialogs, bottom sheets |
+| `--pc-radius-pill` | 999px | Primary CTAs, chips, segmented control, status pills |
+
+Nested radius: inner = outer − padding (e.g. a 16px card with 8px inset holds 8px children).
+
+Elevation — one shadow per element, never stacked:
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--pc-shadow-sm` | 0 4px 12px rgba(18,35,58,.08) | Active segment, card hover |
+| `--pc-shadow-md` | 0 16px 40px rgba(18,35,58,.08) | Raised cards, request panel |
+| `--pc-shadow-lg` | 0 24px 60px rgba(18,35,58,.10) | Dialogs, bottom sheet, live UI card on Home |
+| `--pc-ring` | 0 0 0 4px rgba(18,52,90,.08) | Input focus halo |
+
+Default cards are flat (hairline border, no shadow).
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### Border radius
 
@@ -548,7 +715,30 @@ Avoid harsh black shadows.
 
 ---
 
-## 9. Buttons
+</details>
+
+## 9. Buttons — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+Classes in `components-v2.css`.
+
+| Variant | Class | Look | Use |
+| --- | --- | --- | --- |
+| Primary | `.pc2-btn--primary` | Navy fill, white text, pill | One per view: main action |
+| Secondary | `.pc2-btn--secondary` | 1px navy outline → fills navy on hover | Second action |
+| Ghost | `.pc2-btn--ghost` | Muted text → soft bg on hover | Tertiary, "Назад", "Скасувати" |
+| Danger | `.pc2-btn--danger` | Red text + 40% red outline | Destructive, always with confirm |
+
+Sizes: default 48px, `--lg` 56px (hero, auth submit), `--sm` 36px (in-row actions). `--square` switches to 12px radius for dense toolbars/tables.
+
+States (borrowed logic from Nocturne, our colors): hover = one ramp step darker; pressed = `--pc-navy-800`; keyboard focus = `:focus-visible` 2px navy outline, 2px offset; disabled = 45% opacity, no pointer events. Never leave browser-default focus.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 ### Primary button
 
@@ -606,7 +796,22 @@ Visual:
 
 ---
 
-## 10. Cards
+</details>
+
+## 10. Cards — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+`.pc2-card`: white, 1px `--pc-border-hair`, 16px radius, 24px padding, **no shadow**.
+Modifiers: `--lg` (24px radius, clamp(24px,3vw,36px) padding), `--soft` (cream-soft fill, no border), `--raised` (`--pc-shadow-md`), `--interactive` (hover: strong border + sm shadow).
+Kicker: `.pc2-kicker` 12px uppercase muted text above the title.
+Max two card styles per screen.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Cards are one of the main design primitives.
 
@@ -640,7 +845,19 @@ Avoid:
 
 ---
 
-## 11. Badges and Statuses
+</details>
+
+## 11. Badges and Statuses — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+`.pc2-tag` (8px radius) or `.pc2-tag--pill`. Tones: teal, peach, neutral, success, warning, danger, info — each pairs a soft bg with its ink color. Status names come from the backend unchanged (§2): `Потребує рішення`, `Очікує відповідь клієнта`, `Потрібно надіслати посилання`, `Завершено`.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Badges should be small, readable, and semantically colored.
 
@@ -689,7 +906,33 @@ Do not use status color only. Text must clearly explain the state.
 
 ---
 
-## 12. Inputs and Forms
+</details>
+
+## 12. Inputs and Forms — UI v2
+
+### UI v2 - active only under html[data-ui="v2"]
+
+> **Behavior gate:** single-password/minimal-signup text is a future target.
+> Preserve confirmation fields and validation through visual stages 1.3a/2.3a.
+> Stages 1.3b/2.3b require separate approval and verified backend payload/onboarding
+> support. Password-reset behavior is outside Stage 0A/0B.
+
+- `.pc2-input`: 48px (app) / 54px `--lg` (auth, public forms), 12px radius, 1.5px `--pc-border`, white, 16px text (prevents iOS zoom).
+- Hover: `--pc-border-strong`. Focus: navy border + `--pc-ring`. Invalid: `aria-invalid="true"` → danger border + `.pc2-error` text below.
+- Label above field (14px/500), hint below (13px muted). No floating labels.
+- **Password: single field + "Показати / Сховати" toggle** (`.pc2-password`). No "repeat password" field. Min 8 chars hint shown before typing. Applies to specialist and client signup and password reset.
+- Signup is minimal: name, email, password + one question as chips (`.pc2-chips`). Everything else moves to onboarding after the first login.
+- Multi-step flows show `.pc2-steps` bars; progressive disclosure uses `.pc2-reveal` (grid-rows transition, 400ms).
+- Preserve all existing validation, backend error mapping, loading and disabled states.
+
+### Motion
+Barely noticeable: 150 / 200 / 400ms, `cubic-bezier(.4,0,.2,1)`. Only opacity, color, border, small translate (≤8px), grid-rows. No bounce, no parallax, no scroll-jacking. `prefers-reduced-motion` collapses everything to 1ms.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
 
 Inputs should be:
 
@@ -731,6 +974,8 @@ Forms should preserve:
 - success states
 
 ---
+
+</details>
 
 ## 13. Tables and Lists
 
@@ -788,6 +1033,16 @@ Rules:
 
 ## 15. Icon Style
 
+### UI v2 - active only under html[data-ui="v2"]
+
+Phosphor Icons (Regular weight, 1.5px look), 16 / 20 / 24px, `currentColor`. Icon wells: 40px, 12px radius, teal-100 or peach-100 bg with the matching ink. Rules from v1 below still apply.
+
+### UI v1 baseline - still active
+
+<details>
+<summary>Preserved v1 rules</summary>
+
+
 Target icon style:
 
 - simple line icons
@@ -810,6 +1065,8 @@ Icon rules:
 - every icon-only button must have accessible label
 
 ---
+
+</details>
 
 ## 16. Public Page Patterns
 

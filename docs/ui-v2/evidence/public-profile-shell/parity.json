@@ -1,0 +1,1274 @@
+{
+  "v1-parity": {
+    "pairs": 60,
+    "exact": 54,
+    "rows": [
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "specialist",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "specialist",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "specialist",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "specialist",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "specialist",
+        "route": "/cabinet",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 16,
+          "bbox": [
+            24,
+            606,
+            27,
+            741
+          ],
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 16,
+          "bbox": [
+            24,
+            606,
+            27,
+            741
+          ],
+          "maxDelta": 2
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 11,
+          "bbox": [
+            24,
+            284,
+            51,
+            324
+          ],
+          "maxDelta": 1
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 11,
+          "bbox": [
+            24,
+            284,
+            51,
+            324
+          ],
+          "maxDelta": 1
+        }
+      },
+      {
+        "width": 768,
+        "role": "guest",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "guest",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 51555,
+          "bbox": [
+            0,
+            19,
+            768,
+            1143
+          ],
+          "maxDelta": 1
+        },
+        "candidateVsControl": {
+          "pixels": 51555,
+          "bbox": [
+            0,
+            19,
+            768,
+            1143
+          ],
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "guest",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 55,
+          "bbox": [
+            24,
+            686,
+            744,
+            969
+          ],
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 55,
+          "bbox": [
+            24,
+            686,
+            744,
+            969
+          ],
+          "maxDelta": 2
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "guest",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "guest",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "guest",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 10,
+          "bbox": [
+            741,
+            303,
+            744,
+            310
+          ],
+          "maxDelta": 1
+        },
+        "candidateVsControl": {
+          "pixels": 21,
+          "bbox": [
+            24,
+            270,
+            744,
+            310
+          ],
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 11,
+          "bbox": [
+            24,
+            270,
+            51,
+            310
+          ],
+          "maxDelta": 1
+        }
+      },
+      {
+        "width": 768,
+        "role": "specialist",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "specialist",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "specialist",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "specialist",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "specialist",
+        "route": "/cabinet",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "client",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "client",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "client",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 768,
+        "role": "client",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 10,
+          "bbox": [
+            741,
+            297,
+            744,
+            304
+          ],
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 10,
+          "bbox": [
+            741,
+            297,
+            744,
+            304
+          ],
+          "maxDelta": 1
+        }
+      },
+      {
+        "width": 1280,
+        "role": "guest",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "guest",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 101665,
+          "bbox": [
+            0,
+            0,
+            1280,
+            1107
+          ],
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 101665,
+          "bbox": [
+            0,
+            0,
+            1280,
+            1107
+          ],
+          "maxDelta": 2
+        }
+      },
+      {
+        "width": 1280,
+        "role": "guest",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "guest",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "guest",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "guest",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "specialist",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "specialist",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "specialist",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "specialist",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "specialist",
+        "route": "/cabinet",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "client",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "client",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "client",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1280,
+        "role": "client",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 25,
+          "bbox": [
+            42,
+            110,
+            1238,
+            113
+          ],
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 25,
+          "bbox": [
+            42,
+            110,
+            1238,
+            113
+          ],
+          "maxDelta": 2
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 83543,
+          "bbox": [
+            0,
+            0,
+            1440,
+            1101
+          ],
+          "maxDelta": 1
+        },
+        "candidateVsControl": {
+          "pixels": 247973,
+          "bbox": [
+            0,
+            0,
+            1440,
+            1097
+          ],
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 257289,
+          "bbox": [
+            0,
+            0,
+            1440,
+            1101
+          ],
+          "maxDelta": 1
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 35,
+          "bbox": [
+            120,
+            524,
+            1320,
+            657
+          ],
+          "maxDelta": 2
+        },
+        "controlVsBaseline": {
+          "pixels": 35,
+          "bbox": [
+            120,
+            524,
+            1320,
+            657
+          ],
+          "maxDelta": 2
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "specialist",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "specialist",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 35,
+          "bbox": [
+            34,
+            530,
+            1406,
+            813
+          ],
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 17,
+          "bbox": [
+            34,
+            807,
+            1406,
+            813
+          ],
+          "maxDelta": 2
+        },
+        "controlVsBaseline": {
+          "pixels": 18,
+          "bbox": [
+            1403,
+            530,
+            1406,
+            663
+          ],
+          "maxDelta": 1
+        }
+      },
+      {
+        "width": 1440,
+        "role": "specialist",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "specialist",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "specialist",
+        "route": "/cabinet",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 25,
+          "bbox": [
+            34,
+            530,
+            1406,
+            813
+          ],
+          "maxDelta": 2
+        },
+        "candidateVsControl": {
+          "pixels": 18,
+          "bbox": [
+            1403,
+            530,
+            1406,
+            663
+          ],
+          "maxDelta": 1
+        },
+        "controlVsBaseline": {
+          "pixels": 7,
+          "bbox": [
+            34,
+            807,
+            37,
+            813
+          ],
+          "maxDelta": 2
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/s/olena",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/s/olena/journal",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      }
+    ]
+  },
+  "v2-other": {
+    "pairs": 16,
+    "exact": 16,
+    "rows": [
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "guest",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 375,
+        "role": "client",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "guest",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/for-clients",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/specialists",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      },
+      {
+        "width": 1440,
+        "role": "client",
+        "route": "/faq",
+        "candidateVsBaseline": {
+          "pixels": 0
+        },
+        "candidateVsControl": {
+          "pixels": 0
+        },
+        "controlVsBaseline": {
+          "pixels": 0
+        }
+      }
+    ]
+  }
+}

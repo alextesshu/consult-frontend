@@ -1,0 +1,1562 @@
+[
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8750,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-375-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8750,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-375-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8750,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-375-home.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/for-clients",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8750,
+      "scrollY": 83
+    },
+    "baseline": "v1-parity\\baseline-guest-375-for-clients.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8750,
+      "scrollY": 83
+    },
+    "control": "v1-parity\\control-guest-375-for-clients.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8750,
+      "scrollY": 83
+    },
+    "candidate": "v1-parity\\candidate-guest-375-for-clients.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2120,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-375-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2120,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-375-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2120,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/faq",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1974,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-375-faq.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1974,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-375-faq.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1974,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-375-faq.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5063,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-375-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5063,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-375-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5063,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-375-s-olena.png"
+  },
+  {
+    "width": 375,
+    "role": "guest",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-375-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-375-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-375-s-olena-journal.png"
+  },
+  {
+    "width": 375,
+    "role": "specialist",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8758,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-375-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8758,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-375-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8758,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-375-home.png"
+  },
+  {
+    "width": 375,
+    "role": "specialist",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2112,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-375-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2112,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-375-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2112,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "role": "specialist",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5090,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-375-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5090,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-375-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5090,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-375-s-olena.png"
+  },
+  {
+    "width": 375,
+    "role": "specialist",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-375-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-375-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-375-s-olena-journal.png"
+  },
+  {
+    "width": 375,
+    "role": "specialist",
+    "route": "/cabinet",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1851,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-375-cabinet.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1851,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-375-cabinet.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1851,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-375-cabinet.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8758,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-375-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8758,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-375-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 8758,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-375-home.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2112,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-375-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2112,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-375-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2112,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-375-specialists.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5354,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-375-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5354,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-375-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 5354,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-375-s-olena.png"
+  },
+  {
+    "width": 375,
+    "role": "client",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-375-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-375-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 812,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-375-s-olena-journal.png"
+  },
+  {
+    "width": 768,
+    "role": "guest",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6137,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-768-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6137,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-768-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6137,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-768-home.png"
+  },
+  {
+    "width": 768,
+    "role": "guest",
+    "route": "/for-clients",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6137,
+      "scrollY": 75
+    },
+    "baseline": "v1-parity\\baseline-guest-768-for-clients.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6137,
+      "scrollY": 75
+    },
+    "control": "v1-parity\\control-guest-768-for-clients.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6137,
+      "scrollY": 83
+    },
+    "candidate": "v1-parity\\candidate-guest-768-for-clients.png"
+  },
+  {
+    "width": 768,
+    "role": "guest",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1657,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-768-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1657,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-768-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1657,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-768-specialists.png"
+  },
+  {
+    "width": 768,
+    "role": "guest",
+    "route": "/faq",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1649,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-768-faq.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1649,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-768-faq.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1649,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-768-faq.png"
+  },
+  {
+    "width": 768,
+    "role": "guest",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3791,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-768-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3791,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-768-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3791,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-768-s-olena.png"
+  },
+  {
+    "width": 768,
+    "role": "guest",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-768-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-768-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-768-s-olena-journal.png"
+  },
+  {
+    "width": 768,
+    "role": "specialist",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6141,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-768-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6141,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-768-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6141,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-768-home.png"
+  },
+  {
+    "width": 768,
+    "role": "specialist",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1645,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-768-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1645,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-768-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1645,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-768-specialists.png"
+  },
+  {
+    "width": 768,
+    "role": "specialist",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3805,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-768-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3805,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-768-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3805,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-768-s-olena.png"
+  },
+  {
+    "width": 768,
+    "role": "specialist",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-768-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-768-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-768-s-olena-journal.png"
+  },
+  {
+    "width": 768,
+    "role": "specialist",
+    "route": "/cabinet",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1354,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-768-cabinet.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1354,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-768-cabinet.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1354,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-768-cabinet.png"
+  },
+  {
+    "width": 768,
+    "role": "client",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6141,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-768-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6141,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-768-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 6141,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-768-home.png"
+  },
+  {
+    "width": 768,
+    "role": "client",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1645,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-768-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1645,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-768-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1645,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-768-specialists.png"
+  },
+  {
+    "width": 768,
+    "role": "client",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4028,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-768-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4028,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-768-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4028,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-768-s-olena.png"
+  },
+  {
+    "width": 768,
+    "role": "client",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-768-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-768-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-768-s-olena-journal.png"
+  },
+  {
+    "width": 1280,
+    "role": "guest",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1280-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1280-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1280-home.png"
+  },
+  {
+    "width": 1280,
+    "role": "guest",
+    "route": "/for-clients",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 47
+    },
+    "baseline": "v1-parity\\baseline-guest-1280-for-clients.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 35
+    },
+    "control": "v1-parity\\control-guest-1280-for-clients.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 35
+    },
+    "candidate": "v1-parity\\candidate-guest-1280-for-clients.png"
+  },
+  {
+    "width": 1280,
+    "role": "guest",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1181,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1280-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1181,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1280-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1181,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1280-specialists.png"
+  },
+  {
+    "width": 1280,
+    "role": "guest",
+    "route": "/faq",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1253,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1280-faq.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1253,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1280-faq.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1253,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1280-faq.png"
+  },
+  {
+    "width": 1280,
+    "role": "guest",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2906,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1280-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2906,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1280-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2906,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1280-s-olena.png"
+  },
+  {
+    "width": 1280,
+    "role": "guest",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1280-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1280-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1280-s-olena-journal.png"
+  },
+  {
+    "width": 1280,
+    "role": "specialist",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1280-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1280-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1280-home.png"
+  },
+  {
+    "width": 1280,
+    "role": "specialist",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1280-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1280-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1280-specialists.png"
+  },
+  {
+    "width": 1280,
+    "role": "specialist",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2918,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1280-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2918,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1280-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2918,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1280-s-olena.png"
+  },
+  {
+    "width": 1280,
+    "role": "specialist",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1280-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1280-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1280-s-olena-journal.png"
+  },
+  {
+    "width": 1280,
+    "role": "specialist",
+    "route": "/cabinet",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1215,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1280-cabinet.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1215,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1280-cabinet.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1215,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1280-cabinet.png"
+  },
+  {
+    "width": 1280,
+    "role": "client",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1280-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1280-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4561,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1280-home.png"
+  },
+  {
+    "width": 1280,
+    "role": "client",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1280-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1280-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1280-specialists.png"
+  },
+  {
+    "width": 1280,
+    "role": "client",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3083,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1280-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3083,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1280-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3083,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1280-s-olena.png"
+  },
+  {
+    "width": 1280,
+    "role": "client",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1280-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1280-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1280-s-olena-journal.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1440-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1440-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/for-clients",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 41
+    },
+    "baseline": "v1-parity\\baseline-guest-1440-for-clients.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 34
+    },
+    "control": "v1-parity\\control-guest-1440-for-clients.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 37
+    },
+    "candidate": "v1-parity\\candidate-guest-1440-for-clients.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1181,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1440-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1181,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1440-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1181,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/faq",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1253,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1440-faq.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1253,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1440-faq.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1253,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1440-faq.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2870,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1440-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2870,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1440-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2870,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1440-s-olena.png"
+  },
+  {
+    "width": 1440,
+    "role": "guest",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-guest-1440-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-guest-1440-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-guest-1440-s-olena-journal.png"
+  },
+  {
+    "width": 1440,
+    "role": "specialist",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1440-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1440-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "role": "specialist",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1440-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1440-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "role": "specialist",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2870,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1440-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2870,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1440-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 2870,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1440-s-olena.png"
+  },
+  {
+    "width": 1440,
+    "role": "specialist",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1440-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1440-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1440-s-olena-journal.png"
+  },
+  {
+    "width": 1440,
+    "role": "specialist",
+    "route": "/cabinet",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1194,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-specialist-1440-cabinet.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1194,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-specialist-1440-cabinet.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1194,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-specialist-1440-cabinet.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1440-home.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1440-home.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 4513,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1440-home.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/specialists",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1440-specialists.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1440-specialists.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 1201,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1440-specialists.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/s/olena",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3030,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1440-s-olena.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3030,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1440-s-olena.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 3030,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1440-s-olena.png"
+  },
+  {
+    "width": 1440,
+    "role": "client",
+    "route": "/s/olena/journal",
+    "baselineState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "baseline": "v1-parity\\baseline-client-1440-s-olena-journal.png",
+    "controlState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "control": "v1-parity\\control-client-1440-s-olena-journal.png",
+    "candidateState": {
+      "fonts": "loaded",
+      "running": 0,
+      "height": 900,
+      "scrollY": 0
+    },
+    "candidate": "v1-parity\\candidate-client-1440-s-olena-journal.png"
+  }
+]

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<style>body{margin:0;background:#EDE7DE;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input,textarea{font:inherit;color:inherit}input::placeholder,textarea::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;gap:40px;justify-content:center;align-items:flex-start;padding:40px 20px">
+
+  <div style="position:relative;width:390px;height:844px;flex-shrink:0;border-radius:48px;background:#FBF9F5;overflow:hidden;box-shadow:0 0 0 10px #12233A,0 30px 80px rgba(18,35,58,.25)">
+    <div ref="{{ scrollRef }}" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-bottom:110px">
+      <header style="position:sticky;top:0;z-index:4;height:96px;padding:44px 16px 0;display:flex;align-items:center;justify-content:space-between;background:#FBF9F5;border-bottom:1px solid #EDE7DE">
+        <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:30px;width:auto;margin-left:-6px">
+        <span onClick="{{ shareOpen }}" role="button" aria-label="Поділитися профілем" style="width:44px;height:44px;border-radius:50%;border:1px solid #E6E0D8;display:flex;align-items:center;justify-content:center;color:#12345A;cursor:pointer" style-active="background:#EEF4FA">
+          <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,109.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,112H165a88,88,0,0,0-85.23,66,8,8,0,0,1-15.5-4A103.94,103.94,0,0,1,165,96h39.71L170.34,61.66a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,109.66ZM192,208H40V88a8,8,0,0,0-16,0V208a16,16,0,0,0,16,16H192a8,8,0,0,0,0-16Z"></path></svg>
+        </span>
+      </header>
+
+      <section style="padding:16px 16px 0;display:flex;flex-direction:column;gap:14px">
+        <div style="position:relative">
+          <img src="assets/maria-koval.webp" alt="Марія Коваль" style="width:100%;aspect-ratio:1/1;object-fit:cover;object-position:50% 18%;border-radius:24px;display:block">
+          <span style="position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 7px;border-radius:999px;background:rgba(255,255,255,.92);font-size:13px">
+            <span style="width:22px;height:22px;border-radius:50%;background:#12345A;display:flex;align-items:center;justify-content:center"><span style="width:0;height:0;border-left:6px solid #fff;border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:2px"></span></span>Відеовізитка · 1 хв
+          </span>
+        </div>
+        <span onClick="{{ shareOpen }}" role="button" style="display:flex;align-items:center;justify-content:center;gap:10px;height:48px;border-radius:999px;border:1.5px solid #12345A;color:#12345A;font-size:15px;font-weight:500;cursor:pointer" style-active="background:#EEF4FA">
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,109.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,112H165a88,88,0,0,0-85.23,66,8,8,0,0,1-15.5-4A103.94,103.94,0,0,1,165,96h39.71L170.34,61.66a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,109.66ZM192,208H40V88a8,8,0,0,0-16,0V208a16,16,0,0,0,16,16H192a8,8,0,0,0,0-16Z"></path></svg>
+          Поділитися профілем
+        </span>
+        <div>
+          <p style="font-size:13px;color:#2F8C86;margin:6px 0 8px">Психологиня · КПТ</p>
+          <h1 style="font-weight:500;font-size:34px;line-height:1.05;letter-spacing:-0.04em;margin:0 0 12px">Марія Коваль</h1>
+          <p style="font-size:16px;line-height:1.55;color:#3F4B5E;margin:0 0 8px;text-wrap:pretty">Допомагаю дорослим знизити тривогу, повернути відчуття опори й навчитися спокійніше проходити зміни.</p>
+          <span onClick="{{ aboutOpen }}" role="button" style="display:inline-flex;align-items:center;min-height:44px;font-size:15px;color:#12345A;font-weight:500;cursor:pointer">Більше про мене →</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4"><span style="font-size:13px;padding:6px 12px;border-radius:999px;background:#EEF8F7;color:#1F5E5A">{{ c }}</span></sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <sc-for list="{{ info }}" as="f" hint-placeholder-count="3"><div style="padding:10px 12px;border-radius:14px;background:#fff;border:1px solid #EDE7DE"><div style="font-size:11px;color:#8B95A7">{{ f.k }}</div><div style="font-size:14px;font-weight:500;margin-top:2px">{{ f.v }}</div></div></sc-for>
+        </div>
+      </section>
+
+      <section style="padding:32px 0 0">
+        <h2 style="font-weight:500;font-size:24px;letter-spacing:-0.03em;margin:0 16px 14px">Як проходить робота</h2>
+        <div style="display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px;scrollbar-width:none">
+          <sc-for list="{{ flow }}" as="w" hint-placeholder-count="3">
+            <div style="flex:0 0 78%;scroll-snap-align:start;background:#fff;border:1px solid #EDE7DE;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px">
+              <span style="width:28px;height:28px;border-radius:50%;background:#F6F1EA;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500">{{ w.n }}</span>
+              <div><div style="font-size:17px;font-weight:500;margin-bottom:4px">{{ w.t }}</div><div style="font-size:14px;line-height:1.5;color:#657287">{{ w.c }}</div></div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="padding:32px 16px 0;display:flex;flex-direction:column;gap:10px">
+        <h2 style="font-weight:500;font-size:24px;letter-spacing:-0.03em;margin:0 0 4px">З чим я працюю</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ yes }}" as="y" hint-placeholder-count="6"><span style="font-size:14px;padding:7px 12px;border-radius:12px;background:#fff;border:1px solid #EDE7DE">{{ y }}</span></sc-for></div>
+      </section>
+
+      <section style="padding:32px 16px 0">
+        <h2 style="font-weight:500;font-size:24px;letter-spacing:-0.03em;margin:0 0 8px">Підготовка</h2>
+        <sc-for list="{{ edu }}" as="e" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid #EDE7DE"><span style="font-size:14px;color:#8B95A7">{{ e.y }}</span><div><div style="font-size:15px;font-weight:500">{{ e.t }}</div><div style="font-size:13px;color:#657287">{{ e.s }}</div></div></div>
+        </sc-for>
+      </section>
+
+      <section style="padding:32px 16px 0">
+        <h2 style="font-weight:500;font-size:24px;letter-spacing:-0.03em;margin:0 0 8px">Питання</h2>
+        <sc-for list="{{ faq }}" as="q" hint-placeholder-count="3">
+          <div onClick="{{ q.on }}" style="border-top:1px solid #EDE7DE;padding:14px 0;cursor:pointer">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px;min-height:28px"><span>{{ q.q }}</span><span style="width:28px;height:28px;flex-shrink:0;border-radius:50%;background:{{ q.ib }};color:{{ q.ic }};display:flex;align-items:center;justify-content:center;transform:rotate({{ q.rot }});transition:all .3s;font-size:17px">+</span></div>
+            <div style="display:grid;grid-template-rows:{{ q.rows }};transition:grid-template-rows .4s ease"><div style="overflow:hidden"><p style="font-size:14px;line-height:1.55;color:#657287;margin:8px 0 0">{{ q.a }}</p></div></div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="margin:28px 16px 0;padding:16px;border-radius:20px;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:15px;font-weight:500">Інші контакти</div>
+        <a href="https://t.me/maria_koval_cbt" style="display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;background:#fff;font-size:14px;color:#12233A"><span><span style="color:#8B95A7">Telegram</span> @maria_koval_cbt</span><span style="color:#8B95A7">↗</span></a>
+        <a href="tel:+380672145809" style="display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;background:#fff;font-size:14px;color:#12233A"><span><span style="color:#8B95A7">Телефон</span> +380 67 ··· ·· ··</span><span style="color:#12345A;font-weight:500">Подзвонити</span></a>
+      </section>
+      <p style="font-size:12px;line-height:1.5;color:#8B95A7;margin:24px 16px 0">Інформацію на сторінці надає спеціаліст. Pro Consult не перевіряє кваліфікацію і не бере комісію з консультацій.</p>
+    </div>
+
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:5;padding:12px 16px 30px;background:rgba(251,249,245,.96);border-top:1px solid #EDE7DE;display:flex;align-items:center;gap:12px">
+      <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500">від 500 грн</div><div style="font-size:12px;color:#8B95A7">Найближче: вт, 27 жовт</div></div>
+      <span onClick="{{ sheetOpen }}" style="height:52px;padding:0 24px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;cursor:pointer;white-space:nowrap" style-active="background:#0E2D52">Обрати час</span>
+    </div>
+
+    <div onClick="{{ closeAll }}" style="position:absolute;inset:0;z-index:8;background:rgba(18,35,58,.42);opacity:{{ dimOp }};pointer-events:{{ dimPe }};transition:opacity .3s"></div>
+
+    <div role="dialog" aria-label="Запис" style="position:absolute;left:0;right:0;bottom:0;z-index:9;height:86%;background:#fff;border-radius:28px 28px 0 0;transform:translateY({{ sheetY }});transition:transform .4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column">
+      <div style="padding:10px 0 4px;display:flex;justify-content:center"><span style="width:40px;height:5px;border-radius:999px;background:#D4CCC2"></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 16px 8px"><span style="font-size:19px;font-weight:500">Запис до Марії</span><span onClick="{{ closeAll }}" aria-label="Закрити" role="button" style="width:44px;height:44px;border-radius:50%;background:#F6F1EA;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px">×</span></div>
+      <div style="flex:1;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:13px;color:#8B95A7">Формат зустрічі</span>
+          <sc-for list="{{ offers }}" as="o" hint-placeholder-count="3">
+            <div onClick="{{ o.on }}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:56px;padding:10px 14px;border-radius:16px;border:1.5px solid {{ o.bd }};background:{{ o.bg }};cursor:pointer;transition:all .2s"><div><div style="font-size:15px;font-weight:500">{{ o.t }}</div><div style="font-size:12px;color:#8B95A7">{{ o.d }}</div></div><span style="font-size:14px;white-space:nowrap">{{ o.p }}</span></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#8B95A7">Вільні вікна</span><span style="font-size:12px;color:#A0A8B6">київський час</span></div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">
+            <sc-for list="{{ days }}" as="d" hint-placeholder-count="5"><div onClick="{{ d.on }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center;border-radius:12px;cursor:pointer;background:{{ d.bg }};color:{{ d.fg }};opacity:{{ d.op }}"><span style="font-size:11px;opacity:.75">{{ d.w }}</span><span style="font-size:16px;font-weight:500">{{ d.n }}</span></div></sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <sc-for list="{{ slots }}" as="s" hint-placeholder-count="3"><span onClick="{{ s.on }}" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;font-size:14px;cursor:pointer;border:1px solid {{ s.bd }};background:{{ s.bg }};color:{{ s.fg }}">{{ s.t }}</span></sc-for>
+          </div>
+          <span onClick="{{ pickNoTime }}" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;font-size:14px;cursor:pointer;border:1px dashed {{ noTimeBd }};background:{{ noTimeBg }};color:#5A6578">Не обирати час — домовимось</span>
+        </div>
+      </div>
+      <div style="padding:12px 16px 30px;border-top:1px solid #F1EBE2;display:flex;flex-direction:column;gap:6px">
+        <span style="height:52px;border-radius:999px;background:{{ ctaBg }};color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ ctaL }}</span>
+        <span style="font-size:12px;color:#8B95A7;text-align:center">Далі — ім’я, контакт і умови. Це запит, не автоматичний запис.</span>
+      </div>
+    </div>
+
+    <div role="dialog" aria-label="Про мене" style="position:absolute;inset:0;z-index:10;background:#fff;transform:translateY({{ aboutY }});transition:transform .4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column">
+      <div style="height:96px;padding:44px 16px 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F1EBE2"><span style="font-size:19px;font-weight:500">Про мене</span><span onClick="{{ closeAll }}" aria-label="Закрити" role="button" style="width:44px;height:44px;border-radius:50%;background:#F6F1EA;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px">×</span></div>
+      <div style="flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ about }}" as="a" hint-placeholder-count="4"><p style="font-size:16px;line-height:1.65;color:#3F4B5E;margin:0;text-wrap:pretty">{{ a }}</p></sc-for>
+      </div>
+      <div style="padding:12px 16px 30px;border-top:1px solid #F1EBE2"><span onClick="{{ sheetOpen }}" style="height:52px;border-radius:999px;background:#12345A;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer">Обрати час</span></div>
+    </div>
+
+    <div role="dialog" aria-label="Поділитися профілем" style="position:absolute;left:0;right:0;bottom:0;z-index:11;background:#fff;border-radius:28px 28px 0 0;padding:10px 16px 30px;transform:translateY({{ shareY }});transition:transform .4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;justify-content:center"><span style="width:40px;height:5px;border-radius:999px;background:#D4CCC2"></span></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <img src="assets/maria-koval.webp" alt="" style="width:48px;height:48px;border-radius:14px;object-fit:cover;object-position:50% 18%">
+        <div style="min-width:0"><div style="font-size:16px;font-weight:500">Марія Коваль</div><div style="font-size:13px;color:#8B95A7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">proconsult.space/s/maria-koval</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+        <sc-for list="{{ shareTo }}" as="s" hint-placeholder-count="4">
+          <span onClick="{{ s.on }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;border-radius:14px;font-size:12px;cursor:pointer" style-active="background:#F6F1EA"><span style="width:52px;height:52px;border-radius:16px;background:{{ s.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">{{ s.ic }}</span>{{ s.l }}</span>
+        </sc-for>
+      </div>
+      <sc-if value="{{ igNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;line-height:1.45;color:#5A6578;padding:10px 12px;border-radius:12px;background:#F6F1EA">Посилання скопійовано — вставте в сторіз (стікер «Посилання») або в шапку профілю.</span></sc-if>
+      <span onClick="{{ copy }}" style="height:52px;border-radius:999px;border:1.5px solid #12345A;color:#12345A;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ copyL }}</span>
+    </div>
+
+    <div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#12233A;z-index:20"></div>
+  </div>
+
+  <aside style="width:min(360px,100%);display:flex;flex-direction:column;gap:14px;padding-top:8px">
+    <div style="font-size:13px;color:#8B95A7">Specialist-Profile · мобільна &lt; 860px</div>
+    <h2 style="font-weight:500;font-size:26px;letter-spacing:-0.03em;margin:0">Публічний профіль на телефоні</h2>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ states }}" as="st" hint-placeholder-count="4"><span onClick="{{ st.on }}" style="padding:12px 14px;border-radius:14px;font-size:14px;cursor:pointer;background:{{ st.bg }};color:{{ st.fg }};border:1px solid {{ st.bd }}">{{ st.l }}</span></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.55;color:#3F4B5E">
+      <sc-for list="{{ notes }}" as="n" hint-placeholder-count="5"><div style="padding:12px 14px;border-radius:14px;background:#FBF9F5"><b style="font-weight:500;color:#12233A">{{ n.h }}</b> — {{ n.t }}</div></sc-for>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;profile&quot;,&quot;sheet&quot;,&quot;about&quot;,&quot;share&quot;],&quot;default&quot;:&quot;profile&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { view: null, offer: 0, day: 1, slot: null, noTime: false, faq: null, copied: false, ig: false };
+  componentDidMount() { const v = this.props.screen; if (v && v !== 'profile') this.setState({ view: v }); }
+  renderVals() {
+    const S = this.state, view = S.view;
+    const O = [['Консультація', '50 хв · онлайн', '1 400 грн'], ['Ознайомча сесія', '20 хв · онлайн', '500 грн'], ['Парна консультація', '80 хв · онлайн', '2 000 грн']];
+    const D = [['Пн', 26, ['10:00', '12:00']], ['Вт', 27, ['09:00', '14:00', '18:00']], ['Ср', 28, []], ['Чт', 29, ['11:00', '16:00', '18:30']], ['Пт', 30, ['10:00']]];
+    const ready = S.noTime || S.slot !== null;
+    const set = v => this.setState({ view: v, ig: false, copied: false });
+    const URL_P = 'https://proconsult.space/s/maria-koval';
+    const cp = () => { try { navigator.clipboard.writeText(URL_P); } catch (e) {} };
+    const FQ = [['Як проходить перша сесія?', 'Знайомимося, говоримо про запит і очікування. Наприкінці вирішуємо, чи продовжувати.'], ['Як відбувається оплата?', 'Напряму спеціалістці, після підтвердження часу.'], ['Чи можна перенести?', 'Так, не пізніше ніж за 24 години — без оплати.']];
+    return {
+      sheetOpen: () => set('sheet'), aboutOpen: () => set('about'), shareOpen: () => set('share'), closeAll: () => set(null),
+      dimOp: view && view !== 'about' ? 1 : 0, dimPe: view && view !== 'about' ? 'auto' : 'none',
+      sheetY: view === 'sheet' ? '0' : '105%', aboutY: view === 'about' ? '0' : '105%', shareY: view === 'share' ? '0' : '105%',
+      chips: ['тривожність', 'вигорання', 'зміни', 'самооцінка'],
+      info: [{ k: 'Досвід', v: '9 років' }, { k: 'Мови', v: 'укр, англ' }, { k: 'Формат', v: 'онлайн' }],
+      flow: [{ n: 1, t: 'Знайомство', c: 'Коротка зустріч, щоб зрозуміти запит.' }, { n: 2, t: 'Спільний план', c: 'Цілі й ритм — зазвичай раз на тиждень.' }, { n: 3, t: 'Регулярні сесії', c: 'Працюємо з думками й реакціями.' }],
+      yes: ['Тривога', 'Вигорання', 'Переїзд і зміни', 'Самооцінка', 'Перфекціонізм', 'Сон і стрес'],
+      edu: [{ y: '2015', t: 'Психологія, магістр', s: 'КНУ ім. Шевченка' }, { y: '2018', t: 'Когнітивно-поведінкова терапія', s: 'Дворічна програма' }, { y: '2024', t: 'Регулярна супервізія', s: 'Індивідуальна та групова' }],
+      faq: FQ.map(([q, a], i) => { const on = S.faq === i; return { q, a, on: () => this.setState({ faq: on ? null : i }), rows: on ? '1fr' : '0fr', rot: on ? '45deg' : '0deg', ib: on ? '#12345A' : '#F6F1EA', ic: on ? '#fff' : '#657287' }; }),
+      about: ['Я психологиня з 9-річним досвідом, працюю в когнітивно-поведінковому підході та терапії прийняття і відповідальності.', 'До мене найчастіше звертаються з тривогою, вигоранням або коли переїзд чи інші зміни вибили з колії.', 'У роботі мені важливі ясність і повага до вашого темпу. Ми разом формулюємо, що для вас означатиме «стало краще».', 'Між сесіями пропоную короткі вправи — щоб нові навички закріплювалися в повсякденному житті.'],
+      offers: O.map(([t, d, p], i) => ({ t, d, p, on: () => this.setState({ offer: i, slot: null }), bd: S.offer === i ? '#12345A' : '#EDE7DE', bg: S.offer === i ? '#FBF9F5' : '#fff' })),
+      days: D.map(([w, n, s], i) => ({ w, n: String(n), on: () => s.length && this.setState({ day: i, slot: null, noTime: false }), bg: S.day === i ? '#12345A' : '#FBF9F5', fg: S.day === i ? '#fff' : '#12233A', op: s.length ? 1 : 0.35 })),
+      slots: D[S.day][2].map(t => ({ t, on: () => this.setState({ slot: t, noTime: false }), bd: S.slot === t ? '#12345A' : '#EDE7DE', bg: S.slot === t ? '#12345A' : '#fff', fg: S.slot === t ? '#fff' : '#12233A' })),
+      pickNoTime: () => this.setState({ noTime: !S.noTime, slot: null }), noTimeBd: S.noTime ? '#12345A' : '#D4CCC2', noTimeBg: S.noTime ? '#F6F1EA' : 'transparent',
+      ctaBg: ready ? '#12345A' : '#B7C0CC', ctaL: ready ? 'Далі' : 'Оберіть час або «домовимось»',
+      shareTo: [
+        { l: 'Telegram', ic: 'TG', bg: '#2A9FD8', on: () => window.open('https://t.me/share/url?url=' + encodeURIComponent(URL_P), '_blank') },
+        { l: 'Instagram', ic: 'IG', bg: '#C13584', on: () => { cp(); this.setState({ ig: true, copied: true }); } },
+        { l: 'Facebook', ic: 'f', bg: '#1877F2', on: () => window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(URL_P), '_blank') },
+        { l: 'Threads', ic: '@', bg: '#12233A', on: () => window.open('https://www.threads.net/intent/post?text=' + encodeURIComponent(URL_P), '_blank') },
+      ],
+      igNote: S.ig, copy: () => { cp(); this.setState({ copied: true }); }, copyL: S.copied ? 'Скопійовано ✓' : 'Копіювати посилання',
+      states: [[null, 'Профіль'], ['sheet', 'Запис — нижній лист'], ['about', '«Про мене» — на весь екран'], ['share', 'Поділитися']].map(([k, l]) => ({ l, on: () => set(k), bg: view === k ? '#12345A' : '#fff', fg: view === k ? '#fff' : '#12233A', bd: view === k ? '#12345A' : '#EDE7DE' })),
+      notes: [
+        { h: 'Нижня панель', t: 'завжди видно: «від <мін. ціна>», найближче вікно, «Обрати час». Замінює липку праву панель десктопа.' },
+        { h: 'Запис', t: 'нижній лист 86% висоти, свайп вниз / фон / × — закрити. Кроки ті самі, що на десктопі: формат → час → контакт і умови.' },
+        { h: 'Поділитися', t: 'кнопка під фото й іконка в шапці. Якщо є navigator.share — системне меню; інакше цей лист: Telegram, Instagram (копіює), Facebook, Threads, «Копіювати».' },
+        { h: '«Про мене»', t: 'повноекранний шар з кнопкою «Обрати час» унизу.' },
+        { h: 'Розміри', t: 'цілі натискання ≥ 44px, кнопки дій 52px; «Як проходить робота» — горизонтальна стрічка.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+[
+  {
+    "name": "createPublicGuestBookingRequest",
+    "sha256": "6c099957f4155fea871ce4758a923d7cf9927dd9dc3e0b7795a8c109ae32e5bb",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "submitGuestBookingRequest",
+    "sha256": "64044d1fdd88e454ac4aa8b43d54354c517c15e1e08d0d44503f8af8a15c3abc",
+    "identical": true,
+    "focusNormalization": "firstInvalidField.focus() -> focusGuestRequestField(firstInvalidField)"
+  },
+  {
+    "name": "handleBookingClick",
+    "sha256": "e2343539dc934de17915a0953cae67ceeb558c06f2cdc10a55eee735633c2746",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "bookSlot",
+    "sha256": "f1609041a4d85f52faf35f90171da260946c9edd113b5ff8fc750ff62f21082a",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "confirmClientBookingFromModal",
+    "sha256": "470450b515a3a1af4c96d9d313325878a7f63b18e8cf57433f6051727c04d835",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "openGuestBookingModal",
+    "sha256": "4e3737eca71b69706c1f8ec590ae3913d7a6fe0d51abba645bdbd9aec4cf8d29",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "closeGuestBookingModal",
+    "sha256": "b29f0bb044c20db5943a77e070612292e42122703023d7f735861283e5ea10f3",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "selectPublicOffer",
+    "sha256": "f3fcdabb92bf0a15ea44f3dc1ac140739f573e96362dc575a8a19df79fb711d6",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "loadSlots",
+    "sha256": "80e1aa4c17fdb13a5ed69a2484b9ed9b313202ec3960f466f8dfa04eeefc2b8e",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "loadHorizonSlots",
+    "sha256": "0d771f2786370e9067fc8dd451c00c72dc388df6749dd99bf37f76eee1f8d7b7",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "loadInquiryState",
+    "sha256": "75c7e5e64cb9f55b023effaabec3b9160febdac553d78ab589c6325aeaeb4f61",
+    "identical": true,
+    "focusNormalization": null
+  },
+  {
+    "name": "submitInquiryMessage",
+    "sha256": "76bd281817736fe10464b220d066413977463521db7c3aabea18ee0d190f38f8",
+    "identical": true,
+    "focusNormalization": null
+  }
+]

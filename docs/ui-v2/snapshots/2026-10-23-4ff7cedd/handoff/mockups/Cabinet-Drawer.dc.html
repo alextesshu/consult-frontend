@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+</helmet>
+<div style="position:absolute;inset:0;z-index:30;font-family:Onest,system-ui,sans-serif;color:#12233A">
+  <div onClick="{{ close }}" style="position:absolute;inset:0;background:rgba(18,35,58,.28);opacity:{{ bo }};transition:opacity .32s ease"></div>
+  <aside role="dialog" aria-modal="true" style="position:absolute;top:0;right:0;bottom:0;width:440px;max-width:100%;background:#FBF9F5;box-shadow:-24px 0 60px rgba(18,35,58,.18);display:flex;flex-direction:column;transform:translateX({{ px }}px);transition:transform .4s cubic-bezier(.2,.8,.2,1)">
+    <div style="padding:24px 28px 16px;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h3 style="margin:0;font-weight:500;font-size:22px;letter-spacing:-0.02em">{{ title }}</h3>
+        <span onClick="{{ close }}" role="button" aria-label="Закрити" style="width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#5A6578;cursor:pointer;transition:background .2s" style-hover="background:#F1EBE2">✕</span>
+      </div>
+      <div style="font-size:14px;color:#5A6578">{{ ctx }}</div>
+    </div>
+    <sc-if value="{{ isStepper }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 28px 20px">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:24px;height:24px;border-radius:999px;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;background:{{ s.dotBg }};color:{{ s.dotFg }};transition:all .3s">{{ s.n }}</span>
+            <span style="font-size:13px;color:{{ s.lblFg }}">{{ s.l }}</span>
+            <sc-if value="{{ s.notLast }}" hint-placeholder-val="{{ true }}"><span style="width:28px;height:2px;border-radius:2px;background:{{ s.lineBg }};transition:background .3s"></span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <div style="flex:1;overflow-y:auto;padding:4px 28px 24px;display:flex;flex-direction:column;gap:20px;opacity:{{ bodyOp }};transform:translateX({{ bodyX }}px);transition:opacity .16s ease,transform .2s ease">
+      <sc-if value="{{ showClients }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;color:#5A6578">Кому</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ clients }}" as="c" hint-placeholder-count="6">
+              <span onClick="{{ c.on }}" style="padding:10px 16px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};transition:all .2s" style-active="transform:scale(.96)">{{ c.label }}</span>
+            </sc-for>
+          </div>
+          <span style="font-size:14px;color:#12345A;cursor:pointer;align-self:flex-start">+ Новий клієнт</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showSlots }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <sc-if value="{{ isReply }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#5A6578">Оберіть до 3 вільних вікон — клієнт підтвердить одне</div></sc-if>
+          <sc-for list="{{ days }}" as="d" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:13px;color:#5A6578">{{ d.d }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ d.slots }}" as="sl" hint-placeholder-count="3">
+                  <span onClick="{{ sl.on }}" style="padding:10px 18px;border-radius:12px;font-size:15px;font-variant-numeric:tabular-nums;cursor:pointer;background:{{ sl.bg }};color:{{ sl.fg }};border:1px solid {{ sl.bd }};transition:all .2s" style-active="transform:scale(.96)">{{ sl.t }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showFormat }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Формат</div>
+            <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start">
+              <sc-for list="{{ fmts }}" as="f" hint-placeholder-count="2"><span onClick="{{ f.on }}" style="padding:8px 18px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};box-shadow:{{ f.sh }};transition:all .25s">{{ f.label }}</span></sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Тривалість</div>
+            <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start">
+              <sc-for list="{{ durs }}" as="f" hint-placeholder-count="2"><span onClick="{{ f.on }}" style="padding:8px 18px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};box-shadow:{{ f.sh }};transition:all .25s">{{ f.label }}</span></sc-for>
+            </div>
+          </div>
+          <div style="padding:16px 18px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:13px;color:#5A6578">Підсумок</div>
+            <div style="font-size:16px;font-weight:500">{{ summary }}</div>
+            <div style="font-size:13px;color:#5A6578">Клієнт отримає запрошення й нагадування</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isReply }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:13px;color:#5A6578">Повідомлення</div>
+          <textarea value="{{ msg }}" onChange="{{ onMsg }}" rows="4" style="padding:12px 14px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:15px;line-height:1.45;color:#12233A;resize:none;outline:none;transition:border-color .2s" style-focus="border-color:#12345A"></textarea>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isLink }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Посилання</div>
+            <input value="{{ url }}" onChange="{{ onUrl }}" placeholder="https://meet.google.com/…" style="height:52px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:16px;color:#12233A;outline:none;transition:border-color .2s" style-focus="border-color:#12345A">
+          </div>
+          <div onClick="{{ toggleRemember }}" style="display:flex;align-items:center;gap:12px;cursor:pointer">
+            <span style="width:40px;height:24px;border-radius:999px;background:{{ swBg }};position:relative;transition:background .25s;flex-shrink:0">
+              <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff;box-shadow:0 1px 3px rgba(18,35,58,.25);transform:translateX({{ swX }}px);transition:transform .25s cubic-bezier(.2,.8,.2,1)"></span>
+            </span>
+            <span style="font-size:14px">Використовувати для всіх моїх онлайн-сесій</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showCName }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:13px;color:#5A6578">Ім’я та прізвище</div>
+          <input value="{{ cName }}" onChange="{{ onCName }}" placeholder="Напр. Ірина Ткаченко" style="height:52px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:16px;color:#12233A;outline:none;transition:border-color .2s" style-focus="border-color:#12345A">
+          <div style="font-size:13px;color:#5A6578">Клієнт не побачить цю картку, доки ви не запросите його в кабінет</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showCContact }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:13px;color:#5A6578">Email або телефон</div>
+          <input value="{{ cContact }}" onChange="{{ onCContact }}" placeholder="iryna@gmail.com або +380…" style="height:52px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:16px;color:#12233A;outline:none;transition:border-color .2s" style-focus="border-color:#12345A">
+          <sc-if value="{{ cDup }}" hint-placeholder-val="{{ false }}"><div style="padding:12px 14px;border-radius:12px;background:#FFF1E3;color:#B5651F;font-size:14px;line-height:1.45">Схожий клієнт уже є: {{ cDupName }}. Можна відкрити наявну картку або продовжити й створити окрему.</div></sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showCAccess }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <sc-for list="{{ cInviteOpts }}" as="o" hint-placeholder-count="2">
+            <div onClick="{{ o.on }}" style="padding:14px 16px;border-radius:16px;background:#fff;border:1.5px solid {{ o.bd }};cursor:pointer;display:flex;gap:14px;align-items:flex-start;transition:border-color .2s">
+              <span style="width:20px;height:20px;border-radius:999px;border:1.5px solid {{ o.bd }};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px"><span style="width:10px;height:10px;border-radius:999px;background:#12345A;transform:scale({{ o.dot }});transition:transform .25s cubic-bezier(.2,.8,.2,1)"></span></span>
+              <div><div style="font-size:16px;font-weight:500">{{ o.t }}</div><div style="font-size:13px;color:#5A6578;margin-top:2px;line-height:1.4">{{ o.d }}</div></div>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Формат роботи</div>
+            <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start">
+              <sc-for list="{{ cFmts }}" as="f" hint-placeholder-count="2"><span onClick="{{ f.on }}" style="padding:8px 18px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};box-shadow:{{ f.sh }};transition:all .25s">{{ f.label }}</span></sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fName }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:13px;color:#5A6578">Як вас бачать клієнти</div>
+          <input value="{{ pName }}" onChange="{{ onPName }}" style="height:52px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:16px;color:#12233A;outline:none;transition:border-color .2s" style-focus="border-color:#12345A">
+          <div style="font-size:13px;color:#5A6578">Ім’я та прізвище або професійний псевдонім</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fAbout }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <textarea value="{{ about }}" onChange="{{ onAbout }}" rows="6" maxlength="300" placeholder="З чим допомагаєте, як працюєте, чого чекати від першої зустрічі" style="padding:14px 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:15px;line-height:1.5;color:#12233A;resize:none;outline:none;transition:border-color .2s" style-focus="border-color:#12345A"></textarea>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#5A6578"><span>Щонайменше 20 символів</span><span style="font-variant-numeric:tabular-nums">{{ aboutLeft }}</span></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fSpec }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;color:#5A6578">Оберіть 1–5 напрямів</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ specChips }}" as="c" hint-placeholder-count="6"><span onClick="{{ c.on }}" style="padding:10px 16px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};transition:all .2s" style-active="transform:scale(.96)">{{ c.label }}</span></sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fFormat }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ fmtChips }}" as="c" hint-placeholder-count="3"><span onClick="{{ c.on }}" style="padding:12px 20px;border-radius:999px;font-size:15px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};transition:all .2s" style-active="transform:scale(.96)">{{ c.label }}</span></sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fPrice }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Вартість консультації</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input value="{{ price }}" onChange="{{ onPrice }}" inputmode="numeric" placeholder="1200" style="width:160px;height:52px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:18px;font-variant-numeric:tabular-nums;color:#12233A;outline:none;transition:border-color .2s" style-focus="border-color:#12345A">
+              <span style="font-size:16px;color:#5A6578">грн за</span>
+              <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px">
+                <sc-for list="{{ durs }}" as="f" hint-placeholder-count="2"><span onClick="{{ f.on }}" style="padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};box-shadow:{{ f.sh }};transition:all .25s">{{ f.label }}</span></sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:#5A6578;line-height:1.45">Клієнти оплачують вам напряму. Ціну можна змінити для окремих сесій.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fIntake }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ intakeOpts }}" as="o" hint-placeholder-count="2">
+            <div onClick="{{ o.on }}" style="padding:16px 18px;border-radius:16px;background:#fff;border:1.5px solid {{ o.bd }};cursor:pointer;display:flex;gap:14px;align-items:flex-start;transition:border-color .2s,box-shadow .2s" style-hover="box-shadow:0 4px 16px rgba(18,35,58,.06)">
+              <span style="width:20px;height:20px;border-radius:999px;border:1.5px solid {{ o.bd }};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:border-color .2s"><span style="width:10px;height:10px;border-radius:999px;background:#12345A;transform:scale({{ o.dot }});transition:transform .25s cubic-bezier(.2,.8,.2,1)"></span></span>
+              <div><div style="font-size:16px;font-weight:500">{{ o.t }}</div><div style="font-size:13px;color:#5A6578;margin-top:2px;line-height:1.4">{{ o.d }}</div></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ planOpts }}" as="o" hint-placeholder-count="3">
+              <div onClick="{{ o.on }}" style="padding:14px 16px;border-radius:16px;background:#fff;border:1.5px solid {{ o.bd }};cursor:{{ o.cur }};opacity:{{ o.op }};display:flex;gap:14px;align-items:center;transition:border-color .2s">
+                <span style="width:20px;height:20px;border-radius:999px;border:1.5px solid {{ o.bd }};display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:10px;height:10px;border-radius:999px;background:#12345A;transform:scale({{ o.dot }});transition:transform .25s cubic-bezier(.2,.8,.2,1)"></span></span>
+                <div style="flex:1"><div style="font-size:16px;font-weight:500">{{ o.t }}</div><div style="font-size:13px;color:#5A6578">{{ o.d }}</div></div>
+                <sc-if value="{{ o.isCur }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;padding:3px 9px;border-radius:999px;background:#F1EBE2;color:#5A6578">поточний</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Причина (необов’язково) — потрапить в історію змін</div>
+            <textarea value="{{ reason }}" onChange="{{ onReason }}" rows="3" style="padding:12px 14px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:15px;color:#12233A;resize:none;outline:none;transition:border-color .2s" style-focus="border-color:#12345A"></textarea>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isTrial }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:13px;color:#5A6578">Тимчасовий Pro-доступ для beta, демо або перевірки</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ trialOpts }}" as="c" hint-placeholder-count="4"><span onClick="{{ c.on }}" style="padding:12px 18px;border-radius:12px;font-size:15px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};transition:all .2s" style-active="transform:scale(.96)">{{ c.label }}</span></sc-for>
+          </div>
+          <div style="padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;font-size:15px">{{ trialSummary }}</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isPay }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Посилання або номер платежу</div>
+            <input value="{{ payRef }}" onChange="{{ onPayRef }}" placeholder="Напр. Monobank · 2210-4471" style="height:52px;padding:0 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:16px;color:#12233A;outline:none;transition:border-color .2s" style-focus="border-color:#12345A">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Строк доступу</div>
+            <div style="display:flex;padding:4px;border-radius:999px;background:#F1EBE2;gap:2px;align-self:flex-start">
+              <sc-for list="{{ periods }}" as="f" hint-placeholder-count="3"><span onClick="{{ f.on }}" style="padding:8px 16px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ f.bg }};box-shadow:{{ f.sh }};transition:all .25s">{{ f.label }}</span></sc-for>
+            </div>
+          </div>
+          <div style="padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;font-size:15px">Pro до <strong style="font-weight:500">{{ payUntil }}</strong></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isOverride }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="padding:12px 14px;border-radius:12px;background:#FFF1E3;color:#B5651F;font-size:14px;line-height:1.45">Ручна службова дія для виняткових випадків. Записується в історію змін.</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Що перевизначити</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ scopeOpts }}" as="c" hint-placeholder-count="3"><span onClick="{{ c.on }}" style="padding:10px 16px;border-radius:999px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};transition:all .2s">{{ c.label }}</span></sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:#5A6578">Причина — обов’язково</div>
+            <textarea value="{{ reason }}" onChange="{{ onReason }}" rows="4" style="padding:12px 14px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:15px;color:#12233A;resize:none;outline:none;transition:border-color .2s" style-focus="border-color:#12345A"></textarea>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isReject }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;color:#5A6578">Причина — її побачить спеціаліст</div>
+          <textarea value="{{ reason }}" onChange="{{ onReason }}" rows="5" style="padding:12px 14px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:15px;line-height:1.45;color:#12233A;resize:none;outline:none;transition:border-color .2s" style-focus="border-color:#12345A"></textarea>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ rejQuick }}" as="q" hint-placeholder-count="3"><span onClick="{{ q.on }}" style="padding:7px 12px;border-radius:999px;font-size:13px;background:#F1EBE2;cursor:pointer;transition:background .2s" style-hover="background:#E6E0D8">{{ q.label }}</span></sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isNote }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <textarea value="{{ note }}" onChange="{{ onNote }}" rows="7" placeholder="Що відбулося, про що домовились, що перевірити наступного разу" style="padding:14px 16px;border-radius:12px;border:1.5px solid #E6E0D8;background:#fff;font:inherit;font-size:15px;line-height:1.5;color:#12233A;resize:none;outline:none;transition:border-color .2s" style-focus="border-color:#12345A"></textarea>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ quick }}" as="q" hint-placeholder-count="3"><span onClick="{{ q.on }}" style="padding:7px 12px;border-radius:999px;font-size:13px;background:#F1EBE2;cursor:pointer;transition:background .2s" style-hover="background:#E6E0D8">+ {{ q.label }}</span></sc-for>
+          </div>
+          <div style="font-size:13px;color:#B5651F">Нотатки бачите лише ви</div>
+        </div>
+      </sc-if>
+    </div>
+    <div style="padding:16px 28px 24px;border-top:1px solid #EDE7DE;display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <span onClick="{{ onBack }}" style="font-size:15px;color:#12345A;cursor:pointer;padding:10px 4px;opacity:{{ backOp }};transition:opacity .2s">{{ backLabel }}</span>
+      <span onClick="{{ onPrimary }}" style="padding:13px 24px;border-radius:999px;font-size:15px;font-weight:500;color:#fff;background:{{ primaryBg }};cursor:{{ primaryCur }};transition:background .25s,transform .15s" style-active="transform:scale(.97)">{{ primaryLabel }}</span>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;1000px&quot;,&quot;height&quot;:&quot;760px&quot;},&quot;kind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;create&quot;,&quot;reply&quot;,&quot;link&quot;,&quot;note&quot;,&quot;profile&quot;,&quot;plan&quot;,&quot;trial&quot;,&quot;payment&quot;,&quot;override&quot;,&quot;reject&quot;],&quot;default&quot;:&quot;create&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;field&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;name&quot;,&quot;about&quot;,&quot;spec&quot;,&quot;format&quot;,&quot;price&quot;,&quot;intake&quot;],&quot;default&quot;:&quot;price&quot;,&quot;tsType&quot;:&quot;'name'|'about'|'spec'|'format'|'price'|'intake'&quot;},&quot;current&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Start&quot;,&quot;Pro&quot;,&quot;Leader&quot;],&quot;default&quot;:&quot;Start&quot;,&quot;tsType&quot;:&quot;'Start'|'Pro'|'Leader'&quot;},&quot;ctx&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Три кроки: клієнт, час, формат&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDone&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(payload: object) =&gt; void&quot;}}">
+const CLIENTS = ['Ірина Ткаченко', 'Олег Мельник', 'Андрій Савчук', 'Олена Гнатюк', 'Максим Бойко'];
+const DAYS = [
+  { d: 'Пт, 23 жовтня', s: 'Пт 23', ord: 1, t: ['13:00', '17:00', '19:00'] },
+  { d: 'Пн, 26 жовтня', s: 'Пн 26', ord: 2, t: ['10:00', '12:00', '18:00'] },
+  { d: 'Вт, 27 жовтня', s: 'Вт 27', ord: 3, t: ['09:30', '15:00'] },
+];
+const TRIAL = { 14: '5 листопада', 30: '21 листопада', 60: '21 грудня', 0: 'сьогодні' };
+const PAY = { '1 міс': '22 листопада 2026', '3 міс': '22 січня 2027', '12 міс': '22 жовтня 2027' };
+const plural = (n, f) => { const a = n % 10, b = n % 100; return f[a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? 1 : 2]; };
+const chip = on => ({ bg: on ? '#12345A' : '#fff', fg: on ? '#fff' : '#12233A', bd: on ? '#12345A' : '#E6E0D8' });
+const seg = on => ({ bg: on ? '#fff' : 'transparent', sh: on ? '0 1px 2px rgba(18,35,58,.12)' : 'none' });
+
+class Component extends DCLogic {
+  state = { shown: false, step: 0, fading: false, client: null, slot: null, slotD: '', slotT: '', slotOrd: 0, fmt: 'Онлайн', dur: '50 хв', picks: [],
+    cName: '', cContact: '', cInvite: 'now', cFmt: 'Онлайн',
+    pName: 'Марія Коваль', about: '', specs: [], pfmt: null, price: '', intake: null,
+    plan: null, reason: '', trialDays: null, payRef: '', period: '1 міс', scope: [],
+    msg: 'Добрий день! Можу запропонувати такі вікна для першої зустрічі. Оберіть зручне — і я підтверджу.', url: '', remember: true, note: '' };
+  componentDidMount() { this.onEsc = e => { if (e.key !== 'Escape') return; e.stopPropagation(); this.out(() => this.props.onClose && this.props.onClose()); }; window.addEventListener('keydown', this.onEsc, true); this.r = requestAnimationFrame(() => { this.r = requestAnimationFrame(() => this.setState({ shown: true })); }); }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onEsc, true); cancelAnimationFrame(this.r); clearTimeout(this.t); clearTimeout(this.t2); }
+  out(cb) { this.setState({ shown: false }); clearTimeout(this.t); this.t = setTimeout(cb, 340); }
+  go(n) { this.setState({ fading: true }); clearTimeout(this.t2); this.t2 = setTimeout(() => this.setState({ step: n, fading: false }), 170); }
+  renderVals() {
+    const { shown, step, fading, client, slot, fmt, dur, picks, msg, url, remember, note } = this.state;
+    const kind = this.props.kind ?? 'create';
+    const isCreate = kind === 'create', isReply = kind === 'reply', isLink = kind === 'link', isNote = kind === 'note', isProfile = kind === 'profile', isClient = kind === 'client';
+    const field = this.props.field ?? 'price';
+    const isPlan = kind === 'plan', isTrial = kind === 'trial', isPay = kind === 'payment', isOverride = kind === 'override', isReject = kind === 'reject';
+    const cur = this.props.current ?? 'Start';
+    const PT = { name: 'Публічне ім’я', about: 'Короткий опис', spec: 'Спеціалізації', format: 'Формат роботи', price: 'Базова ціна', intake: 'Як клієнти звертаються' };
+    const close = () => this.out(() => this.props.onClose && this.props.onClose());
+    const finish = p => this.out(() => this.props.onDone && this.props.onDone(p));
+    let can = true, primaryLabel = '', done = null;
+    if (isCreate) {
+      can = step === 0 ? !!client : step === 1 ? !!slot : true;
+      primaryLabel = step < 2 ? 'Далі' : 'Створити сесію';
+      done = () => step < 2 ? this.go(step + 1) : finish({ client, d: this.state.slotD, t: this.state.slotT, ord: this.state.slotOrd, fmt });
+    } else if (isReply) {
+      can = picks.length > 0;
+      primaryLabel = can ? `Надіслати ${picks.length} ${plural(picks.length, ['вікно', 'вікна', 'вікон'])}` : 'Оберіть вікна';
+      done = () => finish({ count: picks.length });
+    } else if (isClient) {
+      const st = this.state;
+      can = step === 0 ? st.cName.trim().length > 1 : step === 1 ? st.cContact.trim().length > 4 : true;
+      primaryLabel = step < 2 ? 'Далі' : 'Додати клієнта';
+      done = () => step < 2 ? this.go(step + 1) : finish({ name: st.cName.trim(), contact: st.cContact.trim(), invite: st.cInvite, fmt: st.cFmt });
+    } else if (isProfile) {
+      const st = this.state;
+      can = { name: st.pName.trim().length > 1, about: st.about.trim().length >= 20, spec: st.specs.length > 0, format: !!st.pfmt, price: /\d/.test(st.price), intake: !!st.intake }[field];
+      primaryLabel = 'Зберегти в профілі'; done = () => finish({ field });
+    } else if (isPlan) {
+      can = !!this.state.plan && this.state.plan !== cur; primaryLabel = can ? `Змінити на ${this.state.plan}` : 'Оберіть тариф';
+      done = () => finish({ plan: this.state.plan, reason: this.state.reason });
+    } else if (isTrial) {
+      can = this.state.trialDays !== null; primaryLabel = this.state.trialDays === 0 ? 'Завершити доступ' : 'Надати доступ';
+      done = () => finish({ days: this.state.trialDays, until: TRIAL[this.state.trialDays] });
+    } else if (isPay) {
+      can = this.state.payRef.trim().length > 3; primaryLabel = 'Підтвердити оплату';
+      done = () => finish({ until: PAY[this.state.period], ref: this.state.payRef });
+    } else if (isOverride) {
+      can = this.state.scope.length > 0 && this.state.reason.trim().length >= 10; primaryLabel = 'Застосувати';
+      done = () => finish({ scope: this.state.scope, reason: this.state.reason });
+    } else if (isReject) {
+      can = this.state.reason.trim().length >= 3; primaryLabel = 'Відхилити запит';
+      done = () => finish({ reason: this.state.reason });
+    } else if (isLink) {
+      can = url.trim().length > 6; primaryLabel = 'Зберегти посилання'; done = () => finish({});
+    } else {
+      can = note.trim().length > 0; primaryLabel = 'Зберегти нотатку'; done = () => finish({});
+    }
+    const days = DAYS.map(d => ({ d: d.d, slots: d.t.map(t => {
+      const id = d.s + ' · ' + t;
+      const on = isReply ? picks.includes(id) : slot === id;
+      return { t, ...chip(on), on: () => isReply
+        ? this.setState(s => ({ picks: s.picks.includes(id) ? s.picks.filter(x => x !== id) : s.picks.length < 3 ? [...s.picks, id] : s.picks }))
+        : this.setState({ slot: id, slotD: d.s, slotT: t, slotOrd: d.ord }) };
+    }) }));
+    return {
+      bo: shown ? 1 : 0, px: shown ? 0 : 460,
+      title: isProfile ? PT[field] : { client: 'Новий клієнт', create: 'Нова сесія', reply: 'Запропонувати час', link: 'Посилання на зустріч', note: 'Нотатка до сесії', plan: 'Змінити базовий тариф', trial: 'Тестовий доступ Pro', payment: 'Підтвердити оплату Pro', override: 'Службове перевизначення', reject: 'Відхилити запит' }[kind],
+      isPlan, isTrial, isPay, isOverride, isReject,
+      reason: this.state.reason, onReason: e => this.setState({ reason: e.target.value }),
+      planOpts: [['Start', 'Базові можливості, до 5 активних клієнтів'], ['Pro', 'Email-нагадування, блог, до 20 активних клієнтів'], ['Leader', 'Для практик з командою, розширені ліміти']].map(([t, d]) => {
+        const isCur = t === cur, on = this.state.plan === t;
+        return { t, d, isCur, bd: on ? '#12345A' : '#E6E0D8', dot: on ? 1 : 0, op: isCur ? 0.6 : 1, cur: isCur ? 'default' : 'pointer', on: () => { if (!isCur) this.setState({ plan: t }); } };
+      }),
+      trialOpts: [[14, '14 днів'], [30, '30 днів'], [60, '60 днів'], [0, 'Завершити зараз']].map(([n, label]) => ({ label, ...chip(this.state.trialDays === n), on: () => this.setState({ trialDays: n }) })),
+      trialSummary: this.state.trialDays === null ? 'Оберіть строк' : this.state.trialDays === 0 ? 'Тестовий доступ завершиться одразу, тариф повернеться до базового' : `Pro діятиме до ${TRIAL[this.state.trialDays]}, потім — автоматично базовий тариф`,
+      payRef: this.state.payRef, onPayRef: e => this.setState({ payRef: e.target.value }),
+      periods: ['1 міс', '3 міс', '12 міс'].map(label => ({ label, ...seg(this.state.period === label), on: () => this.setState({ period: label }) })),
+      payUntil: PAY[this.state.period],
+      scopeOpts: ['Ліміт активних клієнтів', 'Email-нагадування', 'Власний блог'].map(label => { const on = this.state.scope.includes(label); return { label, ...chip(on), on: () => this.setState(s => ({ scope: on ? s.scope.filter(x => x !== label) : [...s.scope, label] })) }; }),
+      rejQuick: ['Потрібна оплата', 'Профіль ще не готовий', 'Дубль попереднього запиту'].map(label => ({ label, on: () => this.setState(s => ({ reason: (s.reason ? s.reason.trim() + ' ' : '') + label + '.' })) })),
+      fName: isProfile && field === 'name', fAbout: isProfile && field === 'about', fSpec: isProfile && field === 'spec',
+      fFormat: isProfile && field === 'format', fPrice: isProfile && field === 'price', fIntake: isProfile && field === 'intake',
+      pName: this.state.pName, onPName: e => this.setState({ pName: e.target.value }),
+      about: this.state.about, onAbout: e => this.setState({ about: e.target.value }), aboutLeft: `${this.state.about.length} / 300`,
+      specChips: ['Тривожність', 'Вигорання', 'Стосунки', 'Самооцінка', 'Втрата', 'Сон'].map(label => { const on = this.state.specs.includes(label); return { label, ...chip(on),
+        on: () => this.setState(s => ({ specs: on ? s.specs.filter(x => x !== label) : s.specs.length < 5 ? [...s.specs, label] : s.specs })) }; }),
+      fmtChips: ['Онлайн', 'Офлайн', 'Обидва'].map(label => ({ label, ...chip(this.state.pfmt === label), on: () => this.setState({ pfmt: label }) })),
+      price: this.state.price, onPrice: e => this.setState({ price: e.target.value.replace(/[^\d]/g, '') }),
+      intakeOpts: [{ k: 'book', t: 'Запис на вільний час', d: 'Клієнт одразу обирає вікно у вашому розкладі — ви підтверджуєте' }, { k: 'ask', t: 'Спершу запит', d: 'Клієнт описує, з чим звертається, а час ви узгоджуєте разом' }]
+        .map(o => ({ ...o, bd: this.state.intake === o.k ? '#12345A' : '#E6E0D8', dot: this.state.intake === o.k ? 1 : 0, on: () => this.setState({ intake: o.k }) })),
+      ctx: this.props.ctx ?? '',
+      close, isCreate, isReply, isLink, isNote,
+      isStepper: isCreate || isClient,
+      showCName: isClient && step === 0, showCContact: isClient && step === 1, showCAccess: isClient && step === 2,
+      cName: this.state.cName, onCName: e => this.setState({ cName: e.target.value }),
+      cContact: this.state.cContact, onCContact: e => this.setState({ cContact: e.target.value }),
+      cDup: isClient && (this.props.existing || []).some(n => n.toLowerCase() === this.state.cName.trim().toLowerCase()), cDupName: this.state.cName.trim(),
+      cInviteOpts: [['now', 'Запросити в кабінет зараз', 'Клієнт отримає лист і зможе бачити сесії та опубліковані матеріали'], ['later', 'Пізніше', 'Картка буде лише у вас — запросити можна будь-коли']].map(([k, t, d]) => ({ t, d, bd: this.state.cInvite === k ? '#12345A' : '#E6E0D8', dot: this.state.cInvite === k ? 1 : 0, on: () => this.setState({ cInvite: k }) })),
+      cFmts: ['Онлайн', 'Офлайн'].map(label => ({ label, ...seg(this.state.cFmt === label), on: () => this.setState({ cFmt: label }) })),
+      steps: (isClient ? ['Ім’я', 'Контакт', 'Доступ'] : ['Клієнт', 'Час', 'Формат']).map((l, i) => ({ l, n: i + 1, notLast: i < 2,
+        dotBg: i <= step ? '#12345A' : '#E6E0D8', dotFg: i <= step ? '#fff' : '#5A6578', lblFg: i === step ? '#12233A' : '#5A6578', lineBg: i < step ? '#12345A' : '#E6E0D8' })),
+      bodyOp: fading ? 0 : 1, bodyX: fading ? -12 : 0,
+      showClients: isCreate && step === 0, showSlots: (isCreate && step === 1) || isReply, showFormat: isCreate && step === 2,
+      clients: CLIENTS.map(label => ({ label, ...chip(client === label), on: () => this.setState({ client: label }) })),
+      days,
+      fmts: ['Онлайн', 'Офлайн'].map(label => ({ label, ...seg(fmt === label), on: () => this.setState({ fmt: label }) })),
+      durs: ['50 хв', '80 хв'].map(label => ({ label, ...seg(dur === label), on: () => this.setState({ dur: label }) })),
+      summary: `${client || '—'} · ${this.state.slotD}, ${this.state.slotT} · ${fmt.toLowerCase()}, ${dur}`,
+      msg, onMsg: e => this.setState({ msg: e.target.value }),
+      url, onUrl: e => this.setState({ url: e.target.value }),
+      toggleRemember: () => this.setState({ remember: !remember }), swBg: remember ? '#12345A' : '#D4CCC2', swX: remember ? 16 : 0,
+      note, onNote: e => this.setState({ note: e.target.value }),
+      quick: ['Дала домашнє завдання', 'Наступна тема: межі на роботі', 'Перевірити сон'].map(label => ({ label, on: () => this.setState(s => ({ note: (s.note ? s.note.trim() + '\n' : '') + label })) })),
+      backLabel: (isCreate || isClient) && step > 0 ? '← Назад' : 'Скасувати',
+      backOp: 1,
+      onBack: () => (isCreate || isClient) && step > 0 ? this.go(step - 1) : close(),
+      primaryLabel, primaryBg: can ? '#12345A' : '#B7C0CC', primaryCur: can ? 'pointer' : 'default',
+      onPrimary: () => { if (can && done) done(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

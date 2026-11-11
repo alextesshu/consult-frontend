@@ -1,0 +1,394 @@
+[
+  {
+    "width": 768,
+    "kind": "claude",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.16s, 0.16s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "fixtureNote": "Original unchanged design state/handlers; repaired brand-listen load order only"
+  },
+  {
+    "width": 375,
+    "kind": "claude",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.16s, 0.16s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "fixtureNote": "Original unchanged design state/handlers; repaired brand-listen load order only"
+  },
+  {
+    "width": 1280,
+    "kind": "claude",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.16s, 0.16s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "fixtureNote": "Original unchanged design state/handlers; repaired brand-listen load order only"
+  },
+  {
+    "width": 1440,
+    "kind": "claude",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.16s, 0.16s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "fixtureNote": "Original unchanged design state/handlers; repaired brand-listen load order only"
+  },
+  {
+    "width": 375,
+    "kind": "vue",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "requests": [
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "повільний запит",
+        "request_group": "emotional_state",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "повільний запит",
+        "format": "offline",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "q": "немає результатів",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "2c694dc8375bf73c1a2bcf18142897d0",
+        "page_size": "50"
+      }
+    ],
+    "fixtureNote": "Synthetic public API data; no live backend acceptance"
+  },
+  {
+    "width": 768,
+    "kind": "vue",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "requests": [
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "повільний запит",
+        "request_group": "emotional_state",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "повільний запит",
+        "format": "offline",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "q": "немає результатів",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "233a63050445975f5bd5091f1593617f",
+        "page_size": "50"
+      }
+    ],
+    "fixtureNote": "Synthetic public API data; no live backend acceptance"
+  },
+  {
+    "width": 1440,
+    "kind": "vue",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "requests": [
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "повільний запит",
+        "request_group": "emotional_state",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "повільний запит",
+        "format": "offline",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "q": "немає результатів",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "a8578cfb148702c9dcf666bccfaccc22",
+        "page_size": "50"
+      }
+    ],
+    "fixtureNote": "Synthetic public API data; no live backend acceptance"
+  },
+  {
+    "width": 1280,
+    "kind": "vue",
+    "styles": [
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0s, 0s, 0s, 0s"
+      },
+      {
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "duration": "0.45s, 0.55s, 0.3s, 0.3s",
+        "delay": "0.08s, 0.08s, 0s, 0s"
+      }
+    ],
+    "pageErrors": [],
+    "requests": [
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "повільний запит",
+        "request_group": "emotional_state",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "повільний запит",
+        "format": "offline",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "повільний запит",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "помилка мережі",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "q": "немає результатів",
+        "page_size": "50"
+      },
+      {
+        "shuffle_seed": "648fb58f8fe70276519704d69d2bcc9a",
+        "page_size": "50"
+      }
+    ],
+    "fixtureNote": "Synthetic public API data; no live backend acceptance"
+  }
+]

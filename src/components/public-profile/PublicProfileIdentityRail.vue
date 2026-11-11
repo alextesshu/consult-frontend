@@ -14,10 +14,12 @@
           :class="{ 'identity-rail__service--active': selectedOfferType === 'standard' }"
           type="button"
           :aria-pressed="selectedOfferType === 'standard'"
+          :aria-label="uiV2 ? 'Консультація: ' + priceDisplay : undefined"
           @click="$emit('select-offer', 'standard')"
         >
-          <div class="identity-rail__service-title">Консультація: {{ priceDisplay }}</div>
-          <div class="identity-rail__service-meta">{{ standardSessionDurationLabel }}</div>
+          <div class="identity-rail__service-title">{{ uiV2 ? 'Консультація' : 'Консультація: ' + priceDisplay }}</div>
+          <span v-if="uiV2" class="pc2-profile-offer-price">{{ priceDisplay }}</span>
+          <div class="identity-rail__service-meta">{{ standardSessionDurationLabel }}<template v-if="uiV2 && meetingFormatLabel"> · {{ meetingFormatLabel }}</template></div>
         </button>
         <button
           v-if="introPriceDisplay"
@@ -25,10 +27,12 @@
           :class="{ 'identity-rail__service--active': selectedOfferType === 'intro' }"
           type="button"
           :aria-pressed="selectedOfferType === 'intro'"
+          :aria-label="uiV2 ? 'Ознайомча сесія: ' + introPriceDisplay : undefined"
           @click="$emit('select-offer', 'intro')"
         >
-          <div class="identity-rail__service-title">Ознайомча сесія: {{ introPriceDisplay }}</div>
-          <div v-if="introDurationLabel" class="identity-rail__service-meta">{{ introDurationLabel }}</div>
+          <div class="identity-rail__service-title">{{ uiV2 ? 'Ознайомча сесія' : 'Ознайомча сесія: ' + introPriceDisplay }}</div>
+          <span v-if="uiV2" class="pc2-profile-offer-price">{{ introPriceDisplay }}</span>
+          <div v-if="introDurationLabel" class="identity-rail__service-meta">{{ introDurationLabel }}<template v-if="uiV2 && meetingFormatLabel"> · {{ meetingFormatLabel }}</template></div>
         </button>
         <button
           v-if="couplePriceDisplay"
@@ -36,10 +40,12 @@
           :class="{ 'identity-rail__service--active': selectedOfferType === 'couple' }"
           type="button"
           :aria-pressed="selectedOfferType === 'couple'"
+          :aria-label="uiV2 ? 'Парна консультація: ' + couplePriceDisplay : undefined"
           @click="$emit('select-offer', 'couple')"
         >
-          <div class="identity-rail__service-title">Парна консультація: {{ couplePriceDisplay }}</div>
-          <div v-if="coupleDurationLabel" class="identity-rail__service-meta">{{ coupleDurationLabel }}</div>
+          <div class="identity-rail__service-title">{{ uiV2 ? 'Парна консультація' : 'Парна консультація: ' + couplePriceDisplay }}</div>
+          <span v-if="uiV2" class="pc2-profile-offer-price">{{ couplePriceDisplay }}</span>
+          <div v-if="coupleDurationLabel" class="identity-rail__service-meta">{{ coupleDurationLabel }}<template v-if="uiV2 && meetingFormatLabel"> · {{ meetingFormatLabel }}</template></div>
         </button>
       </div>
 
@@ -233,6 +239,8 @@ type ContactAction = {
 }
 
 type Props = {
+  uiV2?: boolean
+  meetingFormatLabel?: string
   profile: PublicProfileMedia | null
   heroCtaTitle: string
   heroPrimaryLabel: string

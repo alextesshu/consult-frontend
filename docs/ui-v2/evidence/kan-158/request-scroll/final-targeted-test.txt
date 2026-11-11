@@ -1,0 +1,14 @@
+
+> frontend@0.0.0 test:run
+> vitest run src/views/PublicProfileView.spec.ts -t resets only the desktop panel --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_ui_v2_stage2_1_public_profile
+
+ ✓ src/views/PublicProfileView.spec.ts (144 tests | 143 skipped) 334ms
+   ✓ PublicProfileView > UI v2 profile isolation and requests > resets only the desktop panel when opening, closing and reopening the form 333ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 143 skipped (144)
+   Start at  04:59:30
+   Duration  2.24s (transform 868ms, setup 79ms, collect 1.19s, tests 334ms, environment 423ms, prepare 69ms)

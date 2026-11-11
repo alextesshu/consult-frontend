@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="public/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="public/brand/apple-touch-icon.png">
+<script src="./brand-listen.js"></script>
+<style>body{margin:0;background:#FBF9F5;color:#12233A;font-family:Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#12345A;text-decoration:none}a:hover{color:#0E2D52}*{box-sizing:border-box}input{font:inherit;color:inherit}input::placeholder{color:#A0A8B6}</style>
+</helmet>
+<div style="min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+
+  <section style="display:flex;flex-direction:column;padding:28px clamp(24px,5vw,72px) 40px">
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:clamp(40px,8vh,88px)">
+      <img src="public/brand/proconsult-logo-dark.png" alt="Pro Consult" style="height:40px;width:auto;display:block;margin-left:-8px">
+      <span style="font-size:14px;color:#657287;white-space:nowrap">Вже маєте акаунт? <span style="color:#12345A;font-weight:500;cursor:pointer">Увійти</span></span>
+    </header>
+
+    <div style="width:100%;max-width:440px;margin:0 auto;flex:1;display:flex;flex-direction:column">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
+        <sc-for list="{{ bars }}" as="b" hint-placeholder-count="3">
+          <div style="height:4px;border-radius:4px;background:#EDE7DE;overflow:hidden"><div style="height:100%;width:{{ b.w }};background:#12345A;transition:width .6s cubic-bezier(.4,0,.2,1)"></div></div>
+        </sc-for>
+      </div>
+      <p style="font-size:13px;color:#8B95A7;margin:0 0 28px">{{ stepLabel }}</p>
+
+      <div style="position:relative;flex:1">
+
+        <sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:24px;animation:none">
+            <div>
+              <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Як вас звати?</h1>
+              <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Так вас побачать клієнти на сторінці. Змінити можна будь-коли.</p>
+            </div>
+            <input value="{{ name }}" onChange="{{ onName }}" placeholder="Ім’я та прізвище" autofocus style="height:60px;padding:0 18px;border-radius:16px;border:1.5px solid #E6E0D8;background:#fff;font-size:19px;outline:none;transition:border-color .2s,box-shadow .2s" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+            <span onClick="{{ next }}" style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ okBg }};cursor:{{ okCur }};transition:background .3s">Далі</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <div>
+              <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">З чим ви працюєте?</h1>
+              <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Оберіть напрям — решту профілю заповните пізніше.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <sc-for list="{{ focuses }}" as="f" hint-placeholder-count="6">
+                <div onClick="{{ f.on }}" style="padding:14px 16px;border-radius:14px;font-size:15px;cursor:pointer;border:1.5px solid {{ f.bd }};background:{{ f.bg }};transition:all .2s" style-hover="border-color:#B9C3D0">{{ f.label }}</div>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-rows:{{ apRows }};transition:grid-template-rows .45s ease">
+              <div style="overflow:hidden">
+                <div style="font-size:13px;color:#8B95A7;margin-bottom:10px">Підхід або спеціалізація <span style="color:#A0A8B6">— до 3, необов’язково</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ approaches }}" as="a" hint-placeholder-count="8">
+                    <span onClick="{{ a.on }}" style="font-size:14px;padding:8px 13px;border-radius:999px;cursor:pointer;background:{{ a.bg }};color:{{ a.fg }};transition:all .2s">{{ a.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span onClick="{{ back }}" style="padding:17px 22px;border-radius:999px;font-size:16px;border:1px solid #E6E0D8;cursor:pointer" style-hover="border-color:#12345A">←</span>
+              <span onClick="{{ next }}" style="flex:1;padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ okBg }};cursor:{{ okCur }};transition:background .3s">Далі</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div>
+              <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Останній крок</h1>
+              <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">Пошта для входу і сповіщень про нові запити.</p>
+            </div>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Ел. пошта
+              <input type="email" value="{{ email }}" onChange="{{ onEmail }}" placeholder="name@example.com" style="height:54px;padding:0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#657287">Пароль
+              <div style="position:relative">
+                <input type="{{ pwType }}" value="{{ pw }}" onChange="{{ onPw }}" placeholder="Щонайменше 8 символів" style="width:100%;height:54px;padding:0 96px 0 16px;border-radius:14px;border:1.5px solid #E6E0D8;background:#fff;font-size:16px;outline:none" style-focus="border-color:#12345A;box-shadow:0 0 0 4px rgba(18,52,90,.08)">
+                <span onClick="{{ togglePw }}" style="position:absolute;right:8px;top:8px;height:38px;padding:0 12px;display:flex;align-items:center;border-radius:10px;font-size:13px;color:#12345A;cursor:pointer" style-hover="background:#F6F1EA">{{ pwToggle }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <div style="flex:1;height:3px;border-radius:3px;background:#EDE7DE;overflow:hidden"><div style="height:100%;width:{{ pwW }};background:{{ pwC }};transition:all .4s"></div></div>
+                <span style="font-size:12px;color:#8B95A7;min-width:80px;text-align:right">{{ pwHint }}</span>
+              </div>
+            </label>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <span onClick="{{ back }}" style="padding:17px 22px;border-radius:999px;font-size:16px;border:1px solid #E6E0D8;cursor:pointer" style-hover="border-color:#12345A">←</span>
+              <span onClick="{{ next }}" style="flex:1;padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:{{ okBg }};cursor:{{ okCur }};transition:background .3s">Створити простір</span>
+            </div>
+            <p style="font-size:13px;line-height:1.5;color:#8B95A7;margin:0">Без картки. Профіль не публікується автоматично. Продовжуючи, ви погоджуєтеся з <span style="color:#12345A;border-bottom:1px solid #D4CCC2">Умовами</span> та <span style="color:#12345A;border-bottom:1px solid #D4CCC2">Політикою конфіденційності</span>.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex"><x-import component-from-global-scope="PCListen" size="72" color="#0F2D52" ring="#2F8C86" rings="2" dur="2.2" once="{{ true }}" breath="{{ false }}" hint-size="72px,72px"></x-import></div>
+            <div>
+              <h1 style="font-weight:500;font-size:clamp(32px,3.4vw,42px);line-height:1.08;letter-spacing:-0.035em;margin:0 0 10px">Простір готовий, {{ firstName }}</h1>
+              <p style="font-size:16px;line-height:1.55;color:#5A6578;margin:0">30 днів Pro вже активні. Ось що зробити далі — у будь-якому порядку.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ todo }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:16px;background:#fff;border:1px solid #EDE7DE;cursor:pointer;transition:transform .25s,border-color .25s" style-hover="transform:translateX(4px);border-color:#D4CCC2">
+                  <span style="width:28px;height:28px;flex-shrink:0;border-radius:50%;background:#F6F1EA;display:flex;align-items:center;justify-content:center;font-size:13px">{{ t.n }}</span>
+                  <div style="flex:1">
+                    <div style="font-size:16px;font-weight:500">{{ t.t }}</div>
+                    <div style="font-size:13px;color:#8B95A7">{{ t.d }}</div>
+                  </div>
+                  <span style="color:#8B95A7">→</span>
+                </div>
+              </sc-for>
+            </div>
+            <span style="padding:17px;border-radius:999px;text-align:center;font-size:16px;font-weight:500;color:#fff;background:#12345A;cursor:pointer" style-hover="background:#0E2D52">Перейти до кабінету</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <p style="font-size:13px;color:#8B95A7;margin:32px 0 0">Шукаєте спеціаліста? <span style="color:#12345A;cursor:pointer">Зареєструватися як клієнт</span></p>
+    </div>
+  </section>
+
+  <aside style="position:relative;overflow:hidden;background:#F1EBE2;display:flex;align-items:center;justify-content:center;padding:48px">
+    <div style="position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;background:#FFE2C4;opacity:.55"></div>
+    <div style="position:absolute;left:-80px;bottom:-100px;width:320px;height:320px;border-radius:50%;background:#DDF1EF;opacity:.8"></div>
+
+    <div style="position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:13px;color:#657287;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{ liveDot }};transition:background .4s"></span>{{ previewLabel }}</div>
+      <div style="background:#fff;border-radius:24px;padding:24px;box-shadow:0 24px 60px rgba(18,35,58,.10);display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;gap:14px;align-items:center">
+          <span style="width:56px;height:56px;border-radius:16px;background:#12345A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;flex-shrink:0">{{ initials }}</span>
+          <div style="min-width:0">
+            <div style="font-size:20px;font-weight:500;letter-spacing:-0.02em;color:{{ nameColor }};transition:color .3s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ displayName }}</div>
+            <div style="font-size:14px;color:#657287">{{ displayFocus }}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;min-height:30px">
+          <sc-for list="{{ previewChips }}" as="c" hint-placeholder-count="2">
+            <span style="font-size:13px;padding:6px 12px;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="height:10px;border-radius:6px;background:#F6F1EA;width:92%"></div>
+          <div style="height:10px;border-radius:6px;background:#F6F1EA;width:74%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid #F1EBE2">
+          <span style="font-size:13px;color:#A0A8B6">Формат і вартість — пізніше</span>
+          <span style="font-size:13px;padding:8px 14px;border-radius:999px;background:#12345A;color:#fff">Залишити запит</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:4px 4px 0">
+        <sc-for list="{{ perks }}" as="p" hint-placeholder-count="3">
+          <span style="font-size:14px;color:#3F4B5E">{{ p }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { step: 0, name: '', focus: null, aps: [], email: '', pw: '', showPw: false };
+  renderVals() {
+    const { step, name, focus, aps, email, pw, showPw } = this.state;
+    const F = [
+      ['psych', 'Психологічна практика', 'Психолог', ['Когнітивно-поведінкова терапія', 'Гештальт-терапія', 'Клієнт-центрована терапія', 'Екзистенційна терапія', 'Психоаналіз', 'Схема-терапія', 'Арттерапія', 'ACT']],
+      ['coach', 'Коучингова практика', 'Коуч', ['Кар’єрний коучинг', 'Life coaching', 'Executive coaching', 'Коучинг змін', 'Коучинг цілей']],
+      ['mentor', 'Менторська практика', 'Ментор', ['Кар’єрне менторство', 'Професійний розвиток', 'Запуск приватної практики', 'Розвиток експертності']],
+      ['consult', 'Консультаційна практика', 'Консультант', ['Індивідуальні консультації', 'Бізнес-консалтинг', 'Стратегічні сесії', 'Консультації зі змін']],
+      ['teach', 'Викладацька практика', 'Викладач', ['Індивідуальне навчання', 'Авторські програми', 'Підготовка до іспитів', 'Викладання для груп']],
+      ['other', 'Інша практика', 'Спеціаліст', ['Індивідуальна практика', 'Супровід розвитку', 'Робота з групами', 'Авторські формати']],
+    ];
+    const fObj = F.find(f => f[0] === focus);
+    const emailOk = /.+@.+\..+/.test(email);
+    const ok = [name.trim().length > 1, !!focus, emailOk && pw.length >= 8, true][step];
+    const pwScore = pw.length === 0 ? 0 : pw.length < 8 ? 1 : (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) || pw.length >= 12 ? 3 : 2;
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    const initials = parts.length ? parts.slice(0, 2).map(p => p[0].toUpperCase()).join('') : '?';
+    const labels = ['Крок 1 з 3 · Про вас', 'Крок 2 з 3 · Напрям', 'Крок 3 з 3 · Акаунт', 'Готово'];
+    return {
+      s0: step === 0, s1: step === 1, s2: step === 2, s3: step === 3,
+      stepLabel: labels[step],
+      bars: [0, 1, 2].map(i => ({ w: step > i ? '100%' : step === i ? '40%' : '0%' })),
+      name, email, pw,
+      onName: e => this.setState({ name: e.target.value }),
+      onEmail: e => this.setState({ email: e.target.value }),
+      onPw: e => this.setState({ pw: e.target.value }),
+      togglePw: () => this.setState({ showPw: !showPw }),
+      pwType: showPw ? 'text' : 'password', pwToggle: showPw ? 'Сховати' : 'Показати',
+      pwW: ['0%', '33%', '66%', '100%'][pwScore], pwC: ['#EDE7DE', '#D98A2B', '#8FCBC8', '#2F9E6D'][pwScore],
+      pwHint: ['', 'ще трохи', 'добре', 'надійний'][pwScore],
+      okBg: ok ? '#12345A' : '#B7C0CC', okCur: ok ? 'pointer' : 'default',
+      next: () => ok && this.setState({ step: Math.min(3, step + 1) }),
+      back: () => this.setState({ step: Math.max(0, step - 1) }),
+      focuses: F.map(([id, label]) => ({ label, on: () => this.setState({ focus: id, aps: focus === id ? aps : [] }),
+        bd: focus === id ? '#12345A' : '#EDE7DE', bg: focus === id ? '#fff' : 'transparent' })),
+      apRows: fObj ? '1fr' : '0fr',
+      approaches: (fObj ? fObj[3] : []).map(label => {
+        const on = aps.includes(label);
+        return { label, bg: on ? '#12345A' : '#F1EBE2', fg: on ? '#fff' : '#12233A',
+          on: () => this.setState({ aps: on ? aps.filter(a => a !== label) : aps.length < 3 ? [...aps, label] : aps }) };
+      }),
+      firstName: parts[0] || 'колего',
+      todo: [
+        { n: 1, t: 'Заповніть сторінку', d: 'Фото, підхід, формат і вартість' },
+        { n: 2, t: 'Додайте вільні вікна', d: 'Клієнти зможуть обрати час у запиті' },
+        { n: 3, t: 'Опублікуйте й поділіться', d: 'Коли будете готові — одним кліком' },
+      ],
+      initials, displayName: name.trim() || 'Ваше ім’я', nameColor: name.trim() ? '#12233A' : '#B7C0CC',
+      displayFocus: fObj ? fObj[2] : 'Напрям практики',
+      previewChips: aps.length ? aps.map(label => ({ label, bg: '#EEF8F7', fg: '#1F5E5A' })) : [{ label: 'спеціалізація', bg: '#F6F1EA', fg: '#A0A8B6' }],
+      previewLabel: step === 3 ? 'Чернетка збережена · не опублікована' : 'Так виглядатиме ваша сторінка',
+      liveDot: step === 3 ? '#2F9E6D' : '#F7B77E',
+      perks: ['30 днів Pro безкоштовно', '0% комісії з консультацій', 'Профіль публікуєте лише ви'],
+    };
+  }
+}
+</script>
+</body>
+</html>

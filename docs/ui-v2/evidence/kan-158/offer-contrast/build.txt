@@ -1,0 +1,33 @@
+
+> frontend@0.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 415 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                  3.48 kB │ gzip:   1.11 kB
+dist/assets/proconsult-fennec-lockup-D9sWqrcW.svg               12.83 kB │ gzip:   3.82 kB
+dist/assets/proconsult-fennec-header-BTg6UB0r.svg               13.11 kB │ gzip:   3.95 kB
+dist/assets/consult-logo_2026-02-24-2135_black-BKVQdgoD.png     17.61 kB
+dist/assets/maria-koval-BzVCsYF6.webp                           35.64 kB
+dist/assets/mark-navy-C8b0ifZH.png                              95.53 kB
+dist/assets/mark-band-BH-_-vYT.png                              96.33 kB
+dist/assets/index-BKlSpnF9.css                                  79.21 kB │ gzip:  13.50 kB
+dist/assets/index-DDiWY0wr.css                                 617.54 kB │ gzip:  86.66 kB
+dist/assets/index-CwaFsJ4Z.js                                  510.04 kB │ gzip: 166.23 kB
+dist/assets/index-BTRhzIBS.js                                1,526.03 kB │ gzip: 439.19 kB
+npm :
+At line:2 char:1
++ npm run build 2>&1 | Out-File -LiteralPath "$env:TEMP/kan158-contrast ...
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-m
+anualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.80s

@@ -1,0 +1,82 @@
+[
+  {
+    "width": 375,
+    "reduced": {
+      "timers": 0,
+      "frames": 0,
+      "animations": 0,
+      "index": "0"
+    },
+    "keyboardFocus": {
+      "style": "solid",
+      "width": "2px"
+    },
+    "validation": "3..240 characters; zero invalid/draft requests",
+    "filterHistory": "PASS",
+    "psychologicalLanding": "PASS",
+    "canonicalProfileNavigation": "PASS",
+    "longNameNoOverflow": true,
+    "lifecycleCleanup": "PASS",
+    "fixtureOnly": true
+  },
+  {
+    "width": 768,
+    "reduced": {
+      "timers": 0,
+      "frames": 0,
+      "animations": 0,
+      "index": "0"
+    },
+    "keyboardFocus": {
+      "style": "solid",
+      "width": "2px"
+    },
+    "validation": "3..240 characters; zero invalid/draft requests",
+    "filterHistory": "PASS",
+    "psychologicalLanding": "PASS",
+    "canonicalProfileNavigation": "PASS",
+    "longNameNoOverflow": true,
+    "lifecycleCleanup": "PASS",
+    "fixtureOnly": true
+  },
+  {
+    "width": 1280,
+    "reduced": {
+      "timers": 0,
+      "frames": 0,
+      "animations": 0,
+      "index": "0"
+    },
+    "keyboardFocus": {
+      "style": "solid",
+      "width": "2px"
+    },
+    "validation": "3..240 characters; zero invalid/draft requests",
+    "filterHistory": "PASS",
+    "psychologicalLanding": "PASS",
+    "canonicalProfileNavigation": "PASS",
+    "longNameNoOverflow": true,
+    "lifecycleCleanup": "PASS",
+    "fixtureOnly": true
+  },
+  {
+    "width": 1440,
+    "reduced": {
+      "timers": 0,
+      "frames": 0,
+      "animations": 0,
+      "index": "0"
+    },
+    "keyboardFocus": {
+      "style": "solid",
+      "width": "2px"
+    },
+    "validation": "3..240 characters; zero invalid/draft requests",
+    "filterHistory": "PASS",
+    "psychologicalLanding": "PASS",
+    "canonicalProfileNavigation": "PASS",
+    "longNameNoOverflow": true,
+    "lifecycleCleanup": "PASS",
+    "fixtureOnly": true
+  }
+]

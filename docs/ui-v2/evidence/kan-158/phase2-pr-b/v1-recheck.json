@@ -1,0 +1,27 @@
+{
+  "now": "2026-10-26T09:26:15.294Z",
+  "files": [
+    "recheck-directEmpty-baseline-1.png",
+    "recheck-directEmpty-candidate-1.png",
+    "recheck-directEmpty-baseline-2.png",
+    "recheck-directEmpty-candidate-2.png"
+  ],
+  "diffs": {
+    "baseline1-vs-baseline2": {
+      "changedPixels": 0,
+      "bbox": null
+    },
+    "candidate1-vs-candidate2": {
+      "changedPixels": 0,
+      "bbox": null
+    },
+    "baseline1-vs-candidate1": {
+      "changedPixels": 0,
+      "bbox": null
+    },
+    "baseline2-vs-candidate2": {
+      "changedPixels": 0,
+      "bbox": null
+    }
+  }
+}

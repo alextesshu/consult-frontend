@@ -1,0 +1,43 @@
+{
+  "now": "2026-10-26T00:51:37.038Z",
+  "files": [
+    "recheck-direct-baseline-1.png",
+    "recheck-direct-candidate-1.png",
+    "recheck-direct-baseline-2.png",
+    "recheck-direct-candidate-2.png",
+    "recheck-request-baseline-1.png",
+    "recheck-request-candidate-1.png",
+    "recheck-request-baseline-2.png",
+    "recheck-request-candidate-2.png"
+  ],
+  "results": {
+    "direct": {
+      "baseline1_vs_baseline2": {
+        "changedPixels": 0
+      },
+      "candidate1_vs_candidate2": {
+        "changedPixels": 0
+      },
+      "baseline1_vs_candidate1": {
+        "changedPixels": 0
+      },
+      "baseline2_vs_candidate2": {
+        "changedPixels": 0
+      }
+    },
+    "request": {
+      "baseline1_vs_baseline2": {
+        "changedPixels": 1543
+      },
+      "candidate1_vs_candidate2": {
+        "changedPixels": 0
+      },
+      "baseline1_vs_candidate1": {
+        "changedPixels": 1543
+      },
+      "baseline2_vs_candidate2": {
+        "changedPixels": 0
+      }
+    }
+  }
+}

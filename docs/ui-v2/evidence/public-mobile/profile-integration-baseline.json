@@ -1,0 +1,76 @@
+[
+  {
+    "width": 375,
+    "headerBottom": 76,
+    "navTop": 76,
+    "navStuck": true,
+    "headerLinks": [],
+    "audience": false,
+    "overflow": {
+      "scrollWidth": 375,
+      "innerWidth": 375,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 390,
+    "headerBottom": 76,
+    "navTop": 76,
+    "navStuck": true,
+    "headerLinks": [],
+    "audience": false,
+    "overflow": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 640,
+    "headerBottom": 76,
+    "navTop": 76,
+    "navStuck": true,
+    "headerLinks": [],
+    "audience": false,
+    "overflow": {
+      "scrollWidth": 640,
+      "innerWidth": 640,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 768,
+    "headerBottom": 76,
+    "navTop": 76,
+    "navStuck": true,
+    "headerLinks": [
+      "Вхід → /login"
+    ],
+    "audience": false,
+    "overflow": {
+      "scrollWidth": 768,
+      "innerWidth": 768,
+      "ok": true
+    },
+    "errors": []
+  },
+  {
+    "width": 1280,
+    "headerBottom": 76,
+    "navTop": 76,
+    "navStuck": true,
+    "headerLinks": [
+      "Вхід → /login"
+    ],
+    "audience": false,
+    "overflow": {
+      "scrollWidth": 1280,
+      "innerWidth": 1280,
+      "ok": true
+    },
+    "errors": []
+  }
+]
