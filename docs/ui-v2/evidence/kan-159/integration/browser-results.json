@@ -1,0 +1,205 @@
+{
+  "matrix": [
+    {
+      "width": 375,
+      "pageName": "signup",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 375,
+      "pageName": "signup-client",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 390,
+      "pageName": "signup",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 390,
+      "pageName": "signup-client",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 640,
+      "pageName": "signup",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 640,
+      "pageName": "signup-client",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 768,
+      "pageName": "signup",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 768,
+      "pageName": "signup-client",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 1,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 1280,
+      "pageName": "signup",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 3,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    },
+    {
+      "width": 1280,
+      "pageName": "signup-client",
+      "backend": "explicit intercepted fixtures",
+      "wizardSteps": 1,
+      "noEarlyPost": true,
+      "posts": 1,
+      "contractVersion": 2,
+      "nameValidation": true,
+      "keyboard": true,
+      "backValuesPreserved": true,
+      "duplicateGuard": true,
+      "serverFieldError": true,
+      "noCredentialStorage": true,
+      "pageErrors": [],
+      "settledAnimations": 0
+    }
+  ],
+  "successRows": [
+    {
+      "pageName": "signup",
+      "destination": "/cabinet",
+      "evidence": "fixture-only frontend redirect, not real registration or publication"
+    },
+    {
+      "pageName": "signup-client",
+      "destination": "/client/invite/fixture",
+      "evidence": "fixture-only frontend redirect, not real registration or publication"
+    }
+  ],
+  "regression": [
+    {
+      "route": "/",
+      "pageErrors": []
+    },
+    {
+      "route": "for-clients",
+      "pageErrors": []
+    },
+    {
+      "route": "specialists",
+      "pageErrors": []
+    },
+    {
+      "route": "login",
+      "pageErrors": []
+    }
+  ],
+  "limits": "Fixtures throughout browser acceptance; separate isolated Django APIClient proof. No external email or production readiness claim."
+}

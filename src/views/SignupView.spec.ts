@@ -4,7 +4,7 @@ import { ref, nextTick, computed, reactive } from 'vue'
 import { stringifyQuery, type LocationQuery } from 'vue-router'
 import { applyUiVersion } from '../lib/uiVersion'
 import SignupView from './SignupView.vue'
-import { enableSpecialist } from '../lib/api'
+import { RegistrationError, enableSpecialist } from '../lib/api'
 import {
   clearSpecialistRegistrationAttribution,
   getSpecialistRegistrationAttribution,
@@ -205,107 +205,102 @@ describe('SignupView v2', () => {
   beforeEach(() => { applyUiVersion('v2') })
 
   async function fillValidForm() {
+    await fireEvent.update(screen.getByRole('textbox', { name: /^Ім’я/ }), '  Олена  ')
+    await fireEvent.click(screen.getByRole('button', { name: 'Далі' }))
+    expect(mockSignup).not.toHaveBeenCalled()
+    await fireEvent.click(screen.getByRole('radio', { name: 'Психологічна практика' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Далі' }))
+    expect(mockSignup).not.toHaveBeenCalled()
     await fireEvent.update(screen.getByLabelText('Ел. пошта'), 'specialist@example.com')
     await fireEvent.update(screen.getByLabelText('Пароль'), 'password123')
-    await fireEvent.update(screen.getByLabelText('Підтвердження пароля'), 'password123')
   }
 
-  it('preserves the exact fields, autocomplete and native validation constraints', () => {
-    const { container } = renderView()
-    expect(container.querySelector('.pc2-signup')).toBeInTheDocument()
-    const fields = Array.from(container.querySelectorAll('input'))
-    expect(fields.map((input) => [input.name, input.type, input.autocomplete, input.required, input.minLength])).toEqual([
-      ['email', 'email', 'email', false, -1],
-      ['password', 'password', 'new-password', false, -1],
-      ['password_confirm', 'password', 'new-password', false, -1],
-    ])
-    for (const field of fields) {
-      expect(field).toHaveClass('pc2-input', 'pc2-input--lg')
-      expect(field).toHaveAttribute('aria-required', 'true')
-    }
-    expect(container.querySelector('[role="progressbar"]')).toBeNull()
-    expect(container.querySelector('.pc2-steps')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Умовами користування' })).toHaveAttribute('href', '/terms')
-    expect(screen.getByRole('link', { name: 'Політикою конфіденційності' })).toHaveAttribute('href', '/privacy')
-    expect(screen.getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
-    expect(screen.getByRole('link', { name: /Я клієнт/ })).toHaveAttribute('href', '/signup-client?ui=v2')
-  })
-
-  it('announces the unchanged empty and mismatched password errors', async () => {
+  it('requires a meaningful name and canonical focus before reaching account, without creating accounts', async () => {
     const { container } = renderView()
     await fireEvent.submit(container.querySelector('form')!)
-    expect(screen.getByRole('alert')).toHaveTextContent('Заповніть усі поля.')
+    expect(screen.getByRole('alert')).toHaveTextContent('Вкажіть ім’я.')
+    await fireEvent.update(screen.getByRole('textbox', { name: /^Ім’я/ }), '\u200b')
+    await fireEvent.submit(container.querySelector('form')!)
     expect(mockSignup).not.toHaveBeenCalled()
-    await fillValidForm()
-    await fireEvent.update(screen.getByLabelText('Підтвердження пароля'), 'different')
+    await fireEvent.update(screen.getByRole('textbox', { name: /^Ім’я/ }), 'Олена')
     await fireEvent.submit(container.querySelector('form')!)
-    expect(screen.getByRole('alert')).toHaveTextContent('Паролі не збігаються.')
+    expect(screen.getAllByRole('radio')).toHaveLength(6)
+    await fireEvent.submit(container.querySelector('form')!)
+    expect(screen.getByRole('alert')).toHaveTextContent('Оберіть напрям практики.')
     expect(mockSignup).not.toHaveBeenCalled()
   })
 
-  it('retains the same DOM, values, visibility and error across UI switches without restarting analytics', async () => {
+  it('retains values through back and UI switching and sends only v2 at final submission', async () => {
     const { container } = renderView()
     await fillValidForm()
-    const emailInput = screen.getByLabelText('Ел. пошта')
-    await fireEvent.update(screen.getByLabelText('Підтвердження пароля'), 'different')
-    await fireEvent.click(screen.getByRole('button', { name: 'Показати пароль' }))
+    expect(screen.queryByLabelText('Підтвердження пароля')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Назад' }))
+    expect(screen.getByRole('radio', { name: 'Психологічна практика' })).toBeChecked()
+    await fireEvent.click(screen.getByRole('button', { name: 'Назад' }))
+    expect(screen.getByRole('textbox', { name: /^Ім’я/ })).toHaveValue('  Олена  ')
+    applyUiVersion('v1'); await nextTick()
+    expect(screen.getByLabelText('Ел. пошта')).toHaveValue('specialist@example.com')
+    expect(screen.getByLabelText('Пароль')).toHaveValue('password123')
+    expect(screen.getByLabelText('Підтвердження пароля')).toBeInTheDocument()
+    applyUiVersion('v2'); await nextTick()
     await fireEvent.submit(container.querySelector('form')!)
-    applyUiVersion('v1')
-    await nextTick()
-    expect(container.querySelector('.pc2-signup')).toBeNull()
-    expect(screen.getByLabelText('Ел. пошта')).toBe(emailInput)
-    expect(emailInput).toHaveValue('specialist@example.com')
-    expect(screen.getByLabelText('Пароль')).toHaveAttribute('type', 'text')
-    expect(screen.queryByRole('alert')).toBeNull()
-    expect(screen.getByText('Паролі не збігаються.')).toBeInTheDocument()
-    applyUiVersion('v2')
-    await nextTick()
-    expect(screen.getByRole('alert')).toHaveTextContent('Паролі не збігаються.')
-    expect(screen.getByLabelText('Підтвердження пароля')).toHaveValue('different')
+    await fireEvent.submit(container.querySelector('form')!)
+    await fireEvent.submit(container.querySelector('form')!)
+    expect(mockSignup).toHaveBeenCalledWith('specialist@example.com', 'password123', undefined, { registration_contract_version: 2, first_name: 'Олена', professional_focus: 'psychological_practice' })
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/cabinet'))
     expect(productAnalytics.capture).toHaveBeenCalledTimes(1)
-    expect(productAnalytics.capture).toHaveBeenCalledWith('signup_started')
   })
 
-  it('guards duplicate submits across UI switches and preserves the successful payload and redirect', async () => {
+  it('guards duplicate final submissions even when UI changes during the request', async () => {
     let complete!: () => void
-    mockSignup.mockImplementationOnce(() => new Promise<void>((resolve) => { complete = resolve }))
+    mockSignup.mockImplementationOnce(() => new Promise<void>(resolve => { complete = resolve }))
     const { container } = renderView()
     await fillValidForm()
     await fireEvent.submit(container.querySelector('form')!)
     expect(screen.getByRole('button', { name: 'Створення акаунта...' })).toBeDisabled()
-    expect(container.querySelector('form')).toHaveAttribute('aria-busy', 'true')
     await fireEvent.submit(container.querySelector('form')!)
-    applyUiVersion('v1')
-    await nextTick()
+    applyUiVersion('v1'); await nextTick()
     await fireEvent.submit(container.querySelector('form')!)
     expect(mockSignup).toHaveBeenCalledTimes(1)
-    expect(mockSignup).toHaveBeenCalledWith('specialist@example.com', 'password123', 'password123')
     complete()
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/cabinet'))
-    expect(screen.getByRole('button', { name: 'Створити акаунт' })).not.toBeDisabled()
   })
 
-  it('keeps backend errors verbatim, retains input and permits retry after failure', async () => {
-    mockSignup.mockRejectedValueOnce(new Error('email: Такий email вже існує.'))
+  it.each(['first_name', 'professional_focus'] as const)('returns server %s errors to their step and allows recovery', async field => {
+    mockSignup.mockRejectedValueOnce(new RegistrationError('Server validation', { [field]: 'Invalid field' }))
     const { container } = renderView()
     await fillValidForm()
     await fireEvent.submit(container.querySelector('form')!)
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('email: Такий email вже існує.'))
-    expect(screen.getByLabelText('Ел. пошта')).toHaveValue('specialist@example.com')
-    expect(screen.getByRole('button', { name: 'Створити акаунт' })).not.toBeDisabled()
+    await waitFor(() => expect(screen.getByText('Invalid field')).toBeInTheDocument())
+    expect(container.querySelector('[aria-invalid="true"]')).toBeInTheDocument()
     expect(mockPush).not.toHaveBeenCalled()
+    await waitFor(() => expect(container.querySelector('button[type="submit"]')).not.toBeDisabled())
+    if (field === 'first_name') await fireEvent.submit(container.querySelector('form')!)
+    await fireEvent.submit(container.querySelector('form')!)
+    expect(screen.getByLabelText('Пароль')).toHaveValue('password123')
     await fireEvent.submit(container.querySelector('form')!)
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/cabinet'))
-    expect(mockSignup).toHaveBeenCalledTimes(2)
   })
 
-  it('keeps both password toggles independent and non-submitting', async () => {
+  it.each([400, 429, 500])('retains account fields and enables retry for status %s', async status => {
+    mockSignup.mockRejectedValueOnce(new Error(`HTTP ${status}`))
+    const { container } = renderView()
+    await fillValidForm()
+    await fireEvent.submit(container.querySelector('form')!)
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(`HTTP ${status}`))
+    expect(screen.getByLabelText('Ел. пошта')).toHaveValue('specialist@example.com')
+    expect(screen.getByRole('button', { name: 'Створити акаунт' })).not.toBeDisabled()
+    await fireEvent.submit(container.querySelector('form')!)
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/cabinet'))
+  })
+
+  it('keeps the password toggle and autocomplete without confirmation in v2', async () => {
     renderView()
+    await fillValidForm()
     await fireEvent.click(screen.getByRole('button', { name: 'Показати пароль' }))
     expect(screen.getByLabelText('Пароль')).toHaveAttribute('type', 'text')
-    expect(screen.getByLabelText('Підтвердження пароля')).toHaveAttribute('type', 'password')
-    await fireEvent.click(screen.getByRole('button', { name: 'Показати підтвердження пароля' }))
-    expect(screen.getByLabelText('Підтвердження пароля')).toHaveAttribute('type', 'text')
+    expect(screen.getByLabelText('Пароль')).toHaveAttribute('autocomplete', 'new-password')
+    expect(screen.queryByLabelText('Підтвердження пароля')).toBeNull()
     expect(mockSignup).not.toHaveBeenCalled()
   })
 

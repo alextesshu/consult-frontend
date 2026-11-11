@@ -24,6 +24,41 @@ type SignupResponse = TokenResponse & {
   user: AccountIdentity
 }
 
+export type ClientRegistrationV2 = { registration_contract_version: 2; first_name: string }
+export type SpecialistRegistrationV2 = ClientRegistrationV2 & { professional_focus: ProfessionalFocus }
+export type RegistrationField = 'first_name' | 'professional_focus' | 'email' | 'password'
+export class RegistrationError extends Error {
+  fields: Partial<Record<RegistrationField, string>>
+  constructor(message: string, fields: Partial<Record<RegistrationField, string>>) {
+    super(message)
+    this.fields = fields
+  }
+}
+
+function registrationError(err: unknown): RegistrationError {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data
+  const fields: Partial<Record<RegistrationField, string>> = {}
+  for (const key of ['first_name', 'professional_focus', 'email', 'password'] as const) {
+    const value = data?.[key]
+    const text = Array.isArray(value) ? value[0] : value
+    if (typeof text === 'string') fields[key] = text
+  }
+  return new RegistrationError(getApiErrorMessage(err, 'Не вдалося зареєструватися'), fields)
+}
+
+// Mirrors contract v2 normalization. The server remains authoritative for Unicode validation.
+export function normalizeRegistrationName(value: string): string {
+  return value.normalize('NFC').replace(/[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/gu, ' ').replace(/^ +| +$/g, '')
+}
+export function registrationNameError(value: unknown): string {
+  if (typeof value !== 'string') return 'Вкажіть ім’я.'
+  if (/[\p{Cc}\p{Cs}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)) return 'Ім’я містить недопустимі керувальні символи.'
+  const name = normalizeRegistrationName(value)
+  if (![...name].some(char => /[\p{L}\p{N}\p{P}\p{S}]/u.test(char) && !/[\u115f\u1160\u3164\uffa0]/u.test(char))) return 'Вкажіть ім’я.'
+  if ([...name].length > 150) return 'Ім’я має містити не більше 150 символів.'
+  return ''
+}
+
 export function getApiErrorMessage(err: unknown, fallback: string): string {
   const anyErr = err as any
   const detail = anyErr?.response?.data?.detail
@@ -113,18 +148,20 @@ export async function confirmPasswordReset(
 export async function signupTherapist(
   email: string,
   password: string,
-  passwordConfirm: string,
-  acquisition?: RegistrationAttributionPayload
+  passwordConfirm: string | undefined,
+  acquisition?: RegistrationAttributionPayload,
+  contract?: SpecialistRegistrationV2
 ): Promise<SignupResponse> {
   try {
     const resp = await http.post<SignupResponse>('/auth/signup/', {
       email,
       password,
-      password_confirm: passwordConfirm,
+      ...(contract ? { ...contract, ...(passwordConfirm !== undefined ? { password_confirm: passwordConfirm } : {}) } : { password_confirm: passwordConfirm }),
       ...(acquisition ? { acquisition } : {}),
     })
     return resp.data
   } catch (err: any) {
+    if (contract) throw registrationError(err)
     throw new Error(getApiErrorMessage(err, 'Не вдалося зареєструватися'))
   }
 }
@@ -132,10 +169,11 @@ export async function signupTherapist(
 export async function signupSpecialist(
   email: string,
   password: string,
-  passwordConfirm: string,
-  acquisition?: RegistrationAttributionPayload
+  passwordConfirm: string | undefined,
+  acquisition?: RegistrationAttributionPayload,
+  contract?: SpecialistRegistrationV2
 ): Promise<SignupResponse> {
-  return signupTherapist(email, password, passwordConfirm, acquisition)
+  return signupTherapist(email, password, passwordConfirm, acquisition, contract)
 }
 
 export async function fetchMe(accessToken: string) {
@@ -2989,16 +3027,18 @@ export async function sendInquiryMessage(threadId: number, body: string): Promis
 export async function signupClient(
   email: string,
   password: string,
-  passwordConfirm: string
+  passwordConfirm: string | undefined,
+  contract?: ClientRegistrationV2
 ): Promise<SignupResponse> {
   try {
     const resp = await http.post<SignupResponse>('/auth/signup-client/', {
       email,
       password,
-      password_confirm: passwordConfirm,
+      ...(contract ? { ...contract, ...(passwordConfirm !== undefined ? { password_confirm: passwordConfirm } : {}) } : { password_confirm: passwordConfirm }),
     })
     return resp.data
   } catch (err: any) {
+    if (contract) throw registrationError(err)
     throw new Error(getApiErrorMessage(err, 'Не вдалося зареєструватися'))
   }
 }

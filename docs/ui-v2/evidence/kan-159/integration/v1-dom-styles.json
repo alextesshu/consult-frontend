@@ -1,0 +1,142 @@
+[
+  {
+    "width": 375,
+    "route": "signup",
+    "label": "baseline",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "d297b5f301a1acd3e281a0351488399544cc684b6ce83e7cdff2522fd806b188"
+  },
+  {
+    "width": 375,
+    "route": "signup",
+    "label": "candidate",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "d297b5f301a1acd3e281a0351488399544cc684b6ce83e7cdff2522fd806b188"
+  },
+  {
+    "width": 375,
+    "route": "signup-client",
+    "label": "baseline",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "b1f387802b46d88bea6b393d5dc3c2d95ec0ec7bc12073c836b645dee83effdf"
+  },
+  {
+    "width": 375,
+    "route": "signup-client",
+    "label": "candidate",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "b1f387802b46d88bea6b393d5dc3c2d95ec0ec7bc12073c836b645dee83effdf"
+  },
+  {
+    "width": 390,
+    "route": "signup",
+    "label": "baseline",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "6ba72d0972a917a82886bd3e9762b1fbcde65a9a7fd631f037f7a934159f43fe"
+  },
+  {
+    "width": 390,
+    "route": "signup",
+    "label": "candidate",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "6ba72d0972a917a82886bd3e9762b1fbcde65a9a7fd631f037f7a934159f43fe"
+  },
+  {
+    "width": 390,
+    "route": "signup-client",
+    "label": "baseline",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "b0fac1316ad75b0024d189a765019f1e5b456d7ca360c02dfce84d274f93eada"
+  },
+  {
+    "width": 390,
+    "route": "signup-client",
+    "label": "candidate",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "b0fac1316ad75b0024d189a765019f1e5b456d7ca360c02dfce84d274f93eada"
+  },
+  {
+    "width": 640,
+    "route": "signup",
+    "label": "baseline",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "e5d5e68b5e1b70e1c8de7c57a01aa52af11c8728ce9e9c92d69f1a663fcdd351"
+  },
+  {
+    "width": 640,
+    "route": "signup",
+    "label": "candidate",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "e5d5e68b5e1b70e1c8de7c57a01aa52af11c8728ce9e9c92d69f1a663fcdd351"
+  },
+  {
+    "width": 640,
+    "route": "signup-client",
+    "label": "baseline",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "b5c8d339a4fe597cfefc385cb205386d46ef191583c2a1a372298d9a61261833"
+  },
+  {
+    "width": 640,
+    "route": "signup-client",
+    "label": "candidate",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "b5c8d339a4fe597cfefc385cb205386d46ef191583c2a1a372298d9a61261833"
+  },
+  {
+    "width": 768,
+    "route": "signup",
+    "label": "baseline",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "227cd384e581c221208267c0fe2c79b6a8dc96c766c184c3ebda6a4c8f56a4ff"
+  },
+  {
+    "width": 768,
+    "route": "signup",
+    "label": "candidate",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "227cd384e581c221208267c0fe2c79b6a8dc96c766c184c3ebda6a4c8f56a4ff"
+  },
+  {
+    "width": 768,
+    "route": "signup-client",
+    "label": "baseline",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "72682f8e942f52a1ab4f4f0f845a3ed68fbf721b16380fdbc1c86c2218e2c879"
+  },
+  {
+    "width": 768,
+    "route": "signup-client",
+    "label": "candidate",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "72682f8e942f52a1ab4f4f0f845a3ed68fbf721b16380fdbc1c86c2218e2c879"
+  },
+  {
+    "width": 1280,
+    "route": "signup",
+    "label": "baseline",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "a8ba0945545fa3b780344727a8b1d822da8bc05f27044bb231d3b2e11d0c8c89"
+  },
+  {
+    "width": 1280,
+    "route": "signup",
+    "label": "candidate",
+    "elements": 98,
+    "geometryAndComputedStylesSHA256": "a8ba0945545fa3b780344727a8b1d822da8bc05f27044bb231d3b2e11d0c8c89"
+  },
+  {
+    "width": 1280,
+    "route": "signup-client",
+    "label": "baseline",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "c1ca727d0872bf0a3661ae09dcf834749b233790eb3a511261cfe877b8db52d7"
+  },
+  {
+    "width": 1280,
+    "route": "signup-client",
+    "label": "candidate",
+    "elements": 92,
+    "geometryAndComputedStylesSHA256": "c1ca727d0872bf0a3661ae09dcf834749b233790eb3a511261cfe877b8db52d7"
+  }
+]

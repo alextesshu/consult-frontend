@@ -1,0 +1,157 @@
+[
+  {
+    "baseline": "baseline-signup-client-v1-1280.png",
+    "candidate": "candidate-signup-client-v1-1280.png",
+    "size": [
+      1280,
+      1100
+    ],
+    "changedPixels": 49,
+    "maxChannelDelta": 1,
+    "bbox": [
+      1224,
+      104,
+      1240,
+      364
+    ]
+  },
+  {
+    "baseline": "baseline-signup-client-v1-375.png",
+    "candidate": "candidate-signup-client-v1-375.png",
+    "size": [
+      375,
+      2108
+    ],
+    "changedPixels": 46,
+    "maxChannelDelta": 1,
+    "bbox": [
+      53,
+      407,
+      55,
+      584
+    ]
+  },
+  {
+    "baseline": "baseline-signup-client-v1-390.png",
+    "candidate": "candidate-signup-client-v1-390.png",
+    "size": [
+      390,
+      2074
+    ],
+    "changedPixels": 46,
+    "maxChannelDelta": 1,
+    "bbox": [
+      53,
+      407,
+      55,
+      584
+    ]
+  },
+  {
+    "baseline": "baseline-signup-client-v1-640.png",
+    "candidate": "candidate-signup-client-v1-640.png",
+    "size": [
+      640,
+      1836
+    ],
+    "changedPixels": 71,
+    "maxChannelDelta": 1,
+    "bbox": [
+      24,
+      296,
+      616,
+      1024
+    ]
+  },
+  {
+    "baseline": "baseline-signup-client-v1-768.png",
+    "candidate": "candidate-signup-client-v1-768.png",
+    "size": [
+      768,
+      1701
+    ],
+    "changedPixels": 54,
+    "maxChannelDelta": 1,
+    "bbox": [
+      53,
+      300,
+      55,
+      477
+    ]
+  },
+  {
+    "baseline": "baseline-signup-v1-1280.png",
+    "candidate": "candidate-signup-v1-1280.png",
+    "size": [
+      1280,
+      1273
+    ],
+    "changedPixels": 41,
+    "maxChannelDelta": 1,
+    "bbox": [
+      1224,
+      104,
+      1240,
+      410
+    ]
+  },
+  {
+    "baseline": "baseline-signup-v1-375.png",
+    "candidate": "candidate-signup-v1-375.png",
+    "size": [
+      375,
+      2489
+    ],
+    "changedPixels": 46,
+    "maxChannelDelta": 1,
+    "bbox": [
+      53,
+      467,
+      55,
+      644
+    ]
+  },
+  {
+    "baseline": "baseline-signup-v1-390.png",
+    "candidate": "candidate-signup-v1-390.png",
+    "size": [
+      390,
+      2415
+    ],
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+  },
+  {
+    "baseline": "baseline-signup-v1-640.png",
+    "candidate": "candidate-signup-v1-640.png",
+    "size": [
+      640,
+      2158
+    ],
+    "changedPixels": 97,
+    "maxChannelDelta": 2,
+    "bbox": [
+      24,
+      391,
+      616,
+      1243
+    ]
+  },
+  {
+    "baseline": "baseline-signup-v1-768.png",
+    "candidate": "candidate-signup-v1-768.png",
+    "size": [
+      768,
+      1987
+    ],
+    "changedPixels": 97,
+    "maxChannelDelta": 2,
+    "bbox": [
+      24,
+      395,
+      744,
+      1195
+    ]
+  }
+]

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
+import type { ClientRegistrationV2, SpecialistRegistrationV2 } from '../lib/api'
 import type {
   AccountIdentity,
   ActiveClientEntitlement,
@@ -133,7 +134,7 @@ export const useAuthStore = defineStore('auth', {
         this.authResolved = true
       }
     },
-    async signup(email: string, password: string, passwordConfirm: string) {
+    async signup(email: string, password: string, passwordConfirm: string | undefined, contract?: SpecialistRegistrationV2) {
       const epoch = this.beginAuthEpoch()
       this.loading = true
       this.error = ''
@@ -143,7 +144,8 @@ export const useAuthStore = defineStore('auth', {
           email,
           password,
           passwordConfirm,
-          getSpecialistRegistrationAttribution()
+          getSpecialistRegistrationAttribution(),
+          ...contract ? [contract] as const : []
         )
         clearSpecialistRegistrationAttribution()
         if (!this.isEpochActive(epoch)) return
@@ -162,13 +164,13 @@ export const useAuthStore = defineStore('auth', {
         this.authResolved = true
       }
     },
-    async signupClient(email: string, password: string, passwordConfirm: string) {
+    async signupClient(email: string, password: string, passwordConfirm: string | undefined, contract?: ClientRegistrationV2) {
       const epoch = this.beginAuthEpoch()
       this.loading = true
       this.error = ''
       this.clearAuthState()
       try {
-        const tokens = await signupClient(email, password, passwordConfirm)
+        const tokens = await signupClient(email, password, passwordConfirm, ...contract ? [contract] as const : [])
         if (!this.isEpochActive(epoch)) return
         this.setToken(tokens.access)
         const me = await fetchMe(tokens.access)

@@ -1,0 +1,39 @@
+> frontend@0.0.0 test:run
+> vitest run src/views/SignupView.spec.ts src/views/ClientSignupView.spec.ts src/components/RegistrationWizardV2.spec.ts src/styles/signupV2.spec.ts src/styles/registrationP6.spec.ts src/lib/api.registration.spec.ts src/stores/auth.spec.ts src/views/LoginView.spec.ts src/views/LoginView.v2.spec.ts src/__tests__/app.spec.ts src/styles/publicMobileV2.spec.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 C:/Users/admin/dev/portfolio/consult/_ui_v2_stage1_3b_frontend
+
+npm : stderr | src/__tests__/app.spec.ts > App shell > allows guests to open /specialists without redirect to signup-cl
+ient
+At line:2 char:257
++ ... | Out-Null; npm run test:run -- src/views/SignupView.spec.ts src/view ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/__...o signup-client:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+Error: Not implemented: window.scrollTo
+    at module.exports (C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\not-implement
+ed.js:9:17)
+    at C:\Users\admin\dev\portfolio\consult\frontend\node_modules\jsdom\lib\jsdom\browser\Window.js:962:7
+    at scrollToPosition (file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/devtools-EW
+N81iOl.mjs:434:65)
+    at file:///C:/Users/admin/dev/portfolio/consult/frontend/node_modules/vue-router/dist/vue-router.mjs:1469:105
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) undefined
+
+ ✓ src/__tests__/app.spec.ts (83 tests) 2415ms
+ ✓ src/views/SignupView.spec.ts (27 tests) 1012ms
+ ✓ src/stores/auth.spec.ts (15 tests) 61ms
+ ✓ src/views/ClientSignupView.spec.ts (18 tests) 482ms
+ ✓ src/styles/signupV2.spec.ts (8 tests) 52ms
+ ✓ src/styles/publicMobileV2.spec.ts (9 tests) 57ms
+ ✓ src/views/LoginView.v2.spec.ts (6 tests) 367ms
+ ✓ src/views/LoginView.spec.ts (7 tests) 221ms
+ ✓ src/components/RegistrationWizardV2.spec.ts (4 tests) 304ms
+ ✓ src/lib/api.registration.spec.ts (68 tests) 15ms
+ ✓ src/styles/registrationP6.spec.ts (1 test) 7ms
+
+ Test Files  11 passed (11)
+      Tests  246 passed (246)
+   Start at  13:27:20
+   Duration  21.72s (transform 4.23s, setup 817ms, collect 7.58s, tests 4.99s, environment 5.75s, prepare 967ms)

@@ -384,3 +384,33 @@ describe('auth store cookie-based flow', () => {
     expect(productAnalytics.reset).toHaveBeenCalledOnce()
   })
 })
+
+
+describe('registration v2 store integration', () => {
+  beforeEach(() => { setActivePinia(createPinia()); vi.clearAllMocks() })
+  it('forwards specialist v2 plus attribution and preserves token/me/analytics sequence', async () => {
+    const acquisition = { utm_source: 'fixture', first_landing_path: '/' }
+    const contract = { registration_contract_version: 2 as const, first_name: 'Олена', professional_focus: 'other' as const }
+    mockedGetSpecialistRegistrationAttribution.mockReturnValue(acquisition)
+    mockedSignupSpecialist.mockResolvedValueOnce({ access: 'v2-access', user: { id: 1, username: 's', email: 's@example.test' } })
+    mockedFetchMe.mockResolvedValueOnce({ user: { id: 1, username: 's', roles: ['SPECIALIST'], email_verification_state: 'unverified' } })
+    const auth = useAuthStore()
+    await auth.signup('s@example.test', 'password123', undefined, contract)
+    expect(mockedSignupSpecialist).toHaveBeenCalledWith('s@example.test', 'password123', undefined, acquisition, contract)
+    expect(auth.accessToken).toBe('v2-access')
+    expect(auth.me?.user.email_verification_state).toBe('unverified')
+    expect(mockedClearSpecialistRegistrationAttribution).toHaveBeenCalledTimes(1)
+    expect(productAnalytics.capture).toHaveBeenCalledWith('signup_completed')
+  })
+  it('forwards client v2 without specialist activation or analytics', async () => {
+    const contract = { registration_contract_version: 2 as const, first_name: 'Олена' }
+    mockedSignupClient.mockResolvedValueOnce({ access: 'v2-access', user: { id: 2, username: 'c', email: 'c@example.test' } })
+    mockedFetchMe.mockResolvedValueOnce({ user: { id: 2, username: 'c', roles: ['CLIENT'] } })
+    const auth = useAuthStore()
+    await auth.signupClient('c@example.test', 'password123', undefined, contract)
+    expect(mockedSignupClient).toHaveBeenCalledWith('c@example.test', 'password123', undefined, contract)
+    expect(auth.user?.roles).toEqual(['CLIENT'])
+    expect(productAnalytics.capture).not.toHaveBeenCalled()
+    expect(mockedClearSpecialistRegistrationAttribution).not.toHaveBeenCalled()
+  })
+})
